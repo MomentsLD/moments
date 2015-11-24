@@ -14,9 +14,9 @@ import math
 #-------------
 u=0.000001
 N=10000
-n=1000
-Tmax=5000000
-dt=50
+n=50
+Tmax=100000
+dt=10
 #-------------
 
 #------------
@@ -74,7 +74,6 @@ while t<Tmax:
     t=t+dt
 
 print(v)
-plt.plot(range(1,n),v)
 plt.plot(range(1,n),v)
 plt.show()
 
