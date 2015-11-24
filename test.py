@@ -22,12 +22,12 @@ h = 1
 # mutation rate
 u = 1/(4*N) # same as in dadi default
 # population sample size
-n = 50
+n = 100
 # simulation final time (number of generations)
-tp = 11 # same as in dadi
+tp = 10 # same as in dadi
 Tmax = tp*2*N
 # time step for the integration
-dt = 100
+dt = 1000
 #-------------
 
 #------------
@@ -70,8 +70,8 @@ def calcM(A):
     return M
 
 # Steady state
-def solstat(A, B):
-    return -4*N*np.dot(np.linalg.inv(A), B)
+def solstat(A, B, S1, S2):
+    return -np.dot(np.linalg.inv(1/(4*N)*A+S1+S2), B)
 
 
 # Compute the order 2 Jackknife extrapolation coefficients for 1 jump (phi_n -> phi_(n+1))
@@ -103,8 +103,12 @@ def calcS2(n):
         S[i, i+2] = -s*(1-2*h)*(i+2)/(n+1)/(n+2)*(n-i-1)*(i+3)
     return S
 #------------
-# Initialisation
-v = np.zeros(n-1)
+
+# initial size of the total population
+N0 = popsize(0, arrT, arrN)
+
+# Mutation source term (initial)
+B = calcB(n,N0)
 
 # Matrix for the drift part
 A = calcA(n)
@@ -114,39 +118,35 @@ J = calcJK1(n)
 S = calcS1(n)
 Sbis = np.dot(S, J)
 
-# Matrix for the part h!=0.5, JK n->n+2
+# Matrix for the part h!=0.5, JK n->n+1->n+2
 S2 = calcS2(n)
 J2 = np.dot(calcJK1(n+1),J)
 Sbis2 = np.dot(S2, J2)
 
-# initial size of the total population
-N0 = popsize(0, arrT, arrN)
-
-# Mutation source term (initial)
-B = calcB(n,N0)
+# Initialisation
+v = np.zeros(n-1)
+#v = solstat(A, B, Sbis, Sbis2)
 
 # We compute the total linear system matrix (initial)
 Q = np.eye(n-1)-dt*(1/(4*N0)*A+Sbis+Sbis2)
 M = np.linalg.inv(Q)
 
-# We keep in memory N at the previous time to avoid useless computations
-Nold = N0
-N = N0
 # Time loop to solve the system
 t = 0.0
 while t < Tmax:
+    '''N = 10000#popsize(t, arrT, arrN)
+    B = calcB(n,N)
+    v += dt*B+dt*np.dot(1/(4*N)*A+Sbis+Sbis2,v)# Explicit Euler'''
+
     N = popsize(t, arrT, arrN)
-    if N != Nold:
-        # We recompute the matrices depending on N
-        B = calcB(n,N)
-        Q = np.eye(n-1)-dt*(1/(4*N)*A+Sbis+Sbis2)
-        M = np.linalg.inv(Q)
+    B = calcB(n,N)
+    Q = np.eye(n-1)-dt*(1/(4*N)*A+Sbis+Sbis2)
+    M = np.linalg.inv(Q)
     # Implicit Euler scheme
     v = np.dot(M, (v+dt*B))
     t += dt
-    Nold=N
 
-#print(v)
+print(v)
 
 '''dadi = np.array([1.0379895381487605, 0.5386025736421945, 0.3725457500391616,
                  0.28981881710591567, 0.24042058645857584, 0.2076831597117348,
@@ -170,12 +170,9 @@ X = np.arange(1,n)
 X2 = np.arange(1,n+2)
 #plt.plot(X, abs(dadi/dadi[0]-v/v[0])*dadi[0]/dadi, 'r')
 plt.plot(X, 1/X, 'g')
+plt.plot(X, ss/ss[0])
 #plt.plot(X, dadi/dadi[0])
 plt.plot(X, v/v[0], 'r')
-#plt.plot(X, STS/STS[0])
-#plt.plot(X2, 1/X2)
-#X3 = np.dot(J2, 1/X)
-#plt.plot(X2, X3)
 
 plt.show()
 
