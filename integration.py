@@ -81,7 +81,7 @@ initialize = steady_state
 # h : allele dominance
 
 # for a constant N
-def integrate_N_cst(sfs0, N, n, tf, dt, gamma=1, u=1, h=0.5):
+def integrate_N_cst(sfs0, N, n, tf, dt, gamma=0, u=1, h=0.5):
     # parameters of the equation
     s = gamma/N
     Tmax = tf*2*N
@@ -105,7 +105,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma=1, u=1, h=0.5):
 # for a "lambda" definition of N
 # fctN is the name of a "lambda" fuction giving N = fctN(t)
 # where t is the relative time in generations such as t = 0 initially
-def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=1, u=1, h=0.5):
+def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=0, u=1, h=0.5):
     # parameters of the equation
     N0 = fctN(0)
     s = gamma/N0
