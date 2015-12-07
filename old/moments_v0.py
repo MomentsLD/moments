@@ -13,10 +13,10 @@ import math
 # Parameters :
 #-------------
 u=0.000001
-N=10000
-n=50
-Tmax=100000
-dt=10
+N=20000
+n=5
+Tmax=100
+dt=100
 #-------------
 
 #------------
@@ -37,12 +37,8 @@ def calcA(n):
 def calcB(n):
     B=np.zeros(n-1)
     for i in range(0,n-1):
-        '''if (i>30): # avoid numerical difficulties
-            B[i]=0.0
-        else:
-            B[i]=u*misc.comb(n,i)*1/(2*N)**(i-1)*(1-1/(2*N))**(n-i)'''
-        B[i]=u*10**(math.log(misc.comb(n,i),10)-(i-1)*math.log(2.0*N,10)+(n-i)*math.log(1-1/(2*N),10))
-    
+    #B[i]=u*10**(math.log(misc.comb(n,i),10)-(i-1)*math.log(2.0*N,10)+(n-i)*math.log(1-1/(2*N),10))
+        B[i]=u*10**(math.log(misc.comb(n,i+1),10)-i*math.log(2.0*N,10)+(n-i-1)*math.log(1-1/(2*N),10))
     return B
 
 # Compute the linear system matrix M=(I-dt/(4N)*A)**(-1)
@@ -62,7 +58,9 @@ v=np.random.rand(n-1)
 A=calcA(n)
 B=calcB(n)
 M=calcM(A)
-print("Steady state : ",solstat(A,B))
+
+sts = solstat(A,B)
+#print("Steady state : ",sts)
 #plt.plot(range(1,n),v)
 #plt.show()
 
@@ -73,8 +71,15 @@ while t<Tmax:
     v=np.dot(M,(v+dt*B))
     t=t+dt
 
-print(v)
-plt.plot(range(1,n),v)
+print(n/(4*N))
+
+#sts[1:]=sts[1:]/(1+5e-5*n)
+X=np.arange(1,n)
+#plt.plot(X,v/v[0])
+#plt.plot(X,sts/sts[0])
+#plt.plot(X,1/X,'r')
+plt.plot(X, abs(sts/sts[0]-1/X)*X, 'r')
+#plt.yscale('log')
 plt.show()
 
 
