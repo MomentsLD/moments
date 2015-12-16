@@ -13,9 +13,9 @@ import math
 # Parameters :
 #-------------
 u=0.000001
-N=20000
-n=5
-Tmax=100
+N=1000000000
+n=50
+Tmax=1000000
 dt=100
 #-------------
 
@@ -33,6 +33,7 @@ def calcA(n):
         if (i>0):
             A[i,i-1]=(n-(i+1)+1)*i
     return A
+
 # Compute the vector B
 def calcB(n):
     B=np.zeros(n-1)
@@ -55,14 +56,18 @@ def solstat(A,B):
 
 # Initialisation
 v=np.random.rand(n-1)
+#X=np.arange(1,n)
+#v=1/X
 A=calcA(n)
 B=calcB(n)
-M=calcM(A)
+B[0]+=n/4/N
 
+M=calcM(A)
 sts = solstat(A,B)
-#print("Steady state : ",sts)
-#plt.plot(range(1,n),v)
-#plt.show()
+#dt0 = np.dot(A,v)/4/N+B
+#print(dt0)
+#print(-n/4/N)
+
 
 # Time loop to solve the system dV/dt=B+1/(4N)*AV
 t=0.0
@@ -71,14 +76,17 @@ while t<Tmax:
     v=np.dot(M,(v+dt*B))
     t=t+dt
 
-print(n/(4*N))
+#print(n*u)
+#print(n/(4*N))
 
 #sts[1:]=sts[1:]/(1+5e-5*n)
 X=np.arange(1,n)
-#plt.plot(X,v/v[0])
-#plt.plot(X,sts/sts[0])
+#plt.plot(X,v)
+#plt.plot(X,sts)
 #plt.plot(X,1/X,'r')
 plt.plot(X, abs(sts/sts[0]-1/X)*X, 'r')
+#plt.plot(X, abs(v/v[0]-1/X)*X, 'r')
+#plt.plot(X, abs(v-sts)/sts, 'r')
 #plt.yscale('log')
 plt.show()
 

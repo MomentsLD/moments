@@ -140,7 +140,7 @@ The delta term contributes
 $$u {n\choose i}  \frac{1}{2N}^{i-1} \left(1-\frac{1}{2N}\right)^{n-i}.$$ This is very small for anyone who is not the zerotons and the 1-tons. 
 
 The second derivative contributes 
-$$\frac{1}{4 N} \left(\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t)   \right)+\int \pd{w_i}{x} x (1-x) \phi(x,t).$$
+$$\frac{1}{4 N} \left(\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t) +\int \pd{w_i}{x} x (1-x) \phi(x,t)\right).$$
 
 The boundary terms tell us the rate of fixation of alleles. We'd like to avoid computing the actual values of $\phi(0,t)$. 
 
@@ -154,9 +154,10 @@ The boundary terms tell us the rate of fixation of alleles. We'd like to avoid c
 The second derivative contributes 
 \begin{equation}
 \begin{split}
-\frac{1}{4 N} \left(\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t)   \right)\\
+\frac{1}{4 N} (\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t) \\
 +(i-1)(n-i+1) \Phi_s (i-1) \delta_{i\geq 2}\\
--2 i(n-i) \Phi_s(i) \delta_{1\leq i \leq n-1}  \\ + (n-i-1)(i+1) \Phi_s(i+1)  \delta_{i\leq n-2}  
+-2 i(n-i) \Phi_s(i) \delta_{1\leq i \leq n-1}  \\ 
++ (n-i-1)(i+1) \Phi_s(i+1)  \delta_{i\leq n-2} )
 \end{split}
 \end{equation}
 where $\Phi_s$ represent the "unfixed" sites. Conveniently, fixed sites contribute only to $\Phi_0$ and $\Phi_n$, so that evolution equations can be written in terms of the $\Phi_i(n)$ with $1\leq i\leq n$ only. These are ver simple expressions! For $\dot \Phi_n(1)$, we get
@@ -176,7 +177,7 @@ The equations and ideas are most easily expressed in terms of the $\mu_k$, but w
  
  Once again the boundary terms vanish for $1\leq i \leq n-1$, and we get  
 
- $$s \int {n \choose i} \left(i (1-x) + (n-i) x\right)    x^{i} (1-x)^{n-i}  \left(h+(1-2h)x \right) \phi(x,t). $$
+ $$s \int {n \choose i} \left(i (1-x) - (n-i) x\right)    x^{i} (1-x)^{n-i}  \left(h+(1-2h)x \right) \phi(x,t). $$
 To see the magic, use $\left(h+(1-2h)x \right) = h (1-x) + (1-h) x$. Now all terms will be homogeneous in powers of $x, (1-x)$, and we can write everything in terms of frequency spectrum terms in a sample of size $n + 2$. Note that for $h = 1/2,$ the term  $h (1-x) + (1-h) x$ reduces to $1/2$, and therefore we have terms that are homogeneous of order $n+1$ rather than $n+2$. Here again, we only have a small number of terms. 
 
 We are now left with a minor conundrum: drift contributions are expressed in terms of $\Phi_n$, selection contributions in terms of the $\Phi_{n+2},$ or at least of the $\Phi_{n+1}.$ It's easy to convert the $\Phi_n$ terms in higher-order terms: we simply need to multiply in the integral by $1= x + (1-x).$. However, we do not know the terms of order  $\Phi_{n+2},$ and calculating them would require higher order terms. How do we break the cycle? 
@@ -250,7 +251,7 @@ Considerations for the expansion to multiple dimensions.
 
 For the mutations, we can simply add the following to the diffusion equation:
 
-$$\sum_i 2 N_i \frac{\delta(x_i-2 N_i)}{\delta(x_i)} \prod_j \delta(x_j)$$.
+$$\sum_i 2 N_i \delta(x_i-\frac{1}{2 N_i})\prod_{j\ne i} \delta(x_j)$$.
 
 
 Now our statistics are 
@@ -260,9 +261,6 @@ In the diffusion equation, the moment equation for $\Phi^{\mathbf{n}}_{\mathbf{i
 
 
 
-
-
-  
 
 
 \section{A nonlinear extension}
