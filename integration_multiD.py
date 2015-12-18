@@ -46,14 +46,16 @@ def calcB(u, dims):
         ind[k] = int(1)
         #ind = np.ones(len(dims), dtype='int')
         tp = tuple(ind)
-        B[tp] = dims[k]
+        B[tp] = dims[k]-1
     return u*B
 
 # We compute the  matrices for drift
 # this function returns a list of matrices corresponding to each population
+# dims -> array containing the dimensions of the problem dims[j] = nj+1
 def calcD(dims):
     # number of freedom degrees
-    d = np.prod(dims)
+    d = int(np.prod(dims))
+    print(d)
     res = []
     for j in range(len(dims)):
         matd = np.zeros((d,d))
@@ -68,11 +70,11 @@ def calcD(dims):
             # notice that "index[j] = ij"
             #print(index)
             if (index[j]>1):
-                matd[i,index_1D(index-ind, dims)] = (index[j]-1)*(dims[j]-index[j]+1)
+                matd[i,index_1D(index-ind, dims)] = (index[j]-1)*(dims[j]-index[j])
             if (index[j]<dims[j]-2):
-                matd[i,index_1D(index+ind, dims)] = (index[j]+1)*(dims[j]-index[j]-1)
+                matd[i,index_1D(index+ind, dims)] = (index[j]+1)*(dims[j]-index[j]-2)
             if (index[j]>0) and (index[j]<dims[j]-1):
-                matd[i,i] = -2*index[j]*(dims[j]-index[j])
+                matd[i,i] = -2*index[j]*(dims[j]-index[j]-1)
         res.append(matd)
     return res
 
