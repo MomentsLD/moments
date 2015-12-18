@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.misc as misc
 import math
 
 import jackknife as jk
@@ -22,7 +21,7 @@ import jackknife as jk
 # Matrices and vectors for the linear system
 #-------------------------------------------
 # Compute the vector B (mutation source term)
-def calcB(u, n, N):
+def calcB(u, n):
     B = np.zeros(n-1)
     B[0] = u*n
     return B
@@ -83,7 +82,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     dt = dt*2.0*N
     u = theta/(4.0*N)
     # we compute the matrices we will need
-    B = calcB(u, n, N)
+    B = calcB(u, n)
     D = calcD(n)
     J = jk.calcJK13(n) # using the order 3 jackknife approximation
     J2 = np.dot(jk.calcJK13(n+1),J)
@@ -117,12 +116,11 @@ def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     J2 = np.dot(jk.calcJK13(n+1),J)
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
-
+    B = calcB(u, n)
     # time loop:
     sfs = sfs0
     t = 0.0
     while t < Tmax:
-        B = calcB(u, n, fctN(t))
         Q = np.eye(n-1)-dt*(1.0/(4*fctN(t))*D+S1+S2)
         # Backward Euler scheme
         sfs = np.linalg.solve(Q,sfs+dt*B)
@@ -147,51 +145,17 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     J2 = np.dot(jk.calcJK13(n+1),J)
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
-
+    B = calcB(u, n)
     # time loop:
     sfs = sfs0
     t = 0.0
     while t < Tmax:
-        B = calcB(u, n, fctN(t))
         Q1 = np.eye(n-1)-dt/2*(1.0/(4*fctN(t))*D+S1+S2)
         Q2 = np.eye(n-1)+dt/2*(1.0/(4*fctN(t))*D+S1+S2)
         # Crank Nicholson
         sfs = np.linalg.solve(Q1,np.dot(Q2,sfs)+dt*B)
         t += dt
     return sfs
-
-# for a "lambda" definition of N - with 4th order RK schemme
-# fctN is the name of a "lambda" fuction giving N = fctN(t)
-# where t is the relative time in generations such as t = 0 initially
-def integrate_N_lambda_RK4(sfs0, fctN, n, tf, dt, gamma=0, theta=1, h=0.5):
-    # parameters of the equation
-    N0 = fctN(0)
-    s = gamma/N0
-    Tmax = tf*2.0*N0
-    dt = dt*2.0*N0
-    u = theta/(4.0*N0)
-    # we compute the matrices we will need
-    D = calcD(n)
-    J = jk.calcJK13(n) # using the order 3 jackknife approximation
-    J2 = np.dot(jk.calcJK13(n+1),J)
-    S1 = np.dot(calcS1(s, h , n), J)
-    S2 = np.dot(calcS2(s, h , n), J2)
-
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    while t < Tmax:
-        B = calcB(u, n, fctN(t))
-        A = 1.0/(4*fctN(t))*D+S1+S2
-        # Runge Kutta 4
-        k1 = np.dot(A,sfs)+B
-        k2 = np.dot(A,sfs+dt/2*k1)+B
-        k3 = np.dot(A,sfs+dt/2*k2)+B
-        k4 = np.dot(A,sfs+dt*k3)+B
-        sfs += dt/6.0*(k1+2*k2+2*k3+k4)
-        t += dt
-    return sfs
-
 
 # for a "lambda" definition of N - with Crank Nicholson integration scheme
 # and the iterative order 2 discrete Jackknife
@@ -207,7 +171,7 @@ def integrate_CN_itJK(fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     u = theta/(4.0*N0)
     # we compute the matrices we will need
     D = calcD(n)
-    B = calcB(u, n, N0)
+    B = calcB(u, n)
     S1 = calcS1(s, h , n)
     S2 = calcS2(s, h , n)
     # initial basis vectors for the JK
@@ -241,7 +205,6 @@ def integrate_CN_itJK(fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
             cptr = 1
         else: cptr += 1
         
-        B = calcB(u, n, fctN(t))
         Q1 = np.eye(n-1)-dt/2.0*(1.0/(4*fctN(t))*D+S1bis+S2bis)
         Q2 = np.eye(n-1)+dt/2.0*(1.0/(4*fctN(t))*D+S1bis+S2bis)
         # Crank Nicholson

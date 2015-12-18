@@ -5,6 +5,7 @@ import numpy as np
 import math
 import scipy.interpolate
 import time
+#import seaborn
 
 import dadi
 
@@ -21,7 +22,7 @@ import jackknife as jk
 # total population size
 N = 1
 # selection
-gamma = 2 # same as in dadi
+gamma = 0 # same as in dadi
 s = gamma/N
 # dominance
 h = 0.5
@@ -36,10 +37,12 @@ dt = 0.01*tp
 #-------------
 # Our code   :
 #-------------
+f = lambda x: N
 v = np.zeros(n-1)
 #v2 = np.random.rand(n-1)
 start_time = time.time()
-v = it.integrate_N_cst(v, N, n, tp, dt, theta=theta, h=h, gamma=gamma)
+v = it.integrate_N_lambda(v, f, n, tp, dt, theta=theta, h=h, gamma=gamma)
+#v = it.integrate_N_cst(v, N, n, tp, dt, theta=theta, h=h, gamma=gamma)
 interval = time.time() - start_time
 print('Total time our code:', interval)
 #---------
@@ -54,7 +57,7 @@ def model((nu, t), (n1, ), pts):
     return sfs
 
 start_time = time.time()
-fs = model((1, tp), (n, ), 150)
+fs = model((1, tp), (n, ), 900)
 interval = time.time() - start_time
 print('Total time dadi:', interval)
 # define the plotting environment
@@ -68,6 +71,9 @@ X = np.arange(1,n)
 fig1.plot(X, fs[1:n], 'r')
 fig1.plot(X, v, 'g')
 
+print((v[50]-fs[51])/fs[51])
+#fig2.plot(X, abs(fs[1:n]-1.0/X)*X, 'r')
+#fig2.plot(X, abs(v-1.0/X)*X, 'g')
 fig2.plot(X, abs(v-fs[1:n])/fs[1:n], 'r')
 fig2.set_yscale('log')
 #plt.xlabel("frequency in the popuation")
