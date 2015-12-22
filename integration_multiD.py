@@ -1,6 +1,8 @@
 import numpy as np
 import math
 
+import jackknife as jk
+
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -55,37 +57,108 @@ def calcB(u, dims):
 def calcD(dims):
     # number of freedom degrees
     d = int(np.prod(dims))
-    print(d)
+    # we consider separately the contributions of each dimension
     res = []
     for j in range(len(dims)):
         matd = np.zeros((d,d))
-        # creating the ej tuple
+        # creating the ej vector
         ind = np.zeros(len(dims), dtype='int')
         ind[j] = int(1)
-        #e = tuple(ind)
         # loop over the fs elements:
         for i in range(0,d):
             # for each element of our nD fs (stored in a vector), we compute its nD index (position in the nD matrix figuring the fs)
             index = index_nD(i, dims)
             # notice that "index[j] = ij"
-            #print(index)
             if (index[j]>1):
                 matd[i,index_1D(index-ind, dims)] = (index[j]-1)*(dims[j]-index[j])
             if (index[j]<dims[j]-2):
                 matd[i,index_1D(index+ind, dims)] = (index[j]+1)*(dims[j]-index[j]-2)
-            if (index[j]>0) and (index[j]<dims[j]-1):
-                matd[i,i] = -2*index[j]*(dims[j]-index[j]-1)
+            matd[i,i] = -2*index[j]*(dims[j]-index[j]-1)
         res.append(matd)
     return res
 
 # Selection
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
+# this function includes JK2 for higher order terms estimation
 def calcS(dims, s, h):
-    # we consider separately the contributions of each dimension
+    d = int(np.prod(dims))
     res = []
     for j in range(len(dims)):
-        mats = np.zeros((1,1))
-        res.append(mats)
+        mats = np.zeros((d,d))
+        ind = np.zeros(len(dims), dtype='int')
+        ind[j] = int(1)
+        for i in range(0,d):
+            index = index_nD(i, dims)
+            g1 = index[j]*(dims[j]-index[j])
+            g2 = (index[j]+1)*(dims[j]-1-index[j])
+            mats[i,i] = g1*dims[j]*(2-index[j]+dims[j]-1)/(1+dims[j])/(2+dims[j])-g2*(2+index[j])*dims[j]/(1+dims[j])/(2+dims[j])
+            if (index[j]>1):
+                mats[i,index_1D(index-ind, dims)] = g1*(1+index[j])*dims[j]/(1+dims[j])/(2+dims[j])
+            if (index[j]<dims[j]-2):
+                mats[i,index_1D(index+ind, dims)] = -g2*(1-index[j]+dims[j]-1)*dims[j]/(1+dims[j])/(2+dims[j])
+        res.append(s[j]*h[j]/(dims[j])*mats)
     return res
+
+
+# function that calls directly the jk methods
+def calcS2(dims, s, h):
+    # we precompute the JK2 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK12(int(dims[i]-1)))
+    ljk2 = [] # for h = 1/2
+    for i in range(len(dims)):
+        ljk2.append(np.dot(jk.calcJK12(int(dims[i])),ljk[i]))
+    
+    d = int(np.prod(dims))
+    S = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        for j in range(len(dims)):
+            ind = np.zeros(len(dims), dtype='int')
+            ind[j] = int(1)
+            g1 = s[j]*h[j]/(dims[j])*index[j]*(dims[j]-index[j])
+            g2 = s[j]*h[j]/(dims[j])*(index[j]+1)*(dims[j]-1-index[j])
+            if (index[j]>1) and (index[j]<dims[j]-2):
+                S[i,i] += g1*ljk[j][index[j]-1,index[j]-1]-g2*ljk[j][index[j],index[j]-1]
+                S[i,index_1D(index-ind, dims)] += g1*ljk[j][index[j]-1,index[j]-2]
+                S[i,index_1D(index+ind, dims)] -= g2*ljk[j][index[j],index[j]]
+            
+            if index[j]==1:
+                S[i,i] += g1*ljk[j][0,0]-g2*ljk[j][1,0]
+                S[i,index_1D(index+ind, dims)] += g1*ljk[j][0,1]-g2*ljk[j][1,1]
+                    
+            if index[j]==dims[j]-2:
+                S[i,i] += g1*ljk[j][dims[j]-3,dims[j]-3]-g2*ljk[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk[j][dims[j]-3,dims[j]-4]-g2*ljk[j][dims[j]-2,dims[j]-4]
+
+            if index[j]==0: # g1=0
+                S[i,index_1D(index+ind, dims)] -= g2*ljk[j][0,0]
+                S[i,index_1D(index+2*ind, dims)] -= g2*ljk[j][0,1]
+
+            if index[j]==dims[j]-1: # g2=0
+                S[i,index_1D(index-ind, dims)] += g1*ljk[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-2*ind, dims)] += g1*ljk[j][dims[j]-2,dims[j]-4]
+
+    return S
+
+# Migration
+# m -> upper triangle matrix, m[i,j] = migration rate from pop i to pop j
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

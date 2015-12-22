@@ -3,53 +3,68 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+import jackknife as jk
 import integration_multiD as itd
 
 Npop = np.array([10000, 10000])
 n1 = 5
 n2 = 5
-dims = np.array([n1+1, n2+1])
-d = np.prod(dims)
+nsample = np.array([n1, n2])
+dims = nsample + np.ones(len(nsample))
+d = int(np.prod(dims))
+u = 1/2.0/Npop[0]
 
-Tmax = 100000
+Tmax = 1000000
 dt = 0.01*Tmax
 # initialization
 v = np.zeros([dims[0],dims[1]])
 
 # matrice for mutations
-B = itd.calcB(1/4/Npop[0], dims)
+B = itd.calcB(u, dims)
 #print(B)
-vd = itd.calcD(dims)
+
 # matrice for drift
-D = 1/4/Npop[0]*vd[0]
+vd = itd.calcD(dims)
+D = 1/4.0/Npop[0]*vd[0]
 for i in range(1, len(Npop)):
-    D = D + 1/4/Npop[i]*vd[i]
-#print(D)
-ii = itd.index_1D([1,1], dims)
-print(D[d-1,:])
-print(D[:,d-1])
-ii1 = itd.index_1D([0,1], dims)
-ii2 = itd.index_1D([1,0], dims)
-#print(ii1, ii2)
-Q = np.eye(d)-dt*D
+    D = D + 1/4.0/Npop[i]*vd[i]
+
+'''for i in range(d):
+#print(D[:,i])
+    print(itd.index_nD(i,dims),", ",sum(D[:,i]))
+    if sum(D[:,i]) != 0: print(D[:,i])'''
+
+
+# matrice for selection
+s = -1/4.0/Npop[0]*np.ones(2)
+h = 1/2.0*np.ones(2)
+
+S2 = itd.calcS2(dims, s, h)
+'''for i in range(d):
+    print(i," : ",sum(S2[:,i]))'''
+
+#Q = np.eye(d)-dt*D
+Q = np.eye(d)-dt*(D+S2)
 M = np.linalg.inv(Q)
 # time loop
 t=0.0
 # all in 1D for the time integration...
 v1 = v.reshape(d)
 B1 = B.reshape(d)
-
+J = jk.calcJK12(n1)
+#print(J)
+totmut = 0
 while t<Tmax:
     v1 = np.dot(M,(v1+dt*B1))
     t += dt
+    totmut += dt*sum(B1)
+print("somme sur v1 : ",sum(v1))
+print("mutations totales",totmut)
 v2 = np.array([round(x,2) for x in v1])
 v = v2.reshape(dims)
 print(v)
-print((n1-1)/4/Npop[0])
-'''v[0,0] = 0
-v[0,n2] = 0
-v[n1,0] = 0
-v[n1,n2] = 0
+
+'''
 nrows, ncols = n1+1, n2+1
 plt.imshow(v)#,interpolation='nearest', cmap=cm.gist_rainbow)
 plt.show()'''
