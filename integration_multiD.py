@@ -82,34 +82,10 @@ def calcD(dims):
 # h -> [h1, h2, ..., hp]
 # this function includes JK2 for higher order terms estimation
 def calcS(dims, s, h):
-    d = int(np.prod(dims))
-    res = []
-    for j in range(len(dims)):
-        mats = np.zeros((d,d))
-        ind = np.zeros(len(dims), dtype='int')
-        ind[j] = int(1)
-        for i in range(0,d):
-            index = index_nD(i, dims)
-            g1 = index[j]*(dims[j]-index[j])
-            g2 = (index[j]+1)*(dims[j]-1-index[j])
-            mats[i,i] = g1*dims[j]*(2-index[j]+dims[j]-1)/(1+dims[j])/(2+dims[j])-g2*(2+index[j])*dims[j]/(1+dims[j])/(2+dims[j])
-            if (index[j]>1):
-                mats[i,index_1D(index-ind, dims)] = g1*(1+index[j])*dims[j]/(1+dims[j])/(2+dims[j])
-            if (index[j]<dims[j]-2):
-                mats[i,index_1D(index+ind, dims)] = -g2*(1-index[j]+dims[j]-1)*dims[j]/(1+dims[j])/(2+dims[j])
-        res.append(s[j]*h[j]/(dims[j])*mats)
-    return res
-
-
-# function that calls directly the jk methods
-def calcS2(dims, s, h):
     # we precompute the JK2 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK12(int(dims[i]-1)))
-    ljk2 = [] # for h = 1/2
-    for i in range(len(dims)):
-        ljk2.append(np.dot(jk.calcJK12(int(dims[i])),ljk[i]))
     
     d = int(np.prod(dims))
     S = np.zeros((d,d))
@@ -144,9 +120,123 @@ def calcS2(dims, s, h):
 
     return S
 
-# Migration
-# m -> upper triangle matrix, m[i,j] = migration rate from pop i to pop j
+# s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
+# h -> [h1, h2, ..., hp]
+# this function includes JK2 for higher order terms estimation
+def calcS2(dims, s, h):
+    # we precompute the JK2 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK12(int(dims[i]-1)))
+    ljk2 = [] # for h = 1/2
+    for i in range(len(dims)):
+        ljk2.append(np.dot(jk.calcJK12(int(dims[i])),ljk[i]))
 
+    d = int(np.prod(dims))
+    S = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        for j in range(len(dims)):
+            ind = np.zeros(len(dims), dtype='int')
+            ind[j] = int(1)
+            g1 = s[j]*(1-2*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
+            g2 = s[j]*(1-2*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+1)*(dims[j]-1-index[j])
+            '''if (index[j]>1) and (index[j]<dims[j]-2):
+                S[i,i] += g1*ljk2[j][index[j]-1,index[j]-1]-g2*ljk2[2j][index[j],index[j]-1]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][index[j]-1,index[j]-2]
+                S[i,index_1D(index+ind, dims)] -= g2*ljk2[j][index[j],index[j]]'''
+            
+            if index[j]==0: # g1=0
+                S[i,index_1D(index+ind, dims)] -= g2*ljk2[j][1,0]
+                S[i,index_1D(index+2*ind, dims)] -= g2*ljk2[j][1,1]
+            
+            if index[j]==1:
+                S[i,i] += g1*ljk2[j][1,0]-g2*ljk2[j][2,0]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][1,1]-g2*(ljk2[j][2,1]+ljk2[j][2,2])
+            
+            if index[j]==dims[j]-2:
+                S[i,i] += g1*ljk2[j][dims[j]-3,dims[j]-3]-g2*ljk2[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-4]-g2*ljk2[j][dims[j]-2,dims[j]-4]
+            
+            if index[j]==dims[j]-1: # g2=0
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-4]
+
+    return S
+
+# Migration
+# m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
+def calcM(dims, m):
+    # just if we have at least 2 populations...
+    assert(len(dims>1))
+    # we precompute the JK2 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK12(int(dims[i]-1)))
+
+    d = int(np.prod(dims))
+    M = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        for j in range(len(dims)):
+            indj = np.zeros(len(dims), dtype='int')
+            indj[j] = int(1)
+            coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
+            coeff2 = (dims[j]-index[j])/(dims[j]-1)
+            coeff3 = (index[j]+1)/(dims[j]-1)
+            for k in range(len(dims)):
+                if k!=j:
+                    indk = np.zeros(len(dims), dtype='int')
+                    indk[k] = int(1)
+                    
+                    M[i,i] -= m[j,k]*index[j]
+                    if index[j]>0:
+                        M[i,index_1D(index-indj, dims)] += m[j,k]*(index[j]+1)
+                    
+                    if index[k]>0 and index[k]<dims[k]-2:
+                        M[i,i] += m[j,k]*coeff1*ljk[k][index[k],index[k]-1]
+                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index[k]]
+                        if index[j] > 0:
+                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]]
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]-1]
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][index[k],index[k]]
+                            M[i,index_1D(index+indj, dims)] -= m[j,k]*coeff3*ljk[k][index[k],index[k]-1]
+                    if index[k]==0:
+                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][0,0]
+                        M[i,index_1D(index+2*indk, dims)] += m[j,k]*coeff1*ljk[k][0,1]
+                        if index[j] > 0:
+                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,0]
+                            M[i,index_1D(index+2*indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,1]
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][0,0]
+                            M[i,index_1D(index+2*indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][0,1]
+                    if index[k]==dims[k]-2:
+                        M[i,i] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-3]
+                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-4]
+                        if index[j] > 0:
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-3]
+                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-4]
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-3]
+                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-4]
+                    if index[k]==dims[k]-1:
+                        M[i,i] += m[j,k]*coeff1
+                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
+                        M[i,index_1D(index-2*indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
+                        if index[j] > 0:
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2
+                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
+                            M[i,index_1D(index-2*indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3
+                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
+                            M[i,index_1D(index-2*indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
+
+
+    return M
 
 
 

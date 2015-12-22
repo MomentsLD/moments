@@ -17,7 +17,9 @@ u = 1/2.0/Npop[0]
 Tmax = 1000000
 dt = 0.01*Tmax
 # initialization
-v = np.zeros([dims[0],dims[1]])
+#v = np.zeros([dims[0],dims[1]])
+v = np.eye(6)
+print(v)
 
 # matrice for mutations
 B = itd.calcB(u, dims)
@@ -39,30 +41,37 @@ for i in range(1, len(Npop)):
 s = -1/4.0/Npop[0]*np.ones(2)
 h = 1/2.0*np.ones(2)
 
-S2 = itd.calcS2(dims, s, h)
+S = itd.calcS(dims, s, h)
 '''for i in range(d):
-    print(i," : ",sum(S2[:,i]))'''
+    print(i," : ",sum(S[:,i]))'''
 
-#Q = np.eye(d)-dt*D
-Q = np.eye(d)-dt*(D+S2)
+# matrice for migration
+m = 1/4.0/Npop[0]*np.array([[1, 2],[2, 1]])
+Mi = itd.calcM(dims, m)
+'''for i in range(d):
+    print(i," : ",sum(Mi[:,i]))'''
+
+#Q = np.eye(d)-dt*(D+S+Mi)
+Q = np.eye(d)-dt*(D+S)
 M = np.linalg.inv(Q)
 # time loop
 t=0.0
 # all in 1D for the time integration...
 v1 = v.reshape(d)
 B1 = B.reshape(d)
-J = jk.calcJK12(n1)
-#print(J)
+J = jk.calcJK12(n1+2)
+J2 = np.dot(jk.calcJK12(n1+3),J)
+print(J2)
 totmut = 0
 while t<Tmax:
     v1 = np.dot(M,(v1+dt*B1))
     t += dt
     totmut += dt*sum(B1)
-print("somme sur v1 : ",sum(v1))
-print("mutations totales",totmut)
+#print("somme sur v1 : ",sum(v1))
+#print("mutations totales",totmut)
 v2 = np.array([round(x,2) for x in v1])
 v = v2.reshape(dims)
-print(v)
+#print(v)
 
 '''
 nrows, ncols = n1+1, n2+1
