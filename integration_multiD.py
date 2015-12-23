@@ -128,7 +128,7 @@ def calcS2(dims, s, h):
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK12(int(dims[i]-1)))
-    ljk2 = [] # for h = 1/2
+    ljk2 = [] # for h != 1/2
     for i in range(len(dims)):
         ljk2.append(np.dot(jk.calcJK12(int(dims[i])),ljk[i]))
 
@@ -140,12 +140,13 @@ def calcS2(dims, s, h):
         for j in range(len(dims)):
             ind = np.zeros(len(dims), dtype='int')
             ind[j] = int(1)
-            g1 = s[j]*(1-2*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
-            g2 = s[j]*(1-2*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+1)*(dims[j]-1-index[j])
-            '''if (index[j]>1) and (index[j]<dims[j]-2):
-                S[i,i] += g1*ljk2[j][index[j]-1,index[j]-1]-g2*ljk2[2j][index[j],index[j]-1]
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][index[j]-1,index[j]-2]
-                S[i,index_1D(index+ind, dims)] -= g2*ljk2[j][index[j],index[j]]'''
+            g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
+            g2 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
+            if (index[j]>1) and (index[j]<dims[j]-3):
+                S[i,i] += g1*ljk2[j][index[j],index[j]-1]-g2*ljk2[j][index[j]+1,index[j]-1]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][index[j],index[j]-2]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][index[j],index[j]]-g2*ljk2[j][index[j]+1,index[j]]
+                S[i,index_1D(index+2*ind, dims)] -= g2*ljk2[j][index[j]+1,index[j]+1]
             
             if index[j]==0: # g1=0
                 S[i,index_1D(index+ind, dims)] -= g2*ljk2[j][1,0]
@@ -153,15 +154,20 @@ def calcS2(dims, s, h):
             
             if index[j]==1:
                 S[i,i] += g1*ljk2[j][1,0]-g2*ljk2[j][2,0]
-                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][1,1]-g2*(ljk2[j][2,1]+ljk2[j][2,2])
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][1,1]-g2*ljk2[j][2,1]
+                S[i,index_1D(index+2*ind, dims)] += -g2*ljk2[j][2,2]
+            if index[j]==dims[j]-3:
+                S[i,i] += g1*ljk2[j][dims[j]-3,dims[j]-4]-g2*ljk2[j][dims[j]-2,dims[j]-4]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-3]-g2*ljk2[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-5]
             
             if index[j]==dims[j]-2:
-                S[i,i] += g1*ljk2[j][dims[j]-3,dims[j]-3]-g2*ljk2[j][dims[j]-2,dims[j]-3]
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-4]-g2*ljk2[j][dims[j]-2,dims[j]-4]
+                S[i,i] += g1*ljk2[j][dims[j]-2,dims[j]-3]-g2*ljk2[j][dims[j]-1,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-4]-g2*ljk2[j][dims[j]-1,dims[j]-4]
             
             if index[j]==dims[j]-1: # g2=0
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-3]
-                S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-4]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-3]
+                S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-4]
 
     return S
 
