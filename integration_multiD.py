@@ -191,70 +191,59 @@ def calcM(dims, m):
             indj[j] = int(1)
             coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
             coeff2 = (dims[j]-index[j])/(dims[j]-1)
-            coeff3 = (index[j]+1)/(dims[j]-1)
+            coeff3 = -(index[j]+1)/(dims[j]-1)
             for k in range(len(dims)):
                 if k!=j:
                     indk = np.zeros(len(dims), dtype='int')
                     indk[k] = int(1)
                     
+                    c = (dims[j]-1)*(index[k]+1)/dims[k]
+                    
                     M[i,i] -= m[j,k]*index[j]
-                    if index[j]>0:
-                        M[i,index_1D(index-indj, dims)] += m[j,k]*(index[j]+1)
+
+                    if index[j]<dims[j]-1:
+                        M[i,index_1D(index+indj, dims)] += m[j,k]*(index[j]+1)
                     
                     if index[k]>0 and index[k]<dims[k]-2:
-                        M[i,i] += m[j,k]*coeff1*ljk[k][index[k],index[k]-1]
-                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index[k]]
+                        M[i,i] += m[j,k]*coeff1*ljk[k][index[k],index[k]-1]*c
+                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index[k]]*c
                         if index[j] > 0:
-                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]]
-                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]-1]
+                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]]*c
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index[k]-1]*c
                         if index[j] < dims[j]-1:
-                            M[i,index_1D(index+indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][index[k],index[k]]
-                            M[i,index_1D(index+indj, dims)] -= m[j,k]*coeff3*ljk[k][index[k],index[k]-1]
+                            M[i,index_1D(index+indk+indj, dims)] += m[j,k]*coeff3*ljk[k][index[k],index[k]]*c
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*ljk[k][index[k],index[k]-1]*c
                     if index[k]==0:
-                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][0,0]
-                        M[i,index_1D(index+2*indk, dims)] += m[j,k]*coeff1*ljk[k][0,1]
+                        M[i,index_1D(index+indk, dims)] += m[j,k]*coeff1*ljk[k][0,0]*c
+                        M[i,index_1D(index+2*indk, dims)] += m[j,k]*coeff1*ljk[k][0,1]*c
                         if index[j] > 0:
-                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,0]
-                            M[i,index_1D(index+2*indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,1]
+                            M[i,index_1D(index+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,0]*c
+                            M[i,index_1D(index+2*indk-indj, dims)] += m[j,k]*coeff2*ljk[k][0,1]*c
                         if index[j] < dims[j]-1:
-                            M[i,index_1D(index+indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][0,0]
-                            M[i,index_1D(index+2*indk+indj, dims)] -= m[j,k]*coeff3*ljk[k][0,1]
+                            M[i,index_1D(index+indk+indj, dims)] += m[j,k]*coeff3*ljk[k][0,0]*c
+                            M[i,index_1D(index+2*indk+indj, dims)] += m[j,k]*coeff3*ljk[k][0,1]*c
                     if index[k]==dims[k]-2:
-                        M[i,i] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-3]
-                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-4]
+                        M[i,i] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-3]*c
+                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*ljk[k][dims[k]-3,dims[k]-4]*c
                         if index[j] > 0:
-                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-3]
-                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-4]
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-3]*c
+                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*ljk[k][dims[k]-3,dims[k]-4]*c
                         if index[j] < dims[j]-1:
-                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-3]
-                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-4]
-                    if index[k]==dims[k]-1:
-                        M[i,i] += m[j,k]*coeff1
-                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
-                        M[i,index_1D(index-2*indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
-                        if index[j] > 0:
-                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2
-                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
-                            M[i,index_1D(index-2*indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
-                        if index[j] < dims[j]-1:
-                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3
-                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]
-                            M[i,index_1D(index-2*indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-3]*c
+                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*ljk[k][dims[k]-3,dims[k]-4]*c
 
+                    if index[k]==dims[k]-1:
+                        M[i,i] += m[j,k]*coeff1*c
+                        M[i,index_1D(index-indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]*c
+                        M[i,index_1D(index-2*indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]*c
+                        if index[j] > 0:
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*c
+                            M[i,index_1D(index-indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]*c
+                            M[i,index_1D(index-2*indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]*c
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*c
+                            M[i,index_1D(index-indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-3]*c
+                            M[i,index_1D(index-2*indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][dims[k]-2,dims[k]-4]*c
 
     return M
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
