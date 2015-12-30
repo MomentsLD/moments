@@ -1,9 +1,10 @@
 
 \documentclass[11pt,a4paper]{article}
-    \usepackage{amsmath}
-
+\usepackage{amsmath}
+\usepackage{amsfonts}
 \usepackage{graphics}
 \usepackage{grffile}
+\usepackage{color}
 \title{\bf Moment closure methods - Appendices} 
 \newcommand\p[2]{\frac{\partial #1}{\partial #2}}
 \newcommand\pd[2]{\frac{\partial^2 #1}{\partial #2^2}}
@@ -111,284 +112,113 @@ Bringing these expressions together, we get a system of ordinary differential eq
 
 
 \subsection{Extension to multiple dimensions}
+The diffusion model can be generalized to multiple populations studies. The drift, selection and mutation terms are directly derived from the unidimensional case. We just need to add the effect of the migrations between the populations. The equation on the join frequency spectrum is:
 
-\section{Jackknife method for higher sample size terms estimation}
-
-\section{Time integration of the ODE system}
-
-[[The following is verbatim from efficacy paper
-
-
-To obtain evolution equations,  we integrate both sides of equation \eqref{diff2} using $\int_{0^+}^{1^-} dx x^k$. The left-hand side gives
 \begin{equation}
 \begin{split}
-\int_{0^+}^{1^-} dx x^k \p{\phi(x,t)}{t} = \p{\int_{0^+}^{1^-} dx x^k \phi(x,t)}{t}\\= \dot \mu_k -\dot  K_0 \delta_{k,0}-\dot K_1 .
+\p{\phi(\textbf{x},t)}{t}\simeq & \sum_{j=1}^p \bigg[ \frac{1}{4 N_j} \pd{}{x_j} \Big( x_j(1-x_j) \phi(\textbf{x},t)\Big) \\
+					&-s_j \p{}{x_j}\Big( \left(h_j+(1-2h_j)x_j \right)x_j (1-x_j) \phi(\textbf{x},t)\Big) \\
+					&-\sum_{k \neq j}m_{jk}\p{}{x_j}\Big( (x_k-x_j) \phi(\textbf{x},t)\Big)\\
+					&+ 2 N_j u \delta(x_j-\frac{1}{2 N_j})\Pi_{k\neq j}\delta(x_k)\bigg].
 \end{split}
-\label{RHS}
+\label{eq:diffnp}
 \end{equation}
-The right-hand side can be evaluated by integrating by parts. 
-For $k=0$, this yields 
- $$\dot \mu_0= 2 N u-\frac{\phi(0,t) + \phi(1,t) }{4N} + \dot K_0+ \dot K_1,$$ where $\phi(0,t)$ and $\phi(1,t)$ 
-
-are defined by continuity from the open interval $(0,1)$. In other words, they do not include fixed sites.  
-Because the number of sites is constant ($\dot \mu_0=0$) and the diffusion equation continuous, we require
+Now $\textbf{x}$ is a vector: $\textbf{x}=[x_1,\cdots,x_p] \in [0;1]^p$. It is the same for the parameters $\textbf{s}$ and $\textbf{h}$ and $N_j$ is the reference population size for population $j$. The term $-\sum_{j=1}^p \sum_{k \neq j}m_{jk}\p{}{x_j}\Big( (x_k-x_j) \phi(\textbf{x},t)\Big)$ accounts for the migrations where $m_{jk}$ is the migration rate from population $k$ to population $j$.\\
+We are interested in the multi dimensional statistics generalizing the $\Phi{n}(i)$:
+$$
+\Phi_{\mathbf{n}}(\mathbf{i})= \int \prod_{j=1}^p { n_j \choose i_j} x_j^i (1-x_j)^{n_j-i_j} dx_j \phi(\mathbf{x}), 
+$$
+where $\mathbf{n}$ and $\mathbf{i}$ are vectors. The calculations are a bit more tedious but we can do the same as for the single population case, integrating by parts each term and writing it in terms of the $\Phi_{\mathbf{n}}(\mathbf{i})$, we get:
 \begin{equation}
 \begin{split}
- \dot K_0&=-2 N u+\frac{\phi(0,t)}{4N}, \\  
- \dot K_1&=\frac{\phi(1,t)}{4N}.
-\end{split}
-\label{Ks}
-\end{equation} 
-These equations are equivalent to Equations 3.18 and 3.19 in \cite{Kimura:1964jm}. We will use these expressions in our integration of equation \eqref{diff2} with $\int_{0^+}^{1^-} dx x^k$.  We use the left-hand-side expression obtained in Equation \eqref{RHS} and integrate the right-hand side by parts. This gives us an expression for $\dot \mu_k.$
-\begin{equation}
-\dot \mu_k= \frac{k (k-1)}{8N} \pi_{k-1}+ \frac{s k}{4} \Gamma_{k,h}+  \frac{u}{(2 N)^{k-1}} , 
-\label{muk}
-\end{equation}
-where $\pi_k$ and $\Gamma_{k,h}$ are: 
-$$\pi_k=2 (\mu_k-\mu_{k+1})$$ and $$\Gamma_{k,h}=2\left(h \pi_k+(1-2h)\pi_{k+1}\right).$$ These are functions of the moments $\mu$ and can therefore be thought of as measures of the shape of the frequency distribution $\phi$. 
-
-The first term in \eqref{muk} represents the effect of drift, the second term the effect of selection, and the third term the effect of mutation.  
- 
- 
-For example, if $k=1$ and $s=0$, we get 
- \begin{equation}
- \begin{split}
- \dot \mu_1 &= u\\
- \dot \mu_k &= \frac{k (k-1)}{4 N} (\mu_{k-1}-\mu_{k})+\frac{u}{(2N)^{k-1}} , ~~~~k>1 
- \end{split}
- \end{equation}  
-
-We can chose an arbitrary cutoff $K$ and solve a finite set of ODEs for all the $\mu_k$ with $k<K$. 
-
-\section{Obtaining $\Phi$ from the $\mu_k$}
-
-If we are interested in the expected frequency spectrum $\Phi_n (i)$ for $n$ haploid samples, we can use
-
-$\Phi_n (i) = \int dx {n \choose i} x^i (1-x)^{n-i}\phi(x)$
-
-to write the frequency spectrum as a linear combination of the $\mu_k$. The danger with this approach is that it is numerically unstable: The $(1-x)^n$ term contains large and rapidly oscillating terms which will amplify any numerical error. This was observed in Evans, Shvets, Slatkin (2009). They argued around Eq. 51 that writing the expression directly for the $\Phi$ could help alleviate the problem, but that it actually just threw the problem of numerical instability around and didn't really solve it. 
-
-There are a few potential ways around this issue:
-
-\begin{itemize}
-\item Write the PDE equations directly for the $\Phi_n (i)$
-\item Use an approximate but stable expression for $\Phi_n (i)$
-\end{itemize}
-
-\subsection{Solving for $\Phi_n(i)$ directly?}
-Here we are trying to solve $\Phi_n(i)$ directly. This sounds like it should be impossible: we need to know the distribution of the very rare stuff to predict the number of singletons. 
-
-
-$$ \dot \Phi_n(i) = \int_0^1 {n\choose i}  x^i (1-x)^{n-i} \dot \phi dx$$
-with 
-
-$$ w_i=  {n\choose i}  x^i (1-x)^{n-i}.$$
-
-Note $\Phi_n(0)$ contains the fixed terms: Because we are integrating from $0$ to $1$, the delta functions at the boundary in $\phi$ are included. When integrating by parts, these can cause issues. Write $\phi = \phi_s + K_0 \delta(x) + K_1 \delta(x-1)$, where $\phi_s$ is the smooth component of $\phi$  
-
-$$ \dot \Phi_n(i) = \dot K_0 \delta_{i,0} +\delta_{i,n} \dot K_1+ \int_0^1 {n\choose i}  x^i (1-x)^{n-i} \dot \phi_s dx$$
-
-
-\begin{equation}
-\begin{split}
- \dot \Phi_n(i) =& \dot K_0 \delta_{i,0} +\delta_{i,n} \dot K_1+ \int_0^1 w_i \\ &\left( \frac{1}{4 N} \pd{}{x} x(1-x) \phi_s(x,t) + 2 N u \delta(x-\frac{1}{2 N})\right) 
-\end{split}
-\end{equation}
-The delta term contributes 
-
-$$u {n\choose i}  \frac{1}{2N}^{i-1} \left(1-\frac{1}{2N}\right)^{n-i}.$$ This is very small for anyone who is not the zerotons and the 1-tons. 
-
-The second derivative contributes 
-$$\frac{1}{4 N} \left(\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t) +\int \pd{w_i}{x} x (1-x) \phi(x,t)\right).$$
-
-The boundary terms tell us the rate of fixation of alleles. We'd like to avoid computing the actual values of $\phi(0,t)$. 
-
-\begin{equation}
-\begin{split}
-\pd{w_i}{x} =&  {n\choose i} \left( i (i-1)  x^{i-2} (1-x)^{n-i}\right.\\
-		   & \left. - 2 i (n-i ) x^{i-1} (1-x)^{n-i-1}\right.\\
-		   & \left. +(n-i) (n-i-1) x^{i} (1-x)^{n-i-2} \right)
-\end{split}
-\end{equation}
-
-
-The second derivative contributes 
-\begin{equation}
-\begin{split}
-\frac{1}{4 N} (\delta_{i,0} \phi(0,t) +\delta_{i,n} \phi(1,t) \\
-+(i-1)(n-i+1) \Phi_s (i-1) \delta_{i\geq 2}\\
--2 i(n-i) \Phi_s(i) \delta_{1\leq i \leq n-1}  \\ 
-+ (n-i-1)(i+1) \Phi_s(i+1)  \delta_{i\leq n-2} )
-\end{split}
-\end{equation}
-where $\Phi_s$ represent the "unfixed" sites. Conveniently, fixed sites contribute only to $\Phi_0$ and $\Phi_n$, so that evolution equations can be written in terms of the $\Phi_i(n)$ with $1\leq i\leq n$ only. These are ver simple expressions! For $\dot \Phi_n(1)$, we get
-
-\begin{equation}
-\begin{split}
-\dot \Phi_n(1)=& n u  \left(1-\frac{1}{2N}\right)^{n-1}\\
-		       & - \frac{1}{2 N} \left( (n-1) \Phi(1) + (n-2) \Phi_s(2)  \right).
-\end{split}
-\end{equation}
-
-Contrary to the claims of Evans (2009), the oscillations are very well-bounded--it is nothing more than computing a numerical derivative. This should be a trivial computation. Unless I messed up somehow. 
-
-
-
-\subsection{Breaking the closure.}
-Under selection, the equations are not closed anymore. For $h=1/2,$ we have $\dot \mu_k$ depends on $ \mu_{k+1}$. For the h, it depends on  $\mu_{k+1} as well.$ We need to find a way to close the moment equation. The classical method would be to truncate the moments and set $\mu_i=0$ for $i> K$ for some arbitrary cutoff $K$. 
-
-The equations and ideas are most easily expressed in terms of the $\mu_k$, but what we have seen above compels us to believe that we want all expressions in terms of the $\Phi_n(i).$ If we look at the contribution of selection to  $\dot \Phi_n(i),$ we get: 
-
- $$-s \int {n \choose i} x^i (1-x)^{n-i} \p{}{x} \left(h+(1-2h)x \right)x (1-x) \phi(x,t). $$
- 
- Once again the boundary terms vanish for $1\leq i \leq n-1$, and we get  
-
- $$s \int {n \choose i} \left(i (1-x) - (n-i) x\right)    x^{i} (1-x)^{n-i}  \left(h+(1-2h)x \right) \phi(x,t). $$
-To see the magic, use $\left(h+(1-2h)x \right) = h (1-x) + (1-h) x$. Now all terms will be homogeneous in powers of $x, (1-x)$, and we can write everything in terms of frequency spectrum terms in a sample of size $n + 2$. The whole system of equations is the following:
-
-\begin{equation}
-\begin{split}
-\dot \Phi_n(i)=& N u  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
-		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right]\\
-		      &+ \frac{sh}{n+1}\left[i(n+1-i)\Phi_{n+1}(i)-(n-i)(i+1)\Phi_{n+1}(i+1)\right] \\
-		      & +\frac{s(1-2h)(i+1)}{(n+1)(n+2)}\left[i(n+1-i)\Phi_{n+2}(i+1)-(n-i)(i+2)\Phi_{n+2}(i+2)\right].
-\end{split}
-\end{equation}
-
-
-Note that for $h = 1/2,$ the term  $h (1-x) + (1-h) x$ reduces to $1/2$, and therefore we have terms that are homogeneous of order $n+1$ rather than $n+2$. Here again, we only have a small number of terms. 
-
-We are now left with a minor conundrum: drift contributions are expressed in terms of $\Phi_n$, selection contributions in terms of the $\Phi_{n+2},$ or at least of the $\Phi_{n+1}.$ It's easy to convert the $\Phi_n$ terms in higher-order terms: we simply need to multiply in the integral by $1= x + (1-x).$. However, we do not know the terms of order  $\Phi_{n+2},$ and calculating them would require higher order terms. How do we break the cycle? 
-
-\section{Jackknife to the rescue}
-
-In \cite{jackknife}, I showed that the number of variants in a sample of size $n+1$ can be easily predicted from a sample of size $n$ using a jackknife approach. In this approach, we use a linear combination of the $\Phi_n(i)$ to estimate the number of missed variants, $V= \int (1-x)^n - (1-x)^{n+1}  \phi(x).$ This works very well, because we can pick the coefficients in the linear combination in such a way that it is exactly equal to the missed variants $V$, as long as $\phi(x)$ belongs to a given family of functions. The general idea is that, unless $\phi(x)$ is really wild, there is a rather tame relationship between the number of singletons in $n$ samples and the number of singletons in $n+1$ samples. A key to this approach is to find a good approximation to $x^i (1-x)^{n-i+2}$ using a linear combination of the $x^j (1-x)^{n-j}.$ In addition, we require that the number of terms in the linear combination is small, so that the dreaded oscillations do not occur. It is impossible to get a perfect approximation of course, but $x (1-x)^{20}$ is not all that different of $ x (1-x)^{22}.$ If we compare  $0.9 x (1-x)^{20}$ to  $x (1-x)^{22},$ there is not much of a difference. The difference gets even slimmer as $n$ gets larger. What's more, we don't need these weights to be exactly equal to each other: we simply need their integrals to vanish when applied to a suitable function. We can choose the coefficient so that the two curves are reasonably close, and so that the errors cancel out when applied to a given function, say $\phi(x)=1/x$. We can make the approximation even better by considering a slightly higher-order jackknife. for example, if we approximate $ x (1-x)^{22} $ as  $\alpha x (1-x)^{20} + \beta x^2 (1-x)^{19},$ we can build a better approximation that will be exact for any $\phi= a/x +b/(1-x).$ This would be akin to a second-order jackknife. We can keep adding terms, but at some point we will run into numerical instabilities. Because we are typically extrapolating from order $n$ to order $n+2$, our basis functions will be good approximations for the target basis functions, and our approximation will be excellent with a small number of terms.  I'm expecting that first- to third- order jackknife will be sufficient. 
-
-\section{Central moment closure problem}
-
-The approach presented above can be applied to any open moment equation, as long as $\mu_k$ depends on $\mu_{k+i}$ for $i$ not too large. As it turns out, this is a rather common occurrence. In this case, we'd simply approximate $x^{k+1}$ using a linear combination of the $x^k,x^{x-1},x^{k-2},...,x^{k+1-p},$ where p is the order of the jackknife approximation. The beauty of this approach is that the linear approximation actually "folds" the higher order terms into the lower-order linear equation, rather than simply truncating them, at no computational cost. 
-  
-\section{Estimating $\phi$ using derivatives and a weak smoothness approximation}
-We'd like to use our knowledge of $\phi$ a little bit more. In particular, our knowledge that $\phi$ is a relatively friendly function. To estimate $\phi(x_0),$ we express it as
-$$\phi(x_0)=\int \delta(x-x_0) \phi (x).$$
-If we can estimate  $ \delta(x-x_0)$ using a linear combination of the $x^0,...,x^k$, then we can approximate this integral. For example, $\frac{x^{10} (1-x)^{10}}{C}$ might do a decent job at estimating $\delta(x-0.5)$, for a suitable constant $C$. However, estimating $\delta$ might just be the hardest job for a polynomial basis. in fact, $\frac{x^{10} (1-x)^{10}}{C}$ does an ok job, but nothing glorious. To improve upon this, we observe that if $\phi(x)$ had been a constant, over the range where $\frac{x^{10} (1-x)^{10}}{C}$ is substantial, our estimate would have been great. Our estimates are not good because $\phi(x)$ varies on the interval. 
-
-Suppose that $w(x)$ is a normalized approximation to $\delta (x-x_0)$  we can simply expand 
-$$\int w(x) \phi(x) = \int w(x) \left(\phi(x_0)+ (x-x_0) \phi' (x_0) + \frac{(x-x_0)^2}{2} \phi'' (x_0)\right)$$
-
-and 
-
-$$\int w(x) \phi(x) = \phi(x_0)+ \int w(x) \left((x-x_0) \phi' (x_0) + \frac{(x-x_0)^2}{2} \phi'' (x_0)\right)$$
-
-Therefore $$\int w(x) \left((x-x_0) \phi' (x_0) + \frac{(x-x_0)^2}{2} \phi'' (x_0)\right)$$
-provides a second-order correction to our initial estimate $\int w(x) \phi(x)$.  To get the correction, we assumed that $\phi$ can be approximated by a quadratic function \emph{over the range where $w(x)$ is substantial}. If $w$ is peaked enough, this approximation should be good. 
-
-
-[[No!-- We might be tempted to integrate by parts. Assuming that $w(x)$ vanishes at the boundary because I am lazy right now. We can write: 
-
-
-$$\int w(x) \phi(x) = \int \left(w(x)- \p{(x-x_0) w(x)}{x}+\pd{(x-x_0)^2 w(x)}{x}   \right) \phi(x_0).$$
-
-This way we could potentially produce a better $w(x)$. In fact, setting  $- \p{(x-x_0) w(x)}{x}+\pd{(x-x_0)^2 w(x)}{x} =0 $ would be a possible way of choosing our $w(x)$. 
-
-However, adding all these derivatives of $w$ has the potential of creating additional oscillations. 
-]]
-Another option is simply to solve directly for the moments of $\phi'(x)$. and $\phi''(x)$. Solving for both would increase our computational time by a factor of three. 
-
-However, we would now have a numerically stable way of estimating the underlying $\phi$ using only a weak assumption on the form of $\phi$.  Simulations look pretty good. (scratch.nb) There may be a better way of estimating the correction. For example, we could estimate $\phi'(x_0)$ using  $\frac{\phi(x_0+\delta)-\phi(x_0)}{\Delta}$, and so forth. I believe that oscillations will remain controlled in this case. 
-  
-
-\section{Self-consistent approach}
-If I can estimate the $\phi(x)$ as mentioned above, I can choose my jackknife parameters to have exact error cancellation for this particular function. I can solve again with the new parameters, which should lead to a reduced error. 
-
-However, estimating $\phi$ at each position and integrating over it sounds horribly ineffective. Instead, if we are dealing with the relatively peaked functions $x^i (1-x)^{n-i}$, and trying to extrapolate to $x^j (1-x)^{n+2-j}$  we could do the following. First, assume that $\phi(x)$ is smooth around $x_0=\frac{j}{n+2}$, enough that we can get 
-$\Phi_n(i-1)$, $\Phi_n(i)$, $\Phi_n(i+1)$ by expanding $\phi$ around the same $x_0$. Since we know the $\Phi$, we can then solve for $\phi(x_0)$, $\phi'(x_0),$ $\phi''(x_0)$.  That gives us the local shape of the function. We can then pick a first-order jackknife that is perfect for that functional shape. For this to work, it is important that the first-order jackknife weight remains peaked! This approach is convenient because the solution for the $\phi, \phi', \phi''$ is the solution to a simple linear equation, and the parameters are known. 
-
-Another possibility, since we may run into issue around rare variants where large gradients abound, would be to use a padé approximant for $\psi(x)$. 
-
-This approach might be particularly useful in high dimension. 
-
-\section{Further reducing the number of terms to calculate}
-
-For large sample sizes, do we really need to know the exact value of the function $\Phi_n(i)$ for each $i$ at each time point? If $n=100$, we could imagine that 
-
-$\Phi_n(i)\simeq \frac{\Phi_n(i-1)+ \Phi_n(i+1)}{2}.$ If we can get away with such an approximation, we can reduce the computational burden substantially in high dimensions. The simple approximation proposed here could lead to a factor of 2 in 1-D, but a factor of 8 in 3-D. The more we approximate, the higher we risk running into numerical instabilities, but such an approach might be worth exploring. I could easily imagine that in a sample of size $1000$, we can use $100$ data points or even 20 and do a decent job a estimating the SFS. If that works, we just opened up the possibility of solving 5- dimensional problems, or solving 3-D ones in a matter of seconds. 
-
-Once again, the interpolation can use a low-order jackknife formalism. For example, if we have $n=1000,$ we could decide to keep the "skeleton" $i=1,2,3,4,5,6,8,10,15,20,50,100,200,500,800,900$
-$,950,980,985,990,992,994,995,996,997,998,999$, for a total of 27 terms.  We can probably do a really excellent job. 
-
-Since we can express all the $\Phi_n$ as a linear function of the skeleton ones, ideally a non-alternating one (i.e., something like an average), we can probably also do a superb job of estimating the higher-order $\Phi_{n+2}$. In principle, we could reconstruct the missing $\Phi_n$, or we could directly jackknife the $\Phi_{n+2}$ using the skeleton terms.  
-
-
-Which interpolation scheme should we use? The fifth-order WENO scheme seems like a good option. 
-
-
-
-\section{Many dimensions}
-
-Considerations for the expansion to multiple dimensions. 
-
-For the mutations, we can simply add the following to the diffusion equation:
-
-$$\sum_i 2 N_i \delta(x_i-\frac{1}{2 N_i})\prod_{j\ne i} \delta(x_j)$$.
-
-Now our statistics are 
-$$\Phi^{\mathbf{n}}_{\mathbf{i}}= \int \prod_{j=1}^p { n_j \choose i_j} x_j^i (1-x_j)^{n_j-i_j} dx_j \phi(\mathbf{x}) $$ where $\mathbf{n}$ is a vector of sample sizes and $\mathbf{i}$ is a vector of counts of alternates for $P$ populations.   
-
-In the diffusion equation, the moment equation for $\Phi^{\mathbf{n}}_{\mathbf{i}}$ is similar to the one-dimensional case: we can express it as a function of other moments $\Phi^{\mathbf{n'}}_{\mathbf{i'}},$ with $\mathbf{n'}$ close to $\mathbf{n'}$ and $\mathbf{i'}$ close to $\mathbf{n'}.$ The migration term prevents closure, just as the selection term did. In two-d, $\dot \Phi^{mn}_{ij}$ would depend on terms like $\Phi^{m+1,n-1}_{ij},$ but we know how to handle those from $\Phi^{m+1,n-1}_{ij}.$ The boundary terms will be a little bit more messed up. \\
-The system of ODEs on the moments is the following:
-\begin{equation}
-\begin{split}
-\dot \Phi_\mathbf{n}(\mathbf{i})=& \sum_{j=1}^p n_j u  \delta_{i_j=1,i_k=0,k \neq i} + \frac{1}{4 N_j} \left[ (i_j-1)(n_j-i_j+1) \Phi_\mathbf{n}(\mathbf{i-e_j}) \right.\\
+\dot \Phi_\mathbf{n}(\mathbf{i})=& \sum_{j=1}^p \bigg[ n_j u  \delta_{i_j=1,i_k=0,k \neq i} + \frac{1}{4 N_j} \left[ (i_j-1)(n_j-i_j+1) \Phi_\mathbf{n}(\mathbf{i-e_j}) \right.\\
 		      & \left.-2i_j(n_j-i_j)\Phi_\mathbf{n}(\mathbf{i}) + (n_j-i_j-1)(i_j+1)\Phi_\mathbf{n}(\mathbf{i+e_j})\right]\\
 		      &+ \frac{s_jh_j}{n_j+1}\left[i_j(n_j+1-i_j)\Phi_\mathbf{n+e_j}(\mathbf{i})\right.\\
 		      & \left.-(n_j-i_j)(i_j+1)\Phi_\mathbf{n+e_j}(\mathbf{i+e_j})\right] \\
 		      & +\frac{s_j(1-2h_j)(i_j+1)}{(n_j+1)(n_j+2)}\left[i_j(n_j+1-i_j)\Phi_\mathbf{n+2e_j}(\mathbf{i+e_j})\right.\\
 		      & \left.-(n_j-i_j)(i_j+2)\Phi_\mathbf{n+2e_j}(\mathbf{i+2e_j})\right]\\
-		      & + \sum_{k\neq j}m_{jk}\left[\frac{n_j(i_k+1)}{n_k+1}\left(\Phi_\mathbf{n+e_k-e_j}(\mathbf{i+e_k-e_j}) - \Phi_\mathbf{n+e_k-e_j}(\mathbf{i+e_k})\right)\right.\\
-		      & \left.- i_j \Phi_\mathbf{n}(\mathbf{i}) + (i_j+1)\Phi_\mathbf{n}(\mathbf{i+e_j})\right].
-\end{split}
+		      & + \sum_{k\neq j}m_{jk}\Big[\frac{n_j(i_k+1)}{n_k+1}\left(\Phi_\mathbf{n+e_k-e_j}(\mathbf{i+e_k-e_j}) - \Phi_\mathbf{n+e_k-e_j}(\mathbf{i+e_k})\right)\\
+		      & - i_j \Phi_\mathbf{n}(\mathbf{i}) + (i_j+1)\Phi_\mathbf{n}(\mathbf{i+e_j})\Big] \bigg].
+\end{split}\label{eq:edond}
 \end{equation}
+Here, $\mathbf{e_j}$ is the $i_{th}$ vector of the canonical basis of $\mathbb{R}^p$ ($\mathbf{e_j}(i)=\delta_{ij}$).
+
+\section{Jackknife method for higher sample size terms estimation}
+The coupled ODEs system obtained integrating the diffusion equation involves higher order terms such as $\Phi_{n+1}$ or $\Phi_{n+2}$. Consequently it is not closed and cannot be solved as is. To tackle this, we use a Jackknife approach to approximate these terms.\\
+In a few words, the Jackknife method consists here in writing the $n+1$ (or $n+2$) order term as a linear combination of current order terms:
+$$
+	\Phi_{n+1}(i) \simeq \sum_{k \in I_i} \alpha_k \Phi_n(k),
+$$
+where $I_i$ is the set of indexes we use in the approximation of $\Phi_{n+1}(i)$. The order of the Jackknife depends on the number of current order terms we use in the approximation ($i.e.$ the cardinal of $I$). The specificity of the method is that we compute the coefficients $\alpha_k$ to cancel the approximation error for $\Phi$ in a certain family of functions.\\
+The higher order the Jackknife is, the more accurate the estimation can be but the more complicated the calculations are.
+The choice of the family of functions for which the Jackknife is exact is limited by the order of the method. For instance if we want to use an order 2 Jackknife, it means that we just use two $n$ order terms in the approximation and our functions must be parameterized with these two terms. So we can use affine functions. With an order 3 Jackknife, we could cancel the error for quadratic functions and so on.\\
+We will focus here on the order 2 Jackknife for the terms $\Phi_{n+1}(i)$ and we will use the following approximation:
+$$
+	\forall i \in [2;n-1], \Phi_{n+1}(i) = \alpha_i \Phi_n(i-1)+\beta_i \Phi_n(i), 
+$$
+$$
+	\Phi_{n+1}(1) = \alpha_1 \Phi_n(1)+\beta_1 \Phi_n(2),
+$$
+and
+$$
+	\Phi_{n+1}(n) = \alpha_n \Phi_n(n-2)+\beta_n \Phi_n(n-1).
+$$
+The indexes $i=1$ and $i=n$ must be considered separately. We will detail the general case $i \in [2;n-1]$ in the following paragraph, the other cases can be computed similarly.\\
+As we use an order 2 Jackknife, we chose to cancel the approximation error for affine functions and we compute the coefficients $\alpha_i$ and $beta_i$ to this aim. The assumption is:
+$$
+	\phi(x) = ax+b(1-x).
+$$
+And the statistics become:
+$$
+	\Phi_n(i)=\int_0^1{n \choose i}x_i(1-x)^{n-i}\left[ax+b(1-x)\right]dx.
+$$
+
+In this case, it can be expressed explicitly (using Mathematica), we finally get:
+$$
+	\Phi_n(i) = \frac{a+b+ai-bi}{(n+1)(n+2)}.
+$$
+We look for the Jackknife coefficients $\alpha_i$ and $\beta_i$ such as the approximation error is zero:
+
+$$
+	\Phi_{n+1}(i)-\alpha_i \Phi_n(i-1)-\beta_i \Phi_n(i)=0.
+$$
+We then replace the $\Phi$ by their expressions:
+$$
+	\frac{a+b+ai-bi}{(n+2)(n+3)}-\alpha_i \frac{a+b+a(i-1)-b(i-1)}{(n+1)(n+2)}-\beta_i\frac{a+b+ai-bi}{(n+1)(n+2)} = 0
+$$
+
+\textcolor{red}{regarder sur mathematica pour le detail des calculs...}
+
+We finally get:
+$$
+  \left\{
+      \begin{aligned}
+        &\alpha_i = \frac{(i+1)(1+n)}{(n+2)(n+3)},\\
+        &\beta_i = \frac{(1+n)(2-i+n)}{(n+2)(n+3)}.
+      \end{aligned}
+    \right.
+$$ 
 
 
-
-
-
-\section{A nonlinear extension}
-
-What if the pre is nonlinear? Can we still say something? Is the breakdown still useful?
-
- 
-
-   
- 
-
-
- 
-
-
-
-
- 
-
- 
-
-
-
-  
-
-
-
-
- 
- 
-
-
-
-
-
-  
-
+\section{Time integration of the ODE system}
+Using the Jackknife approach to close the system, we can write it with matrices, for the single population we get: 
+\begin{equation}\label{eq:mat}
+	\dot \Phi_n = M+(\frac{1}{4N}D+S)\Phi_n,
+\end{equation}
+where $M$ is the vector containing the mutation source term, and $D$ and $S$ are the matrices respectively for the drift and selection terms. Assuming that the coefficients $s$ and $h$ are constant, these matrices do not depend on the time and can be computed once for all at the beginning. However the population size $N$ may vary in time so the vector M too.\\
+We want to integrate in time this ODE system to simulate the evolution of our statistics. To chose the most adapted numerical scheme, we have to take into account several parameters such as the accuracy, the stability or the computational cost. In our case, the system happens to be very stiff (\textit{i.e.} the eigenvalues of the linear system are of very different orders of magnitude). We consequently use a Crank Nicholson implicit scheme which is quite well adapted to this kind of systems. This scheme is stable unconditionally, it writes:
+$$
+	\Phi_n^{k+1} = \Phi_n^k + \frac{dt}{2}(\dot \Phi_n^k + \dot \Phi_n^{k+1}),
+$$
+where $\Phi_n^k=\Phi_n(t=t_k)$ and $dt = t_{k+1}-t_k$. We can inject Eq.\eqref{eq:mat} in the expression above:
+$$
+	\Phi_n^{k+1} = \Phi_n^k +\frac{dt}{2}(M_k+M_{k+1})+ \frac{dt}{2}\Big((\frac{1}{4N_k}D+S)\Phi_n^k + (\frac{1}{4N_{k+1}}D+S)\Phi_n^{k+1}\Big),
+$$
+so to compute the iteration $\Phi_n^{k+1}$, we just have to solve the following linear system:
+$$
+	\Big(I-\frac{dt}{2}(\frac{1}{4N_{k+1}}D+S) \Big)\Phi_n^{k+1} = \frac{dt}{2}(M_k+M_{k+1}) + \Big(I+\frac{dt}{2}(\frac{1}{4N_k}D+S)\Big)\Phi_n^k.
+$$ 
+We can use the same method to solve the system for several populations. In this case we must add the matrix corresponding to the migration term.
 \end{document}
 
 

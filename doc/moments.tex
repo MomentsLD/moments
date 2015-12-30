@@ -274,7 +274,7 @@ For the mutations, we can simply add the following to the diffusion equation:
 $$\sum_i 2 N_i \delta(x_i-\frac{1}{2 N_i})\prod_{j\ne i} \delta(x_j)$$.
 
 Now our statistics are 
-$$\Phi^{\mathbf{n}}_{\mathbf{i}}= \int \prod_{j=1}^p { n_j \choose i_j} x_j^{i_j} (1-x_j)^{n_j-i_j} \phi(\mathbf{x})dx_j  $$ where $\mathbf{n}$ is a vector of sample sizes and $\mathbf{i}$ is a vector of counts of alternates for $P$ populations.   
+$$\Phi_{\mathbf{n}}(\mathbf{i})= \int \prod_{j=1}^p { n_j \choose i_j} x_j^{i_j} (1-x_j)^{n_j-i_j} \phi(\mathbf{x})dx_j  $$ where $\mathbf{n}$ is a vector of sample sizes and $\mathbf{i}$ is a vector of counts of alternates for $P$ populations.   
 
 In the diffusion equation, the moment equation for $\Phi^{\mathbf{n}}_{\mathbf{i}}$ is similar to the one-dimensional case: we can express it as a function of other moments $\Phi^{\mathbf{n'}}_{\mathbf{i'}},$ with $\mathbf{n'}$ close to $\mathbf{n'}$ and $\mathbf{i'}$ close to $\mathbf{n'}.$ The migration term prevents closure, just as the selection term did. In two-d, $\dot \Phi^{mn}_{ij}$ would depend on terms like $\Phi^{m+1,n-1}_{ij},$ but we know how to handle those from $\Phi^{m+1,n-1}_{ij}.$ The boundary terms will be a little bit more messed up. \\
 The system of ODEs on the moments is the following:
