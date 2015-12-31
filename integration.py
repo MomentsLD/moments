@@ -50,8 +50,8 @@ def calcS1(s, h, n):
 def calcS2(s, h, n):
     S = np.zeros((n-1, n+1))
     for i in range(0, n-1):
-        S[i, i+1] = s*(1-2*h)*(i+2)/(n+1)/(n+2)*(i+1)*(n-i)
-        S[i, i+2] = -s*(1-2*h)*(i+2)/(n+1)/(n+2)*(n-i-1)*(i+3)
+        S[i, i+1] = s*(1-2.0*h)*(i+2)/(n+1.0)/(n+2.0)*(i+1)*(n-i)
+        S[i, i+2] = -s*(1-2.0*h)*(i+2)/(n+1.0)/(n+2.0)*(n-i-1)*(i+3)
     return S
 
 
@@ -89,13 +89,12 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
     Q = np.eye(n-1)-dt*(1.0/(4*N)*D+S1+S2)
-    M = np.linalg.inv(Q)
     # time loop:
     sfs = sfs0
     t = 0.0
     while t < Tmax:
         # Backward Euler scheme
-        sfs = np.dot(M, (sfs+dt*B))
+        sfs = np.linalg.solve(Q,sfs+dt*B)
         t += dt
     return sfs
 
@@ -123,8 +122,6 @@ def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
         Q = np.eye(n-1)-dt*(1.0/(4*fctN(t))*D+S1+S2)
         # Backward Euler scheme
         sfs = np.linalg.solve(Q,sfs+dt*B)
-        #M = np.linalg.inv(Q)
-        #sfs = np.dot(M, (sfs+dt*B))
         t += dt
     return sfs
 
