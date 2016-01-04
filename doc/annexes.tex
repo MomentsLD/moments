@@ -13,8 +13,6 @@
 
 \newcommand\dud{\left(\frac{1}{N_B}-\frac{1}{N_A}\right)}
 
-
-\author{Simon Gravel, McGill University, Montreal, Canada }
 %\ead{xxx}
 
 \begin{document}
@@ -175,7 +173,7 @@ $$
 
 In this case, it can be expressed explicitly (using Mathematica), we finally get:
 $$
-	\Phi_n(i) = \frac{a+b+ai-bi}{(n+1)(n+2)}.
+	\Phi_n(i) = \frac{a+b+ai-bi+bn}{(n+1)(n+2)}.
 $$
 We look for the Jackknife coefficients $\alpha_i$ and $\beta_i$ such as the approximation error is zero:
 
@@ -184,12 +182,21 @@ $$
 $$
 We then replace the $\Phi$ by their expressions:
 $$
-	\frac{a+b+ai-bi}{(n+2)(n+3)}-\alpha_i \frac{a+b+a(i-1)-b(i-1)}{(n+1)(n+2)}-\beta_i\frac{a+b+ai-bi}{(n+1)(n+2)} = 0
+	\frac{a(1+i)+b(2-i+n)}{(n+2)(n+3)}-\alpha_i \frac{ai+b(2-i+n)}{(n+1)(n+2)}-\beta_i\frac{a(1+i)+b(1-i+n)}{(n+1)(n+2)} = 0.
 $$
+This equation is true whatever the coefficients $a$ and $b$ so we can use the particular values $(1,0)$ and $(0,1)$ and write the corresponding system of equations:
 
-\textcolor{red}{regarder sur mathematica pour le detail des calculs...}
+$$
+  \left\{
+      \begin{aligned}
+        &\alpha_i i +\beta_i(i+1) = \frac{(i+1)(1+n)}{n+3},\\
+        &\alpha_i (2-i+n) +\beta_i(1-i+n) = \frac{(2-i+n)(1+n)}{n+3}.
+      \end{aligned}
+    \right.
+$$ 
 
-We finally get:
+
+We can compute the jackknife coefficients $\alpha_i$ and $\beta_i$ solving the previous linear system. We finally get:
 $$
   \left\{
       \begin{aligned}
