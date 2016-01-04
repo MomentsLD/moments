@@ -247,3 +247,107 @@ def calcM(dims, m):
 
     return M
 
+
+#--------------------
+# Integration in time
+#--------------------
+# N : total population size (vector N = (N1,...,Np))
+# n : samples size (vector n = (n1,...,np))
+# tf : final simulation time (/2N1 generations)
+# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
+# theta : mutation rate
+# h : allele dominance (vector h = (h1,...,hp))
+# m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
+
+# for a constant N
+def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
+    # parameters of the equation
+    s = gamma/N[0]
+    Tmax = tf*2.0*N[0]
+    dt = dt*2.0*N[0]
+    u = theta/(4.0*N[0])
+    # dimensions of the sfs
+    dims = n+np.ones(len(n))
+    d = int(np.prod(dims))
+    
+    # we compute the matrices we will need
+    # matrix for mutations
+    B = calcB(u, dims)
+    # matrix for drift
+    vd = calcD(dims)
+    D = 1/4.0/N[0]*vd[0]
+    for i in range(1, len(N)):
+        D = D + 1/4.0/N[i]*vd[i]
+    # matrix for selection
+    S = calcS(dims, s, h)
+    S2 = calcS2(dims, s, h)
+    # matrix for migration
+    Mi = calcM(dims, m)
+    
+    # system inversion for backward scheme
+    Q = np.eye(d)-dt*(D+S+S2+Mi)
+    M = np.linalg.inv(Q)
+
+    # time loop:
+    sfs = sfs0
+    t = 0.0
+    # all in 1D for the time integration...
+    sfs1 = sfs.reshape(d)
+    B1 = B.reshape(d)
+    while t < Tmax:
+        # Backward Euler scheme
+        sfs1 = np.dot(M,(sfs1+dt*B1))
+        t += dt
+    sfs = sfs1.reshape(dims)
+    return sfs
+
+# for a "lambda" definition of N - with Crank Nicholson integration scheme
+# fctN is the name of a "lambda" fuction giving N = fctN(t)
+# where t is the relative time in generations such as t = 0 initially
+# fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
+def integrate_N_cst(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
+    # parameters of the equation
+    N = fctN(0)
+    s = gamma/N[0]
+    Tmax = tf*2.0*N[0]
+    dt = dt*2.0*N[0]
+    u = theta/(4.0*N[0])
+    # dimensions of the sfs
+    dims = n+np.ones(len(n))
+    d = int(np.prod(dims))
+    
+    # we compute the matrices we will need
+    # matrix for mutations
+    B = calcB(u, dims)
+    # matrix for drift
+    vd = calcD(dims)
+    D = 1/4.0/N[0]*vd[0]
+    for i in range(1, len(N)):
+        D = D + 1/4.0/N[i]*vd[i]
+    # matrix for selection
+    S = calcS(dims, s, h)
+    S2 = calcS2(dims, s, h)
+    # matrix for migration
+    Mi = calcM(dims, m)
+
+    # time loop:
+    sfs = sfs0
+    t = 0.0
+    # all in 1D for the time integration...
+    sfs1 = sfs.reshape(d)
+    B1 = B.reshape(d)
+    while t < Tmax:
+        D = 1/4.0/N[0]*vd[0]
+        for i in range(1, len(N)):
+            D = D + 1/4.0/N[i]*vd[i]
+        Q1 = np.eye(d)-dt/2*(D+S1+S2+Mi)
+        Q2 = np.eye(d)+dt/2*(D+S1+S2+Mi)
+        # Crank Nicholson
+        sfs1 = np.linalg.solve(Q1,np.dot(Q2,sfs1)+dt*B1)
+        t += dt
+        # we update the populations sizes
+        N = fctN(t)
+
+    sfs = sfs1.reshape(dims)
+    return sfs
+
