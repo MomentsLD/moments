@@ -89,12 +89,13 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
     Q = np.eye(n-1)-dt*(1.0/(4*N)*D+S1+S2)
+    M = np.linalg.inv(Q)
     # time loop:
     sfs = sfs0
     t = 0.0
     while t < Tmax:
         # Backward Euler scheme
-        sfs = np.linalg.solve(Q,sfs+dt*B)
+        sfs = np.dot(M,(sfs+dt*B))
         t += dt
     return sfs
 
