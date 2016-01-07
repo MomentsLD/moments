@@ -294,6 +294,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     # all in 1D for the time integration...
     sfs1 = sfs.reshape(d)
     B1 = B.reshape(d)
+    
     while t < Tmax:
         # Backward Euler scheme
         sfs1 = np.dot(M,(sfs1+dt*B1))
@@ -305,13 +306,14 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
 # fctN is the name of a "lambda" fuction giving N = fctN(t)
 # where t is the relative time in generations such as t = 0 initially
 # fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
-def integrate_N_cst(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
+def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
     N = fctN(0)
-    s = gamma/N[0]
-    Tmax = tf*2.0*N[0]
-    dt = dt*2.0*N[0]
-    u = theta/(4.0*N[0])
+    N0=N[0]
+    s = gamma/N0
+    Tmax = tf*2.0*N0
+    dt = dt*2.0*N0
+    u = theta/(4.0*N0)
     # dimensions of the sfs
     dims = n+np.ones(len(n))
     d = int(np.prod(dims))
@@ -321,7 +323,7 @@ def integrate_N_cst(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     B = calcB(u, dims)
     # matrix for drift
     vd = calcD(dims)
-    D = 1/4.0/N[0]*vd[0]
+    D = 1/4.0/N0*vd[0]
     for i in range(1, len(N)):
         D = D + 1/4.0/N[i]*vd[i]
     # matrix for selection
@@ -346,7 +348,7 @@ def integrate_N_cst(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
         sfs1 = np.linalg.solve(Q1,np.dot(Q2,sfs1)+dt*B1)
         t += dt
         # we update the populations sizes
-        N = fctN(t)
+        N = fctN(t/(2.0*N0))
 
     sfs = sfs1.reshape(dims)
     return sfs
