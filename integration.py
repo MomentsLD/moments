@@ -120,7 +120,7 @@ def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     sfs = sfs0
     t = 0.0
     while t < Tmax:
-        Q = np.eye(n-1)-dt*(1.0/(4*fctN(t))*D+S1+S2)
+        Q = np.eye(n-1)-dt*(1.0/(4*fctN(t/(2.0*N0)))*D+S1+S2)
         # Backward Euler scheme
         sfs = np.linalg.solve(Q,sfs+dt*B)
         t += dt
@@ -147,8 +147,8 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     sfs = sfs0
     t = 0.0
     while t < Tmax:
-        Q1 = np.eye(n-1)-dt/2*(1.0/(4*fctN(t))*D+S1+S2)
-        Q2 = np.eye(n-1)+dt/2*(1.0/(4*fctN(t))*D+S1+S2)
+        Q1 = np.eye(n-1)-dt/2*(1.0/(4*fctN(t/(2.0*N0)))*D+S1+S2)
+        Q2 = np.eye(n-1)+dt/2*(1.0/(4*fctN(t/(2.0*N0)))*D+S1+S2)
         # Crank Nicholson
         sfs = np.linalg.solve(Q1,np.dot(Q2,sfs)+dt*B)
         t += dt
@@ -202,8 +202,8 @@ def integrate_CN_itJK(fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
             cptr = 1
         else: cptr += 1
         
-        Q1 = np.eye(n-1)-dt/2.0*(1.0/(4*fctN(t))*D+S1bis+S2bis)
-        Q2 = np.eye(n-1)+dt/2.0*(1.0/(4*fctN(t))*D+S1bis+S2bis)
+        Q1 = np.eye(n-1)-dt/2.0*(1.0/(4*fctN(t/(2.0*N0)))*D+S1bis+S2bis)
+        Q2 = np.eye(n-1)+dt/2.0*(1.0/(4*fctN(t/(2.0*N0)))*D+S1bis+S2bis)
         # Crank Nicholson
         sfs = np.linalg.solve(Q1,np.dot(Q2,sfs)+dt*B)
         t += dt
