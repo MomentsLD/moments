@@ -120,6 +120,42 @@ def calcS(dims, s, h):
 
     return S
 
+# with order 3 JK...
+def calcS_jk3(dims, s, h):
+    # we precompute the JK3 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK13(int(dims[i]-1)))
+    d = int(np.prod(dims))
+    S = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        for j in range(len(dims)):
+            ind = np.zeros(len(dims), dtype='int')
+            ind[j] = int(1)
+            g1 = s[j]*h[j]/dims[j]*index[j]*(dims[j]-index[j])
+            g2 = -s[j]*h[j]/dims[j]*(index[j]+1)*(dims[j]-1-index[j])
+            index_bis = np.array(index)
+            index_bis[j] = jk.index_bis(index_bis[j],dims[j]-1)
+            index_ter = np.array(index)+ind
+            index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
+            if (index[j]<dims[j]-1):
+                S[i,index_1D(index_bis, dims)] += g1*ljk[j][index[j]-1,index_bis[j]-1]
+                S[i,index_1D(index_bis-ind, dims)] += g1*ljk[j][index[j]-1,index_bis[j]-2]
+                S[i,index_1D(index_bis+ind, dims)] += g1*ljk[j][index[j]-1,index_bis[j]]
+            
+                S[i,index_1D(index_ter, dims)] += g2*ljk[j][index[j],index_ter[j]-1]
+                S[i,index_1D(index_ter-ind, dims)] += g2*ljk[j][index[j],index_ter[j]-2]
+                S[i,index_1D(index_ter+ind, dims)] += g2*ljk[j][index[j],index_ter[j]]
+            
+            if index[j]==dims[j]-1: # g2=0
+                S[i,index_1D(index_bis, dims)] += g1*ljk[j][index[j]-1,index_bis[j]-1]
+                S[i,index_1D(index_bis-ind, dims)] += g1*ljk[j][index[j]-1,index_bis[j]-2]
+                S[i,index_1D(index_bis+ind, dims)] += g1*ljk[j][index[j]-1,index_bis[j]]
+
+    return S
+
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
 # this function includes JK2 for higher order terms estimation
@@ -170,6 +206,7 @@ def calcS2(dims, s, h):
                 S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-4]
 
     return S
+
 
 # Migration
 # m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
@@ -247,6 +284,80 @@ def calcM(dims, m):
 
     return M
 
+# with order 3 JK
+def calcM_jk3(dims, m):
+    # just if we have at least 2 populations...
+    assert(len(dims>1))
+    # we precompute the JK3 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK13(int(dims[i]-1)))
+
+    d = int(np.prod(dims))
+    M = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        
+        for j in range(len(dims)):
+    
+            indj = np.zeros(len(dims), dtype='int')
+            indj[j] = int(1)
+            
+            index_bisj = np.array(index)
+            index_bisj[j] = jk.index_bis(index_bisj[j],dims[j]-1)
+            index_terj = np.array(index)+indj
+            index_terj[j] = jk.index_bis(index_terj[j],dims[j]-1)
+            
+            coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
+            coeff2 = (dims[j]-index[j])/(dims[j]-1)
+            coeff3 = -(index[j]+1)/(dims[j]-1)
+            for k in range(len(dims)):
+                if k != j:
+                    indk = np.zeros(len(dims), dtype='int')
+                    indk[k] = int(1)
+                    
+                    c = (dims[j]-1)*(index[k]+1)/dims[k]
+                    
+                    M[i,i] -= m[j,k]*index[j]
+                    
+                    index_bisk = np.array(index)
+                    index_bisk[k] = jk.index_bis(index_bisk[k],dims[k]-1)
+                    index_terk = np.array(index)+indk
+                    index_terk[k] = jk.index_bis(index_terk[k],dims[k]-1)
+                    
+                    if index[j] < dims[j]-1:
+                        M[i,index_1D(index+indj, dims)] += m[j,k]*(index[j]+1)
+                    
+                    if index[k] < dims[k]-1:
+                        M[i,index_1D(index_terk-indk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index_terk[k]-2]*c
+                        M[i,index_1D(index_terk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index_terk[k]-1]*c
+                        M[i,index_1D(index_terk+indk, dims)] += m[j,k]*coeff1*ljk[k][index[k],index_terk[k]]*c
+                        if index[j] > 0:
+                            M[i,index_1D(index_terk-indk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index_terk[k]-2]*c
+                            M[i,index_1D(index_terk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index_terk[k]-1]*c
+                            M[i,index_1D(index_terk+indk-indj, dims)] += m[j,k]*coeff2*ljk[k][index[k],index_terk[k]]*c
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index_terk-indk+indj, dims)] += m[j,k]*coeff3*ljk[k][index[k],index_terk[k]-2]*c
+                            M[i,index_1D(index_terk+indj, dims)] += m[j,k]*coeff3*ljk[k][index[k],index_terk[k]-1]*c
+                            M[i,index_1D(index_terk+indk+indj, dims)] += m[j,k]*coeff3*ljk[k][index[k],index_terk[k]]*c
+                            
+                    if index[k] == dims[k]-1:
+                        M[i,i] += m[j,k]*coeff1*c
+                        M[i,index_1D(index_terk-indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c
+                        M[i,index_1D(index_terk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c
+                        M[i,index_1D(index_terk+indk, dims)] += m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c
+                        if index[j] > 0:
+                            M[i,index_1D(index-indj, dims)] += m[j,k]*coeff2*c
+                            M[i,index_1D(index_terk-indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c
+                            M[i,index_1D(index_terk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c
+                            M[i,index_1D(index_terk+indk-indj, dims)] += m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c
+                        if index[j] < dims[j]-1:
+                            M[i,index_1D(index+indj, dims)] += m[j,k]*coeff3*c
+                            M[i,index_1D(index_terk-indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c
+                            M[i,index_1D(index_terk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c
+                            M[i,index_1D(index_terk+indk+indj, dims)] += m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c
+    return M
 
 #--------------------
 # Integration in time
@@ -279,10 +390,10 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     for i in range(1, len(N)):
         D = D + 1/4.0/N[i]*vd[i]
     # matrix for selection
-    S = calcS(dims, s, h)
+    S = calcS_jk3(dims, s, h)
     S2 = calcS2(dims, s, h)
     # matrix for migration
-    Mi = calcM(dims, m)
+    Mi = calcM_jk3(dims, m)
     
     # system inversion for backward scheme
     Q = np.eye(d)-dt*(D+S+S2+Mi)
