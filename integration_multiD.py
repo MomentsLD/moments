@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 import math
 
 import jackknife as jk
@@ -167,6 +168,51 @@ def calcS2(dims, s, h):
     ljk2 = [] # for h != 1/2
     for i in range(len(dims)):
         ljk2.append(np.dot(jk.calcJK12(int(dims[i])),ljk[i]))
+    
+    d = int(np.prod(dims))
+    S = np.zeros((d,d))
+    for i in range(d):
+        # multi-D index of the current variable
+        index = index_nD(i, dims)
+        for j in range(len(dims)):
+            ind = np.zeros(len(dims), dtype='int')
+            ind[j] = int(1)
+            g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
+            g2 = -s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
+            if (index[j]>1) and (index[j]<dims[j]-3):
+                S[i,i] += g1*ljk2[j][index[j],index[j]-1]+g2*ljk2[j][index[j]+1,index[j]-1]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][index[j],index[j]-2]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][index[j],index[j]]+g2*ljk2[j][index[j]+1,index[j]]
+                S[i,index_1D(index+2*ind, dims)] += g2*ljk2[j][index[j]+1,index[j]+1]
+            
+            if index[j]==0: # g1=0
+                S[i,index_1D(index+ind, dims)] += g2*ljk2[j][1,0]
+                S[i,index_1D(index+2*ind, dims)] += g2*ljk2[j][1,1]
+            
+            if index[j]==1:
+                S[i,i] += g1*ljk2[j][1,0]+g2*ljk2[j][2,0]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][1,1]+g2*ljk2[j][2,1]
+                S[i,index_1D(index+2*ind, dims)] += g2*ljk2[j][2,2]
+            if index[j]==dims[j]-3:
+                S[i,i] += g1*ljk2[j][dims[j]-3,dims[j]-4]+g2*ljk2[j][dims[j]-2,dims[j]-4]
+                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-3]+g2*ljk2[j][dims[j]-2,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-5]
+            
+            if index[j]==dims[j]-2:
+                S[i,i] += g1*ljk2[j][dims[j]-2,dims[j]-3]+g2*ljk2[j][dims[j]-1,dims[j]-3]
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-4]+g2*ljk2[j][dims[j]-1,dims[j]-4]
+            
+            if index[j]==dims[j]-1: # g2=0
+                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-3]
+                S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-4]
+
+    return S
+
+def calcS2_jk3(dims, s, h):
+    # we precompute the JK3 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK23(int(dims[i]-1)))
 
     d = int(np.prod(dims))
     S = np.zeros((d,d))
@@ -177,33 +223,24 @@ def calcS2(dims, s, h):
             ind = np.zeros(len(dims), dtype='int')
             ind[j] = int(1)
             g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
-            g2 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
-            if (index[j]>1) and (index[j]<dims[j]-3):
-                S[i,i] += g1*ljk2[j][index[j],index[j]-1]-g2*ljk2[j][index[j]+1,index[j]-1]
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][index[j],index[j]-2]
-                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][index[j],index[j]]-g2*ljk2[j][index[j]+1,index[j]]
-                S[i,index_1D(index+2*ind, dims)] -= g2*ljk2[j][index[j]+1,index[j]+1]
-            
-            if index[j]==0: # g1=0
-                S[i,index_1D(index+ind, dims)] -= g2*ljk2[j][1,0]
-                S[i,index_1D(index+2*ind, dims)] -= g2*ljk2[j][1,1]
-            
-            if index[j]==1:
-                S[i,i] += g1*ljk2[j][1,0]-g2*ljk2[j][2,0]
-                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][1,1]-g2*ljk2[j][2,1]
-                S[i,index_1D(index+2*ind, dims)] += -g2*ljk2[j][2,2]
-            if index[j]==dims[j]-3:
-                S[i,i] += g1*ljk2[j][dims[j]-3,dims[j]-4]-g2*ljk2[j][dims[j]-2,dims[j]-4]
-                S[i,index_1D(index+ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-3]-g2*ljk2[j][dims[j]-2,dims[j]-3]
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-3,dims[j]-5]
-            
-            if index[j]==dims[j]-2:
-                S[i,i] += g1*ljk2[j][dims[j]-2,dims[j]-3]-g2*ljk2[j][dims[j]-1,dims[j]-3]
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-2,dims[j]-4]-g2*ljk2[j][dims[j]-1,dims[j]-4]
+            g2 = -s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
+            index_ter = np.array(index)+ind
+            index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
+            index_qua = np.array(index)+2*ind
+            index_qua[j] = jk.index_bis(index_qua[j],dims[j]-1)
+            if index[j]<dims[j]-1:
+                S[i,index_1D(index_ter, dims)] += g1*ljk[j][index[j],index_ter[j]-1]
+                S[i,index_1D(index_ter-ind, dims)] += g1*ljk[j][index[j],index_ter[j]-2]
+                S[i,index_1D(index_ter+ind, dims)] += g1*ljk[j][index[j],index_ter[j]]
+                
+                S[i,index_1D(index_qua, dims)] += g2*ljk[j][index[j]+1,index_qua[j]-1]
+                S[i,index_1D(index_qua-ind, dims)] += g2*ljk[j][index[j]+1,index_qua[j]-2]
+                S[i,index_1D(index_qua+ind, dims)] += g2*ljk[j][index[j]+1,index_qua[j]]
             
             if index[j]==dims[j]-1: # g2=0
-                S[i,index_1D(index-ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-3]
-                S[i,index_1D(index-2*ind, dims)] += g1*ljk2[j][dims[j]-1,dims[j]-4]
+                S[i,index_1D(index_ter, dims)] += g1*ljk[j][index[j],index_ter[j]-1]
+                S[i,index_1D(index_ter-ind, dims)] += g1*ljk[j][index[j],index_ter[j]-2]
+                S[i,index_1D(index_ter+ind, dims)] += g1*ljk[j][index[j],index_ter[j]]
 
     return S
 
@@ -373,6 +410,7 @@ def calcM_jk3(dims, m):
 # for a constant N
 def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
+    m /= 2.0*N[0]
     s = gamma/N[0]
     Tmax = tf*2.0*N[0]
     dt = dt*2.0*N[0]
@@ -391,7 +429,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
         D = D + 1/4.0/N[i]*vd[i]
     # matrix for selection
     S = calcS_jk3(dims, s, h)
-    S2 = calcS2(dims, s, h)
+    S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
     Mi = calcM_jk3(dims, m)
     
@@ -420,6 +458,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
 def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
     N = fctN(0)
+    m /= 2.0*N[0]
     N0=N[0]
     s = gamma/N0
     Tmax = tf*2.0*N0
@@ -438,10 +477,10 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     for i in range(1, len(N)):
         D = D + 1/4.0/N[i]*vd[i]
     # matrix for selection
-    S = calcS(dims, s, h)
-    S2 = calcS2(dims, s, h)
+    S = calcS_jk3(dims, s, h)
+    S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    Mi = calcM(dims, m)
+    Mi = calcM_jk3(dims, m)
 
     # time loop:
     sfs = sfs0
@@ -449,12 +488,13 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # all in 1D for the time integration...
     sfs1 = sfs.reshape(d)
     B1 = B.reshape(d)
+
     while t < Tmax:
         D = 1/4.0/N[0]*vd[0]
         for i in range(1, len(N)):
             D = D + 1/4.0/N[i]*vd[i]
-        Q1 = np.eye(d)-dt/2*(D+S1+S2+Mi)
-        Q2 = np.eye(d)+dt/2*(D+S1+S2+Mi)
+        Q1 = np.eye(d)-dt/2*(D+S+S2+Mi)
+        Q2 = np.eye(d)+dt/2*(D+S+S2+Mi)
         # Crank Nicholson
         sfs1 = np.linalg.solve(Q1,np.dot(Q2,sfs1)+dt*B1)
         t += dt
@@ -463,4 +503,64 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
 
     sfs = sfs1.reshape(dims)
     return sfs
+
+
+def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
+    # parameters of the equation
+    N = fctN(0)
+    m /= 2.0*N[0]
+    N0=N[0]
+    s = gamma/N0
+    Tmax = tf*2.0*N0
+    dt = dt*2.0*N0
+    u = theta/(4.0*N0)
+    # dimensions of the sfs
+    dims = n+np.ones(len(n))
+    d = int(np.prod(dims))
+    
+    # we compute the matrices we will need
+    # matrix for mutations
+    B = calcB(u, dims)
+    # matrix for drift
+    vd = calcD(dims)
+    D = 1/4.0/N0*vd[0]
+    for i in range(1, len(N)):
+        D = D + 1/4.0/N[i]*vd[i]
+    # matrix for selection
+    S = calcS_jk3(dims, s, h)
+    S2 = calcS2_jk3(dims, s, h)
+    # matrix for migration
+    Mi = calcM_jk3(dims, m)
+
+    # time loop:
+    sfs = sfs0
+    t = 0.0
+    # all in 1D for the time integration...
+    sfs1 = sfs.reshape(d)
+    B1 = B.reshape(d)
+
+    while t < Tmax:
+        D = 1/4.0/N[0]*vd[0]
+        for i in range(1, len(N)):
+            D = D + 1/4.0/N[i]*vd[i]
+        #Q1 = np.eye(d)-dt/2*(D+S+S2+Mi)
+        Q1 = sp.sparse.csr_matrix(np.eye(d)-dt/2*(D+S+S2+Mi))
+        Q2 = np.eye(d)+dt/2*(D+S+S2+Mi)
+        BB = sp.sparse.csr_matrix(np.dot(Q2,sfs1)+dt*B1)
+        #BB = np.dot(Q2,sfs1)+dt*B1
+        #print(Q1.shape)
+        print(BB.shape)
+        #print((np.dot(Q2,sfs1)+dt*B1).shape)
+        # Crank Nicholson
+        sfs1 = sp.sparse.linalg.spsolve(Q1,BB)
+        t += dt
+        # we update the populations sizes
+        N = fctN(t/(2.0*N0))
+
+    sfs = sfs1.reshape(dims)
+    return sfs
+
+
+
+
 

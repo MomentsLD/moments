@@ -85,7 +85,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     B = calcB(u, n)
     D = calcD(n)
     J = jk.calcJK13(n) # using the order 3 jackknife approximation
-    J2 = np.dot(jk.calcJK13(n+1),J)
+    J2 = jk.calcJK23(n)
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
     Q = np.eye(n-1)-dt*(1.0/(4*N)*D+S1+S2)
@@ -112,7 +112,7 @@ def integrate_N_lambda(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     # we compute the matrices we will need
     D = calcD(n)
     J = jk.calcJK13(n) # using the order 3 jackknife approximation
-    J2 = np.dot(jk.calcJK13(n+1),J)
+    J2 = jk.calcJK23(n)
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
     B = calcB(u, n)
@@ -139,7 +139,7 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma=0.0, theta=1.0, h=0.5):
     # we compute the matrices we will need
     D = calcD(n)
     J = jk.calcJK13(n) # using the order 3 jackknife approximation
-    J2 = np.dot(jk.calcJK13(n+1),J)
+    J2 = jk.calcJK23(n)
     S1 = np.dot(calcS1(s, h , n), J)
     S2 = np.dot(calcS2(s, h , n), J2)
     B = calcB(u, n)
