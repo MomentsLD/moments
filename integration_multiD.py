@@ -410,7 +410,7 @@ def calcM_jk3(dims, m):
 # for a constant N
 def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
-    m /= 2.0*N[0]
+    mm =np.array(m)/(2.0*N[0])
     s = gamma/N[0]
     Tmax = tf*2.0*N[0]
     dt = dt*2.0*N[0]
@@ -458,7 +458,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
 def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
     N = fctN(0)
-    m /= 2.0*N[0]
+    mm = np.array(m)/(2.0*N[0])
     N0=N[0]
     s = gamma/N0
     Tmax = tf*2.0*N0
@@ -480,8 +480,7 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     S = calcS_jk3(dims, s, h)
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    Mi = calcM_jk3(dims, m)
-
+    Mi = calcM_jk3(dims, mm)
     # time loop:
     sfs = sfs0
     t = 0.0
@@ -502,13 +501,13 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
         N = fctN(t/(2.0*N0))
 
     sfs = sfs1.reshape(dims)
-    return sfs, Q1, Q2
+    return sfs
 
 
 def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
     N = fctN(0)
-    m /= 2.0*N[0]
+    mm = np.copy(m)/(2.0*N[0])
     N0=N[0]
     s = gamma/N0
     Tmax = tf*2.0*N0
@@ -530,7 +529,7 @@ def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     S = calcS_jk3(dims, s, h)
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    Mi = calcM_jk3(dims, m)
+    Mi = calcM_jk3(dims, mm)
     #print(Mi)
     # time loop:
     sfs = sfs0
@@ -545,7 +544,7 @@ def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
             D = D + 1/4.0/N[i]*vd[i]
         #Q1 = np.eye(d)-dt/2*(D+S+S2+Mi)
         Q1 = sp.sparse.csr_matrix(np.eye(d)-dt/2*(D+S+S2+Mi))
-        Q2 = np.eye(d)+dt/2*(D+S+S2+Mi)
+        Q2 = Q2 = np.eye(d)+dt/2*(D+S+S2+Mi)
         #BB = sp.sparse.csr_matrix(np.dot(Q2,sfs1)+dt*B1)
         BB = np.dot(Q2,sfs1)+dt*B1
         #print(Q1.shape)
@@ -558,7 +557,7 @@ def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
         N = fctN(t/(2.0*N0))
 
     sfs = sfs1.reshape(dims)
-    return sfs, Q1, Q2
+    return sfs
 
 
 

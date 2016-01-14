@@ -276,7 +276,7 @@ def calcM_jk3(dims, m):
 # for a constant N
 def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
-    m /= 2.0*N[0]
+    mm = np.array(m)/(2.0*N[0])
     s = gamma/N[0]
     Tmax = tf*2.0*N[0]
     dt = dt*2.0*N[0]
@@ -298,7 +298,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
     #Mi = calcM_jk3(dims, m)
-    Mi = sp.sparse.csc_matrix(itd.calcM_jk3(dims, m))
+    Mi = sp.sparse.csc_matrix(itd.calcM_jk3(dims, mm))
 
     # system inversion for backward scheme
     #Q = np.eye(d)-dt*(D+S+S2+Mi)
@@ -325,7 +325,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
 def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     # parameters of the equation
     N = fctN(0)
-    m /= 2.0*N[0]
+    mm = np.array(m)/(2.0*N[0])
     N0=N[0]
     s = gamma/N0
     Tmax = tf*2.0*N0
@@ -347,7 +347,7 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
     S = calcS_jk3(dims, s, h)
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    Mi = calcM_jk3(dims, m)
+    Mi = calcM_jk3(dims, mm)
 
     # time loop:
     sfs = sfs0
