@@ -2,14 +2,15 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import math
-import scipy.interpolate
 import time
+import sys
+sys.path[:0] = ['../']
 #import seaborn
 
 import dadi
 
 import integration as it
+import integration_multiD_sparse as ids
 import utils as ut
 #-----------------------------------
 # 1 dimension case
@@ -29,7 +30,7 @@ h = 0.1
 # mutation rate
 theta = 1.0
 # population sample size
-m = 100
+m = 50
 n = 50
 # simulation final time (number of generations)
 tp = 100 # same as in dadi
@@ -108,16 +109,13 @@ nous_lim = [1.00300073, 0.5025292, 0.33539095, 0.25158664, 0.20111694, 0.1673158
 #-------------
 f = lambda x: N+2*x/1000.0
 
-v = np.zeros(n-1)
-v2 = np.zeros(m-1)
+v2 = np.zeros(m+1)
 start_time = time.time()
-#v = it.integrate_N_lambda(v, f, n, tp, dt, theta=theta, h=h, gamma=gamma)
-#v = it.integrate_N_cst(v, N, n, tp, dt, theta=theta, h=h, gamma=gamma)
-v2 = it.integrate_N_cst(v2, N, m, tp, dt, theta=theta, h=h, gamma=gamma)
-v = ut.project_1D(v2, n)
+v2sps = ids.integrate_N_cst(v2, [N], [m], tp, dt, theta=theta, h=[h], gamma=[gamma], m=[0])
+v = ut.project_1D(v2sps, n)
 interval = time.time() - start_time
-print('Total time our code:', interval, ', erreur : ', calc_error(v,nous_lim))
-#print(v)
+print('Total time our code sparse:', interval, ', erreur : ', calc_error(v,nous_lim))
+
 #---------
 # Dadi   :
 #---------
@@ -134,8 +132,9 @@ fs = model((1, tp), (n, ), 100)
 interval = time.time() - start_time
 print('Total time dadi:', interval, ', erreur : ', calc_error(fs[1:n],dadi_lim))
 
-print('erreur limite : ',calc_error(dadi_lim,nous_lim))
+#print('erreur limite : ',calc_error(dadi_lim,nous_lim))
 #print(fs)
+
 # define the plotting environment
 fig = plt.figure()
 fig1 = fig.add_subplot(211)

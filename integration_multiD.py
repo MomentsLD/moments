@@ -431,7 +431,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     S = calcS_jk3(dims, s, h)
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    Mi = calcM_jk3(dims, m)
+    Mi = calcM_jk3(dims, mm)
     
     # system inversion for backward scheme
     Q = np.eye(d)-dt*(D+S+S2+Mi)
@@ -502,64 +502,4 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
 
     sfs = sfs1.reshape(dims)
     return sfs
-
-
-def integrate_N_lambda_sparse(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
-    # parameters of the equation
-    N = fctN(0)
-    mm = np.copy(m)/(2.0*N[0])
-    N0=N[0]
-    s = gamma/N0
-    Tmax = tf*2.0*N0
-    dt = dt*2.0*N0
-    u = theta/(4.0*N0)
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N0*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-    #print(Mi)
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-
-    while t < Tmax:
-        D = 1/4.0/N[0]*vd[0]
-        for i in range(1, len(N)):
-            D = D + 1/4.0/N[i]*vd[i]
-        #Q1 = np.eye(d)-dt/2*(D+S+S2+Mi)
-        Q1 = sp.sparse.csr_matrix(np.eye(d)-dt/2*(D+S+S2+Mi))
-        Q2 = Q2 = np.eye(d)+dt/2*(D+S+S2+Mi)
-        #BB = sp.sparse.csr_matrix(np.dot(Q2,sfs1)+dt*B1)
-        BB = np.dot(Q2,sfs1)+dt*B1
-        #print(Q1.shape)
-        #print(BB.shape)
-        #print((np.dot(Q2,sfs1)+dt*B1).shape)
-        # Crank Nicholson
-        sfs1 = sp.sparse.linalg.spsolve(Q1,BB)
-        t += dt
-        # we update the populations sizes
-        N = fctN(t/(2.0*N0))
-
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-
-
-
 

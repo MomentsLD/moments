@@ -175,8 +175,9 @@ def calcS2_jk3(dims, s, h):
 # m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
 # with order 3 JK
 def calcM_jk3(dims, m):
-    # just if we have at least 2 populations...
-    assert(len(dims)>1)
+    
+    if (len(dims)==1) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()
+    
     # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
@@ -274,10 +275,10 @@ def calcM_jk3(dims, m):
 # m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
 
 # for a constant N
-def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
+def integrate_N_cst(sfs0, N, n, tf, dt, gamma, h, m, theta=1.0):
     # parameters of the equation
     mm = np.array(m)/(2.0*N[0])
-    s = gamma/N[0]
+    s = np.array(gamma)/N[0]
     Tmax = tf*2.0*N[0]
     dt = dt*2.0*N[0]
     u = theta/(4.0*N[0])
@@ -297,14 +298,13 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     S = calcS_jk3(dims, s, h)
     S2 = calcS2_jk3(dims, s, h)
     # matrix for migration
-    #Mi = calcM_jk3(dims, m)
-    Mi = sp.sparse.csc_matrix(itd.calcM_jk3(dims, mm))
+    Mi = calcM_jk3(dims, mm)
 
     # system inversion for backward scheme
-    #Q = np.eye(d)-dt*(D+S+S2+Mi)
     Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2+Mi)
-    M = linalg.inv(Q)
 
+    # LU decomposition
+    solve = linalg.factorized(Q)
     # time loop:
     sfs = sfs0
     t = 0.0
@@ -313,7 +313,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
     B1 = B.reshape(d)
     while t < Tmax:
         # Backward Euler scheme
-        sfs1 = M.dot(sfs1+dt*B1)
+        sfs1 = solve(sfs1+dt*B1)
         t += dt
     sfs = sfs1.reshape(dims)
     return sfs
@@ -322,12 +322,12 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, m, h, theta=1.0):
 # fctN is the name of a "lambda" fuction giving N = fctN(t)
 # where t is the relative time in generations such as t = 0 initially
 # fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
-def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, m, h, theta=1.0):
+def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # parameters of the equation
     N = fctN(0)
-    mm = np.array(m)/(2.0*N[0])
     N0=N[0]
-    s = gamma/N0
+    mm = np.array(m)/(2.0*N0)
+    s = np.array(gamma)/N0
     Tmax = tf*2.0*N0
     dt = dt*2.0*N0
     u = theta/(4.0*N0)

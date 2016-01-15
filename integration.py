@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from scipy import linalg
 
 import jackknife as jk
 
