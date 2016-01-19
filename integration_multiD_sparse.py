@@ -263,6 +263,39 @@ def calcM_jk3(dims, m):
 
     return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
+#----------------------------------
+# Steady state (for initialization)
+#----------------------------------
+def steady_state(n, N, gamma, h, m, theta=1.0, reshape=True):
+    # parameters of the equation
+    mm = np.array(m)/(2.0*N[0])
+    s = np.array(gamma)/N[0]
+    u = theta/(4.0*N[0])
+    # dimensions of the sfs
+    dims = n+np.ones(len(n))
+    d = int(np.prod(dims))
+    
+    # matrix for mutations
+    B = calcB(u, dims)
+    # matrix for drift
+    vd = calcD(dims)
+    D = 1/4.0/N[0]*vd[0]
+    for i in range(1, len(N)):
+        D = D + 1/4.0/N[i]*vd[i]
+    # matrix for selection
+    S = calcS_jk3(dims, s, h)
+    S2 = calcS2_jk3(dims, s, h)
+    # matrix for migration
+    Mi = calcM_jk3(dims, mm)
+    Mat = D+S+S2+Mi
+    B1 = B.reshape(d)
+
+    sfs = sp.sparse.linalg.spsolve(Mat[1:d-1,1:d-1],-B1[1:d-1])
+    sfs = np.insert(sfs, 0, 0.0)
+    sfs = np.insert(sfs, d-1, 0.0)
+    if reshape: sfs = sfs.reshape(dims)
+    return sfs
+
 #--------------------
 # Integration in time
 #--------------------
