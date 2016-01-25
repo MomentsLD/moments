@@ -345,6 +345,7 @@ def integrate_N_cst(sfs0, N, n, tf, dt, gamma, h, m, theta=1.0):
     sfs1 = sfs.reshape(d)
     B1 = B.reshape(d)
     while t < Tmax:
+        if t+dt>Tmax: dt = Tmax-t
         # Backward Euler scheme
         sfs1 = solve(sfs1+dt*B1)
         t += dt
@@ -390,6 +391,7 @@ def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     B1 = B.reshape(d)
 
     while t < Tmax:
+        if t+dt>Tmax: dt = Tmax-t
         D = 1/4.0/N[0]*vd[0]
         for i in range(1, len(N)):
             D = D + 1/4.0/N[i]*vd[i]

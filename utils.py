@@ -58,7 +58,11 @@ def project_2D(sfs, n1, n2):
     sfs1 = np.dot(A,sfs1)
     return sfs1.reshape([n1+1,n2+1])
 
-
+# Richardson extrapolation
+def extrap_quad(sfs1, sfs2, sfs3, n1, n2, n3):
+    assert(sfs1.shape==sfs2.shape)
+    assert(sfs1.shape==sfs3.shape)
+    return n2*n3/float((n1-n2)*(n1-n3))*sfs1 + n1*n3/float((n2-n1)*(n2-n3))*sfs2 + n1*n2/float((n3-n1)*(n3-n2))*sfs3
 
 
 
