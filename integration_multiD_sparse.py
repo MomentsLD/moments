@@ -93,11 +93,16 @@ def calcD(dims):
 # h -> [h1, h2, ..., hp]
 # with order 3 JK...
 def calcS_jk3(dims, s, h):
+    # number of degrees of freedom
+    d = int(np.prod(dims))
+    
+    # we don't compute the matrix if not necessary
+    if (not s.any()) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
+    
     # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK13(int(dims[i]-1)))
-    d = int(np.prod(dims))
 
     data = []
     row = []
@@ -133,12 +138,17 @@ def calcS_jk3(dims, s, h):
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
 def calcS2_jk3(dims, s, h):
+    # number of degrees of freedom
+    d = int(np.prod(dims))
+    
+    # we don't compute the matrix if not necessary
+    if (not s.any()) or (not (h-0.5).any()):
+        return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
+    
     # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK23(int(dims[i]-1)))
-
-    d = int(np.prod(dims))
 
     data = []
     row = []
@@ -175,15 +185,18 @@ def calcS2_jk3(dims, s, h):
 # m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
 # with order 3 JK
 def calcM_jk3(dims, m):
+    # number of degrees of freedom
+    d = int(np.prod(dims))
     
+    # we don't compute the matrix if not necessary
     if (len(dims)==1) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()
-    
-    # we precompute the JK3 coefficients we will need (same as in 1D)...
+    if (not m.any()) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
+   
+   # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK13(int(dims[i]-1)))
 
-    d = int(np.prod(dims))
     data = []
     row = []
     col = []
