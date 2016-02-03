@@ -50,140 +50,125 @@ def calcB(u, dims):
     for k in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
         ind[k] = int(1)
-        #ind = np.ones(len(dims), dtype='int')
         tp = tuple(ind)
         B[tp] = dims[k]-1
     return u*B
+def mutate(sfs, u, dims, dt):
+    for i in range(len(dims)):
+        ind = np.zeros(len(dims), dtype='int')
+        ind[i] = int(1)
+        sfs[tuple(ind)] += dt*u*(dims[i]-1)
+    return sfs
 
 # We compute the  matrices for drift
 # this function returns a list of matrices corresponding to each population
 # dims -> array containing the dimensions of the problem dims[j] = nj+1
 def calcD(dims):
-    # number of freedom degrees
-    d = int(np.prod(dims))
     # we consider separately the contributions of each dimension
     res = []
     for j in range(len(dims)):
         data = []
         row = []
         col = []
-        # creating the ej vector
-        ind = np.zeros(len(dims), dtype='int')
-        ind[j] = int(1)
         # loop over the fs elements:
-        for i in range(0,d):
-            # for each element of our nD fs (stored in a vector), we compute its nD index (position in the nD matrix figuring the fs)
-            index = index_nD(i, dims)
-            # notice that "index[j] = ij"
-            if (index[j]>1):
-                data.append((index[j]-1)*(dims[j]-index[j]))
+        for i in range(int(dims[j])):
+            if (i>1):
+                data.append((i-1)*(dims[j]-i))
                 row.append(i)
-                col.append(index_1D(index-ind, dims))
-            if (index[j]<dims[j]-2):
-                data.append((index[j]+1)*(dims[j]-index[j]-2))
-                col.append(index_1D(index+ind, dims))
+                col.append(i-1)
+            if (i<dims[j]-2):
+                data.append((i+1)*(dims[j]-i-2))
+                col.append(i+1)
                 row.append(i)
-            if (index[j]>0) and (index[j]<dims[j]-1):
-                data.append(-2*index[j]*(dims[j]-index[j]-1))
+            if (i>0) and (i<dims[j]-1):
+                data.append(-2*i*(dims[j]-i-1))
                 row.append(i)
                 col.append(i)
-        res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc())
+        res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (dims[j], dims[j]), dtype = 'float').tocsc())
     return res
 
 # Selection
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
 # with order 3 JK...
-def calcS_jk3(dims, s, h):
-    # number of degrees of freedom
-    d = int(np.prod(dims))
-    s = np.array(s)
-    h = np.array(h)
-    # we don't compute the matrix if not necessary
-    if (not s.any()) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
-    
+def calcS_jk3(dims):
     # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK13(int(dims[i]-1)))
+    
+    res = []
 
-    data = []
-    row = []
-    col = []
+    for j in range(len(dims)):
+        data = []
+        row = []
+        col = []
+        for i in range(int(dims[j])):
+            g1 = 1.0/dims[j]*i*(dims[j]-i)
+            g2 = -1.0/dims[j]*(i+1)*(dims[j]-1-i)
 
-    for i in range(d):
-        # multi-D index of the current variable
-        index = index_nD(i, dims)
-        for j in range(len(dims)):
-            ind = np.zeros(len(dims), dtype='int')
-            ind[j] = int(1)
-            g1 = s[j]*h[j]/dims[j]*index[j]*(dims[j]-index[j])
-            g2 = -s[j]*h[j]/dims[j]*(index[j]+1)*(dims[j]-1-index[j])
-            index_bis = np.array(index)
-            index_bis[j] = jk.index_bis(index_bis[j],dims[j]-1)
-            index_ter = np.array(index)+ind
-            index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
-            #print(i, index_bis[j], index_1D(index_bis, dims), index_ter[j],index_1D(index_ter, dims))
-            if (index[j]<dims[j]-1):
-                data += [g1*ljk[j][index[j]-1,index_bis[j]-1], g1*ljk[j][index[j]-1,index_bis[j]-2],
-                         g1*ljk[j][index[j]-1,index_bis[j]], g2*ljk[j][index[j],index_ter[j]-1],
-                         g2*ljk[j][index[j],index_ter[j]-2], g2*ljk[j][index[j],index_ter[j]]]
+            ibis = jk.index_bis(i,dims[j]-1)
+            iter = jk.index_bis(i+1,dims[j]-1)
+
+            if (i<dims[j]-1):
+                data += [g1*ljk[j][i-1,ibis-2], g1*ljk[j][i-1,ibis-1],
+                         g1*ljk[j][i-1,ibis], g2*ljk[j][i,iter-2],
+                         g2*ljk[j][i,iter-1], g2*ljk[j][i,iter]]
                 row += [i]*6
-                col += [index_1D(index_bis, dims), index_1D(index_bis-ind, dims), index_1D(index_bis+ind, dims),
-                        index_1D(index_ter, dims), index_1D(index_ter-ind, dims), index_1D(index_ter+ind, dims)]
+                col += [ibis-1, ibis, ibis+1, iter-1, iter, iter+1]
             
-            if index[j]==dims[j]-1: # g2=0
-                data += [g1*ljk[j][index[j]-1,index_bis[j]-1], g1*ljk[j][index[j]-1,index_bis[j]-2], g1*ljk[j][index[j]-1,index_bis[j]]]
+            if i==dims[j]-1: # g2=0
+                data += [g1*ljk[j][i-1,ibis-2], g1*ljk[j][i-1,ibis-1], g1*ljk[j][i-1,ibis]]
                 row += [i]*3
-                col += [index_1D(index_bis, dims), index_1D(index_bis-ind, dims), index_1D(index_bis+ind, dims)]
+                col += [ibis-1, ibis, ibis+1]
+        res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (dims[j], dims[j]), dtype = 'float').tocsc())
+    return res
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
-def calcS2_jk3(dims, s, h):
-    # number of degrees of freedom
-    d = int(np.prod(dims))
-    s = np.array(s)
-    h = np.array(h)
-    # we don't compute the matrix if not necessary
-    if (not s.any()) or (not (h-0.5).any()):
-        return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
-    
+def calcS2_jk3(dims):
     # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK23(int(dims[i]-1)))
 
-    data = []
-    row = []
-    col = []
-    for i in range(d):
-        # multi-D index of the current variable
-        index = index_nD(i, dims)
-        for j in range(len(dims)):
-            ind = np.zeros(len(dims), dtype='int')
-            ind[j] = int(1)
-            g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
-            g2 = -s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
-            index_ter = np.array(index)+ind
-            index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
-            index_qua = np.array(index)+2*ind
-            index_qua[j] = jk.index_bis(index_qua[j],dims[j]-1)
-            if index[j]<dims[j]-1:
-                data += [g1*ljk[j][index[j],index_ter[j]-1], g1*ljk[j][index[j],index_ter[j]-2],
-                         g1*ljk[j][index[j],index_ter[j]], g2*ljk[j][index[j]+1,index_qua[j]-1],
-                         g2*ljk[j][index[j]+1,index_qua[j]-2], g2*ljk[j][index[j]+1,index_qua[j]]]
-                row += [i]*6
-                col += [index_1D(index_ter, dims), index_1D(index_ter-ind, dims), index_1D(index_ter+ind, dims),
-                        index_1D(index_qua, dims), index_1D(index_qua-ind, dims), index_1D(index_qua+ind, dims)]
-            
-            if index[j]==dims[j]-1: # g2=0
-                data += [g1*ljk[j][index[j],index_ter[j]-1], g1*ljk[j][index[j],index_ter[j]-2], g1*ljk[j][index[j],index_ter[j]]]
-                row += [i]*3
-                col += [index_1D(index_ter, dims), index_1D(index_ter-ind, dims), index_1D(index_ter+ind, dims)]
+    res= []
+    for j in range(len(dims)):
+        data = []
+        row = []
+        col = []
+        for i in range(int(dims[j])):
+            g1 = 1.0*(i+1)/dims[j]/(dims[j]+1)*i*(dims[j]-i)
+            g2 = -1.0*(i+1)/dims[j]/(dims[j]+1)*(i+2)*(dims[j]-1-i)
+            iter = jk.index_bis(i+1,dims[j]-1)
+            iqua = jk.index_bis(i+2,dims[j]-1)
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+            if i<dims[j]-1:
+                data += [g1*ljk[j][i,iter-2], g1*ljk[j][i,iter-1],
+                         g1*ljk[j][i,iter], g2*ljk[j][i+1,iqua-2],
+                         g2*ljk[j][i+1,iqua-1], g2*ljk[j][i+1,iqua]]
+                row += [i]*6
+                col += [iter-1, iter, iter+1,
+                        iqua-1, iqua, iqua+1]
+            
+            if i==dims[j]-1: # g2=0
+                data += [g1*ljk[j][i,iter-2], g1*ljk[j][i,iter-1], g1*ljk[j][i,iter]]
+                row += [i]*3
+                col += [iter-1, iter, iter+1]
+        res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (dims[j], dims[j]), dtype = 'float').tocsc())
+    return res
+# Migrate...
+def migrate(sfs, mi, dt):
+    dims = sfs.shape
+    d = int(np.prod(dims))
+    #nd = len(dims)
+    fs = sfs.copy()
+    fs = fs.reshape(d)
+    slv = linalg.factorized(sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*mi)
+    fs = slv(fs)
+    fs = fs.reshape(dims)
+    return fs
 
 # Migration
 # m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
@@ -280,38 +265,6 @@ def calcM_jk3(dims, m):
 
     return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
-#----------------------------------
-# Steady state (for initialization)
-#----------------------------------
-def steady_state(n, N, gamma, h, m, theta=1.0, reshape=True):
-    # parameters of the equation
-    mm = np.array(m)/(2.0*N[0])
-    s = np.array(gamma)/N[0]
-    u = theta/(4.0*N[0])
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N[0]*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-    Mat = D+S+S2+Mi
-    B1 = B.reshape(d)
-
-    sfs = sp.sparse.linalg.spsolve(Mat[1:d-1,1:d-1],-B1[1:d-1])
-    sfs = np.insert(sfs, 0, 0.0)
-    sfs = np.insert(sfs, d-1, 0.0)
-    if reshape: sfs = sfs.reshape(dims)
-    return sfs
 
 #--------------------
 # Integration in time
@@ -324,135 +277,12 @@ def steady_state(n, N, gamma, h, m, theta=1.0, reshape=True):
 # h : allele dominance (vector h = (h1,...,hp))
 # m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
 
-# for a constant N
-def integrate_N_cst(sfs0, N, n, tf, dt, gamma, h, m, theta=1.0):
-    # parameters of the equation
-    
-    start_time = time.time()
-    
-    mm = np.array(m)/(2.0*N[0])
-    s = np.array(gamma)/N[0]
-    h = np.array(h)
-    Tmax = tf*2.0*N[0]
-    dt = dt*2.0*N[0]
-    u = theta/(4.0*N[0])
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N[0]*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-
-    # system inversion for backward scheme
-    Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2+Mi)
-
-    # LU decomposition
-    solve = linalg.factorized(Q)
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-    
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-    
-    while t < Tmax:
-        if t+dt>Tmax: dt = Tmax-t
-        # Backward Euler scheme
-        sfs1 = solve(sfs1+dt*B1)
-        t += dt
-    
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-# for a "lambda" definition of N - with Crank Nicholson integration scheme
+# for a "lambda" definition of N - with backward Euler integration scheme
 # fctN is the name of a "lambda" fuction giving N = fctN(t)
 # where t is the relative time in generations such as t = 0 initially
 # fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
-def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
+def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # parameters of the equation
-    
-    start_time = time.time()
-    
-    N = fctN(0)
-    N0=N[0]
-    mm = np.array(m)/(2.0*N0)
-    s = np.array(gamma)/N0
-    h = np.array(h)
-    Tmax = tf*2.0*N0
-    dt = dt*2.0*N0
-    u = theta/(4.0*N0)
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N0*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-
-    while t < Tmax:
-        if t+dt>Tmax: dt = Tmax-t
-        D = 1/4.0/N[0]*vd[0]
-        for i in range(1, len(N)):
-            D = D + 1/4.0/N[i]*vd[i]
-        Q1 = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt/2*(D+S+S2+Mi)
-        Q2 = sp.sparse.identity(d, dtype = 'float', format = 'csc')+dt/2*(D+S+S2+Mi)
-        # Crank Nicholson
-        linalg.use_solver()
-        sfs1 = linalg.spsolve(Q1,Q2.dot(sfs1)+dt*B1)
-        t += dt
-        # we update the populations sizes
-        N = fctN(t/(2.0*N0))
-    #print(t)
-    
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-# Same function as integrate_N_lambda_CN but faster when fctN is constant on some intervals
-def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
-    # parameters of the equation
-    
     start_time = time.time()
     
     N = np.array(fctN(0))
@@ -467,32 +297,28 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # dimensions of the sfs
     dims = n+np.ones(len(n))
     d = int(np.prod(dims))
-    
+
     # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
     
+    # matrices for drift
+    vd = calcD(dims)
+
     # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
+    # we don't compute the matrix if not necessary
+    if (not s.any()) :
+        S1 = [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[i], dims[i]), dtype = 'float').tocsc() for i in range(len(dims))]
+    else : S1 = calcS_jk3(dims)
+    
+    if (not s.any()) or (not (h-0.5).any()):
+        S2 = [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[i], dims[i]), dtype = 'float').tocsc() for i in range(len(dims))]
+    else : S2 = calcS2_jk3(dims)
+
     # matrix for migration
     Mi = calcM_jk3(dims, mm)
-
+    
     # time loop:
     sfs = sfs0
     t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
     
     interval = time.time() - start_time
     print('Time init:', interval)
@@ -502,25 +328,43 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
         if t+dt>Tmax: dt = Tmax-t
         # we recompute the matrix only if N has changed...
         if (Nold!=N).any():
-            D = 1/4.0/N0*vd[0]
-            for i in range(1, len(N)):
-                D = D + 1/4.0/N[i]*vd[i]
+            D = [1/4.0/N[i]*vd[i] for i in range(len(n))]
             # system inversion for backward scheme
-            Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2+Mi)
-            # LU decomposition
-            solve = linalg.factorized(Q)
-        # Backward Euler scheme
-        sfs1 = solve(sfs1+dt*B1)
+            slv = [linalg.factorized(sp.sparse.identity(dims[i], dtype = 'float', format = 'csc')-dt*(D[i]+s[i]*h[i]*S1[i]+s[i]*(1-2.0*h[i])*S2[i])) for i in range(len(n))]
+        
+        # Backward Euler scheme with splitted operators
+        sfs = mutate(sfs, u, dims, dt)
+        
+        # 1D
+        #sfs = slv[0](sfs)
+        
+        # 2D
+        for i in range(int(dims[1])):
+            sfs[:,i] = slv[0](sfs[:,i])
+        for i in range(int(dims[0])):
+            sfs[i,:] = slv[1](sfs[i,:])
+        # 3D
+        '''
+        for i in range(int(dims[1])):
+            for j in range(int(dims[2])):
+                sfs[:,i,j] = slv[0](sfs[:,i,j])
+        for i in range(int(dims[0])):
+            for j in range(int(dims[2])):
+                sfs[i,:,j] = slv[1](sfs[i,:,j])
+        for i in range(int(dims[0])):
+            for j in range(int(dims[1])):
+                sfs[i,j,:] = slv[2](sfs[i,j,:])'''
+        #migrations ???
+        sfs = migrate(sfs, Mi, dt)
+        
         Nold = N
         t += dt
         N = np.array(fctN(t/(2.0*N0)))
     
     interval = time.time() - start_time
     print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
 
+    return sfs
 
 
 
