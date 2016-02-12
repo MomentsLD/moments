@@ -6,7 +6,7 @@ import math
 import time
 
 import jackknife as jk
-import integration_multiD as itd
+import integration_multiD_sparse as its
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -53,6 +53,7 @@ def calcB(u, dims):
         tp = tuple(ind)
         B[tp] = dims[k]-1
     return u*B
+
 def mutate(sfs, u, dims, dt):
     for i in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
@@ -159,13 +160,12 @@ def calcS2_jk3(dims):
         res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (dims[j], dims[j]), dtype = 'float').tocsc())
     return res
 # Migrate...
-def migrate(sfs, mi, dt):
+def migrate(sfs, slv, dt):
     dims = sfs.shape
     d = int(np.prod(dims))
     #nd = len(dims)
     fs = sfs.copy()
     fs = fs.reshape(d)
-    slv = linalg.factorized(sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*mi)
     fs = slv(fs)
     fs = fs.reshape(dims)
     return fs
@@ -173,97 +173,142 @@ def migrate(sfs, mi, dt):
 # Migration
 # m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
 # with order 3 JK
-def calcM_jk3(dims, m):
+def calcM1_jk3(dims, m):
     # number of degrees of freedom
     d = int(np.prod(dims))
     
     # we don't compute the matrix if not necessary
+    if (len(dims)==1) : return  [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()]
+    if (not m.any()) : return  [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[i], dims[i]), dtype = 'float').tocsc() for i in range(len(dims))]
+    
+    # we precompute the JK3 coefficients we will need (same as in 1D)...
+    ljk = []
+    for i in range(len(dims)):
+        ljk.append(jk.calcJK13(int(dims[i]-1)))
+    
+    res = []
+    for j in range(len(dims)):
+        
+        data = []
+        row = []
+        col = []
+        
+        # total migration rate from pop j
+        mj = np.sum(m[j,:])-m[j,j]
+
+        for i in range(int(dims[j])):
+            
+            data.append(-mj*i)
+            row.append(i)
+            col.append(i)
+            
+            if i < dims[j]-1:
+                data.append(mj*(i+1))
+                row.append(i)
+                col.append(i+1)
+        res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (dims[j], dims[j]), dtype = 'float').tocsc())
+    return res
+
+
+def calcM_jk3bis(dims,m):
+    res = []
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            mbis = np.array([[0,m[i,j]],[m[j,i],0]])
+            res.append(its.calcM_jk3([dims[i],dims[j]],mbis))
+    #print(i,j)
+    return res
+# Migration
+# m -> migration rates matrix, m[i,j] = migration rate from pop i to pop j
+# with order 3 JK
+def calcM_jk3(dims, m):
+    # we don't compute the matrix if there is just 1 pop
     if (len(dims)==1) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()
-    if (not m.any()) : return  sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc()
    
    # we precompute the JK3 coefficients we will need (same as in 1D)...
     ljk = []
     for i in range(len(dims)):
         ljk.append(jk.calcJK13(int(dims[i]-1)))
 
-    data = []
-    row = []
-    col = []
-    for i in range(d):
-        # multi-D index of the current variable
-        index = index_nD(i, dims)
+    res = []
+
+    for j in range(len(dims)):
+        res_dim = []
         
-        for j in range(len(dims)):
-    
-            indj = np.zeros(len(dims), dtype='int')
-            indj[j] = int(1)
+        #indj = np.zeros(len(dims), dtype='int')
+        #indj[j] = int(1)
+        indj = np.array([1, 0])
+        for k in range(len(dims)):
+            d = int(dims[j]*dims[k])
+            if (m[j,k]==0):
+                res_dim.append(sp.sparse.coo_matrix(([], ([], [])), shape = (d, d), dtype = 'float').tocsc())
+                break
+            if k != j:
+                
+                data = []
+                row = []
+                col = []
+                for i in range(d):
+        
+                    # 2D index of the current variable
+                    index = index_nD(i, [dims[j], dims[k]])
+                    #print('index', index, k)
+                    '''index_bisj = np.array(index)
+                    index_bisj[j] = jk.index_bis(index_bisj[j],dims[j]-1)
+                    index_terj = np.array(index)+indj
+                    index_terj[j] = jk.index_bis(index_terj[j],dims[j]-1)'''
+        
+                    coeff1 = m[j,k]*(2*index[0]-(dims[j]-1))*(index[1]+1)/dims[k]
+                    coeff2 = m[j,k]*(dims[j]-index[0])*(index[1]+1)/dims[k]
+                    coeff3 = -m[j,k]*(index[0]+1)*(index[1]+1)/dims[k]
             
-            index_bisj = np.array(index)
-            index_bisj[j] = jk.index_bis(index_bisj[j],dims[j]-1)
-            index_terj = np.array(index)+indj
-            index_terj[j] = jk.index_bis(index_terj[j],dims[j]-1)
-            
-            coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
-            coeff2 = (dims[j]-index[j])/(dims[j]-1)
-            coeff3 = -(index[j]+1)/(dims[j]-1)
-            for k in range(len(dims)):
-                if k != j:
-                    indk = np.zeros(len(dims), dtype='int')
-                    indk[k] = int(1)
+                    indk = np.array([0, 1])#np.zeros(len(dims), dtype='int')
+                    #indk[k] = int(1)
                     
-                    c = (dims[j]-1)*(index[k]+1)/dims[k]
-                    
-                    data.append(-m[j,k]*index[j])
-                    row.append(i)
-                    col.append(i)
                     
                     index_bisk = np.array(index)
-                    index_bisk[k] = jk.index_bis(index_bisk[k],dims[k]-1)
+                    index_bisk[1] = jk.index_bis(index_bisk[1],dims[k]-1)
                     index_terk = np.array(index)+indk
-                    index_terk[k] = jk.index_bis(index_terk[k],dims[k]-1)
+                    index_terk[1] = jk.index_bis(index_terk[1],dims[k]-1)
                     
-                    if index[j] < dims[j]-1:
-                        data.append(m[j,k]*(index[j]+1))
-                        row.append(i)
-                        col.append(index_1D(index+indj, dims))
-                    
-                    if index[k] < dims[k]-1:
-                        data += [m[j,k]*coeff1*ljk[k][index[k],index_terk[k]-2]*c, m[j,k]*coeff1*ljk[k][index[k],index_terk[k]-1]*c, m[j,k]*coeff1*ljk[k][index[k],index_terk[k]]*c]
+                    if index[1] < dims[k]-1:
+                        data += [coeff1*ljk[k][index[1],index_terk[1]-2], coeff1*ljk[k][index[1],index_terk[1]-1], coeff1*ljk[k][index[1],index_terk[1]]]
                         row += [i]*3
-                        col += [index_1D(index_terk-indk, dims), index_1D(index_terk, dims), index_1D(index_terk+indk, dims)]
-                        if index[j] > 0:
-                            data +=[m[j,k]*coeff2*ljk[k][index[k],index_terk[k]-2]*c, m[j,k]*coeff2*ljk[k][index[k],index_terk[k]-1]*c, m[j,k]*coeff2*ljk[k][index[k],index_terk[k]]*c]
+                        col += [index_1D(index_terk-indk, [dims[j], dims[k]]), index_1D(index_terk, [dims[j], dims[k]]), index_1D(index_terk+indk, [dims[j], dims[k]])]
+                        if index[0] > 0:
+                            data +=[coeff2*ljk[k][index[1],index_terk[1]-2], coeff2*ljk[k][index[1],index_terk[1]-1], coeff2*ljk[k][index[1],index_terk[1]]]
                             row += [i]*3
-                            col += [index_1D(index_terk-indk-indj, dims), index_1D(index_terk-indj, dims), index_1D(index_terk+indk-indj, dims)]
-                        if index[j] < dims[j]-1:
-                            data += [m[j,k]*coeff3*ljk[k][index[k],index_terk[k]-2]*c, m[j,k]*coeff3*ljk[k][index[k],index_terk[k]-1]*c, m[j,k]*coeff3*ljk[k][index[k],index_terk[k]]*c]
+                            col += [index_1D(index_terk-indk-indj, [dims[j], dims[k]]), index_1D(index_terk-indj, [dims[j], dims[k]]), index_1D(index_terk+indk-indj, [dims[j], dims[k]])]
+                        if index[0] < dims[j]-1:
+                            data += [coeff3*ljk[k][index[1],index_terk[1]-2], coeff3*ljk[k][index[1],index_terk[1]-1], coeff3*ljk[k][index[1],index_terk[1]]]
                             row += [i]*3
-                            col += [index_1D(index_terk-indk+indj, dims), index_1D(index_terk+indj, dims), index_1D(index_terk+indk+indj, dims)]
+                            col += [index_1D(index_terk-indk+indj, [dims[j], dims[k]]), index_1D(index_terk+indj, [dims[j], dims[k]]), index_1D(index_terk+indk+indj, [dims[j], dims[k]])]
                             
-                    if index[k] == dims[k]-1:
-                        data += [m[j,k]*coeff1*c, m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                 m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                 m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                    if index[1] == dims[k]-1:
+                        data += [coeff1, coeff1*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-2],
+                                 coeff1*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-1],
+                                 coeff1*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]]]
                         row += [i]*4
-                        col += [i, index_1D(index_terk-indk, dims), index_1D(index_terk, dims), index_1D(index_terk+indk, dims)]
+                        col += [i, index_1D(index_terk-indk, [dims[j], dims[k]]), index_1D(index_terk, [dims[j], dims[k]]), index_1D(index_terk+indk, [dims[j], dims[k]])]
 
-                        if index[j] > 0:
-                            data += [m[j,k]*coeff2*c, m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                     m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                     m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                        if index[0] > 0:
+                            data += [coeff2, coeff2*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-2],
+                                     coeff2*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-1],
+                                     coeff2*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]]]
                             row += [i]*4
-                            col += [index_1D(index-indj, dims), index_1D(index_terk-indk-indj, dims),
-                                    index_1D(index_terk-indj, dims), index_1D(index_terk+indk-indj, dims)]
+                            col += [index_1D(index-indj, [dims[j], dims[k]]), index_1D(index_terk-indk-indj, [dims[j], dims[k]]),
+                                    index_1D(index_terk-indj, [dims[j], dims[k]]), index_1D(index_terk+indk-indj, [dims[j], dims[k]])]
                         
-                        if index[j] < dims[j]-1:
-                            data += [m[j,k]*coeff3*c, m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                     m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                     m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                        if index[0] < dims[j]-1:
+                            data += [coeff3, coeff3*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-2],
+                                     coeff3*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]-1],
+                                     coeff3*(-1/dims[k])*ljk[k][index[1]-1,index_terk[1]]]
                             row += [i]*4
-                            col += [index_1D(index+indj, dims), index_1D(index_terk-indk+indj, dims),
-                                    index_1D(index_terk+indj, dims), index_1D(index_terk+indk+indj, dims)]
-
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+                            col += [index_1D(index+indj, [dims[j], dims[k]]), index_1D(index_terk-indk+indj, [dims[j], dims[k]]),
+                                    index_1D(index_terk+indj, [dims[j], dims[k]]), index_1D(index_terk+indk+indj, [dims[j], dims[k]])]
+                        res_dim.append(sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc())
+                res.append(res_dim)
+    return res
 
 
 #--------------------
@@ -313,17 +358,20 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
         S2 = [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[i], dims[i]), dtype = 'float').tocsc() for i in range(len(dims))]
     else : S2 = calcS2_jk3(dims)
 
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-    
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    
+    Mi = calcM_jk3bis(dims,mm)
+
+    #mimi = its.calcM_jk3(dims,mm)
+    #slvm = linalg.factorized(sp.sparse.identity(mimi.shape[0], dtype = 'float', format = 'csc')-dt*mimi)
+    # solvers for migration
+    slvm = [linalg.factorized(sp.sparse.identity(Mi[i].shape[0], dtype = 'float', format = 'csc')-1*dt*Mi[i]) for i in range(len(Mi))]
+
     interval = time.time() - start_time
     print('Time init:', interval)
     start_time = time.time()
-    
+
+    # time loop:
+    t = 0.0
+    sfs = sfs0
     while t < Tmax:
         if t+dt>Tmax: dt = Tmax-t
         # we recompute the matrix only if N has changed...
@@ -331,32 +379,46 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
             D = [1/4.0/N[i]*vd[i] for i in range(len(n))]
             # system inversion for backward scheme
             slv = [linalg.factorized(sp.sparse.identity(dims[i], dtype = 'float', format = 'csc')-dt*(D[i]+s[i]*h[i]*S1[i]+s[i]*(1-2.0*h[i])*S2[i])) for i in range(len(n))]
+
         
         # Backward Euler scheme with splitted operators
         sfs = mutate(sfs, u, dims, dt)
         
         # 1D
-        #sfs = slv[0](sfs)
+        if len(dims)==1: sfs = slv[0](sfs)
         
         # 2D
-        for i in range(int(dims[1])):
-            sfs[:,i] = slv[0](sfs[:,i])
-        for i in range(int(dims[0])):
-            sfs[i,:] = slv[1](sfs[i,:])
+        if len(dims)==2:
+            #sfstemp = sfs.reshape(dims[0]*dims[1])
+            #sfs = (slvm[0](sfstemp)).reshape(dims)
+
+            for i in range(int(dims[1])):
+                sfs[:,i] = slv[0](sfs[:,i])
+            for i in range(int(dims[0])):
+                sfs[i,:] = slv[1](sfs[i,:])
+            # migrations
+            sfstemp = sfs.reshape(dims[0]*dims[1])
+            sfs = (slvm[0](sfstemp)).reshape(dims)
+
+
         # 3D
-        '''
-        for i in range(int(dims[1])):
-            for j in range(int(dims[2])):
-                sfs[:,i,j] = slv[0](sfs[:,i,j])
-        for i in range(int(dims[0])):
-            for j in range(int(dims[2])):
-                sfs[i,:,j] = slv[1](sfs[i,:,j])
-        for i in range(int(dims[0])):
-            for j in range(int(dims[1])):
-                sfs[i,j,:] = slv[2](sfs[i,j,:])'''
-        #migrations ???
-        sfs = migrate(sfs, Mi, dt)
-        
+        if len(dims)==3:
+            for i in range(int(dims[1])):
+                for j in range(int(dims[2])):
+                    sfs[:,i,j] = slv[0](sfs[:,i,j])
+            for i in range(int(dims[0])):
+                for j in range(int(dims[2])):
+                    sfs[i,:,j] = slv[1](sfs[i,:,j])
+            for i in range(int(dims[0])):
+                for j in range(int(dims[1])):
+                    sfs[i,j,:] = slv[2](sfs[i,j,:])
+            # migrations
+            for i in range(int(dims[0])):
+                sfs[i,:,:] = slvm[2](sfs[i,:,:].reshape(dims[1]*dims[2])).reshape(dims[1],dims[2])
+            for i in range(int(dims[1])):
+                sfs[:,i,:] = slvm[1](sfs[:,i,:].reshape(dims[0]*dims[2])).reshape(dims[0],dims[2])
+            for i in range(int(dims[2])):
+                sfs[:,:,i] = slvm[0](sfs[:,:,i].reshape(dims[0]*dims[1])).reshape(dims[0],dims[1])
         Nold = N
         t += dt
         N = np.array(fctN(t/(2.0*N0)))
