@@ -1,9 +1,6 @@
 import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
-import math
-
-import time
 
 import integration_multiD_sparse as its
 #------------------------------------------------------------------------------
@@ -34,13 +31,16 @@ def calcB(dims, u):
 
 # Drift
 def calcD(dims):
-    res = []
-    for i in range(len(dims)):
-        for j in range(i+1, len(dims)):
-            res.append(its.calcD([dims[i],dims[j]]))
+    if (len(dims)==1): res = [its.calcD([dims[0]])]
+    else:
+        res = []
+        for i in range(len(dims)):
+            for j in range(i+1, len(dims)):
+                res.append(its.calcD([dims[i],dims[j]]))
     return res
 
 def buildD(vd, dims, N):
+    if (len(dims)==1): return [1.0/(4*N[0])*vd[0][0]]
     res = []
     ctr = 0
     for i in range(len(dims)):
@@ -51,6 +51,7 @@ def buildD(vd, dims, N):
 
 # Selection 1
 def calcS(dims,s,h):
+    if (len(dims)==1): return [its.calcS_jk3([dims[0]], [s[0]], [h[0]])]
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -59,6 +60,7 @@ def calcS(dims,s,h):
 
 # Selection 2
 def calcS2(dims,s,h):
+    if (len(dims)==1): return [its.calcS2_jk3([dims[0]], [s[0]], [h[0]])]
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -67,6 +69,7 @@ def calcS2(dims,s,h):
 
 # Migrations
 def calcM_jk3(dims,m):
+    if (len(dims)==1): return [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()]
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -77,16 +80,21 @@ def calcM_jk3(dims,m):
 #----------------------------------
 # updates for the time integration-
 #----------------------------------
+# 1D
+def ud1_1pop_1(sfs, Q, dims):
+    sfs = Q[0].dot(sfs)
+    return sfs
+    
+def ud2_1pop_1(sfs, slv, dims):
+    sfs = slv[0](sfs+dt*B)
+    return sfs
+
 # 2D
-def update1_2pop(sfs, Q, dims):
-    assert(len(sfs.shape)==2)
-    assert(len(Q)==1)
+def ud1_2pop_1(sfs, Q, dims):
     sfs = Q[0].dot(sfs.reshape(dims[0]*dims[1])).reshape(dims)
     return sfs
 
-def update2_2pop(sfs, slv, dims):
-    assert(len(sfs.shape)==2)
-    assert(len(slv)==1)
+def ud2_2pop_1(sfs, slv, dims):
     sfs = (slv[0](sfs.reshape(dims[0]*dims[1]))).reshape(dims)
     return sfs
 
@@ -125,20 +133,6 @@ def ud2_3pop_3(sfs, slv, dims):
         sfs[i,:,:] = slv[2](sfs[i,:,:].reshape(dims[1]*dims[2])).reshape(dims[1],dims[2])
     return sfs
 
-# update 3D with permutations
-def update1_3pop(sfs, Q, dims, order = range(3)):
-    assert(len(sfs.shape)==3)
-    assert(len(Q)==3)
-    for i in order:
-        sfs = eval('ud1_3pop_'+str(i+1)+'(sfs, Q, dims)')
-    return sfs
-
-def update2_3pop(sfs, slv, dims, order = range(3)):
-    assert(len(sfs.shape)==3)
-    assert(len(slv)==3)
-    for i in order:
-        sfs = eval('ud2_3pop_'+str(i+1)+'(sfs, slv, dims)')
-    return sfs
 
 #------------------------------
 # 4D
@@ -216,21 +210,6 @@ def ud2_4pop_6(sfs, slv, dims):
             sfs[:,:,i,j] = slv[0](sfs[:,:,i,j].reshape(dims[0]*dims[1])).reshape(dims[0],dims[1])
     return sfs
 
-# update 4D with permutations
-def update1_4pop(sfs, Q, dims, order = range(6)):
-    assert(len(sfs.shape)==4)
-    assert(len(Q)==6)
-    for i in order:
-        sfs = eval('ud1_4pop_'+str(i+1)+'(sfs, Q, dims)')
-    return sfs
-
-
-def update2_4pop(sfs, slv, dims, order = range(6)):
-    assert(len(sfs.shape)==4)
-    assert(len(slv)==6)
-    for i in order:
-        sfs = eval('ud2_4pop_'+str(i+1)+'(sfs, slv, dims)')
-    return sfs
 
 #------------------------------
 # 5D
@@ -376,20 +355,19 @@ def ud2_5pop_10(sfs, slv, dims):
                 sfs[:,:,i,j,k] = slv[0](sfs[:,:,i,j,k].reshape(dims[0]*dims[1])).reshape(dims[0],dims[1])
     return sfs
 
-# update 5D with permutations
-def update1_5pop(sfs, Q, dims, order = range(10)):
-    assert(len(sfs.shape)==5)
-    assert(len(Q)==10)
+# update nD with permutations
+def update_step1(sfs, Q, dims, order):
+    assert(len(sfs.shape)==len(dims))
+    assert(len(Q)==len(dims)*(len(dims)-1)/2)
     for i in order:
-        sfs = eval('ud1_5pop_'+str(i+1)+'(sfs, Q, dims)')
+        sfs = eval('ud1_'+str(len(dims))+'pop_'+str(i+1)+'(sfs, Q, dims)')
     return sfs
 
-
-def update2_5pop(sfs, slv, dims, order = range(10)):
-    assert(len(sfs.shape)==5)
-    assert(len(slv)==10)
+def update_step2(sfs, slv, dims, order):
+    assert(len(sfs.shape)==len(dims))
+    assert(len(slv)==len(dims)*(len(dims)-1)/2)
     for i in order:
-        sfs = eval('ud2_5pop_'+str(i+1)+'(sfs, slv, dims)')
+        sfs = eval('ud2_'+str(len(dims))+'pop_'+str(i+1)+'(sfs, slv, dims)')
     return sfs
 
 def permute(tab):
@@ -413,8 +391,6 @@ def permute(tab):
 # fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
 def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # parameters of the equation
-    start_time = time.time()
-    
     N = np.array(fctN(0))
     N0=N[0]
     Nold = N+np.ones(len(N))
@@ -429,23 +405,22 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     d = int(np.prod(dims))
     # number of "directions" for the splitting
     nbp = int(len(n)*(len(n)-1)/2)
+    if len(n)==1: nbp = 1
     # we compute the matrices we will need
     vd = calcD(dims)
     S1 = calcS(dims,s,h)
     S2 = calcS2(dims,s,h)
     Mi = calcM_jk3(dims,mm)
     B = calcB(dims, u)
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-    
+
     # indexes for the permutation trick
     order = list(range(nbp))
-    
     # time step splitting
     split_dt = 1.0
     if len(n)>2: split_dt = 3.0
     if len(n)==5: split_dt = 5.0
+    
+    print('factor', 1.0/(max(len(n),2)-1))
     
     # time loop:
     t = 0.0
@@ -457,38 +432,21 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
             D = buildD(vd, dims, N)
             
             # system inversion for backward scheme
-            slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')-dt/2/split_dt*(1.0/(len(n)-1)*(D[i]+S1[i]+S2[i])+Mi[i])) for i in range(nbp)]
-            Q = [sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')+dt/2/split_dt*(1.0/(len(n)-1)*(D[i]+S1[i]+S2[i])+Mi[i]) for i in range(nbp)]
-
+            slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')-dt/2/split_dt*(1.0/(max(len(n),2)-1)*(D[i]+S1[i]+S2[i])+Mi[i])) for i in range(nbp)]
+            Q = [sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')+dt/2/split_dt*(1.0/(max(len(n),2)-1)*(D[i]+S1[i]+S2[i])+Mi[i]) for i in range(nbp)]
+        
         # drift, selection and migration (depends on the dimension)
-        if len(dims)==1:
+        if len(n)==1:
             sfs = Q[0].dot(sfs)
             sfs = slv[0](sfs+dt*B)
-        if len(dims)==2:
-            sfs = update1_2pop(sfs, Q, dims)
-            sfs = update2_2pop(sfs+dt*B, slv, dims)
-        if len(dims)==3:
+        if len(n)>1:
             for i in range(int(split_dt)):
-                sfs = update1_3pop(sfs, Q, dims, order)
-                sfs = update2_3pop(sfs+dt/split_dt*B, slv, dims, order)
+                sfs = update_step1(sfs, Q, dims, order)
+                sfs = update_step2(sfs+dt/split_dt*B, slv, dims, order)
                 order = permute(order)
-        if len(dims)==4:
-            for i in range(int(split_dt)):
-                sfs = update1_4pop(sfs, Q, dims, order)
-                sfs = update2_4pop(sfs+dt/split_dt*B, slv, dims, order)
-                order = permute(order)
-        if len(dims)==5:
-            for i in range(int(split_dt)):
-                sfs = update1_5pop(sfs, Q, dims, order)
-                sfs = update2_5pop(sfs+dt/split_dt*B, slv, dims, order)
-                order = permute(order)
-
         Nold = N
         t += dt
         N = np.array(fctN(t/(2.0*N0)))
-
-    interval = time.time() - start_time
-    print('Time loop:', interval)
 
     return sfs
 

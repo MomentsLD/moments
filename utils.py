@@ -1,8 +1,7 @@
 import numpy as np
-import math
 import scipy.misc as misc
 
-import integration_multiD as itd
+import integration_multiD_sparse as its
 #-----------------------------------------
 # Usefull functions for sfs manipulations:
 #-----------------------------------------

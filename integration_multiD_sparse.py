@@ -1,12 +1,8 @@
 import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
-import math
-
-import time
 
 import jackknife as jk
-import integration_multiD as itd
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -50,7 +46,6 @@ def calcB(u, dims):
     for k in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
         ind[k] = int(1)
-        #ind = np.ones(len(dims), dtype='int')
         tp = tuple(ind)
         B[tp] = dims[k]-1
     return u*B
@@ -88,6 +83,7 @@ def calcD(dims):
                 row.append(i)
                 col.append(i)
         res.append(sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc())
+
     return res
 
 # Selection
@@ -123,7 +119,6 @@ def calcS_jk3(dims, s, h):
             index_bis[j] = jk.index_bis(index_bis[j],dims[j]-1)
             index_ter = np.array(index)+ind
             index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
-            #print(i, index_bis[j], index_1D(index_bis, dims), index_ter[j],index_1D(index_ter, dims))
             if (index[j]<dims[j]-1):
                 data += [g1*ljk[j][index[j]-1,index_bis[j]-1], g1*ljk[j][index[j]-1,index_bis[j]-2],
                          g1*ljk[j][index[j]-1,index_bis[j]], g2*ljk[j][index[j],index_ter[j]-1],
@@ -324,137 +319,8 @@ def steady_state(n, N, gamma, h, m, theta=1.0, reshape=True):
 # h : allele dominance (vector h = (h1,...,hp))
 # m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
 
-# for a constant N
-def integrate_N_cst(sfs0, N, n, tf, dt, gamma, h, m, theta=1.0):
-    # parameters of the equation
-    
-    start_time = time.time()
-    
-    mm = np.array(m)/(2.0*N[0])
-    s = np.array(gamma)/N[0]
-    h = np.array(h)
-    Tmax = tf*2.0*N[0]
-    dt = dt*2.0*N[0]
-    u = theta/(4.0*N[0])
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N[0]*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-
-    # system inversion for backward scheme
-    Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2+Mi)
-
-    # LU decomposition
-    solve = linalg.factorized(Q)
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-    
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-    
-    while t < Tmax:
-        if t+dt>Tmax: dt = Tmax-t
-        # Backward Euler scheme
-        sfs1 = solve(sfs1+dt*B1)
-        t += dt
-    
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-# for a "lambda" definition of N - with Crank Nicholson integration scheme
-# fctN is the name of a "lambda" fuction giving N = fctN(t)
-# where t is the relative time in generations such as t = 0 initially
-# fctN is a lambda function of the time t returning the vector N = (N1,...,Np)
 def integrate_N_lambda_CN(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # parameters of the equation
-    
-    start_time = time.time()
-    
-    N = fctN(0)
-    N0=N[0]
-    mm = np.array(m)/(2.0*N0)
-    s = np.array(gamma)/N0
-    h = np.array(h)
-    Tmax = tf*2.0*N0
-    dt = dt*2.0*N0
-    u = theta/(4.0*N0)
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    D = 1/4.0/N0*vd[0]
-    for i in range(1, len(N)):
-        D = D + 1/4.0/N[i]*vd[i]
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-
-    while t < Tmax:
-        if t+dt>Tmax: dt = Tmax-t
-        D = 1/4.0/N[0]*vd[0]
-        for i in range(1, len(N)):
-            D = D + 1/4.0/N[i]*vd[i]
-        Q1 = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt/2*(D+S+S2+Mi)
-        Q2 = sp.sparse.identity(d, dtype = 'float', format = 'csc')+dt/2*(D+S+S2+Mi)
-        # Crank Nicholson
-        linalg.use_solver()
-        sfs1 = linalg.spsolve(Q1,Q2.dot(sfs1)+dt*B1)
-        t += dt
-        # we update the populations sizes
-        N = fctN(t/(2.0*N0))
-    #print(t)
-    
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-# Same function as integrate_N_lambda_CN but faster when fctN is constant on some intervals
-def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
-    # parameters of the equation
-    
-    start_time = time.time()
-    
     N = np.array(fctN(0))
     N0=N[0]
     Nold = N+np.ones(len(N))
@@ -493,10 +359,6 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # all in 1D for the time integration...
     sfs1 = sfs.reshape(d)
     B1 = B.reshape(d)
-    
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
 
     while t < Tmax:
         if t+dt>Tmax: dt = Tmax-t
@@ -510,93 +372,12 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
             Q2 = sp.sparse.identity(d, dtype = 'float', format = 'csc')+dt/2*(D+S+S2+Mi)
             # LU decomposition
             solve = linalg.factorized(Q1)
-        # Backward Euler scheme
+        # CN scheme
         sfs1 = solve(Q2.dot(sfs1)+dt*B1)
 
         Nold = N
         t += dt
         N = np.array(fctN(t/(2.0*N0)))
     
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
     sfs = sfs1.reshape(dims)
     return sfs
-
-
-def integrate_N_lambda_CN3(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
-    # parameters of the equation
-    
-    start_time = time.time()
-    
-    N = np.array(fctN(0))
-    N0=N[0]
-    Nold = N+np.ones(len(N))
-    mm = np.array(m)/(2.0*N0)
-    s = np.array(gamma)/N0
-    h = np.array(h)
-    Tmax = tf*2.0*N0
-    dt = dt*2.0*N0
-    u = theta/(4.0*N0)
-    # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    
-    # we compute the matrices we will need
-    # matrix for mutations
-    B = calcB(u, dims)
-    # matrix for drift
-    vd = calcD(dims)
-    
-    # matrix for selection
-    S = calcS_jk3(dims, s, h)
-    S2 = calcS2_jk3(dims, s, h)
-    # matrix for migration
-    Mi = calcM_jk3(dims, mm)
-    
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-    
-    # time loop:
-    sfs = sfs0
-    t = 0.0
-    # all in 1D for the time integration...
-    sfs1 = sfs.reshape(d)
-    B1 = B.reshape(d)
-    
-    interval = time.time() - start_time
-    print('Time init:', interval)
-    start_time = time.time()
-    slvm = linalg.factorized(sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*Mi)
-    
-    while t < Tmax:
-        if t+dt>Tmax: dt = Tmax-t
-        # we recompute the matrix only if N has changed...
-        if (Nold!=N).any():
-            D = 1/4.0/N0*vd[0]
-            for i in range(1, len(N)):
-                D = D + 1/4.0/N[i]*vd[i]
-            # system inversion for backward scheme
-            Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2)
-            # LU decomposition
-            solve = linalg.factorized(Q)
-        # Backward Euler scheme
-        sfs1 = solve(sfs1+dt*B1)
-        sfs1 = slvm(sfs1)
-
-        
-        Nold = N
-        t += dt
-        N = np.array(fctN(t/(2.0*N0)))
-
-    interval = time.time() - start_time
-    print('Time loop:', interval)
-    
-    sfs = sfs1.reshape(dims)
-    return sfs
-
-
