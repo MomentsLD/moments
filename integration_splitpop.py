@@ -90,8 +90,8 @@ def update2_2pop(sfs, slv, dims):
     sfs = (slv[0](sfs.reshape(dims[0]*dims[1]))).reshape(dims)
     return sfs
 
-# for 3D and 4D cases, each couple of directions are coded separately to simplify the permutations...
-
+# for 3D, 4D and 5D cases, each couple of directions are coded separately to simplify the permutations...
+#------------------------------
 # 3D
 # step 1
 def ud1_3pop_1(sfs, Q, dims):
@@ -140,7 +140,7 @@ def update2_3pop(sfs, slv, dims, order = range(3)):
         sfs = eval('ud2_3pop_'+str(i+1)+'(sfs, slv, dims)')
     return sfs
 
-
+#------------------------------
 # 4D
 # step 1
 def ud1_4pop_1(sfs, Q, dims):
@@ -232,6 +232,166 @@ def update2_4pop(sfs, slv, dims, order = range(6)):
         sfs = eval('ud2_4pop_'+str(i+1)+'(sfs, slv, dims)')
     return sfs
 
+#------------------------------
+# 5D
+# step 1
+def ud1_5pop_1(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[2])):
+                sfs[i,j,k,:,:] = Q[9].dot(sfs[i,j,k,:,:].reshape(dims[3]*dims[4])).reshape(dims[3],dims[4])
+    return sfs
+
+def ud1_5pop_2(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[3])):
+                sfs[i,j,:,k,:] = Q[8].dot(sfs[i,j,:,k,:].reshape(dims[2]*dims[4])).reshape(dims[2],dims[4])
+    return sfs
+
+def ud1_5pop_3(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[4])):
+                sfs[i,j,:,:,k] = Q[7].dot(sfs[i,j,:,:,k].reshape(dims[2]*dims[3])).reshape(dims[2],dims[3])
+    return sfs
+
+def ud1_5pop_4(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[3])):
+                sfs[i,:,j,k,:] = Q[6].dot(sfs[i,:,j,k,:].reshape(dims[1]*dims[4])).reshape(dims[1],dims[4])
+    return sfs
+
+def ud1_5pop_5(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[4])):
+                sfs[i,:,j,:,k] = Q[5].dot(sfs[i,:,j,:,k].reshape(dims[1]*dims[3])).reshape(dims[1],dims[3])
+    return sfs
+
+def ud1_5pop_6(sfs, Q, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[i,:,:,j,k] = Q[4].dot(sfs[i,:,:,j,k].reshape(dims[1]*dims[2])).reshape(dims[1],dims[2])
+    return sfs
+
+def ud1_5pop_7(sfs, Q, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[3])):
+                sfs[:,i,j,k,:] = Q[3].dot(sfs[:,i,j,k,:].reshape(dims[0]*dims[4])).reshape(dims[0],dims[4])
+    return sfs
+
+def ud1_5pop_8(sfs, Q, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[4])):
+                sfs[:,i,j,:,k] = Q[2].dot(sfs[:,i,j,:,k].reshape(dims[0]*dims[3])).reshape(dims[0],dims[3])
+    return sfs
+
+def ud1_5pop_9(sfs, Q, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[:,i,:,j,k] = Q[1].dot(sfs[:,i,:,j,k].reshape(dims[0]*dims[2])).reshape(dims[0],dims[2])
+    return sfs
+
+def ud1_5pop_10(sfs, Q, dims):
+    for i in range(int(dims[2])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[:,:,i,j,k] = Q[0].dot(sfs[:,:,i,j,k].reshape(dims[0]*dims[1])).reshape(dims[0],dims[1])
+    return sfs
+
+# step 2
+def ud2_5pop_1(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[2])):
+                sfs[i,j,k,:,:] = slv[9](sfs[i,j,k,:,:].reshape(dims[3]*dims[4])).reshape(dims[3],dims[4])
+    return sfs
+
+def ud2_5pop_2(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[3])):
+                sfs[i,j,:,k,:] = slv[8](sfs[i,j,:,k,:].reshape(dims[2]*dims[4])).reshape(dims[2],dims[4])
+    return sfs
+
+def ud2_5pop_3(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[1])):
+            for k in range(int(dims[4])):
+                sfs[i,j,:,:,k] = slv[7](sfs[i,j,:,:,k].reshape(dims[2]*dims[3])).reshape(dims[2],dims[3])
+    return sfs
+
+def ud2_5pop_4(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[3])):
+                sfs[i,:,j,k,:] = slv[6](sfs[i,:,j,k,:].reshape(dims[1]*dims[4])).reshape(dims[1],dims[4])
+    return sfs
+
+def ud2_5pop_5(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[4])):
+                sfs[i,:,j,:,k] = slv[5](sfs[i,:,j,:,k].reshape(dims[1]*dims[3])).reshape(dims[1],dims[3])
+    return sfs
+
+def ud2_5pop_6(sfs, slv, dims):
+    for i in range(int(dims[0])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[i,:,:,j,k] = slv[4](sfs[i,:,:,j,k].reshape(dims[1]*dims[2])).reshape(dims[1],dims[2])
+    return sfs
+
+def ud2_5pop_7(sfs, slv, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[3])):
+                sfs[:,i,j,k,:] = slv[3](sfs[:,i,j,k,:].reshape(dims[0]*dims[4])).reshape(dims[0],dims[4])
+    return sfs
+
+def ud2_5pop_8(sfs, slv, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[2])):
+            for k in range(int(dims[4])):
+                sfs[:,i,j,:,k] = slv[2](sfs[:,i,j,:,k].reshape(dims[0]*dims[3])).reshape(dims[0],dims[3])
+    return sfs
+
+def ud2_5pop_9(sfs, slv, dims):
+    for i in range(int(dims[1])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[:,i,:,j,k] = slv[1](sfs[:,i,:,j,k].reshape(dims[0]*dims[2])).reshape(dims[0],dims[2])
+    return sfs
+
+def ud2_5pop_10(sfs, slv, dims):
+    for i in range(int(dims[2])):
+        for j in range(int(dims[3])):
+            for k in range(int(dims[4])):
+                sfs[:,:,i,j,k] = slv[0](sfs[:,:,i,j,k].reshape(dims[0]*dims[1])).reshape(dims[0],dims[1])
+    return sfs
+
+# update 5D with permutations
+def update1_5pop(sfs, Q, dims, order = range(10)):
+    assert(len(sfs.shape)==5)
+    assert(len(Q)==10)
+    for i in order:
+        sfs = eval('ud1_5pop_'+str(i+1)+'(sfs, Q, dims)')
+    return sfs
+
+
+def update2_5pop(sfs, slv, dims, order = range(10)):
+    assert(len(sfs.shape)==5)
+    assert(len(slv)==10)
+    for i in order:
+        sfs = eval('ud2_5pop_'+str(i+1)+'(sfs, slv, dims)')
+    return sfs
+
 def permute(tab):
     res = tab[1:]
     res.append(tab[0])
@@ -268,8 +428,7 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     dims = n+np.ones(len(n))
     d = int(np.prod(dims))
     # number of "directions" for the splitting
-    nbp = len(n)*(len(n)-1)/2
-    
+    nbp = int(len(n)*(len(n)-1)/2)
     # we compute the matrices we will need
     vd = calcD(dims)
     S1 = calcS(dims,s,h)
@@ -286,6 +445,7 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     # time step splitting
     split_dt = 1.0
     if len(n)>2: split_dt = 3.0
+    if len(n)==5: split_dt = 5.0
     
     # time loop:
     t = 0.0
@@ -316,6 +476,11 @@ def integrate(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
             for i in range(int(split_dt)):
                 sfs = update1_4pop(sfs, Q, dims, order)
                 sfs = update2_4pop(sfs+dt/split_dt*B, slv, dims, order)
+                order = permute(order)
+        if len(dims)==5:
+            for i in range(int(split_dt)):
+                sfs = update1_5pop(sfs, Q, dims, order)
+                sfs = update2_5pop(sfs+dt/split_dt*B, slv, dims, order)
                 order = permute(order)
 
         Nold = N

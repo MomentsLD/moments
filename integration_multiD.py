@@ -263,15 +263,15 @@ def calcM(dims, m):
         for j in range(len(dims)):
             indj = np.zeros(len(dims), dtype='int')
             indj[j] = int(1)
-            coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
-            coeff2 = (dims[j]-index[j])/(dims[j]-1)
-            coeff3 = -(index[j]+1)/(dims[j]-1)
+            coeff1 = 2*index[j]-(dims[j]-1)
+            coeff2 = dims[j]-index[j]
+            coeff3 = -(index[j]+1)
             for k in range(len(dims)):
                 if k!=j:
                     indk = np.zeros(len(dims), dtype='int')
                     indk[k] = int(1)
                     
-                    c = (dims[j]-1)*(index[k]+1)/dims[k]
+                    c = (index[k]+1)/dims[k]
                     
                     M[i,i] -= m[j,k]*index[j]
 

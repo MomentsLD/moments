@@ -218,15 +218,15 @@ def calcM_jk3(dims, m):
             index_terj = np.array(index)+indj
             index_terj[j] = jk.index_bis(index_terj[j],dims[j]-1)
             
-            coeff1 = (2*index[j]-(dims[j]-1))/(dims[j]-1)
-            coeff2 = (dims[j]-index[j])/(dims[j]-1)
-            coeff3 = -(index[j]+1)/(dims[j]-1)
+            coeff1 = 2*index[j]-(dims[j]-1)
+            coeff2 = dims[j]-index[j]
+            coeff3 = -(index[j]+1)
             for k in range(len(dims)):
                 if k != j:
                     indk = np.zeros(len(dims), dtype='int')
                     indk[k] = int(1)
                     
-                    c = (dims[j]-1)*(index[k]+1)/dims[k]
+                    c = (index[k]+1)/dims[k]
                     
                     data.append(-m[j,k]*index[j])
                     row.append(i)
@@ -497,7 +497,7 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     interval = time.time() - start_time
     print('Time init:', interval)
     start_time = time.time()
-    
+
     while t < Tmax:
         if t+dt>Tmax: dt = Tmax-t
         # we recompute the matrix only if N has changed...
@@ -505,12 +505,14 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
             D = 1/4.0/N0*vd[0]
             for i in range(1, len(N)):
                 D = D + 1/4.0/N[i]*vd[i]
-            # system inversion for backward scheme
-            Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2+Mi)
+            # system inversion for CN backward scheme
+            Q1 = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt/2*(D+S+S2+Mi)
+            Q2 = sp.sparse.identity(d, dtype = 'float', format = 'csc')+dt/2*(D+S+S2+Mi)
             # LU decomposition
-            solve = linalg.factorized(Q)
+            solve = linalg.factorized(Q1)
         # Backward Euler scheme
-        sfs1 = solve(sfs1+dt*B1)
+        sfs1 = solve(Q2.dot(sfs1)+dt*B1)
+
         Nold = N
         t += dt
         N = np.array(fctN(t/(2.0*N0)))
@@ -522,6 +524,79 @@ def integrate_N_lambda_CN2(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
     return sfs
 
 
+def integrate_N_lambda_CN3(sfs0, fctN, n, tf, dt, gamma, h, m, theta=1.0):
+    # parameters of the equation
+    
+    start_time = time.time()
+    
+    N = np.array(fctN(0))
+    N0=N[0]
+    Nold = N+np.ones(len(N))
+    mm = np.array(m)/(2.0*N0)
+    s = np.array(gamma)/N0
+    h = np.array(h)
+    Tmax = tf*2.0*N0
+    dt = dt*2.0*N0
+    u = theta/(4.0*N0)
+    # dimensions of the sfs
+    dims = n+np.ones(len(n))
+    d = int(np.prod(dims))
+    
+    # we compute the matrices we will need
+    # matrix for mutations
+    B = calcB(u, dims)
+    # matrix for drift
+    vd = calcD(dims)
+    
+    # matrix for selection
+    S = calcS_jk3(dims, s, h)
+    S2 = calcS2_jk3(dims, s, h)
+    # matrix for migration
+    Mi = calcM_jk3(dims, mm)
+    
+    # time loop:
+    sfs = sfs0
+    t = 0.0
+    # all in 1D for the time integration...
+    sfs1 = sfs.reshape(d)
+    B1 = B.reshape(d)
+    
+    # time loop:
+    sfs = sfs0
+    t = 0.0
+    # all in 1D for the time integration...
+    sfs1 = sfs.reshape(d)
+    B1 = B.reshape(d)
+    
+    interval = time.time() - start_time
+    print('Time init:', interval)
+    start_time = time.time()
+    slvm = linalg.factorized(sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*Mi)
+    
+    while t < Tmax:
+        if t+dt>Tmax: dt = Tmax-t
+        # we recompute the matrix only if N has changed...
+        if (Nold!=N).any():
+            D = 1/4.0/N0*vd[0]
+            for i in range(1, len(N)):
+                D = D + 1/4.0/N[i]*vd[i]
+            # system inversion for backward scheme
+            Q = sp.sparse.identity(d, dtype = 'float', format = 'csc')-dt*(D+S+S2)
+            # LU decomposition
+            solve = linalg.factorized(Q)
+        # Backward Euler scheme
+        sfs1 = solve(sfs1+dt*B1)
+        sfs1 = slvm(sfs1)
 
+        
+        Nold = N
+        t += dt
+        N = np.array(fctN(t/(2.0*N0)))
+
+    interval = time.time() - start_time
+    print('Time loop:', interval)
+    
+    sfs = sfs1.reshape(dims)
+    return sfs
 
 
