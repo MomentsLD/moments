@@ -1,0 +1,1084 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>dadi.Numerics</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dadi.googlecode.com">dadi</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="dadi-module.html">Package&nbsp;dadi</a> ::
+        Module&nbsp;Numerics
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="dadi.Numerics-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module Numerics</h1><p class="nomargin-top"><span class="codelink"><a href="dadi.Numerics-pysrc.html">source&nbsp;code</a></span></p>
+<pre class="literalblock">
+
+Numerically useful functions, including extrapolation and default grid.
+
+</pre>
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#quadratic_grid" class="summary-sig-name">quadratic_grid</a>(<span class="summary-sig-arg">num_pts</span>)</span><br />
+      A nonuniform grid of points on [0,1] with a quadratic pattern of spacings.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#quadratic_grid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#estimate_best_exp_grid_crwd" class="summary-sig-name">estimate_best_exp_grid_crwd</a>(<span class="summary-sig-arg">ns</span>)</span><br />
+      Emperical &quot;best&quot; values for exponential grid crowding.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#estimate_best_exp_grid_crwd">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#exponential_grid" class="summary-sig-name">exponential_grid</a>(<span class="summary-sig-arg">pts</span>,
+        <span class="summary-sig-arg">crwd</span>=<span class="summary-sig-default">8.0</span>)</span><br />
+      An exponentially spaced grid.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#exponential_grid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#default_grid" class="summary-sig-name">default_grid</a>(<span class="summary-sig-arg">pts</span>,
+        <span class="summary-sig-arg">crwd</span>=<span class="summary-sig-default">8.0</span>)</span><br />
+      An exponentially spaced grid.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#exponential_grid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#end_point_first_derivs" class="summary-sig-name">end_point_first_derivs</a>(<span class="summary-sig-arg">xx</span>)</span><br />
+      Coefficients for a 5-point one-sided approximation of the first derivative.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#end_point_first_derivs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reverse_array"></a><span class="summary-sig-name">reverse_array</span>(<span class="summary-sig-arg">arr</span>)</span><br />
+      Reverse an array along all axes, so arr[i,j] -&gt; arr[-(i+1),-(j+1)].</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#reverse_array">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#intersect_masks" class="summary-sig-name">intersect_masks</a>(<span class="summary-sig-arg">m1</span>,
+        <span class="summary-sig-arg">m2</span>)</span><br />
+      Versions of m1 and m2 that are masked where either m1 or m2 were masked.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#intersect_masks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#trapz" class="summary-sig-name">trapz</a>(<span class="summary-sig-arg">yy</span>,
+        <span class="summary-sig-arg">xx</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">dx</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">axis</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Integrate yy(xx) along given axis using the composite trapezoidal rule.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#trapz">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#make_extrap_func" class="summary-sig-name">make_extrap_func</a>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">extrap_x_l</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">extrap_log</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">fail_mag</span>=<span class="summary-sig-default">10</span>)</span><br />
+      Generate a version of func that extrapolates to infinitely many gridpoints.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#make_extrap_func">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#make_extrap_log_func" class="summary-sig-name">make_extrap_log_func</a>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">extrap_x_l</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generate a version of func that extrapolates to infinitely many gridpoints.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#make_extrap_log_func">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_lncomb"></a><span class="summary-sig-name">_lncomb</span>(<span class="summary-sig-arg">N</span>,
+        <span class="summary-sig-arg">k</span>)</span><br />
+      Log of N choose k.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#_lncomb">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#_cached_projection" class="summary-sig-name" onclick="show_private();">_cached_projection</a>(<span class="summary-sig-arg">proj_to</span>,
+        <span class="summary-sig-arg">proj_from</span>,
+        <span class="summary-sig-arg">hits</span>)</span><br />
+      Coefficients for projection from a different fs size.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#_cached_projection">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#array_from_file" class="summary-sig-name">array_from_file</a>(<span class="summary-sig-arg">fid</span>,
+        <span class="summary-sig-arg">return_comments</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Read array from file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#array_from_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#array_to_file" class="summary-sig-name">array_to_file</a>(<span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">fid</span>,
+        <span class="summary-sig-arg">precision</span>=<span class="summary-sig-default">16</span>,
+        <span class="summary-sig-arg">comment_lines</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>)</span><br />
+      Write array to file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#array_to_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#linear_extrap" class="summary-sig-name">linear_extrap</a>(<span class="summary-sig-arg">(y1, y2)</span>,
+        <span class="summary-sig-arg">(x1, x2)</span>)</span><br />
+      Linearly extrapolate from two x,y pairs to x = 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#linear_extrap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#quadratic_extrap" class="summary-sig-name">quadratic_extrap</a>(<span class="summary-sig-arg">(y1, y2, y3)</span>,
+        <span class="summary-sig-arg">(x1, x2, x3)</span>)</span><br />
+      Quadratically extrapolate from three x,y pairs to x = 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#quadratic_extrap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#cubic_extrap" class="summary-sig-name">cubic_extrap</a>(<span class="summary-sig-arg">(y1, y2, y3, y4)</span>,
+        <span class="summary-sig-arg">(x1, x2, x3, x4)</span>)</span><br />
+      Cubically extrapolate from three x,y pairs to x = 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#cubic_extrap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#quartic_extrap" class="summary-sig-name">quartic_extrap</a>(<span class="summary-sig-arg">(y1, y2, y3, y4, y5)</span>,
+        <span class="summary-sig-arg">(x1, x2, x3, x4, x5)</span>)</span><br />
+      Quartically extrapolate from three x,y pairs to x = 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#quartic_extrap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Numerics-module.html#quintic_extrap" class="summary-sig-name">quintic_extrap</a>(<span class="summary-sig-arg">(y1, y2, y3, y4, y5, y6)</span>,
+        <span class="summary-sig-arg">(x1, x2, x3, x4, x5, x6)</span>)</span><br />
+      Quintic extrapolate from three x,y pairs to x = 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Numerics-pysrc.html#quintic_extrap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="logger"></a><span class="summary-name">logger</span> = <code title="logging.getLogger('Numerics')">logging.getLogger('Numerics')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_projection_cache"></a><span class="summary-name">_projection_cache</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'dadi'"><code class="variable-quote">'</code><code class="variable-string">dadi</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="quadratic_grid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">quadratic_grid</span>(<span class="sig-arg">num_pts</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#quadratic_grid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+A nonuniform grid of points on [0,1] with a quadratic pattern of spacings.
+
+The grid is weighted to be denser near 0 and 1, which is useful for
+population genetic simulations. In between, it smoothly increases and
+then decreases the step size.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="estimate_best_exp_grid_crwd"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">estimate_best_exp_grid_crwd</span>(<span class="sig-arg">ns</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#estimate_best_exp_grid_crwd">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Emperical &quot;best&quot; values for exponential grid crowding.
+
+These functional forms were estimated by running many simulations at
+different parameter values and asking when a simulation at pts_l = [max(ns),
+max(ns)+10, max(ns)+20] was most accurate.
+
+These cannot be considered absolute best values, as that may depend on the
+model. It does seem broadly true that the optimal value of crwd increases
+with system size, up to a point.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="exponential_grid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">exponential_grid</span>(<span class="sig-arg">pts</span>,
+        <span class="sig-arg">crwd</span>=<span class="sig-default">8.0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#exponential_grid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+An exponentially spaced grid. This is now the default grid.
+
+crwd controls the degree to which grid points crowd against x=0 or x=1.
+The value of crwd=8 seems to be a good default for integration with large
+systems. See estimate_best_exp_grid_crwd for some empirical optimizations
+beyond this.
+
+This grid was contributed by Simon Gravel.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="default_grid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">default_grid</span>(<span class="sig-arg">pts</span>,
+        <span class="sig-arg">crwd</span>=<span class="sig-default">8.0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#exponential_grid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+An exponentially spaced grid. This is now the default grid.
+
+crwd controls the degree to which grid points crowd against x=0 or x=1.
+The value of crwd=8 seems to be a good default for integration with large
+systems. See estimate_best_exp_grid_crwd for some empirical optimizations
+beyond this.
+
+This grid was contributed by Simon Gravel.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="end_point_first_derivs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">end_point_first_derivs</span>(<span class="sig-arg">xx</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#end_point_first_derivs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Coefficients for a 5-point one-sided approximation of the first derivative.
+
+xx: grid on which the data to be differentiated lives
+
+Returns ret, a 2x5 array. ret[0] is the coefficients for an approximation
+of the derivative at xx[0]. It is used by deriv = numpy.dot(ret[0],
+yy[:5]). ret[1] is the coefficients for the derivative at xx[-1]. It can be
+used by deriv = dot(ret[1][::-1], yy[-5:]). (Note that we need to reverse
+the coefficient array here.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="intersect_masks"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">intersect_masks</span>(<span class="sig-arg">m1</span>,
+        <span class="sig-arg">m2</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#intersect_masks">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Versions of m1 and m2 that are masked where either m1 or m2 were masked.
+
+If neither m1 or m2 is masked, just returns m1 and m2. Otherwise returns
+m1 and m2 wrapped as masked_arrays with identical masks.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="trapz"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">trapz</span>(<span class="sig-arg">yy</span>,
+        <span class="sig-arg">xx</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">dx</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">axis</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#trapz">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Integrate yy(xx) along given axis using the composite trapezoidal rule.
+
+xx must be one-dimensional and len(xx) must equal yy.shape[axis].
+
+This is modified from the SciPy version to work with n-D yy and 1-D xx.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_extrap_func"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_extrap_func</span>(<span class="sig-arg">func</span>,
+        <span class="sig-arg">extrap_x_l</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">extrap_log</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">fail_mag</span>=<span class="sig-default">10</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#make_extrap_func">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Generate a version of func that extrapolates to infinitely many gridpoints.
+
+func: A function that returns a single scalar or array and whose last
+    non-keyword argument is 'pts': the number of default_grid points to use
+    in calculation.  
+extrap_x_l: An explict list of x values to use for extrapolation. If not 
+    provided, the extrapolation routine will look for '.extrap_x'
+    attributes on the results of func. The method Spectrum.from_phi will
+    add an extrap_x attribute to resulting Spectra, equal to the x-value
+    of the first non-zero grid point. An explicit list is useful if you
+    want to override this behavior for testing.
+fail_mag:  Simon Gravel noted that there can be numerical instabilities in
+    extrapolation when working with large spectra that have very small
+    entires (of order 1e-24). To avoid these instabilities, we ignore the 
+    extrapolation values (and use the input result with the smallest x) 
+    if the extrapolation is more than fail_mag orders of magnitude away
+    from the smallest x input result.
+
+Returns a new function whose last argument is a list of numbers of grid
+points and that returns a result extrapolated to infinitely many grid
+points.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_extrap_log_func"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_extrap_log_func</span>(<span class="sig-arg">func</span>,
+        <span class="sig-arg">extrap_x_l</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#make_extrap_log_func">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Generate a version of func that extrapolates to infinitely many gridpoints.
+
+Note that extrapolation here is done on the *log* of the function result,
+so this will fail if any returned values are &lt; 0. It does seem to be better
+behaved for SFS calculation.
+
+func: A function whose last argument is the number of Numerics.default_grid 
+      points to use in calculation and that returns a single scalar or 
+      array.
+extrap_x_l: An explict list of x values to use for extrapolation. If not 
+     provided, the extrapolation routine will look for '.extrap_x'
+     attributes on the results of func. The method Spectrum.from_phi will
+     add an extrap_x attribute to resulting Spectra, equal to the x-value
+     of the first non-zero grid point. An explicit list is useful if you
+     want to override this behavior for testing.
+
+Returns a new function whose last argument is a list of numbers of grid
+points and that returns a result extrapolated to infinitely many grid
+points.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_cached_projection"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_cached_projection</span>(<span class="sig-arg">proj_to</span>,
+        <span class="sig-arg">proj_from</span>,
+        <span class="sig-arg">hits</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#_cached_projection">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Coefficients for projection from a different fs size.
+
+proj_to: Numper of samples to project down to.
+proj_from: Numper of samples to project from.
+hits: Number of derived alleles projecting from.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="array_from_file"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">array_from_file</span>(<span class="sig-arg">fid</span>,
+        <span class="sig-arg">return_comments</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#array_from_file">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Read array from file.
+
+fid: string with file name to read from or an open file object.
+return_comments: If True, the return value is (fs, comments), where
+                 comments is a list of strings containing the comments
+                 from the file (without #'s).
+
+The file format is:
+    # Any number of comment lines beginning with a '#'
+    A single line containing N integers giving the dimensions of the fs
+      array. So this line would be '5 5 3' for an SFS that was 5x5x3.
+      (That would be 4x4x2 *samples*.)
+    A single line giving the array elements. The order of elements is 
+      e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="array_to_file"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">array_to_file</span>(<span class="sig-arg">data</span>,
+        <span class="sig-arg">fid</span>,
+        <span class="sig-arg">precision</span>=<span class="sig-default">16</span>,
+        <span class="sig-arg">comment_lines</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#array_to_file">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Write array to file.
+
+data: array to write
+fid: string with file name to write to or an open file object.
+precision: precision with which to write out entries of the SFS. (They 
+           are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)
+comment lines: list of strings to be used as comment lines in the header
+               of the output file.
+
+The file format is:
+    # Any number of comment lines beginning with a '#'
+    A single line containing N integers giving the dimensions of the fs
+      array. So this line would be '5 5 3' for an SFS that was 5x5x3.
+      (That would be 4x4x2 *samples*.)
+    A single line giving the array elements. The order of elements is 
+      e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="linear_extrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">linear_extrap</span>(<span class="sig-arg">(y1, y2)</span>,
+        <span class="sig-arg">(x1, x2)</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#linear_extrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Linearly extrapolate from two x,y pairs to x = 0.
+
+y1,y2: y values from x,y pairs. Note that these can be arrays of values.
+x1,x2: x values from x,y pairs. These should be scalars.
+
+Returns extrapolated y at x=0.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="quadratic_extrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">quadratic_extrap</span>(<span class="sig-arg">(y1, y2, y3)</span>,
+        <span class="sig-arg">(x1, x2, x3)</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#quadratic_extrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Quadratically extrapolate from three x,y pairs to x = 0.
+
+y1,y2,y3: y values from x,y pairs. Note that these can be arrays of values.
+x1,x2,x3: x values from x,y pairs. These should be scalars.
+
+Returns extrapolated y at x=0.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="cubic_extrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">cubic_extrap</span>(<span class="sig-arg">(y1, y2, y3, y4)</span>,
+        <span class="sig-arg">(x1, x2, x3, x4)</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#cubic_extrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Cubically extrapolate from three x,y pairs to x = 0.
+
+y1,y2,y3: y values from x,y pairs. Note that these can be arrays of values.
+x1,x2,x3: x values from x,y pairs. These should be scalars.
+
+Returns extrapolated y at x=0.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="quartic_extrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">quartic_extrap</span>(<span class="sig-arg">(y1, y2, y3, y4, y5)</span>,
+        <span class="sig-arg">(x1, x2, x3, x4, x5)</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#quartic_extrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Quartically extrapolate from three x,y pairs to x = 0.
+
+y1,y2...: y values from x,y pairs. Note that these can be arrays of values.
+x1,x2...: x values from x,y pairs. These should be scalars.
+
+Returns extrapolated y at x=0.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="quintic_extrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">quintic_extrap</span>(<span class="sig-arg">(y1, y2, y3, y4, y5, y6)</span>,
+        <span class="sig-arg">(x1, x2, x3, x4, x5, x6)</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Numerics-pysrc.html#quintic_extrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Quintic extrapolate from three x,y pairs to x = 0.
+
+y1,y2...: y values from x,y pairs. Note that these can be arrays of values.
+x1,x2...: x values from x,y pairs. These should be scalars.
+
+Returns extrapolated y at x=0.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dadi.googlecode.com">dadi</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    <a href="epydoc-log.html">Generated by Epydoc
+    3.0.1 on Fri Aug 14 15:39:34 2015</a>
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

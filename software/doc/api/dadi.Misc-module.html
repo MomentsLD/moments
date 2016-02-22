@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>dadi.Misc</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dadi.googlecode.com">dadi</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="dadi-module.html">Package&nbsp;dadi</a> ::
+        Module&nbsp;Misc
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="dadi.Misc-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module Misc</h1><p class="nomargin-top"><span class="codelink"><a href="dadi.Misc-pysrc.html">source&nbsp;code</a></span></p>
+<pre class="literalblock">
+
+Miscellaneous utility functions. Including ms simulation.
+
+</pre>
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#delayed_flush" class="summary-sig-name">delayed_flush</a>(<span class="summary-sig-arg">stream</span>=<span class="summary-sig-default">sys.stdout</span>,
+        <span class="summary-sig-arg">delay</span>=<span class="summary-sig-default">1</span>)</span><br />
+      Flush a stream, ensuring that it is only flushed every 'delay' *minutes*.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#delayed_flush">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#ensure_1arg_func" class="summary-sig-name">ensure_1arg_func</a>(<span class="summary-sig-arg">var</span>)</span><br />
+      Ensure that var is actually a one-argument function.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#ensure_1arg_func">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#ms_command" class="summary-sig-name">ms_command</a>(<span class="summary-sig-arg">theta</span>,
+        <span class="summary-sig-arg">ns</span>,
+        <span class="summary-sig-arg">core</span>,
+        <span class="summary-sig-arg">iter</span>,
+        <span class="summary-sig-arg">recomb</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">rsites</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">seeds</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generate ms command for simulation from core.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#ms_command">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#perturb_params" class="summary-sig-name">perturb_params</a>(<span class="summary-sig-arg">params</span>,
+        <span class="summary-sig-arg">fold</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">lower_bound</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">upper_bound</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Generate a perturbed set of parameters.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#perturb_params">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#make_fux_table" class="summary-sig-name">make_fux_table</a>(<span class="summary-sig-arg">fid</span>,
+        <span class="summary-sig-arg">ts</span>,
+        <span class="summary-sig-arg">Q</span>,
+        <span class="summary-sig-arg">tri_freq</span>)</span><br />
+      Make file of 1-fux for use in ancestral misidentification correction.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#make_fux_table">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="zero_diag"></a><span class="summary-sig-name">zero_diag</span>(<span class="summary-sig-arg">Q</span>)</span><br />
+      Copy of Q altered such that diagonal entries are all 0.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#zero_diag">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="tri_freq_dict_to_array"></a><span class="summary-sig-name">tri_freq_dict_to_array</span>(<span class="summary-sig-arg">tri_freq_dict</span>)</span><br />
+      Convert dictionary of trinucleotide frequencies to array in correct order.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#tri_freq_dict_to_array">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="total_instantaneous_rate"></a><span class="summary-sig-name">total_instantaneous_rate</span>(<span class="summary-sig-arg">Q</span>,
+        <span class="summary-sig-arg">pi</span>)</span><br />
+      Total instantaneous substitution rate.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#total_instantaneous_rate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="dadi.Misc-module.html#make_data_dict" class="summary-sig-name">make_data_dict</a>(<span class="summary-sig-arg">filename</span>)</span><br />
+      Parse SNP file and store info in a properly formatted dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="dadi.Misc-pysrc.html#make_data_dict">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="code"></a><span class="summary-name">code</span> = <code title="'CGTA'"><code class="variable-quote">'</code><code class="variable-string">CGTA</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__times_last_flushed"></a><span class="summary-name">__times_last_flushed</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'dadi'"><code class="variable-quote">'</code><code class="variable-string">dadi</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="delayed_flush"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">delayed_flush</span>(<span class="sig-arg">stream</span>=<span class="sig-default">sys.stdout</span>,
+        <span class="sig-arg">delay</span>=<span class="sig-default">1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#delayed_flush">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Flush a stream, ensuring that it is only flushed every 'delay' *minutes*.
+Note that upon the first call to this method, the stream is not flushed.
+
+stream: The stream to flush. For this to work with simple 'print'
+        statements, the stream should be sys.stdout.
+delay: Minimum time *in minutes* between flushes.
+
+This function is useful to prevent I/O overload on the cluster.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="ensure_1arg_func"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ensure_1arg_func</span>(<span class="sig-arg">var</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#ensure_1arg_func">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Ensure that var is actually a one-argument function.
+
+This is primarily used to convert arguments that are constants into
+trivial functions of time for use in integrations where parameters are
+allowed to change over time.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="ms_command"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ms_command</span>(<span class="sig-arg">theta</span>,
+        <span class="sig-arg">ns</span>,
+        <span class="sig-arg">core</span>,
+        <span class="sig-arg">iter</span>,
+        <span class="sig-arg">recomb</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">rsites</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">seeds</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#ms_command">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Generate ms command for simulation from core.
+
+theta: Assumed theta
+ns: Sample sizes
+core: Core of ms command that specifies demography.
+iter: Iterations to run ms
+recomb: Assumed recombination rate
+rsites: Sites for recombination. If None, default is 10*theta.
+seeds: Seeds for random number generator. If None, ms default is used.
+       Otherwise, three integers should be passed. Example: (132, 435, 123)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="perturb_params"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">perturb_params</span>(<span class="sig-arg">params</span>,
+        <span class="sig-arg">fold</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">lower_bound</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">upper_bound</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#perturb_params">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Generate a perturbed set of parameters.
+
+Each element of params is radomly perturbed &lt;fold&gt; factors of 2 up or down.
+fold: Number of factors of 2 to perturb by
+lower_bound: If not None, the resulting parameter set is adjusted to have 
+             all value greater than lower_bound.
+upper_bound: If not None, the resulting parameter set is adjusted to have 
+             all value less than upper_bound.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_fux_table"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_fux_table</span>(<span class="sig-arg">fid</span>,
+        <span class="sig-arg">ts</span>,
+        <span class="sig-arg">Q</span>,
+        <span class="sig-arg">tri_freq</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#make_fux_table">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Make file of 1-fux for use in ancestral misidentification correction.
+
+fid: Filename to output to.
+ts: Expected number of substitutions per site between ingroup and outgroup.
+Q: Trinucleotide transition rate matrix. This should be a 64x64 matrix, in
+   which entries are ordered using the code CGTA -&gt; 0,1,2,3. For example, 
+   ACT -&gt; 3*16+0*4+2*1=50. The transition rate from ACT to AGT is then 
+   entry 50,54.
+tri_freq: Dictionary in which each entry maps a trinucleotide to its 
+          ancestral frequency. e.g. {'AAA': 0.01, 'AAC':0.012...}
+          Note that should be the frequency in the entire region scanned
+          for variation, not just sites where there are SNPs.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_data_dict"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_data_dict</span>(<span class="sig-arg">filename</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="dadi.Misc-pysrc.html#make_data_dict">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Parse SNP file and store info in a properly formatted dictionary.
+
+filename: Name of file to work with.
+
+This is specific to the particular data format described on the wiki. 
+Modification for other formats should be straightforward.
+
+The file can be zipped (extension .zip) or gzipped (extension .gz). If 
+zipped, there must be only a single file in the zip archive.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dadi.googlecode.com">dadi</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    <a href="epydoc-log.html">Generated by Epydoc
+    3.0.1 on Fri Aug 14 15:39:34 2015</a>
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
