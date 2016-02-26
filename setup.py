@@ -31,7 +31,7 @@ else:
 
 numpy.distutils.core.setup(name='moments',
                            version='1.0.0',
-                           author='Simon Gravel, Julien Jouganous',
+                           author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
                            author_email='http://simongravel.lab.mcgill.ca/Home.html',
                            url='http://dadi.googlecode.com',
                            packages=['moments'],

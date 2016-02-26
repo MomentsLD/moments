@@ -4,7 +4,7 @@ import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
-import Integration_sparse as its
+import LinearSystem as ls
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -33,12 +33,12 @@ def calcB(dims, u):
 
 # Drift
 def calcD(dims):
-    if (len(dims)==1): res = [its.calcD([dims[0]])]
+    if (len(dims)==1): res = [ls.calcD([dims[0]])]
     else:
         res = []
         for i in range(len(dims)):
             for j in range(i+1, len(dims)):
-                res.append(its.calcD([dims[i],dims[j]]))
+                res.append(ls.calcD([dims[i],dims[j]]))
     return res
 
 def buildD(vd, dims, N):
@@ -53,20 +53,20 @@ def buildD(vd, dims, N):
 
 # Selection 1
 def calcS(dims,s,h):
-    if (len(dims)==1): return [its.calcS_jk3([dims[0]], [s[0]], [h[0]])]
+    if (len(dims)==1): return [ls.calcS_jk3([dims[0]], [s[0]], [h[0]])]
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append(its.calcS_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
+            res.append(ls.calcS_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
     return res
 
 # Selection 2
 def calcS2(dims,s,h):
-    if (len(dims)==1): return [its.calcS2_jk3([dims[0]], [s[0]], [h[0]])]
+    if (len(dims)==1): return [ls.calcS2_jk3([dims[0]], [s[0]], [h[0]])]
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append(its.calcS2_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
+            res.append(ls.calcS2_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
     return res
 
 # Migrations
@@ -76,7 +76,7 @@ def calcM(dims,m):
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
             mbis = np.array([[0,m[i,j]],[m[j,i],0]])
-            res.append(its.calcM_jk3([dims[i],dims[j]],mbis))
+            res.append(ls.calcM_jk3([dims[i],dims[j]],mbis))
     return res
 
 #----------------------------------
