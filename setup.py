@@ -32,8 +32,8 @@ else:
 numpy.distutils.core.setup(name='moments',
                            version='1.0.0',
                            author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
-                           author_email='http://simongravel.lab.mcgill.ca/Home.html',
-                           url='http://dadi.googlecode.com',
+                           author_email='simon.gravel@mcgill.ca',
+                           url='http://simongravel.lab.mcgill.ca/Home.html',
                            packages=['moments'],
                            package_data = {'tests':['IM.fs']},
                            license='BSD'

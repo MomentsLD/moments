@@ -2,7 +2,7 @@
 include epydoc.config
 include MANIFEST.in
 include LICENSE.txt
-recursive-include doc *.html *.css *.js manual.pdf *.tex *.py *.fs *.bib
-recursive-include examples *
+#recursive-include doc *.html *.css *.js manual.pdf *.tex *.py *.fs *.bib
+#recursive-include examples *
 recursive-include tests *
 #global-exclude *.msout *.swp *.pyc seedms *.png
