@@ -1508,10 +1508,6 @@ def %(method)s(self, other):
             raise ValueError('Cannot operate with a folded Spectrum and an '
                              'unfolded one.')
 
-    # initialization
-    #def initialize(n, N=None, gamma=None, h=None, m=None, theta=1.0):
-    #if m is None:
-
     # spectrum integration
     def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
         self.data[:] = integrate(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)

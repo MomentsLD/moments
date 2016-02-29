@@ -1,15 +1,14 @@
 import os
 import unittest
 import numpy
-import dadi
 import moments
 
 class ResultsTestCase(unittest.TestCase):
     def test_1d_ic(self):
         # This just the standard neutral model
-        n = 20
+        n = 10
         fs = moments.Spectrum(numpy.zeros(n+1))
-        fs.integrate([1], [n], 100)
+        fs.integrate([1], [n], tf=10, dt_fac=0.01)
         answer = moments.Spectrum(1./numpy.arange(n+1))
         self.assert_(numpy.ma.allclose(fs, answer, atol=5e-5))
 
@@ -53,21 +52,17 @@ class ResultsTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(sfs, sfs_ref))
 
     def test_IM(self):
-        #func_ex = dadi.Numerics.\
-         #       make_extrap_log_func(dadi.Demographics2D.IM)
         params = (0.8, 2.0, 0.6, 0.45, 5.0, 0.3)
         ns = (7,13)
         pts_l = 50
         theta = 1000.
-        #fs = theta*func_ex(params, ns, pts_l)
-        fs = moments.Demographics2D.IM(params, ns, pts_l)
+        fs = theta*moments.Demographics2D.IM(params, ns)
 
-        msfs = dadi.Spectrum.from_file('test_files/IM.fs')
+        msfs = moments.Spectrum.from_file('test_files/IM.fs')
 
-        resid = dadi.Inference.Anscombe_Poisson_residual(fs,msfs)
+        resid = moments.Inference.Anscombe_Poisson_residual(fs,msfs)
         
-        print(abs(resid).max())
-        self.assert_(abs(resid).max() < 0.2)
+        self.assert_(abs(resid).max() < 0.25)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
 
