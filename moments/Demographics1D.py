@@ -13,7 +13,7 @@ def snm(ns):
 
     n1: Number of samples in resulting Spectrum
     """
-    sts = moments.Integration_sparse.steady_state(ns)
+    sts = moments.LinearSystem.steady_state(ns)
     fs = moments.Spectrum(sts)
     return fs
 
@@ -31,7 +31,7 @@ def two_epoch(params, ns):
     """
     nu,T = params
     
-    sts = moments.Integration_sparse.steady_state(ns)
+    sts = moments.LinearSystem.steady_state(ns)
     fs = moments.Spectrum(sts)
     fs.integrate([nu], ns, T)
     return fs
@@ -51,7 +51,7 @@ def growth(params, ns):
     nu,T = params
 
     nu_func = lambda t: [numpy.exp(numpy.log(nu) * t/T)]
-    sts = moments.Integration_sparse.steady_state(ns)
+    sts = moments.LinearSystem.steady_state(ns)
     fs = moments.Spectrum(sts)
     fs.integrate(nu_func, ns, T, 0.01)
 
@@ -74,7 +74,7 @@ def bottlegrowth(params, ns):
     nuB,nuF,T = params
     nu_func = lambda t: [nuB*numpy.exp(numpy.log(nuF/nuB) * t/T)]
 
-    sts = moments.Integration_sparse.steady_state(ns)
+    sts = moments.LinearSystem.steady_state(ns)
     fs = moments.Spectrum(sts)
     fs.integrate(nu_func, ns, T, 0.01)
 
@@ -94,7 +94,7 @@ def three_epoch(params, ns):
     """
     nuB,nuF,TB,TF = params
 
-    sts = moments.Integration_sparse.steady_state(ns)
+    sts = moments.LinearSystem.steady_state(ns)
     fs = moments.Spectrum(sts)
     fs.integrate([nuB], ns, TB, 0.01)
     fs.integrate([nuF], ns, TF, 0.01)
