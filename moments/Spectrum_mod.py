@@ -1511,27 +1511,12 @@ def %(method)s(self, other):
     # initialization
     #def initialize(n, N=None, gamma=None, h=None, m=None, theta=1.0):
     #if m is None:
+
     # spectrum integration
     def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
         self.data[:] = integrate(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
         return self
 
-    # population splittings
-    '''def split_1D_to_2D(self,n1,n2):
-        """
-        One-to-two population split for the spectrum.
-        n1, n2 are population sizes for the two resulting populations
-        needs the spectrum to be 1D and n >= n1+n2
-        """
-        assert(len(self.shape)==1)
-        assert(len(self)>=n1+n2+1)
-        data_new = numpy.zeros((n1+1,n2+1))
-        for i in range(n1+1):
-            for j in range(n2+1):
-                if (i+j>0) and (i+j<n1+n2):
-                    data_new[i,j] = self.data[i+j-1]*misc.comb(n1,i)*misc.comb(n2,j)/misc.comb(n1+n2,i+j)
-        self.data = data_new
-        return self'''
 
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm

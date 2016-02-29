@@ -22,7 +22,7 @@ def split_1D_to_2D(sp,n1,n2):
     # if the sample size before split is too large, we project
     if len(sp)>n1+n2+1:
         sp.project([n1+n2+1])
-    # then we compute the join fs resulting from the split
+    # then we compute the joint fs resulting from the split
     data_2D = numpy.zeros((n1+1,n2+1))
     for i in range(n1+1):
         for j in range(n2+1):
