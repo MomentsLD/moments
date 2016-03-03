@@ -16,7 +16,7 @@ class ResultsTestCase(unittest.TestCase):
         n = 15
         f = lambda x: [1+0.0001*x]
         sfs = moments.Spectrum(numpy.zeros([n+1]))
-        sfs.integrate(f, [n], 5, 0.01, theta=1.0, h=[0.1], gamma=[-1], m=[0])
+        sfs.integrate(f, [n], 5, 0.01, theta=1.0, h=0.1, gamma=-1)
         sfs_ref = moments.Spectrum.from_file('test_files/1_pop.fs')
         self.assertTrue(numpy.allclose(sfs, sfs_ref))
     

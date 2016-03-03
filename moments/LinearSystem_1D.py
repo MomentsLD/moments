@@ -45,7 +45,6 @@ def calcD(dims):
     return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # Selection
-
 def calcS(dims, ljk):
     # number of degrees of freedom
     d = int(dims[0])
@@ -57,8 +56,8 @@ def calcS(dims, ljk):
         i_bis = jk.index_bis(i,d-1)
         i_ter = jk.index_bis(i+1,d-1)
 
-        g1 = i*(d-i)/d
-        g2 = -(i+1)*(d-1-i)/d
+        g1 = i*(d-i)/np.float64(d)
+        g2 = -(i+1)*(d-1-i)/np.float64(d)
 
         if (i<d-1):
             data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2],
@@ -75,6 +74,7 @@ def calcS(dims, ljk):
 
     return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
+
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
 # h -> [h1, h2, ..., hp]
 def calcS2(dims, ljk):
@@ -88,8 +88,8 @@ def calcS2(dims, ljk):
         i_ter = jk.index_bis(i+1,d-1)
         i_qua = jk.index_bis(i+2,d-1)
 
-        g1 = (i+1)/d/(d+1)*i*(d-i)
-        g2 = -(i+1)/d/(d+1)*(i+2)*(d-1-i)
+        g1 = (i+1)/np.float64(d)/(d+1.0)*i*(d-i)
+        g2 = -(i+1)/np.float64(d)/(d+1.0)*(i+2)*(d-1-i)
 
         if i<d-1:
             data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2],

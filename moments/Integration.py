@@ -454,7 +454,7 @@ def permute(tab):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
 def integrate_1D(sfs0, Npop, n, tf, dt_fac=0.05, gamma=0.0, h=0.5, theta=1.0):
-
+    
     sfs0 = np.array(sfs0)
     # parameters of the equation
     if callable(Npop): N = np.array(Npop(0))
@@ -468,15 +468,12 @@ def integrate_1D(sfs0, Npop, n, tf, dt_fac=0.05, gamma=0.0, h=0.5, theta=1.0):
     u = theta/4.0
     # dimensions of the sfs
     d = n[0]+1
-
     # we compute the matrices we will need
     ljk = jk.calcJK13(int(d-1))
     ljk2 = jk.calcJK23(int(d-1))
     vd = ls1.calcD([d])
-    s1 = ls1.calcS([d],ljk)
-    S1 = s*h*s1
-    s2 = ls1.calcS2([d],ljk2)
-    S2 = s*(1-2.0*h)*s2
+    S1 = s*h*ls1.calcS([d],ljk)
+    S2 = s*(1-2.0*h)*ls1.calcS2([d],ljk2)
     
     # mutation term
     B = np.zeros([d])
@@ -591,6 +588,3 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
         if callable(Npop) : N = np.array(Npop(t/2.0))
     
     return Spectrum_mod.Spectrum(sfs)
-
-
-
