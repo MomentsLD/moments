@@ -4,7 +4,10 @@ import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
+import Jackknife as jk
 import LinearSystem as ls
+import LinearSystem_1D as ls1
+import LinearSystem_2D as ls2
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -41,6 +44,15 @@ def calcD(dims):
                 res.append(ls.calcD([dims[i],dims[j]]))
     return res
 
+def calcD2(dims):
+    if (len(dims)==1): res = [ls.calcD([dims[0]])]
+    else:
+        res = []
+        for i in range(len(dims)):
+            for j in range(i+1, len(dims)):
+                res.append([ls2.calcD1([dims[i],dims[j]]), ls2.calcD2([dims[i],dims[j]])])
+    return res
+
 def buildD(vd, dims, N):
     if (len(dims)==1): return [1.0/(4*N[0])*vd[0][0]]
     res = []
@@ -60,6 +72,23 @@ def calcS(dims,s,h):
             res.append(ls.calcS_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
     return res
 
+def calcSbis(dims,ljk):
+    res = []
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append([ls2.calcS_1([dims[i],dims[j]], ljk[i]), ls2.calcS_2([dims[i],dims[j]], ljk[j])])
+    return res
+
+def buildS(vs, dims, s, h):
+    if (len(dims)==1): return [vs[0][0]]
+    res = []
+    ctr = 0
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append(s[i]*h[i]*vs[ctr][0]+s[j]*h[j]*vs[ctr][1])
+            ctr += 1
+    return res
+
 # Selection 2
 def calcS2(dims,s,h):
     if (len(dims)==1): return [ls.calcS2_jk3([dims[0]], [s[0]], [h[0]])]
@@ -67,6 +96,23 @@ def calcS2(dims,s,h):
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
             res.append(ls.calcS2_jk3([dims[i],dims[j]], [s[i], s[j]], [h[i],h[j]]))
+    return res
+
+def calcS2bis(dims,ljk):
+    res = []
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append([ls2.calcS2_1([dims[i],dims[j]], ljk[i]), ls2.calcS2_2([dims[i],dims[j]], ljk[j])])
+    return res
+
+def buildS2(vs, dims, s, h):
+    if (len(dims)==1): return [vs[0][0]]
+    res = []
+    ctr = 0
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append(s[i]*(1-2.0*h[i])*vs[ctr][0]+s[j]*(1-2.0*h[j])*vs[ctr][1])
+            ctr += 1
     return res
 
 # Migrations
@@ -77,6 +123,22 @@ def calcM(dims,m):
         for j in range(i+1, len(dims)):
             mbis = np.array([[0,m[i,j]],[m[j,i],0]])
             res.append(ls.calcM_jk3([dims[i],dims[j]],mbis))
+    return res
+
+def calcMbis(dims,ljk):
+    res = []
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append([ls2.calcM_1([dims[i],dims[j]], ljk[j]), ls2.calcM_2([dims[i],dims[j]], ljk[i])])
+    return res
+
+def buildM(vm, dims, m):
+    res = []
+    ctr = 0
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append(m[i,j]*vm[ctr][0]+m[j,i]*vm[ctr][1])
+            ctr += 1
     return res
 
 #----------------------------------
@@ -390,76 +452,62 @@ def permute(tab):
 # for a "lambda" definition of N - with backward Euler integration scheme
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
-'''def integrate2(sfs0, Npop, n, tf, dt_fac=0.01, gamma=None, h=None, m=None, theta=1.0):
-    
-    # neutral case if the parameters are not provided
-    if gamma is None : gamma = np.zeros(len(n))
-    if h is None : h = 0.5*np.ones(len(n))
-    if m is None : m = np.zeros([len(n), len(n)])
-    
+
+def integrate_1D(sfs0, Npop, n, tf, dt_fac=0.05, gamma=0.0, h=0.5, theta=1.0):
+
     sfs0 = np.array(sfs0)
     # parameters of the equation
     if callable(Npop): N = np.array(Npop(0))
     else : N = np.array(Npop)
     
-    N0=N[0]
     Nold = N+np.ones(len(N))
-    mm = np.array(m)/(2.0*N0)
-    s = np.array(gamma)/N0
-    h = np.array(h)
-    Tmax = tf*2.0*N0
-    dt = dt_fac*Tmax
-    print(dt, Tmax)
-    u = theta/(4.0*N0)
+    s = np.float(gamma)
+    h = np.float(h)
+    Tmax = tf*2.0
+    dt = Tmax*dt_fac
+    u = theta/4.0
     # dimensions of the sfs
-    dims = n+np.ones(len(n))
-    d = int(np.prod(dims))
-    # number of "directions" for the splitting
-    nbp = int(len(n)*(len(n)-1)/2)
-    if len(n)==1: nbp = 1
-    # we compute the matrices we will need
-    vd = calcD(dims)
-    S1 = calcS(dims,s,h)
-    S2 = calcS2(dims,s,h)
-    Mi = calcM(dims,mm)
-    B = calcB(dims, u)
+    d = n[0]+1
 
-    # indexes for the permutation trick
-    order = list(range(nbp))
-    # time step splitting
-    split_dt = 1.0
-    if len(n)>2: split_dt = 3.0
-    if len(n)==5: split_dt = 5.0
+    # we compute the matrices we will need
+    ljk = jk.calcJK13(int(d-1))
+    ljk2 = jk.calcJK23(int(d-1))
+    vd = ls1.calcD([d])
+    s1 = ls1.calcS([d],ljk)
+    S1 = s*h*s1
+    s2 = ls1.calcS2([d],ljk2)
+    S2 = s*(1-2.0*h)*s2
+    
+    # mutation term
+    B = np.zeros([d])
+    B[1] = (d-1)*u
     
     # time loop:
     t = 0.0
     sfs = sfs0
     while t < Tmax:
+        dt_old = dt
         if t+dt>Tmax: dt = Tmax-t
         # we recompute the matrix only if N has changed...
-        if (Nold!=N).any():
-            D = buildD(vd, dims, N)
+        if Nold!=N or dt != dt_old:
+            D = 1/4.0/N[0]*vd
             
             # system inversion for backward scheme
-            slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')-dt/2/split_dt*(1.0/(max(len(n),2)-1)*(D[i]+S1[i]+S2[i])+Mi[i])) for i in range(nbp)]
-            Q = [sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc')+dt/2/split_dt*(1.0/(max(len(n),2)-1)*(D[i]+S1[i]+S2[i])+Mi[i]) for i in range(nbp)]
+            slv = linalg.factorized(sp.sparse.identity(S1.shape[0], dtype = 'float', format = 'csc')-dt/2.0*(D+S1+S2))
+            Q = sp.sparse.identity(S1.shape[0], dtype = 'float', format = 'csc')+dt/2.0*(D+S1+S2)
         
-        # drift, selection and migration (depends on the dimension)
-        if len(n)==1:
-            sfs = Q[0].dot(sfs)
-            sfs = slv[0](sfs+dt*B)
-        if len(n)>1:
-            for i in range(int(split_dt)):
-                sfs = update_step1(sfs, Q, dims, order)
-                sfs = update_step2(sfs+dt/split_dt*B, slv, dims, order)
-                order = permute(order)
+        # drift, selection and mutation
+        sfs = Q.dot(sfs)
+        sfs = slv(sfs+dt*B)
         Nold = N
         t += dt
         # we update the value of N if a function was provided as argument
-        if callable(Npop) : N = np.array(Npop(t/(2.0*N0)))
-    return Spectrum_mod.Spectrum(sfs)'''
+        if callable(Npop) : N = np.array(Npop(t/2.0))
 
-def integrate(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
+    return Spectrum_mod.Spectrum(sfs)
+
+def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
+    start_time = time.time()
     # neutral case if the parameters are not provided
     if gamma is None : gamma = np.zeros(len(n))
     if h is None : h = 0.5*np.ones(len(n))
@@ -484,10 +532,25 @@ def integrate(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=
     nbp = int(len(n)*(len(n)-1)/2)
     if len(n)==1: nbp = 1
     # we compute the matrices we will need
-    vd = calcD(dims)
-    S1 = calcS(dims,s,h)
-    S2 = calcS2(dims,s,h)
-    Mi = calcM(dims,mm)
+    ljk = [jk.calcJK13(int(dims[i]-1)) for i in range(len(dims))]
+    ljk2 = [jk.calcJK23(int(dims[i]-1)) for i in range(len(dims))]
+    
+    # drift
+    vd = calcD2(dims)
+    
+    # selection part 1
+    vs = calcSbis(dims,ljk)
+    S1 = buildS(vs, dims, s, h)
+    
+    # selection part 2
+    vs2 = calcS2bis(dims,ljk2)
+    S2 = buildS2(vs2, dims, s, h)
+    
+    # migration
+    vm = calcMbis(dims,ljk)
+    Mi = buildM(vm, dims, mm)
+
+    # mutations
     B = calcB(dims, u)
     
     # indexes for the permutation trick
@@ -497,6 +560,8 @@ def integrate(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=
     if len(n)>2: split_dt = 3.0
     if len(n)==5: split_dt = 5.0
     
+    interval = time.time() - start_time
+    print('Total time init:', interval)
     # time loop:
     t = 0.0
     sfs = sfs0
@@ -524,6 +589,7 @@ def integrate(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=
         t += dt
         # we update the value of N if a function was provided as argument
         if callable(Npop) : N = np.array(Npop(t/2.0))
+    
     return Spectrum_mod.Spectrum(sfs)
 
 

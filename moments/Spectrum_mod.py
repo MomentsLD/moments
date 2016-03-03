@@ -19,7 +19,7 @@ except ImportError:
 from scipy.integrate import trapz
 from scipy.special import betainc
 
-from moments.Integration import integrate
+from moments.Integration import integrate_1D, integrate_nD
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
 
@@ -1510,7 +1510,12 @@ def %(method)s(self, other):
 
     # spectrum integration
     def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
-        self.data[:] = integrate(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
+        if len(n)==1 :
+            if gamma is None: gamma=0.0
+            if h is None: h=0.5
+            self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
+        else:
+            self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
         return self
 
 

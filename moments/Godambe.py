@@ -150,7 +150,7 @@ def get_grad(func, p0, eps, args=()):
             grad[ii] = (fp - fm)/eps[ii]
     return grad
 
-def get_godambe(func_ex, grid_pts, all_boot, p0, data, eps, log=False,
+def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
                 just_hess=False):
     """
     Godambe information and Hessian matrices
@@ -158,7 +158,6 @@ def get_godambe(func_ex, grid_pts, all_boot, p0, data, eps, log=False,
     NOTE: Assumes that last parameter in p0 is theta.
 
     func_ex: Model function
-    grid_pts: Number of grid points to evaluate the model function
     all_boot: List of bootstrap frequency spectra
     p0: Best-fit parameters for func_ex.
     data: Original data frequency spectrum
@@ -172,9 +171,9 @@ def get_godambe(func_ex, grid_pts, all_boot, p0, data, eps, log=False,
     # evaluation function
     cache = {}
     def func(params, data):
-        key = (tuple(params), tuple(ns), tuple(grid_pts))
+        key = (tuple(params), tuple(ns))
         if key not in cache:
-            cache[key] = func_ex(params, ns, grid_pts)
+            cache[key] = func_ex(params, ns)
         fs = cache[key] 
         return Inference.ll(fs, data)
     def log_func(logparams, data):
@@ -211,7 +210,7 @@ def get_godambe(func_ex, grid_pts, all_boot, p0, data, eps, log=False,
     godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
     return godambe, hess, J, cU
 
-def GIM_uncert(func_ex, grid_pts, all_boot, p0, data, log=False, 
+def GIM_uncert(func_ex, all_boot, p0, data, log=False,
                multinom=True, eps=0.01, return_GIM=False):
     """
     Parameter uncertainties from Godambe Information Matrix (GIM)
@@ -236,18 +235,18 @@ def GIM_uncert(func_ex, grid_pts, all_boot, p0, data, log=False,
     """
     if multinom:
         func_multi = func_ex
-        model = func_multi(p0, data.sample_sizes, grid_pts)
+        model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns, pts: p[-1]*func_multi(p[:-1], ns, pts)
-    GIM, H, J, cU = get_godambe(func_ex, grid_pts, all_boot, p0, data, eps, log)
+        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+    GIM, H, J, cU = get_godambe(func_ex, all_boot, p0, data, eps, log)
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(GIM)))
     if not return_GIM:
         return uncerts
     else:
         return uncerts, GIM
 
-def FIM_uncert(func_ex, grid_pts, p0, data, log=False, multinom=True, eps=0.01):
+def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
     """
     Parameter uncertainties from Fisher Information Matrix
 
@@ -270,20 +269,19 @@ def FIM_uncert(func_ex, grid_pts, p0, data, log=False, multinom=True, eps=0.01):
     """
     if multinom:
         func_multi = func_ex
-        model = func_multi(p0, data.sample_sizes, grid_pts)
+        model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns, pts: p[-1]*func_multi(p[:-1], ns, pts)
-    H = get_godambe(func_ex, grid_pts, [], p0, data, eps, log, just_hess=True)
+        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+    H = get_godambe(func_ex, [], p0, data, eps, log, just_hess=True)
     return numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
 
-def LRT_adjust(func_ex, grid_pts, all_boot, p0, data, nested_indices,
+def LRT_adjust(func_ex, all_boot, p0, data, nested_indices,
                multinom=True, eps=0.01):
     """
     First-order moment matching adjustment factor for likelihood ratio test
 
     func_ex: Model function for complex model
-    grid_pts: Grid points at which to evaluate func_ex
     all_boot: List of bootstrap frequency spectra
     p0: Best-fit parameters for the simple model, with nested parameter
         explicity defined.  Although equal to values for simple model, should
@@ -301,23 +299,23 @@ def LRT_adjust(func_ex, grid_pts, all_boot, p0, data, nested_indices,
     """
     if multinom:
         func_multi = func_ex
-        model = func_multi(p0, data.sample_sizes, grid_pts)
+        model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns, pts: p[-1]*func_multi(p[:-1], ns, pts)
+        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
 
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
-    def diff_func(diff_params, ns, grid_pts):
+    def diff_func(diff_params, ns):
         # diff_params argument is only the nested parameters. All the rest
         # should come from p0
         full_params = numpy.array(p0, copy=True, dtype=float)
         # Use numpy indexing to set relevant parameters
         full_params[nested_indices] = diff_params
-        return func_ex(full_params, ns, grid_pts)
+        return func_ex(full_params, ns)
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, grid_pts, all_boot, p_nested, data, 
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
                                 eps, log=False)
 
     adjust = len(nested_indices)/numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
@@ -360,7 +358,7 @@ def sum_chi2_ppf(x, weights=(0,1)):
     else:
         return ppf
 
-def Wald_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
+def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
               full_params, multinom=True, eps=0.01, adj_and_org=False):
     """
     Calculate test stastic from wald test
@@ -389,23 +387,23 @@ def Wald_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
     """
     if multinom:
          func_multi = func_ex
-         model = func_multi(p0, data.sample_sizes, grid_pts)
+         model = func_multi(p0, data.sample_sizes)
          theta_opt = Inference.optimal_sfs_scaling(model, data)
          # Also need to extend full_params
          if len(full_params) == len(p0):
              full_params = numpy.concatenate((full_params, [theta_opt]))
          p0 = list(p0) + [theta_opt]
-         func_ex = lambda p, ns, pts: p[-1]*func_multi(p[:-1], ns, pts)
+         func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
          
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
-    def diff_func(diff_params, ns, grid_pts):
+    def diff_func(diff_params, ns):
          # diff_params argument is only the nested parameters. All the rest
          # should come from p0
          full_params = numpy.array(p0, copy=True, dtype=float)
          # Use numpy indexing to set relevant parameters
          full_params[nested_indices] = diff_params
-         return func_ex(full_params, ns, grid_pts)
+         return func_ex(full_params, ns)
     
     # Reduce full params list to be same length as nested indices
     if len(full_params) == len(p0):
@@ -415,7 +413,7 @@ def Wald_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
                        'indices')
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, grid_pts, all_boot, p_nested, data, 
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
                                 eps, log=False)
     param_diff = full_params-p_nested
 
@@ -426,13 +424,12 @@ def Wald_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
         return wald_adj, wald_org
     return wald_adj
 
-def score_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
+def score_stat(func_ex, all_boot, p0, data, nested_indices,
                multinom=True, eps=0.01, adj_and_org=False):
     """
     Calculate test stastic from score test
         
     func_ex: Model function for complex model
-    grid_pts: Grid points to evaluate model function
     all_boot: List of bootstrap frequency spectra
     p0: Best-fit parameters for the simple model, with nested parameter
         explicity defined.  Although equal to values for simple model, should
@@ -451,23 +448,23 @@ def score_stat(func_ex, grid_pts, all_boot, p0, data, nested_indices,
     """
     if multinom:
         func_multi = func_ex
-        model = func_multi(p0, data.sample_sizes, grid_pts)
+        model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns, pts: p[-1]*func_multi(p[:-1], ns, pts)
+        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
 
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
-    def diff_func(diff_params, ns, grid_pts):
+    def diff_func(diff_params, ns):
         # diff_params argument is only the nested parameters. All the rest
         # should come from p0
         full_params = numpy.array(p0, copy=True, dtype=float)
         # Use numpy indexing to set relevant parameters
         full_params[nested_indices] = diff_params
-        return func_ex(full_params, ns, grid_pts)
+        return func_ex(full_params, ns)
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, grid_pts, all_boot, p_nested, data, 
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
                                 eps, log=False)
     
     score_org = numpy.dot(numpy.dot(numpy.transpose(cU),

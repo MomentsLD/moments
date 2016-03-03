@@ -19,7 +19,7 @@ _theta_store = {}
 _counter = 0
 #: Returned when object_func is passed out-of-bounds params or gets a NaN ll.
 _out_of_bounds_val = -1e8
-def _object_func(params, data, model_func, pts, 
+def _object_func(params, data, model_func,
                  lower_bound=None, upper_bound=None, 
                  verbose=0, multinom=True, flush_delay=0,
                  func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
@@ -48,7 +48,6 @@ def _object_func(params, data, model_func, pts,
     # Pass the pts argument via keyword, but don't alter the passed-in 
     # func_kwargs
     func_kwargs = func_kwargs.copy()
-    func_kwargs['pts'] = pts
     sfs = model_func(*all_args, **func_kwargs)
     if multinom:
         result = ll_multinom(sfs, data)
@@ -77,7 +76,7 @@ def _object_func_log(log_params, *args, **kwargs):
     """
     return _object_func(numpy.exp(log_params), *args, **kwargs)
 
-def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
+def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
                  verbose=0, flush_delay=0.5, epsilon=1e-3, 
                  gtol=1e-5, multinom=True, maxiter=None, full_output=False,
                  func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
@@ -94,7 +93,7 @@ def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...), pts)
+                    (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
                  length as p0.
     upper_bound: Upper bound on parameter values. If not None, must be of same
@@ -120,7 +119,7 @@ def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
                points to use in evaluation.
                Using func_args.
                For example, you could define your model function as
-               def func((p1,p2), ns, f1, f2, pts):
+               def func((p1,p2), ns, f1, f2):
                    ....
                If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you
                would pass func_args = [0.1,0.2] (and ignore the fixed_params 
@@ -135,7 +134,7 @@ def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
                   lie outside their bounds. A full-length p0 should be passed
                   in; values corresponding to fixed parameters are ignored.
                   For example, suppose your model function is 
-                  def func((p1,f1,p2,f2), ns, pts):
+                  def func((p1,f1,p2,f2), ns):
                       ....
                   If you wanted to fix f1=0.1 and f2=0.2 in the optimization, 
                   you would pass fixed_params = [None,0.1,None,0.2] (and ignore
@@ -152,7 +151,7 @@ def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, lower_bound, upper_bound, verbose,
+    args = (data, model_func, lower_bound, upper_bound, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 
             ll_scale, output_stream)
 
@@ -174,7 +173,7 @@ def optimize_log(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
     else:
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
-def optimize_log_lbfgsb(p0, data, model_func, pts, 
+def optimize_log_lbfgsb(p0, data, model_func,
                         lower_bound=None, upper_bound=None,
                         verbose=0, flush_delay=0.5, epsilon=1e-3, 
                         pgtol=1e-5, multinom=True, maxiter=1e5, 
@@ -196,7 +195,7 @@ def optimize_log_lbfgsb(p0, data, model_func, pts,
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...), pts)
+                    (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
                  length as p0. A parameter can be declared unbound by assigning
                  a bound of None.
@@ -255,7 +254,7 @@ def optimize_log_lbfgsb(p0, data, model_func, pts,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, None, None, verbose,
+    args = (data, model_func, None, None, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 
             ll_scale, output_stream)
 
@@ -491,7 +490,7 @@ def optimal_sfs_scaling(model, data):
     model, data = Numerics.intersect_masks(model, data)
     return data.sum()/model.sum()
 
-def optimize_log_fmin(p0, data, model_func, pts, 
+def optimize_log_fmin(p0, data, model_func,
                       lower_bound=None, upper_bound=None,
                       verbose=0, flush_delay=0.5, 
                       multinom=True, maxiter=None, 
@@ -511,7 +510,7 @@ def optimize_log_fmin(p0, data, model_func, pts,
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...), pts)
+                    (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
                  length as p0. A parameter can be declared unbound by assigning
                  a bound of None.
@@ -551,7 +550,7 @@ def optimize_log_fmin(p0, data, model_func, pts,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, lower_bound, upper_bound, verbose,
+    args = (data, model_func, lower_bound, upper_bound, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
             output_stream)
 
@@ -569,7 +568,7 @@ def optimize_log_fmin(p0, data, model_func, pts,
     else:
         return xopt, fopt, iter, funcalls, warnflag 
 
-def optimize(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
+def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
              verbose=0, flush_delay=0.5, epsilon=1e-3, 
              gtol=1e-5, multinom=True, maxiter=None, full_output=False,
              func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
@@ -583,7 +582,7 @@ def optimize(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...), pts)
+                    (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
                  length as p0.
     upper_bound: Upper bound on parameter values. If not None, must be of same
@@ -630,7 +629,7 @@ def optimize(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, lower_bound, upper_bound, verbose,
+    args = (data, model_func, lower_bound, upper_bound, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 
             ll_scale, output_stream)
 
@@ -653,7 +652,7 @@ def optimize(p0, data, model_func, pts, lower_bound=None, upper_bound=None,
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
 
-def optimize_lbfgsb(p0, data, model_func, pts, 
+def optimize_lbfgsb(p0, data, model_func,
                     lower_bound=None, upper_bound=None,
                     verbose=0, flush_delay=0.5, epsilon=1e-3, 
                     pgtol=1e-5, multinom=True, maxiter=1e5, full_output=False,
@@ -671,7 +670,7 @@ def optimize_lbfgsb(p0, data, model_func, pts,
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...), pts)
+                    (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
                  length as p0. A parameter can be declared unbound by assigning
                  a bound of None.
@@ -729,7 +728,7 @@ def optimize_lbfgsb(p0, data, model_func, pts,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, None, None, verbose,
+    args = (data, model_func, None, None, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 
             ll_scale, output_stream)
 
@@ -800,7 +799,7 @@ def _project_params_up(pin, fixed_params):
     return pout
 
 index_exp = numpy.index_exp
-def optimize_grid(data, model_func, pts, grid,
+def optimize_grid(data, model_func, grid,
                   verbose=0, flush_delay=0.5,
                   multinom=True, full_output=False,
                   func_args=[], func_kwargs={}, fixed_params=None,
@@ -810,8 +809,7 @@ def optimize_grid(data, model_func, pts, grid,
 
     data: Spectrum with data.
     model_func: Function to evaluate model spectrum. Should take arguments
-                (params, (n1,n2...), pts)
-    pts: Grid points list for evaluating likelihoods
+                (params, (n1,n2...))
     grid: Grid of parameter values over which to evaluate likelihood. See
           below for specification instructions.
     verbose: If > 0, print optimization status every <verbose> steps.
@@ -862,7 +860,7 @@ def optimize_grid(data, model_func, pts, grid,
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, pts, None, None, verbose,
+    args = (data, model_func, None, None, verbose,
             multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
             output_stream, full_output)
 
