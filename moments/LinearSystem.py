@@ -113,8 +113,8 @@ def calcS_jk3(dims, s, h):
         for j in range(len(dims)):
             ind = np.zeros(len(dims), dtype='int')
             ind[j] = int(1)
-            g1 = s[j]*h[j]/dims[j]*index[j]*(dims[j]-index[j])
-            g2 = -s[j]*h[j]/dims[j]*(index[j]+1)*(dims[j]-1-index[j])
+            g1 = s[j]*h[j]/np.float64(dims[j])*index[j]*(dims[j]-index[j])
+            g2 = -s[j]*h[j]/np.float64(dims[j])*(index[j]+1)*(dims[j]-1-index[j])
             index_bis = np.array(index)
             index_bis[j] = jk.index_bis(index_bis[j],dims[j]-1)
             index_ter = np.array(index)+ind
@@ -159,8 +159,8 @@ def calcS2_jk3(dims, s, h):
         for j in range(len(dims)):
             ind = np.zeros(len(dims), dtype='int')
             ind[j] = int(1)
-            g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*index[j]*(dims[j]-index[j])
-            g2 = -s[j]*(1-2.0*h[j])*(index[j]+1)/dims[j]/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
+            g1 = s[j]*(1-2.0*h[j])*(index[j]+1)/np.float64(dims[j])/(dims[j]+1)*index[j]*(dims[j]-index[j])
+            g2 = -s[j]*(1-2.0*h[j])*(index[j]+1)/np.float64(dims[j])/(dims[j]+1)*(index[j]+2)*(dims[j]-1-index[j])
             index_ter = np.array(index)+ind
             index_ter[j] = jk.index_bis(index_ter[j],dims[j]-1)
             index_qua = np.array(index)+2*ind
@@ -221,7 +221,7 @@ def calcM_jk3(dims, m):
                     indk = np.zeros(len(dims), dtype='int')
                     indk[k] = int(1)
                     
-                    c = (index[k]+1)/dims[k]
+                    c = (index[k]+1)/np.float64(dims[k])
                     
                     data.append(-m[j,k]*index[j])
                     row.append(i)

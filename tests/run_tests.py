@@ -1,7 +1,7 @@
 from glob import glob
 import unittest
 
-import dadi
+import moments
 
 if __name__ == '__main__':
     # First we collect all our tests into a single TestSuite object.

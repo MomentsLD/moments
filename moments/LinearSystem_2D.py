@@ -101,8 +101,8 @@ def calcS_1(dims, ljk):
         i_bis = jk.index_bis(i, d1-1)
         i_ter = jk.index_bis(i+1,d1-1)
         # coefficients
-        g1 = np.float64(i*(d1-i)/d1)
-        g2 = np.float64(-(i+1)*(d1-1-i)/d1)
+        g1 = i*(d1-i)/np.float64(d1)
+        g2 = -(i+1)*(d1-1-i)/np.float64(d1)
         if (i<d1-1):
             data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2],
                     g1*ljk[i-1,i_bis], g2*ljk[i,i_ter-1],
@@ -133,8 +133,8 @@ def calcS_2(dims, ljk):
         j_bis = jk.index_bis(j, d2-1)
         j_ter = jk.index_bis(j+1,d2-1)
         # coefficients
-        g1 = np.float64(j*(d2-j)/d2)
-        g2 = np.float64(-(j+1)*(d2-1-j)/d2)
+        g1 = j*(d2-j)/np.float64(d2)
+        g2 = -(j+1)*(d2-1-j)/np.float64(d2)
         if j<d2-1:
             data += [g1*ljk[j-1,j_bis-1], g1*ljk[j-1,j_bis-2],
                     g1*ljk[j-1,j_bis], g2*ljk[j,j_ter-1],
@@ -165,8 +165,8 @@ def calcS2_1(dims, ljk):
         i,j = index_2D(k, dims)
         i_ter = jk.index_bis(i+1,d1-1)
         i_qua = jk.index_bis(i+2,d1-1)
-        g1 = (i+1)/d1/(d1+1)*i*(d1-i)
-        g2 = -(i+1)/d1/(d1+1)*(i+2)*(d1-1-i)
+        g1 = (i+1)/np.float64(d1)/(d1+1)*i*(d1-i)
+        g2 = -(i+1)/np.float64(d1)/(d1+1)*(i+2)*(d1-1-i)
 
         if i<d1-1:
             data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2],
@@ -198,8 +198,8 @@ def calcS2_2(dims, ljk):
         i,j = index_2D(k, dims)
         j_ter = jk.index_bis(j+1,d2-1)
         j_qua = jk.index_bis(j+2,d2-1)
-        g1 = (j+1)/d2/(d2+1)*j*(d2-j)
-        g2 = -(j+1)/d2/(d2+1)*(j+2)*(d2-1-j)
+        g1 = (j+1)/np.float64(d2)/(d2+1)*j*(d2-j)
+        g2 = -(j+1)/np.float64(d2)/(d2+1)*(j+2)*(d2-1-j)
 
         if j<d2-1:
             data += [g1*ljk[j,j_ter-1], g1*ljk[j,j_ter-2],
@@ -237,7 +237,7 @@ def calcM_1(dims, ljk):
         i,j = index_2D(k, dims)
         j_ter = jk.index_bis(j+1,d2-1)
         # arrays for the creation of the sparse (coo) matrix
-        c = (j+1)/d2
+        c = (j+1)/np.float64(d2)
         coeff1 = (2*i-(d1-1))*c
         coeff2 = (d1-i)*c
         coeff3 = -(i+1)*c
@@ -303,7 +303,7 @@ def calcM_2(dims, ljk):
         i,j = index_2D(k, dims)
         i_ter = jk.index_bis(i+1,d1-1)
         
-        c = (i+1)/d1
+        c = (i+1)/np.float64(d1)
         coeff1 = (2*j-(d2-1))*c
         coeff2 = (d2-j)*c
         coeff3 = -(j+1)*c
