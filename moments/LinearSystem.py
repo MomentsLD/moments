@@ -251,24 +251,24 @@ def calcM_jk3(dims, m):
                             col += [index_1D(index_terk-indk+indj, dims), index_1D(index_terk+indj, dims), index_1D(index_terk+indk+indj, dims)]
                             
                     if index[k] == dims[k]-1:
-                        data += [m[j,k]*coeff1*c, m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                 m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                 m[j,k]*coeff1*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                        data += [m[j,k]*coeff1*c, -m[j,k]*coeff1/dims[k]*ljk[k][index[k]-1,index_terk[k]-2]*c,
+                                 -m[j,k]*coeff1/dims[k]*ljk[k][index[k]-1,index_terk[k]-1]*c,
+                                 -m[j,k]*coeff1/dims[k]*ljk[k][index[k]-1,index_terk[k]]*c]
                         row += [i]*4
                         col += [i, index_1D(index_terk-indk, dims), index_1D(index_terk, dims), index_1D(index_terk+indk, dims)]
 
                         if index[j] > 0:
-                            data += [m[j,k]*coeff2*c, m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                     m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                     m[j,k]*coeff2*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                            data += [m[j,k]*coeff2*c, -m[j,k]*coeff2/dims[k]*ljk[k][index[k]-1,index_terk[k]-2]*c,
+                                     -m[j,k]*coeff2/dims[k]*ljk[k][index[k]-1,index_terk[k]-1]*c,
+                                     -m[j,k]*coeff2/dims[k]*ljk[k][index[k]-1,index_terk[k]]*c]
                             row += [i]*4
                             col += [index_1D(index-indj, dims), index_1D(index_terk-indk-indj, dims),
                                     index_1D(index_terk-indj, dims), index_1D(index_terk+indk-indj, dims)]
                         
                         if index[j] < dims[j]-1:
-                            data += [m[j,k]*coeff3*c, m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-2]*c,
-                                     m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]-1]*c,
-                                     m[j,k]*coeff3*(-1/dims[k])*ljk[k][index[k]-1,index_terk[k]]*c]
+                            data += [m[j,k]*coeff3*c, -m[j,k]*coeff3/dims[k]*ljk[k][index[k]-1,index_terk[k]-2]*c,
+                                     -m[j,k]*coeff3/dims[k]*ljk[k][index[k]-1,index_terk[k]-1]*c,
+                                     -m[j,k]*coeff3/dims[k]*ljk[k][index[k]-1,index_terk[k]]*c]
                             row += [i]*4
                             col += [index_1D(index+indj, dims), index_1D(index_terk-indk+indj, dims),
                                     index_1D(index_terk+indj, dims), index_1D(index_terk+indk+indj, dims)]

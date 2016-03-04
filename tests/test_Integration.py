@@ -22,7 +22,7 @@ class IntegrationTestCase(unittest.TestCase):
     def test_matrix_migration(self):
         Mref = dlim = numpy.genfromtxt('test_files/migration_matrix.csv', delimiter=',')
         m = numpy.array([[1, 5],[10, 1]])
-        M = moments.Integration.calcM([25, 30], m)
+        M = moments.Integration.calcM([25.0, 30.0], m)
         self.assertTrue(numpy.allclose(M[0].todense(), Mref))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(IntegrationTestCase)

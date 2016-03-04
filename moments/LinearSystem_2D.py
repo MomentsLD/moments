@@ -228,7 +228,7 @@ def calcM_1(dims, ljk):
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1,d2 = dims
-    
+    # arrays for the creation of the sparse (coo) matrix
     data = []
     row = []
     col = []
@@ -265,24 +265,24 @@ def calcM_1(dims, ljk):
                 col += [(i+1)*d2+j_ter-1, (i+1)*d2+j_ter, (i+1)*d2+j_ter+1]
             
         elif j == d2-1:
-            data += [coeff1, coeff1*(-1/d2)*ljk[j-1,j_ter-2],
-                    coeff1*(-1/d2)*ljk[j-1,j_ter-1],
-                    coeff1*(-1/d2)*ljk[j-1,j_ter]]
+            data += [coeff1, -coeff1/d2*ljk[j-1,j_ter-2],
+                    -coeff1/d2*ljk[j-1,j_ter-1],
+                    -coeff1/d2*ljk[j-1,j_ter]]
             row += [k, k, k, k]
             col += [k, i*d2+j_ter-1, i*d2+j_ter, i*d2+j_ter+1]
                              
             if i > 0:
-                data += [coeff2, coeff2*(-1/d2)*ljk[j-1,j_ter-2],
-                        coeff2*(-1/d2)*ljk[j-1,j_ter-1],
-                        coeff2*(-1/d2)*ljk[j-1,j_ter]]
+                data += [coeff2, -coeff2/d2*ljk[j-1,j_ter-2],
+                        -coeff2/d2*ljk[j-1,j_ter-1],
+                        -coeff2/d2*ljk[j-1,j_ter]]
                 row += [k, k, k, k]
                 col += [k-d2, (i-1)*d2+j_ter-1,
                             (i-1)*d2+j_ter, (i-1)*d2+j_ter+1]
                                      
             if i < d1-1:
-                data += [coeff3, coeff3*(-1/d2)*ljk[j-1,j_ter-2],
-                        coeff3*(-1/d2)*ljk[j-1,j_ter-1],
-                        coeff3*(-1/d2)*ljk[j-1,j_ter]]
+                data += [coeff3, -coeff3/d2*ljk[j-1,j_ter-2],
+                        -coeff3/d2*ljk[j-1,j_ter-1],
+                        -coeff3/d2*ljk[j-1,j_ter]]
                 row += [k, k, k, k]
                 col += [k+d2, (i+1)*d2+j_ter-1,
                         (i+1)*d2+j_ter, (i+1)*d2+j_ter+1]
@@ -331,24 +331,24 @@ def calcM_2(dims, ljk):
                 col += [(i_ter-1)*d2+j+1, i_ter*d2+j+1, (i_ter+1)*d2+j+1]
             
         elif i == d1-1:
-            data += [coeff1, coeff1*(-1/d1)*ljk[i-1,i_ter-2],
-                    coeff1*(-1/d1)*ljk[i-1,i_ter-1],
-                    coeff1*(-1/d1)*ljk[i-1,i_ter]]
+            data += [coeff1, -coeff1/d1*ljk[i-1,i_ter-2],
+                    -coeff1/d1*ljk[i-1,i_ter-1],
+                    -coeff1/d1*ljk[i-1,i_ter]]
             row += [k, k, k, k]
             col += [k, (i_ter-1)*d2+j, i_ter*d2+j, (i_ter+1)*d2+j]
                              
             if j > 0:
-                data += [coeff2, coeff2*(-1/d1)*ljk[i-1,i_ter-2],
-                        coeff2*(-1/d1)*ljk[i-1,i_ter-1],
-                        coeff2*(-1/d1)*ljk[i-1,i_ter]]
+                data += [coeff2, -coeff2/d1*ljk[i-1,i_ter-2],
+                        -coeff2/d1*ljk[i-1,i_ter-1],
+                        -coeff2/d1*ljk[i-1,i_ter]]
                 row += [k, k, k, k]
                 col += [k-1, (i_ter-1)*d2+j-1,
                         i_ter*d2+j-1, (i_ter+1)*d2+j-1]
                                      
             if j < d2-1:
-                data += [coeff3, coeff3*(-1/d1)*ljk[i-1,i_ter-2],
-                        coeff3*(-1/d1)*ljk[i-1,i_ter-1],
-                        coeff3*(-1/d1)*ljk[i-1,i_ter]]
+                data += [coeff3, -coeff3/d1*ljk[i-1,i_ter-2],
+                        -coeff3/d1*ljk[i-1,i_ter-1],
+                        -coeff3/d1*ljk[i-1,i_ter]]
                 row += [k, k, k, k]
                 col += [k+1, (i_ter-1)*d2+j+1,
                         i_ter*d2+j+1, (i_ter+1)*d2+j+1]
