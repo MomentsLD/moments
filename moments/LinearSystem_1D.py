@@ -28,16 +28,16 @@ def calcD(dims):
 
     # loop over the fs elements:
     for i in range(d):
-        if (i>1):
-            data.append((i-1)*(d-i))
+        if (i > 1):
+            data.append((i-1) * (d-i))
             row.append(i)
             col.append(i-1)
-        if (i<d-2):
-            data.append((i+1)*(d-i-2))
+        if (i < d-2):
+            data.append((i+1) * (d-i-2))
             col.append(i+1)
             row.append(i)
-        if (i>0) and (i<d-1):
-            data.append(-2*i*(d-i-1))
+        if (i > 0) and (i < d-1):
+            data.append(-2 * i * (d-i-1))
             row.append(i)
             col.append(i)
 
@@ -52,22 +52,22 @@ def calcS(dims, ljk):
     row = []
     col = []
     for i in range(d):
-        i_bis = jk.index_bis(i,d-1)
-        i_ter = jk.index_bis(i+1,d-1)
+        i_bis = jk.index_bis(i, d-1)
+        i_ter = jk.index_bis(i+1, d-1)
 
-        g1 = i*(d-i)/np.float64(d)
-        g2 = -(i+1)*(d-1-i)/np.float64(d)
+        g1 = i * (d-i) / np.float64(d)
+        g2 = -(i+1) * (d-1-i) / np.float64(d)
 
-        if (i<d-1):
-            data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2],
-                    g1*ljk[i-1,i_bis], g2*ljk[i,i_ter-1],
-                    g2*ljk[i,i_ter-2], g2*ljk[i,i_ter]]
+        if (i < d-1):
+            data += [g1 * ljk[i-1, i_bis-1], g1 * ljk[i-1, i_bis-2],
+                    g1 * ljk[i-1, i_bis], g2 * ljk[i, i_ter-1],
+                    g2 * ljk[i, i_ter-2], g2 * ljk[i, i_ter]]
             row += [i, i, i, i, i, i]
             col += [i_bis, i_bis-1, i_bis+1,
                     i_ter, i_ter-1, i_ter+1]
             
-        if i==d-1: # g2=0
-            data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2], g1*ljk[i-1,i_bis]]
+        if i == d-1: # g2=0
+            data += [g1 * ljk[i-1, i_bis-1], g1 * ljk[i-1, i_bis-2], g1 * ljk[i-1, i_bis]]
             row += [i, i, i]
             col += [i_bis, i_bis-1, i_bis+1]
 
@@ -84,22 +84,22 @@ def calcS2(dims, ljk):
     row = []
     col = []
     for i in range(d):
-        i_ter = jk.index_bis(i+1,d-1)
-        i_qua = jk.index_bis(i+2,d-1)
+        i_ter = jk.index_bis(i+1, d-1)
+        i_qua = jk.index_bis(i+2, d-1)
 
-        g1 = (i+1)/np.float64(d)/(d+1.0)*i*(d-i)
-        g2 = -(i+1)/np.float64(d)/(d+1.0)*(i+2)*(d-1-i)
+        g1 = (i+1) / np.float64(d) / (d+1.0) * i * (d-i)
+        g2 = -(i+1) / np.float64(d) / (d+1.0) * (i+2) * (d-1-i)
 
-        if i<d-1:
-            data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2],
-                    g1*ljk[i,i_ter], g2*ljk[i+1,i_qua-1],
-                    g2*ljk[i+1,i_qua-2], g2*ljk[i+1,i_qua]]
+        if i < d-1:
+            data += [g1 * ljk[i, i_ter-1], g1 * ljk[i, i_ter-2],
+                    g1 * ljk[i, i_ter], g2 * ljk[i+1, i_qua-1],
+                    g2 * ljk[i+1, i_qua-2], g2 * ljk[i+1, i_qua]]
             row += [i, i, i, i, i, i]
             col += [i_ter, i_ter-1, i_ter+1,
                     i_qua, i_qua-1, i_qua+1]
             
-        if i==d-1: # g2=0
-            data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2], g1*ljk[i,i_ter]]
+        if i == d-1: # g2=0
+            data += [g1 * ljk[i, i_ter-1], g1 * ljk[i, i_ter-2], g1 * ljk[i, i_ter]]
             row += [i, i, i]
             col += [i_ter, i_ter-1, i_ter+1]
 
@@ -108,7 +108,7 @@ def calcS2(dims, ljk):
 #----------------------------------
 # Steady state (for initialization)
 #----------------------------------
-def steady_state_1D(n, N=1.0, gamma=0.0, h=0.5, theta=1.0):
+def steady_state_1D(n, N = 1.0, gamma = 0.0, h = 0.5, theta = 1.0):
 
     # dimensions of the sfs
     d = n+1
@@ -134,7 +134,7 @@ def steady_state_1D(n, N=1.0, gamma=0.0, h=0.5, theta=1.0):
     # matrix for migration
     Mat = D+S+S2
 
-    sfs = linalg.spsolve(Mat[1:d-1,1:d-1],-B[1:d-1])
+    sfs = linalg.spsolve(Mat[1:d-1, 1:d-1], -B[1:d-1])
     sfs = np.insert(sfs, 0, 0.0)
     sfs = np.insert(sfs, d-1, 0.0)
 
