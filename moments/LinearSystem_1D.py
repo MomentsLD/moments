@@ -1,6 +1,5 @@
 import numpy as np
-import scipy as sp
-from scipy.sparse import linalg
+from scipy.sparse import linalg, coo_matrix
 
 import Jackknife as jk
 #------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ def calcD(dims):
             row.append(i)
             col.append(i)
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # Selection
 def calcS(dims, ljk):
@@ -72,7 +71,7 @@ def calcS(dims, ljk):
             row += [i, i, i]
             col += [i_bis, i_bis-1, i_bis+1]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 
 # s -> array containing the selection coefficients for each population [s1, s2, ..., sp]
@@ -104,7 +103,7 @@ def calcS2(dims, ljk):
             row += [i, i, i]
             col += [i_ter, i_ter-1, i_ter+1]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 #----------------------------------
 # Steady state (for initialization)
@@ -135,7 +134,7 @@ def steady_state_1D(n, N=1.0, gamma=0.0, h=0.5, theta=1.0):
     # matrix for migration
     Mat = D+S+S2
 
-    sfs = sp.sparse.linalg.spsolve(Mat[1:d-1,1:d-1],-B[1:d-1])
+    sfs = linalg.spsolve(Mat[1:d-1,1:d-1],-B[1:d-1])
     sfs = np.insert(sfs, 0, 0.0)
     sfs = np.insert(sfs, d-1, 0.0)
 

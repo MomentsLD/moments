@@ -1,5 +1,5 @@
 import numpy as np
-import scipy as sp
+from scipy.sparse import coo_matrix
 
 import Jackknife as jk
 
@@ -10,18 +10,6 @@ For each component (drift, selection, migration) we consider separately the 2 di
 """
 
 """
-Functions for indexing.
-dims = numpy.array([n1+1,n2+1])
-"""
-# Computes the 1D index from the 2D array (when using reshape)
-def index_1D(ind, dims):
-    return ind[0]*dims[1]+ind[1]
-
-# Computes the 2D index from the 1D index (inverse of index_1D)
-def index_2D(id, dims):
-    return np.array([id//dims[1], id%dims[1]])
-
-"""
 Matrices for drift
 dims = numpy.array([n1+1,n2+1])
 """
@@ -29,6 +17,7 @@ dims = numpy.array([n1+1,n2+1])
 def calcD1(dims):
     # number of degrees of freedom
     d = int(np.prod(dims))
+    d1, d2 = dims
     # arrays for the creation of the sparse (coo) matrix
     data = []
     row = []
@@ -36,25 +25,26 @@ def calcD1(dims):
     # loop over the fs elements:
     for i in range(d):
         # index in the first dimension
-        index = i//dims[1]
+        index = i//d2
         if (index>1):
-            data.append((index-1)*(dims[0]-index))
+            data.append((index-1)*(d1-index))
             row.append(i)
-            col.append(i-dims[1])
-        if (index<dims[0]-2):
-            data.append((index+1)*(dims[0]-index-2))
-            col.append(i+dims[1])
+            col.append(i-d2)
+        if (index<d1-2):
+            data.append((index+1)*(d1-index-2))
+            col.append(i+d2)
             row.append(i)
-        if (index>0) and (index<dims[0]-1):
-            data.append(-2*index*(dims[0]-index-1))
+        if (index>0) and (index<d1-1):
+            data.append(-2*index*(d1-index-1))
             row.append(i)
             col.append(i)
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # drift along the second axis :
 def calcD2(dims):
     # number of degrees of freedom
     d = int(np.prod(dims))
+    d2 = dims[1]
     # arrays for the creation of the sparse (coo) matrix
     data = []
     row = []
@@ -62,21 +52,21 @@ def calcD2(dims):
     # loop over the fs elements:
     for i in range(d):
         # index in the second dimension
-        index = i%dims[1]
+        index = i%d2
         if (index>1):
-            data.append((index-1)*(dims[1]-index))
+            data.append((index-1)*(d2-index))
             row.append(i)
             col.append(i-1)
-        if (index<dims[1]-2):
-            data.append((index+1)*(dims[1]-index-2))
+        if (index<d2-2):
+            data.append((index+1)*(d2-index-2))
             col.append(i+1)
             row.append(i)
-        if (index>0) and (index<dims[1]-1):
-            data.append(-2*index*(dims[1]-index-1))
+        if (index>0) and (index<d2-1):
+            data.append(-2*index*(d2-index-1))
             row.append(i)
             col.append(i)
     
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 """
 Matrices for selection with order 3 JK
@@ -97,7 +87,7 @@ def calcS_1(dims, ljk):
     
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         i_bis = jk.index_bis(i, d1-1)
         i_ter = jk.index_bis(i+1,d1-1)
         # coefficients
@@ -107,16 +97,16 @@ def calcS_1(dims, ljk):
             data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2],
                     g1*ljk[i-1,i_bis], g2*ljk[i,i_ter-1],
                     g2*ljk[i,i_ter-2], g2*ljk[i,i_ter]]
-            row += [k, k, k, k, k, k]
+            row += 6*[k]
             col += [i_bis*d2+j, (i_bis-1)*d2+j, (i_bis+1)*d2+j,
                     i_ter*d2+j, (i_ter-1)*d2+j, (i_ter+1)*d2+j]
             
         if i==d1-1: # g2=0
             data += [g1*ljk[i-1,i_bis-1], g1*ljk[i-1,i_bis-2], g1*ljk[i-1,i_bis]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [i_bis*d2+j, (i_bis-1)*d2+j, (i_bis+1)*d2+j]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # selection along the second dimension with h2 = 0.5
 def calcS_2(dims, ljk):
@@ -129,7 +119,7 @@ def calcS_2(dims, ljk):
     col = []
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         j_bis = jk.index_bis(j, d2-1)
         j_ter = jk.index_bis(j+1,d2-1)
         # coefficients
@@ -139,16 +129,16 @@ def calcS_2(dims, ljk):
             data += [g1*ljk[j-1,j_bis-1], g1*ljk[j-1,j_bis-2],
                     g1*ljk[j-1,j_bis], g2*ljk[j,j_ter-1],
                     g2*ljk[j,j_ter-2], g2*ljk[j,j_ter]]
-            row += [k, k, k, k, k, k]
+            row += 6*[k]
             col += [i*d2+j_bis, i*d2+j_bis-1, i*d2+j_bis+1,
                     i*d2+j_ter, i*d2+j_ter-1, i*d2+j_ter+1]
             
         if j==d2-1: # g2=0
             data += [g1*ljk[j-1,j_bis-1], g1*ljk[j-1,j_bis-2], g1*ljk[j-1,j_bis]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [i*d2+j_bis, i*d2+j_bis-1, i*d2+j_bis+1]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # selection along the first dimension, part related to h1 != 0.5
 # ljk is a 2-jumps jackknife
@@ -162,7 +152,7 @@ def calcS2_1(dims, ljk):
     col = []
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         i_ter = jk.index_bis(i+1,d1-1)
         i_qua = jk.index_bis(i+2,d1-1)
         g1 = (i+1)/np.float64(d1)/(d1+1)*i*(d1-i)
@@ -172,16 +162,16 @@ def calcS2_1(dims, ljk):
             data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2],
                     g1*ljk[i,i_ter], g2*ljk[i+1,i_qua-1],
                     g2*ljk[i+1,i_qua-2], g2*ljk[i+1,i_qua]]
-            row += [k, k, k, k, k, k]
+            row += 6*[k]
             col += [i_ter*d2+j, (i_ter-1)*d2+j, (i_ter+1)*d2+j,
                     i_qua*d2+j, (i_qua-1)*d2+j, (i_qua+1)*d2+j]
             
         if i==d1-1: # g2=0
             data += [g1*ljk[i,i_ter-1], g1*ljk[i,i_ter-2], g1*ljk[i,i_ter]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [i_ter*d2+j, (i_ter-1)*d2+j, (i_ter+1)*d2+j]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # selection along the second dimension, part related to h2 != 0.5
 # ljk is a 2-jumps jackknife
@@ -195,7 +185,7 @@ def calcS2_2(dims, ljk):
     col = []
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         j_ter = jk.index_bis(j+1,d2-1)
         j_qua = jk.index_bis(j+2,d2-1)
         g1 = (j+1)/np.float64(d2)/(d2+1)*j*(d2-j)
@@ -205,16 +195,16 @@ def calcS2_2(dims, ljk):
             data += [g1*ljk[j,j_ter-1], g1*ljk[j,j_ter-2],
                     g1*ljk[j,j_ter], g2*ljk[j+1,j_qua-1],
                     g2*ljk[j+1,j_qua-2], g2*ljk[j+1,j_qua]]
-            row += [k, k, k, k, k, k]
+            row += 6*[k]
             col += [i*d2+j_ter, i*d2+j_ter-1, i*d2+j_ter+1,
                     i*d2+j_qua, i*d2+j_qua-1, i*d2+j_qua+1]
             
         if j==d2-1: # g2=0
             data += [g1*ljk[j,j_ter-1], g1*ljk[j,j_ter-2], g1*ljk[j,j_ter]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [i*d2+j_ter, i*d2+j_ter-1, i*d2+j_ter+1]
 
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 
 """
@@ -234,7 +224,7 @@ def calcM_1(dims, ljk):
     col = []
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         j_ter = jk.index_bis(j+1,d2-1)
         # arrays for the creation of the sparse (coo) matrix
         c = (j+1)/np.float64(d2)
@@ -253,29 +243,29 @@ def calcM_1(dims, ljk):
                 
         if j < d2-1:
             data += [coeff1*ljk[j,j_ter-2], coeff1*ljk[j,j_ter-1], coeff1*ljk[j,j_ter]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [i*d2+j_ter-1, i*d2+j_ter, i*d2+j_ter+1]
             if i > 0:
                 data +=[coeff2*ljk[j,j_ter-2], coeff2*ljk[j,j_ter-1], coeff2*ljk[j,j_ter]]
-                row += [k, k, k]
+                row += 3*[k]
                 col += [(i-1)*d2+j_ter-1, (i-1)*d2+j_ter, (i-1)*d2+j_ter+1]
             if i < d1-1:
                 data += [coeff3*ljk[j,j_ter-2], coeff3*ljk[j,j_ter-1], coeff3*ljk[j,j_ter]]
-                row += [k, k, k]
+                row += 3*[k]
                 col += [(i+1)*d2+j_ter-1, (i+1)*d2+j_ter, (i+1)*d2+j_ter+1]
             
         elif j == d2-1:
             data += [coeff1, -coeff1/d2*ljk[j-1,j_ter-2],
                     -coeff1/d2*ljk[j-1,j_ter-1],
                     -coeff1/d2*ljk[j-1,j_ter]]
-            row += [k, k, k, k]
+            row += 4*[k]
             col += [k, i*d2+j_ter-1, i*d2+j_ter, i*d2+j_ter+1]
                              
             if i > 0:
                 data += [coeff2, -coeff2/d2*ljk[j-1,j_ter-2],
                         -coeff2/d2*ljk[j-1,j_ter-1],
                         -coeff2/d2*ljk[j-1,j_ter]]
-                row += [k, k, k, k]
+                row += 4*[k]
                 col += [k-d2, (i-1)*d2+j_ter-1,
                             (i-1)*d2+j_ter, (i-1)*d2+j_ter+1]
                                      
@@ -283,11 +273,11 @@ def calcM_1(dims, ljk):
                 data += [coeff3, -coeff3/d2*ljk[j-1,j_ter-2],
                         -coeff3/d2*ljk[j-1,j_ter-1],
                         -coeff3/d2*ljk[j-1,j_ter]]
-                row += [k, k, k, k]
+                row += 4*[k]
                 col += [k+d2, (i+1)*d2+j_ter-1,
                         (i+1)*d2+j_ter, (i+1)*d2+j_ter+1]
     
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 def calcM_2(dims, ljk):
     # number of degrees of freedom
@@ -300,7 +290,7 @@ def calcM_2(dims, ljk):
     col = []
     for k in range(d):
         # 2D index of the current variable
-        i,j = index_2D(k, dims)
+        i,j = k//d2, k%d2
         i_ter = jk.index_bis(i+1,d1-1)
         
         c = (i+1)/np.float64(d1)
@@ -319,29 +309,29 @@ def calcM_2(dims, ljk):
                 
         if i < d1-1:
             data += [coeff1*ljk[i,i_ter-2], coeff1*ljk[i,i_ter-1], coeff1*ljk[i,i_ter]]
-            row += [k, k, k]
+            row += 3*[k]
             col += [(i_ter-1)*d2+j, i_ter*d2+j, (i_ter+1)*d2+j]
             if j > 0:
                 data +=[coeff2*ljk[i,i_ter-2], coeff2*ljk[i,i_ter-1], coeff2*ljk[i,i_ter]]
-                row += [k, k, k]
+                row += 3*[k]
                 col += [(i_ter-1)*d2+j-1, i_ter*d2+j-1, (i_ter+1)*d2+j-1]
             if j < d2-1:
                 data += [coeff3*ljk[i,i_ter-2], coeff3*ljk[i,i_ter-1], coeff3*ljk[i,i_ter]]
-                row += [k, k, k]
+                row += 3*[k]
                 col += [(i_ter-1)*d2+j+1, i_ter*d2+j+1, (i_ter+1)*d2+j+1]
             
         elif i == d1-1:
             data += [coeff1, -coeff1/d1*ljk[i-1,i_ter-2],
                     -coeff1/d1*ljk[i-1,i_ter-1],
                     -coeff1/d1*ljk[i-1,i_ter]]
-            row += [k, k, k, k]
+            row += 4*[k]
             col += [k, (i_ter-1)*d2+j, i_ter*d2+j, (i_ter+1)*d2+j]
                              
             if j > 0:
                 data += [coeff2, -coeff2/d1*ljk[i-1,i_ter-2],
                         -coeff2/d1*ljk[i-1,i_ter-1],
                         -coeff2/d1*ljk[i-1,i_ter]]
-                row += [k, k, k, k]
+                row += 4*[k]
                 col += [k-1, (i_ter-1)*d2+j-1,
                         i_ter*d2+j-1, (i_ter+1)*d2+j-1]
                                      
@@ -349,8 +339,8 @@ def calcM_2(dims, ljk):
                 data += [coeff3, -coeff3/d1*ljk[i-1,i_ter-2],
                         -coeff3/d1*ljk[i-1,i_ter-1],
                         -coeff3/d1*ljk[i-1,i_ter]]
-                row += [k, k, k, k]
+                row += 4*[k]
                 col += [k+1, (i_ter-1)*d2+j+1,
                         i_ter*d2+j+1, (i_ter+1)*d2+j+1]
     
-    return sp.sparse.coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
