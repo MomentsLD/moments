@@ -5,7 +5,6 @@ from scipy.sparse import linalg
 
 import Spectrum_mod
 import Jackknife as jk
-import LinearSystem as ls
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 #------------------------------------------------------------------------------
@@ -36,21 +35,10 @@ def calcB(dims, u):
 
 # Drift
 def calcD(dims):
-    if (len(dims) == 1): res = [ls.calcD([dims[0]])]
-    else:
-        res = []
-        for i in range(len(dims)):
-            for j in range(i+1, len(dims)):
-                res.append(ls.calcD([dims[i], dims[j]]))
-    return res
-
-def calcD2(dims):
-    if (len(dims) == 1): res = [ls.calcD([dims[0]])]
-    else:
-        res = []
-        for i in range(len(dims)):
-            for j in range(i+1, len(dims)):
-                res.append([ls2.calcD1([dims[i], dims[j]]), ls2.calcD2([dims[i], dims[j]])])
+    res = []
+    for i in range(len(dims)):
+        for j in range(i+1, len(dims)):
+            res.append([ls2.calcD1([dims[i], dims[j]]), ls2.calcD2([dims[i], dims[j]])])
     return res
 
 def buildD(vd, dims, N):
@@ -64,15 +52,7 @@ def buildD(vd, dims, N):
     return res
 
 # Selection 1
-def calcS(dims, s, h):
-    if (len(dims) == 1): return [ls.calcS_jk3([dims[0]], [s[0]], [h[0]])]
-    res = []
-    for i in range(len(dims)):
-        for j in range(i+1, len(dims)):
-            res.append(ls.calcS_jk3([dims[i], dims[j]], [s[i], s[j]], [h[i], h[j]]))
-    return res
-
-def calcSbis(dims, ljk):
+def calcS(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -90,15 +70,7 @@ def buildS(vs, dims, s, h):
     return res
 
 # Selection 2
-def calcS2(dims, s, h):
-    if (len(dims) == 1): return [ls.calcS2_jk3([dims[0]], [s[0]], [h[0]])]
-    res = []
-    for i in range(len(dims)):
-        for j in range(i+1, len(dims)):
-            res.append(ls.calcS2_jk3([dims[i], dims[j]], [s[i], s[j]], [h[i], h[j]]))
-    return res
-
-def calcS2bis(dims, ljk):
+def calcS2(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -116,16 +88,7 @@ def buildS2(vs, dims, s, h):
     return res
 
 # Migrations
-def calcM(dims, m):
-    if (len(dims) == 1): return [sp.sparse.coo_matrix(([], ([], [])), shape = (dims[0], dims[0]), dtype = 'float').tocsc()]
-    res = []
-    for i in range(len(dims)):
-        for j in range(i+1, len(dims)):
-            mbis = np.array([[0, m[i, j]], [m[j, i], 0]])
-            res.append(ls.calcM_jk3([dims[i], dims[j]], mbis))
-    return res
-
-def calcMbis(dims, ljk):
+def calcM(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
@@ -533,18 +496,18 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, m = N
     ljk2 = [jk.calcJK23(int(dims[i]-1)) for i in range(len(dims))]
     
     # drift
-    vd = calcD2(dims)
+    vd = calcD(dims)
     
     # selection part 1
-    vs = calcSbis(dims, ljk)
+    vs = calcS(dims, ljk)
     S1 = buildS(vs, dims, s, h)
     
     # selection part 2
-    vs2 = calcS2bis(dims, ljk2)
+    vs2 = calcS2(dims, ljk2)
     S2 = buildS2(vs2, dims, s, h)
     
     # migration
-    vm = calcMbis(dims,ljk)
+    vm = calcM(dims,ljk)
     Mi = buildM(vm, dims, mm)
     
     # mutations
