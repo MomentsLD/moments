@@ -1,4 +1,5 @@
 import numpy as np
+cimport numpy as np
 from scipy.sparse import coo_matrix
 
 import Jackknife as jk
@@ -14,7 +15,9 @@ Matrices for drift
 dims = numpy.array([n1+1,n2+1])
 """
 # drift along the first axis :
-def calcD1(dims):
+cpdef calcD1(np.ndarray dims):
+    cdef int d, d1, d2, i, index
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1, d2 = dims
@@ -25,7 +28,7 @@ def calcD1(dims):
     # loop over the fs elements:
     for i in range(d):
         # index in the first dimension
-        index = i//d2
+        index = i // d2
         if (index > 1):
             data.append((index-1) * (d1-index))
             row.append(i)
@@ -41,7 +44,9 @@ def calcD1(dims):
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # drift along the second axis :
-def calcD2(dims):
+cpdef calcD2(np.ndarray dims):
+    cdef int d, d2, i, index
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d2 = dims[1]
@@ -76,7 +81,10 @@ ljk is the Jacknife array corresponding to the concerned population size:
 s and h are the coefficients for selection and dominance in the concerned population.
 """
 # selection along the first dimension with h1 = 0.5
-def calcS_1(dims, ljk):
+cpdef calcS_1(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d1, d2, i, j, k, i_bis, i_ter
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1, d2 = dims
@@ -87,9 +95,9 @@ def calcS_1(dims, ljk):
     
     for k in range(d):
         # 2D index of the current variable
-        i, j = k // d2, k % d2
+        i,j = k // d2, k % d2
         i_bis = jk.index_bis(i, d1-1)
-        i_ter = jk.index_bis(i+1, d1-1)
+        i_ter = jk.index_bis(i+1,d1-1)
         # coefficients
         g1 = i * (d1-i) / np.float64(d1)
         g2 = -(i+1) * (d1-1-i) / np.float64(d1)
@@ -109,7 +117,10 @@ def calcS_1(dims, ljk):
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # selection along the second dimension with h2 = 0.5
-def calcS_2(dims, ljk):
+cpdef calcS_2(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d2, i, j, k, j_bis, j_ter
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d2 = dims[1]
@@ -142,7 +153,10 @@ def calcS_2(dims, ljk):
 
 # selection along the first dimension, part related to h1 != 0.5
 # ljk is a 2-jumps jackknife
-def calcS2_1(dims, ljk):
+cpdef calcS2_1(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d1, d2, k, i, j, i_ter, i_qua
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1, d2 = dims
@@ -175,7 +189,10 @@ def calcS2_1(dims, ljk):
 
 # selection along the second dimension, part related to h2 != 0.5
 # ljk is a 2-jumps jackknife
-def calcS2_2(dims, ljk):
+cpdef calcS2_2(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d2, k, i, j, j_ter, j_qua
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d2 = dims[1]
@@ -214,7 +231,10 @@ ljk is the Jacknife array corresponding to the concerned population size:
     ljk=ljk(pop2) in calcM1 and ljk=ljk(pop1) in calcM2
 m is the migration rate: m=m12 in calcM1 and m=m21 in calcM2
 """
-def calcM_1(dims, ljk):
+cpdef calcM_1(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d1, d2, i, j, k, i_ter
+    cdef np.float64_t c, coeff1, coef2, coeff3
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1, d2 = dims
@@ -242,24 +262,24 @@ def calcM_1(dims, ljk):
             col.append(k+d2)
                 
         if j < d2-1:
-            data += [coeff1 * ljk[j,j_ter-2], coeff1 * ljk[j,j_ter-1], coeff1 * ljk[j,j_ter]]
+            data += [coeff1 * ljk[j, j_ter-2], coeff1 * ljk[j, j_ter-1], coeff1 * ljk[j, j_ter]]
             row += 3 * [k]
-            col += [i*d2 + j_ter - 1, i*d2 + j_ter, i*d2+j_ter+1]
+            col += [i*d2 + j_ter - 1, i*d2 + j_ter, i*d2 + j_ter + 1]
             if i > 0:
-                data +=[coeff2*ljk[j,j_ter-2], coeff2*ljk[j,j_ter-1], coeff2*ljk[j,j_ter]]
-                row += 3*[k]
-                col += [(i-1)*d2+j_ter-1, (i-1)*d2+j_ter, (i-1)*d2+j_ter+1]
+                data +=[coeff2 * ljk[j, j_ter-2], coeff2 * ljk[j, j_ter-1], coeff2 * ljk[j, j_ter]]
+                row += 3 * [k]
+                col += [(i-1)*d2 + j_ter - 1, (i-1)*d2 + j_ter, (i-1)*d2 + j_ter + 1]
             if i < d1-1:
-                data += [coeff3*ljk[j,j_ter-2], coeff3*ljk[j,j_ter-1], coeff3*ljk[j,j_ter]]
-                row += 3*[k]
-                col += [(i+1)*d2+j_ter-1, (i+1)*d2+j_ter, (i+1)*d2+j_ter+1]
+                data += [coeff3 * ljk[j, j_ter-2], coeff3 * ljk[j, j_ter-1], coeff3 * ljk[j, j_ter]]
+                row += 3 * [k]
+                col += [(i+1)*d2 + j_ter - 1, (i+1)*d2 + j_ter, (i+1)*d2 + j_ter + 1]
             
         elif j == d2-1:
             data += [coeff1, -coeff1 / d2 * ljk[j-1, j_ter-2],
                     -coeff1 / d2 * ljk[j-1, j_ter-1],
                     -coeff1 / d2 * ljk[j-1, j_ter]]
             row += 4 * [k]
-            col += [k, i*d2+j_ter-1, i*d2+j_ter, i*d2+j_ter+1]
+            col += [k, i*d2 + j_ter - 1, i*d2 + j_ter, i*d2 + j_ter + 1]
                              
             if i > 0:
                 data += [coeff2, -coeff2 / d2 * ljk[j-1, j_ter-2],
@@ -279,7 +299,10 @@ def calcM_1(dims, ljk):
     
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
-def calcM_2(dims, ljk):
+cpdef calcM_2(np.ndarray dims, np.ndarray ljk):
+    cdef int d, d1, d2, i, j, k, i_ter
+    cdef np.float64_t c, coeff1, coef2, coeff3
+    cdef list data, row, col
     # number of degrees of freedom
     d = int(np.prod(dims))
     d1, d2 = dims
@@ -333,7 +356,7 @@ def calcM_2(dims, ljk):
                         -coeff2 / d1 * ljk[i-1, i_ter]]
                 row += 4 * [k]
                 col += [k - 1, (i_ter-1)*d2 + j - 1,
-                        i_ter*d2+ j - 1, (i_ter+1)*d2 + j - 1]
+                        i_ter*d2 + j - 1, (i_ter+1)*d2 + j - 1]
                                      
             if j < d2-1:
                 data += [coeff3, -coeff3 / d1 * ljk[i-1, i_ter-2],
@@ -341,6 +364,6 @@ def calcM_2(dims, ljk):
                         -coeff3 / d1 * ljk[i-1, i_ter]]
                 row += 4 * [k]
                 col += [k + 1, (i_ter-1)*d2 + j + 1,
-                        i_ter*d2 + j + 1 , (i_ter+1)*d2 + j + 1]
+                        i_ter*d2 + j + 1, (i_ter+1)*d2 + j + 1]
     
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()

@@ -38,7 +38,7 @@ def calcD(dims):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append([ls2.calcD1([dims[i], dims[j]]), ls2.calcD2([dims[i], dims[j]])])
+            res.append([ls2.calcD1(np.array([dims[i], dims[j]])), ls2.calcD2(np.array([dims[i], dims[j]]))])
     return res
 
 def buildD(vd, dims, N):
@@ -56,7 +56,7 @@ def calcS(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append([ls2.calcS_1([dims[i], dims[j]], ljk[i]), ls2.calcS_2([dims[i], dims[j]], ljk[j])])
+            res.append([ls2.calcS_1(np.array([dims[i], dims[j]]), ljk[i]), ls2.calcS_2(np.array([dims[i], dims[j]]), ljk[j])])
     return res
 
 def buildS(vs, dims, s, h):
@@ -74,7 +74,7 @@ def calcS2(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append([ls2.calcS2_1([dims[i], dims[j]], ljk[i]), ls2.calcS2_2([dims[i], dims[j]], ljk[j])])
+            res.append([ls2.calcS2_1(np.array([dims[i], dims[j]]), ljk[i]), ls2.calcS2_2(np.array([dims[i], dims[j]]), ljk[j])])
     return res
 
 def buildS2(vs, dims, s, h):
@@ -92,7 +92,7 @@ def calcM(dims, ljk):
     res = []
     for i in range(len(dims)):
         for j in range(i+1, len(dims)):
-            res.append([ls2.calcM_1([dims[i], dims[j]], ljk[j]), ls2.calcM_2([dims[i], dims[j]], ljk[i])])
+            res.append([ls2.calcM_1(np.array([dims[i], dims[j]]), ljk[j]), ls2.calcM_2(np.array([dims[i], dims[j]]), ljk[i])])
     return res
 
 def buildM(vm, dims, m):
@@ -107,14 +107,6 @@ def buildM(vm, dims, m):
 #----------------------------------
 # updates for the time integration-
 #----------------------------------
-# 1D
-def ud1_1pop_1(sfs, Q, dims):
-    sfs = Q[0].dot(sfs)
-    return sfs
-
-def ud2_1pop_1(sfs, slv, dims):
-    sfs = slv[0](sfs + dt*B)
-    return sfs
 
 # 2D
 def ud1_2pop_1(sfs, Q, dims):
@@ -434,9 +426,9 @@ def integrate_1D(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = 0.0, h = 0.5, theta =
     # we compute the matrices we will need
     ljk = jk.calcJK13(int(d-1))
     ljk2 = jk.calcJK23(int(d-1))
-    vd = ls1.calcD([d])
-    S1 = s * h * ls1.calcS([d],ljk)
-    S2 = s * (1-2.0*h) * ls1.calcS2([d],ljk2)
+    vd = ls1.calcD(d)
+    S1 = s * h * ls1.calcS(d,ljk)
+    S2 = s * (1-2.0*h) * ls1.calcS2(d,ljk2)
     
     # mutation term
     B = np.zeros([d])

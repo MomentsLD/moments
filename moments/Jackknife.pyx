@@ -1,4 +1,5 @@
 import numpy as np
+cimport numpy as np
 
 #--------------------------------------------
 # Jackknife extrapolations :
@@ -8,12 +9,14 @@ import numpy as np
 #--------------------------------------------
 
 # The choice i' in n samples that best approximates the frequency of \i/(n + 1) is i*n / (n + 1)
-def index_bis(i,n):
+cpdef int index_bis(int i, int n):
     return int(min(max(round(i*n/(n+1.0)),2),n-2))
 
 # Compute the order 3 Jackknife extrapolation coefficients for 1 jump (Phi_n -> Phi_(n+1))
-def calcJK13(n):
-    J = np.zeros((n, n-1))
+cpdef np.ndarray calcJK13(int n):
+    cdef np.ndarray J = np.zeros((n, n-1))
+    cdef int i
+    cdef int ibis
     for i in range(0, n):
         ibis = index_bis(i+1,n)-1
         J[i,ibis] = -(1+n)*((2+i)*(2+n)*(-6-n+(i+1)*(3+n))-2*(4+n)*(-1+(i+1)*(2+n))*(ibis+1)
@@ -25,8 +28,10 @@ def calcJK13(n):
     return J
 
 # Compute the order 3 Jackknife extrapolation coefficients for 2 jumps (Phi_n -> Phi_(n+2))
-def calcJK23(n):
-    J = np.zeros((n+1, n-1))
+cpdef np.ndarray calcJK23(int n):
+    cdef np.ndarray J = np.zeros((n+1, n-1))
+    cdef int i
+    cdef int ibis
     for i in range(0, n+1):
         ibis = index_bis(i+1,n)-1
         if (i == n-1) or (i == n): ibis = n-3

@@ -1,5 +1,6 @@
 build
 *.so
 *.pyc
+*.c
 moments.egg-info
 .DS_Store

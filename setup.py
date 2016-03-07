@@ -29,6 +29,23 @@ if compiler in ['unix','mingw32','cygwin']:
 else:
     extra_compile_args = []
 
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
+import numpy as np
+
+extensions = [
+              Extension("Jackknife", ["moments/Jackknife.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+              Extension("LinearSystem_1D", ["moments/LinearSystem_1D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+              Extension("LinearSystem_2D", ["moments/LinearSystem_2D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
+              ]
+
+setup(
+      cmdclass = {'build_ext':build_ext},
+      ext_modules = cythonize(extensions),
+      )
+
 numpy.distutils.core.setup(name='moments',
                            version='1.0.0',
                            author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
