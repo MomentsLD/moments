@@ -5,8 +5,13 @@
 `moments` is developed in Simon Gravel's group in the population genetics department at McGill University [http://simongravel.lab.mcgill.ca/Home.html].
 
 **Getting started**
+
 `moments` uses cython for performances improvement, it can be installed using pip:
+
 	pip install cython
+
 To install `moments`, run the following command in the repository containing the sources:
+
 	sudo python setup.py install
+
 You must then be able to import `moments` in your python scripts.
