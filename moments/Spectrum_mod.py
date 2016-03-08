@@ -1518,7 +1518,6 @@ def %(method)s(self, other):
             self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
         return self
 
-
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm
 import copy_reg

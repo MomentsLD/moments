@@ -541,5 +541,4 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, m = N
         t += dt
         # we update the value of N if a function was provided as argument
         if callable(Npop) : N = np.array(Npop(t / 2.0))
-    
     return Spectrum_mod.Spectrum(sfs)
