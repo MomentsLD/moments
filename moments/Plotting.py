@@ -733,3 +733,164 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
 
     if show:
         mlab.show()
+
+
+def plot_4d_comp_multinom(model, data, vmin=None, vmax=None,
+                          resid_range=None, fig_num=None,
+                          pop_ids=None, residual='Anscombe', adjust=True):
+    """
+    Multinomial comparison between 3d model and data.
+    
+    model: 4-dimensional model SFS
+    data: 4-dimensional data SFS
+    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
+        vmax respectively.
+    resid_range: Residual plot saturates at +- resid_range.
+    fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    pop_ids: If not None, override pop_ids stored in Spectrum.
+    residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+        
+    This comparison is multinomial in that it rescales the model to optimally
+        fit the data.
+    """
+    model = Inference.optimally_scaled_sfs(model, data)
+    
+    plot_4d_comp_Poisson(model, data, vmin=vmin, vmax=vmax,
+                         resid_range=resid_range, fig_num=fig_num,
+                         pop_ids=pop_ids, residual=residual,
+                         adjust=adjust)
+
+def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
+                         resid_range=None, fig_num=None, pop_ids=None,
+                         residual='Anscombe', adjust=True, show=True):
+    """
+    Poisson comparison between 3d model and data.
+    
+    model: 4-dimensional model SFS
+    data: 4-dimensional data SFS
+    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
+        vmax respectively.
+    resid_range: Residual plot saturates at +- resid_range.
+    fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    pop_ids: If not None, override pop_ids stored in Spectrum.
+    residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+    show: If True, execute pylab.show command to make sure plot displays.
+    """
+    if data.folded and not model.folded:
+        model = model.fold()
+
+    masked_model, masked_data = Numerics.intersect_masks(model, data)
+
+    if fig_num is None:
+        f = pylab.gcf()
+    else:
+        f = pylab.figure(fig_num, figsize=(8,10))
+
+    pylab.clf()
+    if adjust:
+        pylab.subplots_adjust(bottom=0.07, left=0.07, top=0.95, right=0.95)
+
+    modelmax = max(masked_model.sum(axis=sax).max() for sax in range(4))
+    datamax = max(masked_data.sum(axis=sax).max() for sax in range(4))
+    modelmin = min(masked_model.sum(axis=sax).min() for sax in range(4))
+    datamin = min(masked_data.sum(axis=sax).min() for sax in range(4))
+    max_toplot = max(modelmax, datamax)
+    min_toplot = min(modelmin, datamin)
+    
+    if vmax is None:
+        vmax = max_toplot
+    if vmin is None:
+        vmin = min_toplot
+    extend = _extend_mapping[vmin <= min_toplot, vmax >= max_toplot]
+    
+    # Calculate the residuals
+    list_ind = [[2, 3], [1, 3], [1, 2], [0, 3], [0, 2], [0, 1]]
+    if residual == 'Anscombe':
+        resids = [Inference.\
+                  Anscombe_Poisson_residual(masked_model.sum(axis=int(list_ind[i][1])).sum(axis=int(list_ind[i][0])),
+                                            masked_data.sum(axis=int(list_ind[i][1])).sum(axis=int(list_ind[i][0])),
+                                            mask=vmin) for i in range(6)]
+    elif residual == 'linear':
+        resids =[Inference.\
+                 linear_Poisson_residual(masked_model.sum(axis=int(list_ind[i][1])).sum(axis=int(list_ind[i][0])),
+                                         masked_data.sum(axis=int(list_ind[i][1])).sum(axis=int(list_ind[i][0])),
+                                         mask=vmin) for i in range(6)]
+    else:
+        raise ValueError("Unknown class of residual '%s'." % residual)
+
+
+    min_resid = min([r.min() for r in resids])
+    max_resid = max([r.max() for r in resids])
+    if resid_range is None:
+        resid_range = max((abs(max_resid), abs(min_resid)))
+    resid_extend = _extend_mapping[-resid_range <= min_resid,
+                               resid_range >= max_resid]
+    
+    if pop_ids is not None:
+        if len(pop_ids) != 4:
+            raise ValueError('pop_ids must be of length 4.')
+        data_ids = model_ids = resid_ids = pop_ids
+    else:
+        data_ids = masked_data.pop_ids
+        model_ids = masked_model.pop_ids
+        
+        if model_ids is None:
+            model_ids = data_ids
+
+        if model_ids == data_ids:
+            resid_ids = model_ids
+        else:
+            resid_ids = None
+    cptr = 0
+    for i in range(4):
+        for j in range(i+1, 4):
+            ind = list(range(4))
+            ind.remove(j)
+            ind.remove(i)
+            marg_data = masked_data.sum(axis=int(ind[1])).sum(axis=int(ind[0]))
+            marg_model = masked_model.sum(axis=int(ind[1])).sum(axis=int(ind[0]))
+        
+            curr_ids = []
+            for ids in [data_ids, model_ids, resid_ids]:
+                if ids is None:
+                    ids = ['pop0', 'pop1', 'pop2', 'pop3']
+            
+                if ids is not None:
+                    ids = [ids[j], ids[i]]
+            
+                curr_ids.append(ids)
+    
+            ax = pylab.subplot(4,6,cptr+1)
+            plot_colorbar = (cptr == 5)
+            
+            plot_single_2d_sfs(marg_data, vmin=vmin, vmax=vmax, pop_ids=curr_ids[0],
+                               extend=extend, colorbar=plot_colorbar)
+            
+            pylab.subplot(4,6,cptr+7, sharex=ax, sharey=ax)
+            plot_single_2d_sfs(marg_model, vmin=vmin, vmax=vmax,
+                               pop_ids=curr_ids[1], extend=extend, colorbar=False)
+                           
+            resid = resids[cptr]
+            pylab.subplot(4,6,cptr+13, sharex=ax, sharey=ax)
+            plot_2d_resid(resid, resid_range, pop_ids=curr_ids[2],
+                          extend=resid_extend, colorbar=plot_colorbar)
+                                       
+            ax = pylab.subplot(4,6,cptr+19)
+            flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()),
+                                       resid.ravel())
+            ax.hist(flatresid, bins=20, normed=True)
+            ax.set_yticks([])
+            cptr += 1
+
+    if show:
+        pylab.show()
