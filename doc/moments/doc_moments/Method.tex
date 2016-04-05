@@ -1,0 +1,46 @@
+\section{Method and material}
+
+\subsection{The diffusion approximation}
+The diffusion approximation applied to the Wright-Fisher model for a single diploid population with drift, selection and mutations (see \cite{kimura1964} for more details) writes:
+\begin{equation}
+	\begin{split}
+	\p{\phi(x,t)}{t}\simeq &\frac{1}{4 N} \pd{}{x} x(1-x) \phi(x,t) \\&-s \p{}{x} \left(h+(1-2h)x \right)x (1-x) \phi(x,t) \\&+ 2 N u \delta(x-\frac{1}{2 N}).
+	\end{split}
+	\label{eq:diff}
+\end{equation}
+
+This partial differential equation describes the evolution of the density of allele frequencies $\phi(x,t)$ (\textit{i.e.} the expected proportion of derived mutations at frequency $x \in [0, 1]$ in the population and at time $t$). In this equation $N$ is the population size and $s$, $h$ and $u$ are respectively the selection coefficient, the dominance coefficient and the mutation rate.
+The first term of the right hand side, $\frac{1}{4 N} \pd{}{x} x(1-x) \phi(x,t)$, describes Genetic drift as a diffusion process. Selection is modelled by the transport-like term $-s \p{}{x} \left(h+(1-2h)x \right)x (1-x) \phi(x,t)$ whereas the source term $2 N u \delta(x-\frac{1}{2 N})$ accounts for \textit{de novo} mutations. The expression $\delta(x-\frac{1}{2 N})$ is the Dirac distribution peaked at frequency $\frac{1}{2 N}$ meaning that, in the diploid case, each mutation appears on an unique locus of the population at the time.
+
+The approximation leading to this equation is valid for large effective population size $N >> 1$ and for small values of selection coefficients and migration rates (when dealing with several populations), comparable to the ratio $\frac{1}{N}$. 
+
+The distribution of allele frequencies $\phi(x,t)$ cannot be directly observed in genome sequencing data. However, we can construct the histogram of the occurrences of the variant alleles in a given sample that we call the allele frequency spectrum (AFS) $\Phi$. With this notation, $\Phi_n(i)$ corresponds to the number of variants that we expect to find $i$ times in a sample of size $n$ of the population. The statistics $\Phi_n(i)$ can be computed from $\phi$ using a binomial law (number of variant drawn i times in a sample of size n) and integrating over all the possible allele frequencies: 
+$$
+	 \Phi_n(i) = \int_0^1 w_{n,i}(x) \phi(x) dx,
+$$
+where $w_{n,i}(x) = {n\choose i}  x^i (1-x)^{n-i}$ can be seen as weight functions.
+We can notice that the allele frequency spectrum can be seen as a set of "moment-like" statistics. Indeed, the $\Phi_n(i)$ are linear combinations of the moments of the distribution $\phi$: $\mu_k = \int_0^1 x^k \phi(x)dx$.
+
+\subsection{A new method to compute the AFS}
+Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
+The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. \textcolor{red}{A completer apres lecture de l'article}
+
+In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes:
+\begin{equation}
+\begin{split}
+\dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right].
+\end{split}
+\label{eq:neutral}
+\end{equation}
+
+We recognize in Eq.\eqref{eq:neutral} the mutation term $2nu  \delta_{i=1}$ and the effect of genetic drift. This set of linear ODEs is closed and can easily be integrated over time using a classical implicit scheme.
+Let us consider the case without mutations with a sample containing only one individual (2 chromosomes). The statistic $\Phi_2(1)$ is the number of heterozygous sites for this individual: 
+$$
+	\dot \Phi_n(i)= -\frac{1}{2 N} \Phi_2(1).
+$$
+We can integrate this differential equation using a forward Euler scheme. Normalizing the time scale by the generation time, we have a relationship between the values of $\Phi_n(i)$ at generations $k$ and $k+1$:
+$$
+	\Phi_2^{k+1}(1) = (1-\frac{1}{2 N})\Phi_2^k(1).
+$$
+This recurrence relationship is the same as the well known formula for heterozygosity ratio. This is not surprising as we described the quantity $\Phi_2(1)$ as the number of heterozygous sites. The differential equation \eqref{eq:neutral} can thus be seen as a generalization of the formula for heterozygosity rate evolution.
