@@ -25,7 +25,7 @@ We can notice that the allele frequency spectrum can be seen as a set of "moment
 Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
 The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. \textcolor{red}{A completer apres lecture de l'article}
 
-In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes:
+In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes, for $i \in \{0,... , n\}$:
 \begin{equation}
 \begin{split}
 \dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
@@ -44,3 +44,51 @@ $$
 	\Phi_2^{k+1}(1) = (1-\frac{1}{2 N})\Phi_2^k(1).
 $$
 This recurrence relationship is the same as the well known formula for heterozygosity ratio. This is not surprising as we described the quantity $\Phi_2(1)$ as the number of heterozygous sites. The differential equation \eqref{eq:neutral} can thus be seen as a generalization of the formula for heterozygosity rate evolution.
+
+If we consider now cases of loci under a selective pressure, we can integrate the selection term from the diffusion equation \eqref{eq:diff} in the ODEs system \eqref{eq:neutral}:
+\begin{equation}
+\begin{split}
+\dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right]\\
+		      &+ \frac{sh}{n+1}\left[i(n+1-i)\Phi_{n+1}(i)-(n-i)(i+1)\Phi_{n+1}(i+1)\right] \\
+		      & +\frac{s(1-2h)(i+1)}{(n+1)(n+2)}\left[i(n+1-i)\Phi_{n+2}(i+1)-(n-i)(i+2)\Phi_{n+2}(i+2)\right].
+\end{split}
+\label{eq:syst_edo_1pop}
+\end{equation}
+ At this point, we can notice that to compute the evolution of the AFS for our $n$ individuals sample we need to know the AFS for larger sample sizes $n+1$ and $n+2$.This breaks the closure of the moments equations system and makes it impossible to solve as is.
+ 
+\subsection{Moment closure method}
+Several methods exist for moment closure approximations. In our case we are looking for a way to accurately estimate the AFS for slightly larger samples than the one we are simulating. Intuitively, we can think about the case of $\Phi_{n+1}(i)$, the number of variants found $i$ times in a sample of size $n+1$. This quantity is close to entries of the current AFS $\Phi_n$ and can probably be approached by a linear combination of a few of them.
+
+In \cite{gravel2014}, the author showed that it is possible to predict the expected number of discovered variants in a large sample studying a (10 to 100 times) smaller sample. This extrapolation using a Jackknife method gives really accurate estimations so we can reuse it for our moment closure problem.
+
+In this work, we use an order 3 Jackknife to express the higher order AFS $\Phi_{n+1}$ and $\Phi_{n+2}$ as combining linearly 3 entries of the current AFS $\Phi_n$. The order of the Jackknife is determined to satisfy the trade off between the accuracy of the estimations and the computations complexity. This step allows the numerical resolution of the linear ODEs system using a classical Crank Nicholson time integration scheme.  
+
+\subsection{Multiple populations AFS}
+We have described an efficient method to simulate allele frequency spectra for a single population. Projecting the diffusion equation onto the weigh functions makes it possible to directly compute the AFS through a set of coupled ODEs. Thus, we get rid of the constraints induced by the numerical approximation of the PDE as the frequency grid refining or the CFL condition on the integration time step imposed by the transport term. This makes the computations simpler and more accurate. The only additional approximation step we introduce, comparing to classical approaches, is the Jackknife moment closure method which introduces very low errors.
+
+However, simulating multiple populations is important to infer complex demographic models from genotyping datasets. To do that, the diffusion equation is modified to model the join density function $\phi$. We must also take into account the migrations between the different populations. The PDE for $p$ populations becomes: 
+ \begin{equation}
+\begin{split}
+\p{\phi(\textbf{x},t)}{t}\simeq & \sum_{j=1}^p \bigg[ \frac{1}{4 N_j} \pd{}{x_j} \Big( x_j(1-x_j) \phi(\textbf{x},t)\Big) \\
+					&-s_j \p{}{x_j}\Big( \left(h_j+(1-2h_j)x_j \right)x_j (1-x_j) \phi(\textbf{x},t)\Big) \\
+					&-\sum_{k \neq j}m_{jk}\p{}{x_j}\Big( (x_k-x_j) \phi(\textbf{x},t)\Big)\\
+					&+ 2 N_j u \delta(x_j-\frac{1}{2 N_j})\Pi_{k\neq j}\delta(x_k)\bigg],
+\end{split}
+\label{eq:diffnp}
+\end{equation}
+where $\textbf{x} = (x_1, \cdots, x_p)$ is a vector with $x_j$ the frequency of the variant in the $j^{th}$ population. Likewise, $N_j$, $s_j$, $h_j$ are respectively the effective size of population $j$ and the selection and dominance coefficients of the loci we consider in population $j$. The coefficient $m_{jk}$ is the migration rate from population $k$ to population $j$.
+
+As we are studying jointly several populations, statistics we can observe in the data are the entries of the join allele frequency spectrum we denote by $\Phi_\textbf{n}(\textbf{i})$. In this multidimensional spectrum, $\textbf{n}$ is a vector collecting the sample sizes of the different populations. Thus, $\Phi_{n_1, \cdots, n_p}(i_1, \cdots, i_p)$ is the number of variant that are found $i_1$ times in population 1, $i_2$ times in population 2, $\cdots$ and $i_p$ times in population $p$. As in the one population case, $\Phi_\textbf{n}(\textbf{i})$ can be computed from $\phi(\textbf{x},t)$ computing the multiple integral in Eq. \eqref{eq:Phinp}.
+
+\begin{equation}
+\Phi_{\mathbf{n}}(\mathbf{i})= \int \prod_{j=1}^p { n_j \choose i_j} x_j^i (1-x_j)^{n_j-i_j} dx_j \phi(\mathbf{x}).
+\label{eq:Phinp}
+\end{equation}
+
+Using the same method as for the single population case, we can derive a coupled system of ordinary equations on the moment-like statistics $\Phi_{\mathbf{n}}(\mathbf{i})$ (see \ref{multidimcalc}). As the selection term, the migration term introduces closure issues that are tackled using a Jackknife approximation.
+
+\subsection{Implementation of the method}
+We developed a solver, called \textit{Moments}, to simulate multidimensional AFS implementing the method described above. This tool is in the form of a python library. We reused the interface of the open source software $\partial a \partial i$, including the inference and plotting tools. $Moments$ can handle models with up to 5 populations with selection, migrations, population splits...
+
+\subsection{Comparisons with the state of the art}
