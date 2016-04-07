@@ -2,5 +2,11 @@ build
 *.so
 *.pyc
 *.c
+*.csv
+*.log
+*.aux
+*.bbl
+*.blg
+*.gz
 moments.egg-info
 .DS_Store

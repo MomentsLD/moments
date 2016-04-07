@@ -5,6 +5,8 @@
 \usepackage{graphics}
 \usepackage{grffile}
 \usepackage{color}
+\usepackage{tikz}
+
 \title{\bf Moment closure methods - Appendices} 
 \newcommand\p[2]{\frac{\partial #1}{\partial #2}}
 \newcommand\pd[2]{\frac{\partial^2 #1}{\partial #2^2}}
@@ -226,9 +228,51 @@ $$
 	\Big(I-\frac{dt}{2}(\frac{1}{4N_{k+1}}D+S) \Big)\Phi_n^{k+1} = dt M + \Big(I+\frac{dt}{2}(\frac{1}{4N_k}D+S)\Big)\Phi_n^k.
 $$ 
 We can use the same method to solve the system for several populations. In this case we must add the matrix corresponding to the migration term.
+
+
+\section{Bidirectional splitting}
+Numerical resolution of partial differential equations in several dimensions generally involves directional splitting to drastically reduce computational time. In our case, the ordinary differential equations system we consider is comparable to a PDE, each population being seen as a direction. It seems thus justifiable to use a directional splitting to make our simulations more efficient. 
+
+However, the migration term induces diagonal dependencies. That means, for a 2 populations case, that $\dot \Phi_{n_1,n_2}(i_1, i_2)$ depends on terms such as $\Phi_{n_1,n_2}(i_1+1, i_2+1)$ or $\Phi_{n_1,n_2}(i_1+1, i_2-1)$. This makes it impossible to properly split the numerical resolution and consider separately each dimension. 
+
+To overcome this problem, we split the resolution by pairs of dimensions or populations so we can deal with the diagonal terms (see Fig. ). 
+ \begin{figure}[h]
+\centering
+	\begin{tikzpicture}
+	\fill[color=gray!20] (0,0) -- (2,0) -- (2,2) -- (0,2) -- cycle;
+	\draw [dotted] (0,2)  -- (0,0) -- (2,0) ;
+	\draw (2,0) -- (2,2) -- (0,2) ;
+	\draw (-0.1,-0.1) -- (1.9,-0.1) -- (1.9,1.9) -- (-0.1,1.9) -- cycle;
+	\draw [dotted] (0.5,2.5) -- (0.5,0.5) -- (2.5,0.5);
+	\draw (2.5,0.5) -- (2.5,2.5) -- (0.5,2.5);
+	\draw (1.9,1.9) -- (2.5,2.5);
+	\draw (-0.1,1.9)--(0.5,2.5);
+	\draw (1.9,-0.1)--(2.5,0.5);
+	\draw[dotted] (-0.1,-0.1)--(0.5,0.5);
+	\draw[->] (1,1) -- (1.5,1.5);
+	\draw(0.9,-0.1) node[below]{\small direction 1} ;
+	
+	\fill[color=gray!20] (4.2,-0.1) -- (4.2,1.9) -- (4.8,2.5) -- (4.8,0.5) -- cycle;
+	\draw (4.2,-0.1) -- (4.2,1.9) -- (4.8,2.5);
+	\draw[dotted] (4.2,-0.1) -- (4.8,0.5) -- (4.8,2.5);
+	\draw (3.9,-0.1) -- (5.9,-0.1) -- (5.9,1.9) -- (3.9,1.9) -- cycle;
+	\draw [dotted] (4.5,2.5) -- (4.5,0.5) -- (6.5,0.5);
+	\draw (6.5,0.5) -- (6.5,2.5) -- (4.5,2.5);
+	\draw (3.9,1.9) -- (4.5,2.5);
+	\draw (5.9,1.9)--(6.5,2.5);
+	\draw (5.9,-0.1)--(6.5,0.5);
+	\draw[dotted] (3.9,-0.1)--(4.5,0.5);
+	\draw[->] (4.3,1) -- (5.3,1);
+	\draw(4.9,-0.1) node[below]{\small direction 2} ;
+	\draw[->] (2.5,-0.4) -- (3.2,-0.4);
+	\draw[->] (6.5,-0.4) -- (7.2,-0.4);
+	\draw(8.2,-0.2) node[below]{\small $\cdots$} ;
+	\end{tikzpicture}
+	\caption{2-dimensional splitting for numerical resolution.}
+	\label{fig:split2d}
+\end{figure}
+
+
+
 \end{document}
-
-
-
-
  
