@@ -16,7 +16,7 @@ We are interested in the moment-like statistics $$ \Phi_n(i) = \int_0^1 {n\choos
 So we can write the time derivative of  $\Phi_n(i)$ : 
 $$\dot \Phi_n(i) = \int_0^1 w_i \dot \phi dx,$$
 with $w_i=  {n\choose i}  x^i (1-x)^{n-i}$.\\
-The mutation term is modeled differently and separately. In the continuous model, it is assumed that the mutations are injected at frequency $x=\frac{1}{2 N}$. That amounts to saying that each mutation appears in a single individual at the time. In our discrete approach, we inject the mutations as a new singleton so the mutation term writes $2 N u \delta_{i=1}$. Using this and replacing $\dot \phi$ by the approximation given by Eq.\eqref{eq:diff} we have:
+The mutation term is modeled differently and separately. In the continuous model, it is assumed that the mutations are injected at frequency $x=\frac{1}{2 N}$. That amounts to saying that each mutation appears on a single chromosome at the time (infinite site model). In our discrete approach, we inject the mutations as a new singleton so the mutation term writes $2 N u \delta_{i=1}$. Using this and replacing $\dot \phi$ by the approximation given by Eq.\eqref{eq:diff} we have:
 \begin{equation}
 \begin{split}
 	\dot \Phi_n(i) &= 2 n u \delta_{i=1} + \frac{1}{4 N} \int_0^1 w_i \pd{}{x}\left( x(1-x) \phi(x,t)\right)dx \\

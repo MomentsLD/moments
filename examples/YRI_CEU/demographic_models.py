@@ -3,7 +3,7 @@ Custom demographic model for our example.
 """
 import numpy
 import moments
-
+import time
 def prior_onegrow_mig((nu1F, nu2B, nu2F, m, Tp, T), ns):
     """
     Model with growth, split, bottleneck in pop2, exp recovery, migration
@@ -27,7 +27,10 @@ def prior_onegrow_mig((nu1F, nu2B, nu2F, m, Tp, T), ns):
     fs.integrate([nu1F], [ns[0]+ns[1]], Tp)#, dt_fac=0.01)
 
     # The divergence
+    start_time = time.time()
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
+    interval = time.time() - start_time
+    print('time splitting:', interval)
     # We need to define a function to describe the non-constant population 2
     # size. lambda is a convenient way to do so.
     nu2_func = lambda t: [nu1F, nu2B*(nu2F/nu2B)**(t/T)]

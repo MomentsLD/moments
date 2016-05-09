@@ -459,7 +459,7 @@ def integrate_1D(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = 0.0, h = 0.5, theta =
     return Spectrum_mod.Spectrum(sfs)
 
 def integrate_nD(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, m = None, theta = 1.0):
-    start_time = time.time()
+    #start_time = time.time()
     # neutral case if the parameters are not provided
     if gamma is None : gamma = np.zeros(len(n))
     if h is None : h = 0.5 * np.ones(len(n))
@@ -512,8 +512,8 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, m = N
     if len(n) > 2: split_dt = 3.0
     if len(n) == 5: split_dt = 5.0
     
-    interval = time.time() - start_time
-    print('Total time init:', interval)
+    #interval = time.time() - start_time
+    #print('Total time init:', interval)
     # time loop:
     t = 0.0
     sfs = sfs0
@@ -532,13 +532,65 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, m = N
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
             sfs = slv[0](sfs + dt*B)
-        if len(n) > 1:
+        elif len(n) > 1:
             for i in range(int(split_dt)):
                 sfs = update_step1(sfs, Q, dims, order)
-                sfs = update_step2(sfs + dt/split_dt*B, slv, dims, order)
+                sfs += dt / split_dt * B
+                sfs = update_step2(sfs, slv, dims, order)
                 order = permute(order)
         Nold = N
         t += dt
         # we update the value of N if a function was provided as argument
         if callable(Npop) : N = np.array(Npop(t / 2.0))
     return Spectrum_mod.Spectrum(sfs)
+
+'''
+def integrate_1D_bis(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = 0.0, h = 0.5, theta = 1.0):
+    
+    sfs0 = np.array(sfs0)
+    # parameters of the equation
+    if callable(Npop): N = np.array(Npop(0))
+    else : N = np.array(Npop)
+    
+    Nold = N+np.ones(len(N))
+    s = np.float(gamma)
+    h = np.float(h)
+    Tmax = tf * 2.0
+    dt = Tmax * dt_fac
+    u = theta / 4.0
+    # dimensions of the sfs
+    d = n[0] + 1
+    # we compute the matrices we will need
+    ljk = jk.calcJK13_bis(int(d-1))
+    ljk2 = jk.calcJK23_bis(int(d-1))
+    vd = ls1.calcD(d)
+    S1 = s * h * ls1.calcS_bis(d,ljk)
+    S2 = s * (1-2.0*h) * ls1.calcS2_bis(d,ljk2)
+    
+    # mutation term
+    B = np.zeros([d])
+    B[1] = (d-1) * u
+    
+    # time loop:
+    t = 0.0
+    sfs = sfs0
+    while t < Tmax:
+        dt_old = dt
+        if t+dt > Tmax: dt = Tmax-t
+        # we recompute the matrix only if N has changed...
+        if Nold != N or dt != dt_old:
+            D = 1 / 4.0 / N[0] * vd
+            
+            # system inversion for backward scheme
+            slv = linalg.factorized(sp.sparse.identity(S1.shape[0], dtype = 'float', format = 'csc') - dt/2.0*(D+S1+S2))
+            Q = sp.sparse.identity(S1.shape[0], dtype = 'float', format = 'csc') + dt/2.0*(D+S1+S2)
+        
+        # drift, selection and mutation
+        sfs = Q.dot(sfs)
+        sfs = slv(sfs + dt*B)
+        Nold = N
+        t += dt
+        # we update the value of N if a function was provided as argument
+        if callable(Npop) : N = np.array(Npop(t/2.0))
+    
+    return Spectrum_mod.Spectrum(sfs)'''

@@ -13,8 +13,11 @@ import Demographics2D
 import Godambe
 import Inference
 import Integration
+import Integration_nomig
+#import Integration_bis
 import Jackknife
 import LinearSystem_1D
+#import LinearSystem_1D_coarse
 import LinearSystem_2D
 import Manips
 import Misc

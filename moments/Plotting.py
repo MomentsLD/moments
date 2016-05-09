@@ -769,7 +769,7 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
                          resid_range=None, fig_num=None, pop_ids=None,
                          residual='Anscombe', adjust=True, show=True):
     """
-    Poisson comparison between 3d model and data.
+    Poisson comparison between 4d model and data.
     
     model: 4-dimensional model SFS
     data: 4-dimensional data SFS

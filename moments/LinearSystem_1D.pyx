@@ -59,21 +59,81 @@ cpdef calcS(int d, np.ndarray ljk):
         g1 = i * (d-i) / np.float64(d)
         g2 = -(i+1) * (d-1-i) / np.float64(d)
 
-        if (i < d-1):
+        if (i < d-1) and (i > 0):
             data += [g1 * ljk[i-1, i_bis-1], g1 * ljk[i-1, i_bis-2],
                     g1 * ljk[i-1, i_bis], g2 * ljk[i, i_ter-1],
                     g2 * ljk[i, i_ter-2], g2 * ljk[i, i_ter]]
             row += [i, i, i, i, i, i]
             col += [i_bis, i_bis-1, i_bis+1,
                     i_ter, i_ter-1, i_ter+1]
-            
-        if i == d-1: # g2=0
+        
+        elif i == 0: # g1=0
+            data += [g2 * ljk[i, i_ter-1],
+                     g2 * ljk[i, i_ter-2], g2 * ljk[i, i_ter]]
+            row += [i, i, i]
+            col += [i_ter, i_ter-1, i_ter+1]
+        
+        elif i == d-1: # g2=0
             data += [g1 * ljk[i-1, i_bis-1], g1 * ljk[i-1, i_bis-2], g1 * ljk[i-1, i_bis]]
             row += [i, i, i]
             col += [i_bis, i_bis-1, i_bis+1]
 
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
+'''
+cpdef calcS_bis(int d, np.ndarray ljk):
+    cdef int i,
+    cdef list data, row, col
+    cdef np.float64_t g1, g2
+    # arrays for the creation of the sparse (coo) matrix
+    data = []
+    row = []
+    col = []
+    # loop over the fs elements:
+    for i in range(d):
+        # coefficients
+        g1 = i * (d-i) / np.float64(d)
+        g2 = -(i+1) * (d-1-i) / np.float64(d)
+        
+        if (i < d-3) and (i > 1):
+            data += [g1 * ljk[i-1, i-2],
+                     g1*ljk[i-1, i-1] + g2*ljk[i, i-1],
+                     g1*ljk[i-1, i] + g2*ljk[i, i],
+                     g2 * ljk[i, i+1]]
+            row += 4 * [i]
+            col += [i-1, i, i+1, i+2]
+        
+        elif i == 0: # g1=0
+            data += [g2 * ljk[0, 0], g2 * ljk[0, 1]]
+            row += 2 * [0]
+            col += [1, 2]
+        
+        elif i == 1:
+            data += [g1*ljk[0, 0] + g2*ljk[1, 0],
+                     g1*ljk[0, 1] + g2*ljk[1, 1],
+                     g2 * ljk[1, 2]]
+            row += 3 * [1]
+            col += [1, 2, 3]
+        
+        elif i == d-3:
+            data += [g1*ljk[d-4, d-5],
+                     g1*ljk[d-4, d-4] + g2*ljk[d-3, d-4],
+                     g1*ljk[d-4, d-3] + g2*ljk[d-3, d-3]]
+            row += 3 * [d-3]
+            col += [d-4, d-3, d-2]
+        
+        elif i == d-2:
+            data += [g1*ljk[d-3, d-4] + g2*ljk[d-2, d-4],
+                     g1*ljk[d-3, d-3] + g2*ljk[d-2, d-3]]
+            row += 2 * [d-2]
+            col += [d-3, d-2]
+        
+        elif i == d-1: # g2=0
+            data += [g1 * ljk[d-2, d-4], g1 * ljk[d-2, d-3]]
+            row += 2 * [d-1]
+            col += [d-3, d-2]
+
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()'''
 
 # selection with h != 0.5
 cpdef calcS2(int d, np.ndarray ljk):
@@ -90,21 +150,76 @@ cpdef calcS2(int d, np.ndarray ljk):
         # coefficients
         g1 = (i+1) / np.float64(d) / (d+1.0) * i * (d-i)
         g2 = -(i+1) / np.float64(d) / (d+1.0) * (i+2) * (d-1-i)
-
+        
         if i < d-1:
             data += [g1 * ljk[i, i_ter-1], g1 * ljk[i, i_ter-2],
-                    g1 * ljk[i, i_ter], g2 * ljk[i+1, i_qua-1],
-                    g2 * ljk[i+1, i_qua-2], g2 * ljk[i+1, i_qua]]
-            row += [i, i, i, i, i, i]
+                     g1 * ljk[i, i_ter], g2 * ljk[i+1, i_qua-1],
+                     g2 * ljk[i+1, i_qua-2], g2 * ljk[i+1, i_qua]]
+            row += 6 * [i]
             col += [i_ter, i_ter-1, i_ter+1,
                     i_qua, i_qua-1, i_qua+1]
-            
-        if i == d-1: # g2=0
+    
+        elif i == d-1: # g2=0
             data += [g1 * ljk[i, i_ter-1], g1 * ljk[i, i_ter-2], g1 * ljk[i, i_ter]]
-            row += [i, i, i]
+            row += 3 * [i]
             col += [i_ter, i_ter-1, i_ter+1]
 
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
+
+'''
+cpdef calcS2_bis(int d, np.ndarray ljk):
+    cdef int i, i_qua, i_ter
+    cdef list data, row, col
+    cdef np.float64_t g1, g2
+    # arrays for the creation of the sparse (coo) matrix
+    data = []
+    row = []
+    col = []
+    for i in range(d):
+        i_ter = i+1#jk.index_bis(i+1, d-1)
+        i_qua = i+2#jk.index_bis(i+2, d-1)
+        # coefficients
+        g1 = (i+1) / np.float64(d) / (d+1.0) * i * (d-i)
+        g2 = -(i+1) / np.float64(d) / (d+1.0) * (i+2) * (d-1-i)
+        
+        if (i < d-4) and (i > 0):
+            data += [g1 * ljk[i, i-1],
+                     g1 * ljk[i, i] + g2 * ljk[i+1, i],
+                     g1*ljk[i, i+1] + g2*ljk[i+1, i+1],
+                     g2 * ljk[i+1, i+2]]
+            row += 4 * [i]
+            col += [i, i+1, i+2, i+3]
+        
+        elif i == 0:
+            data += [g2 * ljk[1, 0], g2 * ljk[1, 1], g2 * ljk[1, 2]]
+            row += 3 * [0]
+            col += [1, 2, 3]
+        
+        elif i == d-4:
+            data += [g1 * ljk[d-4, d-5],
+                     g1*ljk[d-4, d-4] + g2*ljk[d-3, d-4],
+                     g1*ljk[d-4, d-3] + g2*ljk[d-3, d-3]]
+            row += 3 * [d-4]
+            col += [d-4, d-3, d-2]
+        
+        elif i == d-3:
+            data += [g1*ljk[d-3, d-4] + g2*ljk[d-2, d-4],
+                     g1*ljk[d-3, d-3] + g2*ljk[d-2, d-3]]
+            row += 2 * [d-3]
+            col += [d-3, d-2]
+        
+        elif i == d-2:
+            data += [g1*ljk[d-2, d-4] + g2*ljk[d-1, d-4],
+                     g1*ljk[d-2, d-3] + g2*ljk[d-1, d-3]]
+            row += 2 * [d-2]
+            col += [d-3, d-2]
+                
+        elif i == d-1: # g2=0
+            data += [g1 * ljk[d-1, d-4], g1 * ljk[d-1, d-3]]
+            row += 2 * [d-1]
+            col += [d-3, d-2]
+
+    return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()'''
 
 """
 Steady state for 1D population
