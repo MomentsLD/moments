@@ -37,6 +37,20 @@ cpdef calcD(int d):
 
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
+cpdef calcD_dense(int d):
+    cdef int i
+    cdef np.ndarray res = np.zeros([d, d])
+    # loop over the fs elements:
+    for i in range(d):
+        if (i > 1):
+            res[i, i-1] = (i-1) * (d-i)
+        if (i < d-2):
+            res[i, i+1] = (i+1) * (d-i-2)
+        if (i > 0) and (i < d-1):
+            res[i, i] = -2 * i * (d-i-1)
+    return res
+
+
 """
 Matrices for selection with order 3 JK
 dims = n1+1

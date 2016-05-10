@@ -20,7 +20,7 @@ from scipy.integrate import trapz
 from scipy.special import betainc
 
 from moments.Integration import integrate_1D, integrate_nD
-from moments.Integration_bis import integrate_2D
+#from moments.Integration_bis import integrate_2D
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
 
