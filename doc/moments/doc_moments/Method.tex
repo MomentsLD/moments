@@ -10,7 +10,7 @@ The diffusion approximation applied to the Wright-Fisher model for a single dipl
 \end{equation}
 
 This partial differential equation describes the evolution of the density of allele frequencies $\phi(x,t)$ (\textit{i.e.} the expected proportion of derived mutations at frequency $x \in [0, 1]$ in the population and at time $t$). In this equation $N$ is the population size and $s$, $h$ and $u$ are respectively the selection coefficient, the dominance coefficient and the mutation rate.
-The first term of the right hand side, $\frac{1}{4 N} \pd{}{x} x(1-x) \phi(x,t)$, describes genetic drift as a diffusion process. Selection is modeled by the transport-like term $-s \p{}{x} \left(h+(1-2h)x \right)x (1-x) \phi(x,t)$ whereas the source term $2 N u \delta(x-\frac{1}{2 N})$ accounts for \textit{de novo} mutations. The expression $\delta(x-\frac{1}{2 N})$ is the Dirac distribution peaked at frequency $\frac{1}{2 N}$. It corresponds to the infinite site model \cite{kimura1969}, assuming that each a mutation appears it affects a locus previously unaffected. So, in this case, we do not consider back mutations.
+The first term of the right hand side, $\frac{1}{4 N} \pd{}{x} x(1-x) \phi(x,t)$, describes genetic drift as a diffusion process. Selection is modeled by the transport-like term $-s \p{}{x} \left(h+(1-2h)x \right)x (1-x) \phi(x,t)$ whereas the source term $2 N u \delta(x-\frac{1}{2 N})$ accounts for \textit{de novo} mutations. The expression $\delta(x-\frac{1}{2 N})$ is the Dirac distribution peaked at frequency $\frac{1}{2 N}$. It corresponds to the infinite site model \cite{kimura1969}, assuming that each time a mutation appears it affects a locus previously unaffected. So, in this case, we do not consider back mutations.
 
 The approximation leading to this equation is valid for large effective population size $N >> 1$ and for small values of selection coefficients and migration rates (when dealing with several populations), comparable to the ratio $\frac{1}{N}$. 
 
@@ -23,18 +23,18 @@ We can notice that the allele frequency spectrum can be seen as a set of "moment
 
 \subsection{A new method to compute the AFS}
 Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
-The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. However, the computation of the AFS from the moments $\mu_k$ raises numerical instabilities as the formula involves alternating sums. A system of ODEs directly on the $\Phi_n(i)$ is evoked by the authors but deemed to complex.
+The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. However, the computation of the AFS from the moments $\mu_k$ raises numerical instabilities as the formula involves alternating sums. A system of ODEs directly on the $\Phi_n(i)$ is evoked by the authors but deemed too complex.
 
 In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes, for $i \in \{0,... , n\}$:
 \begin{equation}
 \begin{split}
-\dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+\dot \Phi_n(i)=& 2n\mu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
 		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right].
 \end{split}
 \label{eq:neutral}
 \end{equation}
 
-We recognize in Eq.\eqref{eq:neutral} the mutation term $2nu  \delta_{i=1}$ and the effect of genetic drift. This set of linear ODEs is closed and can easily be integrated over time using a classical implicit scheme.
+We recognize in Eq.\eqref{eq:neutral} the mutation term $2n\mu  \delta_{i=1}$ and the effect of genetic drift. This set of linear ODEs is closed and can easily be integrated over time using a classical implicit scheme.
 Let us consider the case without mutations with a sample containing only one individual (2 chromosomes). The statistic $\Phi_2(1)$ is the number of heterozygous sites for this individual, using the equation \eqref{eq:neutral}: 
 $$
 	\dot \Phi_n(i)= -\frac{1}{2 N} \Phi_2(1).

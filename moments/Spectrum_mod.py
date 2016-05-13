@@ -20,7 +20,7 @@ from scipy.integrate import trapz
 from scipy.special import betainc
 
 from moments.Integration import integrate_1D, integrate_nD
-#from moments.Integration_bis import integrate_2D
+from moments.Integration_nomig import integrate_nomig, integrate_neutral
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
 
@@ -1510,27 +1510,19 @@ def %(method)s(self, other):
                              'unfolded one.')
 
     # spectrum integration
+    # We chose the most efficient solver for each case
     def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
         if len(n)==1 :
             if gamma is None: gamma=0.0
             if h is None: h=0.5
-            self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
+            if (gamma == 0): self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
+            else: self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
         else:
-            self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
-        return self
-
-    def integrate_bis(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
-        assert(len(n)==2)
-        self.data[:] = integrate_2D(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
-        return self
-
-    def integrate_bis2(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
-        if len(n)==1 :
-            if gamma is None: gamma=0.0
-            if h is None: h=0.5
-            self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
-        else:
-            self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
+            if m is None: m = numpy.zeros([len(n), len(n)])
+            if (m == 0).all(): 
+                if (gamma == 0).all(): self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
+                else: self.data[:] = integrate_nomig(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
+            else: self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
         return self
 
 # Allow spectrum objects to be pickled.

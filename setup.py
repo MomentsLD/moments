@@ -38,7 +38,8 @@ import numpy as np
 extensions = [
               Extension("Jackknife", ["moments/Jackknife.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
               Extension("LinearSystem_1D", ["moments/LinearSystem_1D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
-              Extension("LinearSystem_2D", ["moments/LinearSystem_2D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
+              Extension("LinearSystem_2D", ["moments/LinearSystem_2D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+              Extension("Tridiag_solve", ["moments/Tridiag_solve.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
               ]
 
 setup(
