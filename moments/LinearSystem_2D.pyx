@@ -81,7 +81,7 @@ ljk is the Jacknife array corresponding to the concerned population size:
 s and h are the coefficients for selection and dominance in the concerned population.
 """
 # selection along the first dimension with h1 = 0.5
-cpdef calcS_1(np.ndarray dims, np.ndarray ljk):
+cpdef calcS_1(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d1, d2, i, j, k, i_bis, i_ter
     cdef np.float64_t g1, g2
     cdef list data, row, col
@@ -117,7 +117,7 @@ cpdef calcS_1(np.ndarray dims, np.ndarray ljk):
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
 # selection along the second dimension with h2 = 0.5
-cpdef calcS_2(np.ndarray dims, np.ndarray ljk):
+cpdef calcS_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d2, i, j, k, j_bis, j_ter
     cdef np.float64_t g1, g2
     cdef list data, row, col
@@ -153,7 +153,7 @@ cpdef calcS_2(np.ndarray dims, np.ndarray ljk):
 
 # selection along the first dimension, part related to h1 != 0.5
 # ljk is a 2-jumps jackknife
-cpdef calcS2_1(np.ndarray dims, np.ndarray ljk):
+cpdef calcS2_1(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d1, d2, k, i, j, i_ter, i_qua
     cdef np.float64_t g1, g2
     cdef list data, row, col
@@ -189,7 +189,7 @@ cpdef calcS2_1(np.ndarray dims, np.ndarray ljk):
 
 # selection along the second dimension, part related to h2 != 0.5
 # ljk is a 2-jumps jackknife
-cpdef calcS2_2(np.ndarray dims, np.ndarray ljk):
+cpdef calcS2_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d2, k, i, j, j_ter, j_qua
     cdef np.float64_t g1, g2
     cdef list data, row, col
@@ -231,7 +231,7 @@ ljk is the Jacknife array corresponding to the concerned population size:
     ljk=ljk(pop2) in calcM1 and ljk=ljk(pop1) in calcM2
 m is the migration rate: m=m12 in calcM1 and m=m21 in calcM2
 """
-cpdef calcM_1(np.ndarray dims, np.ndarray ljk):
+cpdef calcM_1(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d1, d2, i, j, k, i_ter
     cdef np.float64_t c, coeff1, coef2, coeff3
     cdef list data, row, col
@@ -299,7 +299,7 @@ cpdef calcM_1(np.ndarray dims, np.ndarray ljk):
     
     return coo_matrix((data, (row, col)), shape = (d, d), dtype = 'float').tocsc()
 
-cpdef calcM_2(np.ndarray dims, np.ndarray ljk):
+cpdef calcM_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
     cdef int d, d1, d2, i, j, k, i_ter
     cdef np.float64_t c, coeff1, coef2, coeff3
     cdef list data, row, col

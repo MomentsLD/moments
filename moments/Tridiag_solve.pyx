@@ -59,7 +59,7 @@ def factor(numpy.ndarray[numpy.float64_t] a, numpy.ndarray[numpy.float64_t] d,
 
     return
 
-cpdef numpy.ndarray solve(numpy.ndarray[numpy.float64_t] a, numpy.ndarray[numpy.float64_t] d,
+cpdef numpy.ndarray[numpy.float64_t] solve(numpy.ndarray[numpy.float64_t] a, numpy.ndarray[numpy.float64_t] d,
                           numpy.ndarray[numpy.float64_t] c, numpy.ndarray b):
     """Solves Ax=b for x with factored tridigonal A having diagonals a, d, c
 

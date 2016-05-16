@@ -13,8 +13,8 @@ cpdef int index_bis(int i, int n):
     return int(min(max(round(i*n/(n+1.0)),2),n-2))
 
 # Compute the order 3 Jackknife extrapolation coefficients for 1 jump (Phi_n -> Phi_(n+1))
-cpdef np.ndarray calcJK13(int n):
-    cdef np.ndarray J = np.zeros((n, n-1))
+cpdef np.ndarray[np.float64_t, ndim = 2] calcJK13(int n):
+    cdef np.ndarray[np.float64_t, ndim = 2] J = np.zeros((n, n-1))
     cdef int i
     cdef int ibis
     for i in range(n):
@@ -47,8 +47,8 @@ cpdef np.ndarray calcJK13_bis(int n):
 
 
 # Compute the order 3 Jackknife extrapolation coefficients for 2 jumps (Phi_n -> Phi_(n+2))
-cpdef np.ndarray calcJK23(int n):
-    cdef np.ndarray J = np.zeros((n+1, n-1))
+cpdef np.ndarray[np.float64_t, ndim = 2] calcJK23(int n):
+    cdef np.ndarray[np.float64_t, ndim = 2] J = np.zeros((n+1, n-1))
     cdef int i
     cdef int ibis
     for i in range(n+1):

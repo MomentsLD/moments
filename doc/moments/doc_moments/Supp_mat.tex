@@ -19,7 +19,7 @@ with $w_i=  {n\choose i}  x^i (1-x)^{n-i}$.\\
 The mutation term is modeled differently and separately. In the continuous model, it is assumed that the mutations are injected at frequency $x=\frac{1}{2 N}$. That amounts to saying that each mutation appears on a single chromosome at the time (infinite site model). In our discrete approach, we inject the mutations as a new singleton so the mutation term writes $2 N u \delta_{i=1}$. Using this and replacing $\dot \phi$ by the approximation given by Eq.\eqref{eq:diff} we have:
 \begin{equation}
 \begin{split}
-	\dot \Phi_n(i) &= 2 n u \delta_{i=1} + \frac{1}{4 N} \int_0^1 w_i \pd{}{x}\left( x(1-x) \phi(x,t)\right)dx \\
+	\dot \Phi_n(i) &= n u \delta_{i=1} + \frac{1}{4 N} \int_0^1 w_i \pd{}{x}\left( x(1-x) \phi(x,t)\right)dx \\
 			     & - s\int_0^1w_i \p{}{x}\left( \left(h+(1-2h)x \right)x (1-x) \phi(x,t)\right)dx.
 \end{split}
 \label{eq:diff2}
@@ -84,7 +84,7 @@ We can again assume that the term in square brackets is zero, we rearrange the o
 Bringing these expressions together, we get a system of ordinary differential equations on the $\Phi_n(i)$:
 \begin{equation}
 \begin{split}
-\dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+\dot \Phi_n(i)=& nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
 		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right]\\
 		      &+ \frac{sh}{n+1}\left[i(n+1-i)\Phi_{n+1}(i)-(n-i)(i+1)\Phi_{n+1}(i+1)\right] \\
 		      & +\frac{s(1-2h)(i+1)}{(n+1)(n+2)}\left[i(n+1-i)\Phi_{n+2}(i+1)-(n-i)(i+2)\Phi_{n+2}(i+2)\right].
@@ -233,14 +233,14 @@ To overcome this problem, we split the resolution by pairs of dimensions or popu
 \end{figure}
 
 
- \section{Alternative introduction of the method}
+ \section{Alternative introduction of the method} 
  \subsection{A new method to compute the AFS}
  Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
 The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. However, the computation of the AFS from the moments $\mu_k$ raises numerical instabilities as the formula involves alternating sums. A system of ODEs directly on the $\Phi_n(i)$ is evoked by the authors but deemed too complex.
 
 In this work, we develop a new AFS simulation method based on a moment approach.
 
-\paragraph{Heterozygosity rate evolution}
+\subsubsection{Heterozygosity rate evolution}
 We consider a large population of $N$ diploid individuals - \textit{i.e.} $2N$ genotypes - under the neutral Wright-Fisher model. Generations are discrete and non overlapping and  generation $k+1^{th}$ is built picking randomly with replacement alleles from generation $k$. Under this simple model, we want to compute the updated heterozygosity rate $H^{k+1}$ knowing the previous value $H^k$.
 
 We draw two alleles from generation $k$ to build the child genotype. Generally, these alleles are different. In that case the heterozygosity rate would be conserved. However, as we draw with replacement, it is possible, with probability $\frac{1}{2N}$ that the same allele is picked twice. In this specific case, the child is necessarily homozygous for the locus concerned. This introduces a decrease in the heterozygosity and we have the following relationship: 
@@ -253,12 +253,12 @@ This statistic accounts for the frequency of a variant allele for a single locus
 \end{equation}
 The formula \eqref{eq:phi2} describes the effects of genetic drift on this very simple case of AFS and allows one to compute the time evolution of this specific statistic.
 
-\paragraph{Neutral case AFS}
+\subsubsection{Neutral case AFS} 
 A generalization of Eq. \eqref{eq:phi2} can be derived to compute the evolution of the AFS $\Phi_n$ for small sample sizes $n$ related to the effective population size $N$.
 We neglect multiple coalescences, their frequencies being $\mathcal{O}(N^{-2})$. This time we draw $n$ alleles from the previous generation. Again, these $n$ samples can be totally independent but it is also possible that we picked twice the same allele (with probability $\frac{1}{2N}$). In that case, the effective sample from which the allele were picked only contains $n-1$ alleles, in other words $\Phi_n$ depends on $\Phi_{n-1}$. We introduce \textit{de novo} mutations as a source term on the singletons under the infinite site model \cite{kimura1969}: each mutation affects a locus previously unaffected. We obtain the following equation:
 \begin{equation*}
 \begin{split}
-\Phi_n^{k+1}(i) =& 2n\mu \delta_{i=1} + (1-\frac{\delta_{1\leq i\leq n-1}}{2N})\Phi_n^{k}(i) \\
+\Phi_n^{k+1}(i) =& n\mu \delta_{i=1} + (1-\frac{\delta_{1\leq i\leq n-1}}{2N})\Phi_n^{k}(i) \\
 			 &+ \frac{\binom{2}{n}}{2N} \left[\frac{i-1}{n-1}\Phi_{n-1}^{k}(i-1)\delta_{2\leq i\leq n-1} +\frac{n-1-i}{n-1}\Phi_{n-1}^{k}(i)\delta_{1\leq i\leq n-2} \right],
 \end{split}
 \end{equation*}
@@ -267,7 +267,7 @@ The AFS $\Phi_{n-1}$ can be easily expressed in terms of $\Phi_n$ by subsampling
 
 \begin{equation}
 \begin{split}
-\Phi_n^{k+1}(i)=& \Phi_n^{k}(i) + 2n\mu \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n^{k}(i-1)\delta_{i\geq 2} \right.\\
+\Phi_n^{k+1}(i)=& \Phi_n^{k}(i) + n\mu \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n^{k}(i-1)\delta_{i\geq 2} \right.\\
 		      & \left.-2i(n-i)\Phi_n^{k}(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n^{k}(i+1)\delta_{i\leq n-2} \right].
 \end{split}
 \label{eq:phi_neutral}
@@ -275,11 +275,21 @@ The AFS $\Phi_{n-1}$ can be easily expressed in terms of $\Phi_n$ by subsampling
 
 Equation \eqref{eq:phi_neutral} gives an exact way to compute the evolution of the AFS along generations assuming the Wright Fisher model. This model can be written in continuous time resulting in a coupled and linear set of ordinary differential equations. It can be easily simulated using classical integration schemes. 
 
-\paragraph{Adding selection and dominance}
+The same expression can be derived from the diffusion equation projecting it on the binomial weight functions $w_i=  {n\choose i}  x^i (1-x)^{n-i}$. The approach is explained in appendix \ref{calc}.
 
-
-The same expression can be derived from the diffusion equation projecting it on the binomiale weight functions $w_i=  {n\choose i}  x^i (1-x)^{n-i}$. The approach is explained in appendix \ref{calc}.
-
+\subsubsection{Adding selection and dominance} 
+One can derive a similar set of equations taking into account selection and dominance either by adapting the rational used for the neutral case, or by projecting the partial differential equation on the weigh functions.
+\eqref{eq:selection}:
+\begin{equation}
+\begin{split}
+\dot \Phi_n(i)=& nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right]\\
+		      &+ \frac{sh}{n+1}\left[i(n+1-i)\Phi_{n+1}(i)-(n-i)(i+1)\Phi_{n+1}(i+1)\right] \\
+		      & +\frac{s(1-2h)(i+1)}{(n+1)(n+2)}\left[i(n+1-i)\Phi_{n+2}(i+1)-(n-i)(i+2)\Phi_{n+2}(i+2)\right].
+\end{split}
+\label{eq:syst_edo_1pop}
+\end{equation}
+ At this point, we can notice that to compute the evolution of the AFS for our $n$ individuals sample we need to know the AFS for larger sample sizes $n+1$ and $n+2$. This breaks the closure of the moments equations system and makes it impossible to solve as is.
 
  \subsection{Moment closure method}
  idem

@@ -28,7 +28,7 @@ The idea of deriving evolution equations for the classical moments $\mu_k$ was p
 In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes, for $i \in \{0,... , n\}$:
 \begin{equation}
 \begin{split}
-\dot \Phi_n(i)=& 2n\mu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+\dot \Phi_n(i)=& n\mu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
 		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right].
 \end{split}
 \label{eq:neutral}
@@ -46,10 +46,10 @@ $$
 This recurrence relationship is the same as the well known formula for heterozygosity ratio. This is not surprising as we described the quantity $\Phi_2(1)$ as the number of heterozygous sites. The differential equation \eqref{eq:neutral} can thus be seen as a generalization of the formula for heterozygosity rate evolution.
 
 \paragraph{}
-If we consider now cases of loci under a selective pressure, we can integrate the selection term from the diffusion equation \eqref{eq:diff} in the ODEs system \eqref{eq:neutral}:
+If we consider now cases of loci under a selective pressure, we can integrate the selection term from the diffusion equation \eqref{eq:diff} in the ODEs system \eqref{eq:selection}:
 \begin{equation}
 \begin{split}
-\dot \Phi_n(i)=& 2nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+\dot \Phi_n(i)=& nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
 		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right]\\
 		      &+ \frac{sh}{n+1}\left[i(n+1-i)\Phi_{n+1}(i)-(n-i)(i+1)\Phi_{n+1}(i+1)\right] \\
 		      & +\frac{s(1-2h)(i+1)}{(n+1)(n+2)}\left[i(n+1-i)\Phi_{n+2}(i+1)-(n-i)(i+2)\Phi_{n+2}(i+2)\right].
@@ -61,7 +61,7 @@ If we consider now cases of loci under a selective pressure, we can integrate th
 \subsection{Moment closure method}
 Several methods exist for moment closure approximations \cite{kuehn2016}. In our case we are looking for a way to accurately estimate the AFS for slightly larger samples than the one we are simulating. Intuitively, we can think about the case of $\Phi_{n+1}(i)$, the number of variants found $i$ times in a sample of size $n+1$. This quantity is close to entries of the current AFS $\Phi_n$ and can probably be approached by a linear combination of a few of them.
 
-In \cite{gravel2014}, the author showed that it is possible to predict the expected number of discovered variants in a large sample studying a (10 to 100 times) smaller sample. This extrapolation using a Jackknife method gives accurate estimations so we can reuse it for our moment closure problem.
+In \cite{gravel2014}, the author showed that it is possible to predict the expected number of discovered variants in a large sample studying a (up to 20 times) smaller sample. This extrapolation using a Jackknife method gives accurate estimations so we can reuse it for our moment closure problem.
 
 In this work, we use an order 3 Jackknife to express the higher order AFS $\Phi_{n+1}$ and $\Phi_{n+2}$ as combining linearly 3 entries of the current AFS $\Phi_n$. The order of the Jackknife is determined to satisfy the trade off between the accuracy of the estimations and the computations complexity. This step allows the numerical resolution of the linear ODEs system using a classical Crank Nicholson time integration scheme.  
 
@@ -69,7 +69,7 @@ In this work, we use an order 3 Jackknife to express the higher order AFS $\Phi_
 We have described an efficient method to simulate allele frequency spectra for a single population. Projecting the diffusion equation onto the weigh functions makes it possible to directly compute the AFS through a set of coupled ODEs. Thus, we get rid of the constraints induced by the numerical approximation of the PDE as the frequency grid refining or the CFL condition on the integration time step imposed by the transport term. This makes the computations simpler and more accurate. The only additional approximation step we introduce, comparing to classical approaches, is the Jackknife moment closure method.
 
 However, simulating multiple populations is important to infer complex demographic models from genotyping datasets. To do that, the diffusion equation is modified to model the join density function $\phi$. We must also take into account the migrations between the different populations. The PDE for $p$ populations becomes: 
- \begin{equation}
+\begin{equation}
 \begin{split}
 \p{\phi(\textbf{x},t)}{t}\simeq & \sum_{j=1}^p \bigg[ \frac{1}{4 N_j} \pd{}{x_j} \Big( x_j(1-x_j) \phi(\textbf{x},t)\Big) \\
 					&-s_j \p{}{x_j}\Big( \left(h_j+(1-2h_j)x_j \right)x_j (1-x_j) \phi(\textbf{x},t)\Big) \\
