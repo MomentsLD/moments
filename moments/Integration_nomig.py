@@ -414,7 +414,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, th
     
     # selection part 2
     vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
-    S2 = [s[i] * (1-2.0*h[i]) * vs[i] for i in range(len(n))]
+    S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
     
     # mutations
     B = calcB(dims, u)

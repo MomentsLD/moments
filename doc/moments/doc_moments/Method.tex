@@ -18,7 +18,7 @@ The distribution of allele frequencies $\phi(x,t)$ cannot be directly observed i
 $$
 	 \Phi_n(i) = \int_0^1 w_{n,i}(x) \phi(x) dx,
 $$
-where the weigh functions $w_{n,i}$ are given by the expression $w_{n,i}(x) = {n\choose i}  x^i (1-x)^{n-i}$.
+where the weight functions $w_{n,i}$ are given by the expression $w_{n,i}(x) = {n\choose i}  x^i (1-x)^{n-i}$.
 We can notice that the allele frequency spectrum can be seen as a set of "moment-like" statistics. Indeed, the $\Phi_n(i)$ are linear combinations of the moments of the distribution $\phi$: $\mu_k = \int_0^1 x^k \phi(x)dx$.
 
 \subsection{A new method to compute the AFS}
@@ -66,7 +66,7 @@ In \cite{gravel2014}, the author showed that it is possible to predict the expec
 In this work, we use an order 3 Jackknife to express the higher order AFS $\Phi_{n+1}$ and $\Phi_{n+2}$ as combining linearly 3 entries of the current AFS $\Phi_n$. The order of the Jackknife is determined to satisfy the trade off between the accuracy of the estimations and the computations complexity. This step allows the numerical resolution of the linear ODEs system using a classical Crank Nicholson time integration scheme.  
 
 \subsection{Multiple populations AFS}
-We have described an efficient method to simulate allele frequency spectra for a single population. Projecting the diffusion equation onto the weigh functions makes it possible to directly compute the AFS through a set of coupled ODEs. Thus, we get rid of the constraints induced by the numerical approximation of the PDE as the frequency grid refining or the CFL condition on the integration time step imposed by the transport term. This makes the computations simpler and more accurate. The only additional approximation step we introduce, comparing to classical approaches, is the Jackknife moment closure method.
+We have described an efficient method to simulate allele frequency spectra for a single population. Projecting the diffusion equation onto the weight functions makes it possible to directly compute the AFS through a set of coupled ODEs. Thus, we get rid of the constraints induced by the numerical approximation of the PDE as the frequency grid refining or the CFL condition on the integration time step imposed by the transport term. This makes the computations simpler and more accurate. The only additional approximation step we introduce, comparing to classical approaches, is the Jackknife moment closure method.
 
 However, simulating multiple populations is important to infer complex demographic models from genotyping datasets. To do that, the diffusion equation is modified to model the join density function $\phi$. We must also take into account the migrations between the different populations. The PDE for $p$ populations becomes: 
 \begin{equation}
@@ -90,6 +90,17 @@ As we are studying jointly several populations, statistics we can observe in the
 Using the same method as for the single population case, we can derive a coupled system of ordinary equations on the moment-like statistics $\Phi_{\mathbf{n}}(\mathbf{i})$ (see \ref{multidimcalc}). As the selection term, the migration term introduces closure issues that are tackled using a Jackknife approximation.
 
 \subsection{Implementation of the method}
-We developed a solver, called \textit{Moments}, to simulate multidimensional AFS implementing the method described above. This tool is in the form of a python library. We reused the interface of the open source software $\dadi$, including the inference and plotting tools. $Moments$ can handle models with up to 5 populations with selection, migrations, population splits...
+We developed a solver, called \textit{Moments}, to simulate multidimensional AFS implementing the method described above. This tool is in the form of a python library. We reused the interface of the open source software $\dadi$, including the inference and plotting tools. $Moments$ can handle models with up to 5 populations with selection, migrations and population splits.
 
 \subsection{Comparisons with the state of the art}
+In this paragraph we compare our new method to $\dadi$ on several test cases. To be fair with both methods, we must compare at the same time the accuracy of the simulation and the computation time. Depending on the complexity of the model and the accuracy needed, $\dadi$ users can chose the number of grid points they use. A large number of points results in slower but more accurate simulations. The spatial distribution of these discretization points can also be modified to better capture the variant frequency distribution. A complementary approach usually used with $\dadi$ is the Richardson extrapolation, combining several simulations with different discretization grids to improve convergence properties.
+
+In the case of \textit{Moments} we do not solve a partial differential equation so we don't have to deal with this grid choice considerations. It results in a naturally easier to converge algorithm. However we introduce moments closure approximations and one may want to minimize their effects. A way to gain in accuracy is to compute the AFS for a larger sample size than needed and then to subsample to the expected sample size. Doing that, the Jackknife approximations are performed on larger samples and are consequently more accurate.
+
+\subsubsection{Neutral cases}
+First of all we can compare the methods on the neutral case without migrations with constant effective population size and after the equilibrium is reached.
+This case is interesting as it is the simplest we can consider and we know the analytical solution. We thus can compare the simulations to the theoretic equilibrium spectrum. For convenience, we initialize the simulations with null spectra.
+
+
+\subsubsection{General cases - with selection, migrations}
+

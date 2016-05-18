@@ -1513,11 +1513,13 @@ def %(method)s(self, other):
     # We chose the most efficient solver for each case
     def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
         if len(n)==1 :
-            if gamma is None: gamma=0.0
-            if h is None: h=0.5
+            if gamma is None: gamma = 0.0
+            if h is None: h = 0.5
             if (gamma == 0): self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
             else: self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
         else:
+            if gamma is None: gamma = numpy.zeros(len(n))
+            if h is None: h = 0.5*numpy.ones(len(n))
             if m is None: m = numpy.zeros([len(n), len(n)])
             if (m == 0).all(): 
                 if (gamma == 0).all(): self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
