@@ -241,44 +241,31 @@ The idea of deriving evolution equations for the classical moments $\mu_k$ was p
 In this work, we develop a new AFS simulation method based on a moment approach.
 
 \subsubsection{Heterozygosity rate evolution}
-We consider a large population of $N$ diploid individuals - \textit{i.e.} $2N$ genotypes - under the neutral Wright-Fisher model. Generations are discrete and non overlapping and  generation $k+1^{th}$ is built picking randomly with replacement alleles from generation $k$. Under this simple model, we want to compute the updated heterozygosity rate $H^{k+1}$ knowing the previous value $H^k$.
+Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
+The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. However, the computation of the AFS from the moments $\mu_k$ raises numerical instabilities as the formula involves alternating sums. A system of ODEs directly on the $\Phi_n(i)$ is evoked by the authors but deemed too complex.
 
-We draw two alleles from generation $k$ to build the child genotype. Generally, these alleles are different. In that case the heterozygosity rate would be conserved. However, as we draw with replacement, it is possible, with probability $\frac{1}{2N}$ that the same allele is picked twice. In this specific case, the child is necessarily homozygous for the locus concerned. This introduces a decrease in the heterozygosity and we have the following relationship: 
-$$
-	H^{k+1} = (1-\frac{1}{2N})H^k.
-$$ 
-This statistic accounts for the frequency of a variant allele for a single locus. If we want to count all the heterozygous loci along the genome or a part of the genome, the appropriate statistics is the AFS entry $\Phi_2(1)$ (expected number of singletons in a sample of 2 genotypes). The same rationale as for the heterozygosity can be used and we have:
-\begin{equation}\label{eq:phi2}
- \Phi_2^{k+1}(1) = (1-\frac{1}{2N})\Phi_2^k(1)
-\end{equation}
-The formula \eqref{eq:phi2} describes the effects of genetic drift on this very simple case of AFS and allows one to compute the time evolution of this specific statistic.
-
-\subsubsection{Neutral case AFS} 
-A generalization of Eq. \eqref{eq:phi2} can be derived to compute the evolution of the AFS $\Phi_n$ for small sample sizes $n$ related to the effective population size $N$.
-We neglect multiple coalescences, their frequencies being $\mathcal{O}(N^{-2})$. This time we draw $n$ alleles from the previous generation. Again, these $n$ samples can be totally independent but it is also possible that we picked twice the same allele (with probability $\frac{1}{2N}$). In that case, the effective sample from which the allele were picked only contains $n-1$ alleles, in other words $\Phi_n$ depends on $\Phi_{n-1}$. We introduce \textit{de novo} mutations as a source term on the singletons under the infinite site model \cite{kimura1969}: each mutation affects a locus previously unaffected. We obtain the following equation:
-\begin{equation*}
-\begin{split}
-\Phi_n^{k+1}(i) =& n\mu \delta_{i=1} + (1-\frac{\delta_{1\leq i\leq n-1}}{2N})\Phi_n^{k}(i) \\
-			 &+ \frac{\binom{2}{n}}{2N} \left[\frac{i-1}{n-1}\Phi_{n-1}^{k}(i-1)\delta_{2\leq i\leq n-1} +\frac{n-1-i}{n-1}\Phi_{n-1}^{k}(i)\delta_{1\leq i\leq n-2} \right],
-\end{split}
-\end{equation*}
-where $\mu$ is the mutation rate per individual and per generation.
-The AFS $\Phi_{n-1}$ can be easily expressed in terms of $\Phi_n$ by subsampling. Doing that, the above equation becomes:
-
+In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes, for $i \in \{0,... , n\}$:
 \begin{equation}
 \begin{split}
-\Phi_n^{k+1}(i)=& \Phi_n^{k}(i) + n\mu \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n^{k}(i-1)\delta_{i\geq 2} \right.\\
-		      & \left.-2i(n-i)\Phi_n^{k}(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n^{k}(i+1)\delta_{i\leq n-2} \right].
+\dot \Phi_n(i)=& n\mu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
+		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right].
 \end{split}
-\label{eq:phi_neutral}
+\label{eq:neutral}
 \end{equation}
 
-Equation \eqref{eq:phi_neutral} gives an exact way to compute the evolution of the AFS along generations assuming the Wright Fisher model. This model can be written in continuous time resulting in a coupled and linear set of ordinary differential equations. It can be easily simulated using classical integration schemes. 
+We recognize in Eq.\eqref{eq:neutral} the mutation term $2n\mu  \delta_{i=1}$ and the effect of genetic drift. This set of linear ODEs is closed and can easily be integrated over time using a classical implicit scheme.
+Let us consider the case without mutations with a sample containing only one individual (2 chromosomes). The statistic $\Phi_2(1)$ is the number of heterozygous sites for this individual, using the equation \eqref{eq:neutral}: 
+$$
+	\dot \Phi_n(i)= -\frac{1}{2 N} \Phi_2(1).
+$$
+We can integrate this differential equation using a forward Euler scheme. Normalizing the time scale by the generation time, we have a relationship between the values of $\Phi_n(i)$ at generations $k$ and $k+1$:
+$$
+	\Phi_2^{k+1}(1) = (1-\frac{1}{2 N})\Phi_2^k(1).
+$$
+This recurrence relationship is the same as the well known formula for heterozygosity ratio. This is not surprising as we described the quantity $\Phi_2(1)$ as the number of heterozygous sites. The differential equation \eqref{eq:neutral} can thus be seen as a generalization of the formula for heterozygosity rate evolution.
 
-The same expression can be derived from the diffusion equation projecting it on the binomial weight functions $w_i=  {n\choose i}  x^i (1-x)^{n-i}$. The approach is explained in appendix \ref{calc}.
-
-\subsubsection{Adding selection and dominance} 
-One can derive a similar set of equations taking into account selection and dominance either by adapting the rational used for the neutral case, or by projecting the partial differential equation on the weight functions. We get equation \eqref{eq:syst_edo_1pop}:
+\paragraph{}
+If we consider now cases of loci under a selective pressure, we can integrate the selection term from the diffusion equation \eqref{eq:diff} in the ODEs system \eqref{eq:neutral}:
 \begin{equation}
 \begin{split}
 \dot \Phi_n(i)=& nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\

@@ -22,31 +22,50 @@ where the weight functions $w_{n,i}$ are given by the expression $w_{n,i}(x) = {
 We can notice that the allele frequency spectrum can be seen as a set of "moment-like" statistics. Indeed, the $\Phi_n(i)$ are linear combinations of the moments of the distribution $\phi$: $\mu_k = \int_0^1 x^k \phi(x)dx$.
 
 \subsection{A new method to compute the AFS}
-Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
+ Classical strategies for simulating the AFS generally involve the estimation of the distribution $\phi$ using standard approaches for PDE resolutions such as finite differences \cite{gutenkunst2009} or spectral methods \cite{lukic2011}. Then, this density is projected onto the weight functions $w_{n,i}$.
 The idea of deriving evolution equations for the classical moments $\mu_k$ was proposed by Evans, Shvets and Slatkin \cite{evans2007}. However, the computation of the AFS from the moments $\mu_k$ raises numerical instabilities as the formula involves alternating sums. A system of ODEs directly on the $\Phi_n(i)$ is evoked by the authors but deemed too complex.
 
-In this work, we develop a new AFS simulation method based on a moment approach. However, contrary to the work in \cite{evans2007}, we derive a set of coupled ordinary equation on the AFS projecting the diffusion equation on the weight functions (for more details, see appendix \ref{calc}). The system of equations in the neutral case (\textit{i.e.} $s = 0$) writes, for $i \in \{0,... , n\}$:
+In this work, we develop a new AFS simulation method based on a moment approach.
+
+\subsubsection{Heterozygosity rate evolution}
+We consider a large population of $N$ diploid individuals - \textit{i.e.} $2N$ genotypes - under the neutral Wright-Fisher model. Generations are discrete and non overlapping and  generation $k+1^{th}$ is built picking randomly with replacement alleles from generation $k$. Under this simple model, we want to compute the updated heterozygosity rate $H^{k+1}$ knowing the previous value $H^k$.
+
+We draw two alleles from generation $k$ to build the child genotype. Generally, these alleles are different. In that case the heterozygosity rate would be conserved. However, as we draw with replacement, it is possible, with probability $\frac{1}{2N}$ that the same allele is picked twice. In this specific case, the child is necessarily homozygous for the locus concerned. This introduces a decrease in the heterozygosity and we have the following relationship: 
+$$
+	H^{k+1} = (1-\frac{1}{2N})H^k.
+$$ 
+This statistic accounts for the frequency of a variant allele for a single locus. If we want to count all the heterozygous loci along the genome or a part of the genome, the appropriate statistics is the AFS entry $\Phi_2(1)$ (expected number of singletons in a sample of 2 genotypes). The same rationale as for the heterozygosity can be used and we have:
+\begin{equation}\label{eq:phi2}
+ \Phi_2^{k+1}(1) = (1-\frac{1}{2N})\Phi_2^k(1)
+\end{equation}
+The formula \eqref{eq:phi2} describes the effects of genetic drift on this very simple case of AFS and allows one to compute the time evolution of this specific statistic.
+
+\subsubsection{Neutral case AFS} 
+A generalization of Eq. \eqref{eq:phi2} can be derived to compute the evolution of the AFS $\Phi_n$ for small sample sizes $n$ related to the effective population size $N$.
+We neglect multiple coalescences, their frequencies being $\mathcal{O}(N^{-2})$. This time we draw $n$ alleles from the previous generation. Again, these $n$ samples can be totally independent but it is also possible that we picked twice the same allele (with probability $\frac{1}{2N}$). In that case, the effective sample from which the allele were picked only contains $n-1$ alleles, in other words $\Phi_n$ depends on $\Phi_{n-1}$. We introduce \textit{de novo} mutations as a source term on the singletons under the infinite site model \cite{kimura1969}: each mutation affects a locus previously unaffected. We obtain the following equation:
+\begin{equation*}
+\begin{split}
+\Phi_n^{k+1}(i) =& n\mu \delta_{i=1} + (1-\frac{\delta_{1\leq i\leq n-1}}{2N})\Phi_n^{k}(i) \\
+			 &+ \frac{\binom{2}{n}}{2N} \left[\frac{i-1}{n-1}\Phi_{n-1}^{k}(i-1)\delta_{2\leq i\leq n-1} +\frac{n-1-i}{n-1}\Phi_{n-1}^{k}(i)\delta_{1\leq i\leq n-2} \right],
+\end{split}
+\end{equation*}
+where $\mu$ is the mutation rate per individual and per generation.
+The AFS $\Phi_{n-1}$ can be easily expressed in terms of $\Phi_n$ by subsampling. Doing that, the above equation becomes:
+
 \begin{equation}
 \begin{split}
-\dot \Phi_n(i)=& n\mu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
-		      & \left.-2i(n-i)\Phi_n(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n(i+1)\delta_{i\leq n-2} \right].
+\Phi_n^{k+1}(i)=& \Phi_n^{k}(i) + n\mu \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n^{k}(i-1)\delta_{i\geq 2} \right.\\
+		      & \left.-2i(n-i)\Phi_n^{k}(i)\delta_{1\leq i\leq n-1}  + (n-i-1)(i+1)\Phi_n^{k}(i+1)\delta_{i\leq n-2} \right].
 \end{split}
-\label{eq:neutral}
+\label{eq:phi_neutral}
 \end{equation}
 
-We recognize in Eq.\eqref{eq:neutral} the mutation term $2n\mu  \delta_{i=1}$ and the effect of genetic drift. This set of linear ODEs is closed and can easily be integrated over time using a classical implicit scheme.
-Let us consider the case without mutations with a sample containing only one individual (2 chromosomes). The statistic $\Phi_2(1)$ is the number of heterozygous sites for this individual, using the equation \eqref{eq:neutral}: 
-$$
-	\dot \Phi_n(i)= -\frac{1}{2 N} \Phi_2(1).
-$$
-We can integrate this differential equation using a forward Euler scheme. Normalizing the time scale by the generation time, we have a relationship between the values of $\Phi_n(i)$ at generations $k$ and $k+1$:
-$$
-	\Phi_2^{k+1}(1) = (1-\frac{1}{2 N})\Phi_2^k(1).
-$$
-This recurrence relationship is the same as the well known formula for heterozygosity ratio. This is not surprising as we described the quantity $\Phi_2(1)$ as the number of heterozygous sites. The differential equation \eqref{eq:neutral} can thus be seen as a generalization of the formula for heterozygosity rate evolution.
+Equation \eqref{eq:phi_neutral} gives an exact way to compute the evolution of the AFS along generations assuming the Wright Fisher model. This model can be written in continuous time resulting in a coupled and linear set of ordinary differential equations. It can be easily simulated using classical integration schemes. 
 
-\paragraph{}
-If we consider now cases of loci under a selective pressure, we can integrate the selection term from the diffusion equation \eqref{eq:diff} in the ODEs system \eqref{eq:selection}:
+The same expression can be derived from the diffusion equation projecting it on the binomial weight functions $w_i=  {n\choose i}  x^i (1-x)^{n-i}$. The approach is explained in appendix \ref{calc}.
+
+\subsubsection{Adding selection and dominance} 
+One can derive a similar set of equations taking into account selection and dominance either by adapting the rational used for the neutral case, or by projecting the partial differential equation on the weight functions. We get equation \eqref{eq:syst_edo_1pop}:
 \begin{equation}
 \begin{split}
 \dot \Phi_n(i)=& nu  \delta_{i=1} + \frac{1}{4 N} \left[ (i-1)(n-i+1) \Phi_n(i-1)\delta_{i\geq 2} \right.\\
@@ -57,6 +76,7 @@ If we consider now cases of loci under a selective pressure, we can integrate th
 \label{eq:syst_edo_1pop}
 \end{equation}
  At this point, we can notice that to compute the evolution of the AFS for our $n$ individuals sample we need to know the AFS for larger sample sizes $n+1$ and $n+2$. This breaks the closure of the moments equations system and makes it impossible to solve as is.
+
  
 \subsection{Moment closure method}
 Several methods exist for moment closure approximations \cite{kuehn2016}. In our case we are looking for a way to accurately estimate the AFS for slightly larger samples than the one we are simulating. Intuitively, we can think about the case of $\Phi_{n+1}(i)$, the number of variants found $i$ times in a sample of size $n+1$. This quantity is close to entries of the current AFS $\Phi_n$ and can probably be approached by a linear combination of a few of them.
@@ -101,7 +121,114 @@ First of all we can compare the methods on the neutral case without migrations w
 This case is interesting as it is the simplest we can consider and we know the analytical solution. We thus can compare the simulations to the theoretic equilibrium spectrum. For convenience, we initialize the simulations with null spectra.
 
 Unfortunately, we do not know analytical solutions for more complex cases. However, we can run $\dadi$ with a very fine frequency grid and use the spectrum obtained thus as a reference to compare our method and $\dadi$. Note that the fact that the reference is generated with $\dadi$ can induce a slight bias, penalizing our method.
-We consider several configurations with up to 3 dimensions, selection, migration and non constant reference populations sizes. Each scenario is simulated using on the one hand \textit{Moments} and on the other hand $\dadi$. Simulations with $\dadi$ are performed with two grids with different levels of 
+We consider several configurations with up to 3 dimensions, selection, migration and non constant reference populations sizes. Each scenario is simulated using on the one hand \textit{Moments} and on the other hand $\dadi$. Simulations with $\dadi$ are performed with two grids with different numbers of grid points. The results are provided in Table \ref{table:vs}
+\begin{table}[h!]
+\label{table:vs}
+%\centering
+%\bottomcaption{Un tableau sur plusieurs pages}\label{table:vs}
+%\begin{supertabular}{l|c|*{4}{c}}
+\begin{scriptsize}
+\begin{tabular}{l|c|*{4}{c}}
+Demographic model & method & KL div & max($\varepsilon_r$) & LL & exec time (s)  \\
+\hline
+ 				   & $\dadi$ grid 1 & 6.28e-05 & 0.020 & -8.34532  & 1.2e-2 \\
+Neutral equilibrium 1D & $\dadi$ grid 2 & 1.43e-05 & 0.019 & -8.34511 & 1.6e-2 \\
+ 				   & \textit{Moments} & 1.16e-05 & 0.018 & -8.34509 & 9.1e-4 \\
+\hline
+ 				   & $\dadi$ grid 1 & 8.7e-06 & 0.021 & -5.9968 & 1.3e-2  \\
+Neutral 1D, T = 1.0      & $\dadi$ grid 2 & 5.2e-08 & 1.8e-3 & -5.9968 & 2.9e-2  \\
+ 				   & \textit{Moments} & 4.4e-07 & 7.5e-3 & -5.9968 & 1.9e-3  \\
+\hline
+ 				   & $\dadi$ grid 1 & 2.0e-05 & 0.02 & -8.5025 & 4.5e-2  \\
+Neutral 1D, T = 5.0      & $\dadi$ grid 2 & 1.3e-09 & 1.8e-4 & -8.5024 & 7.2e-2  \\
+ 				   & \textit{Moments} & 1.2e-07 & 0.002 & -8.5024 & 1.8e-3  \\
+\hline
+ 				   & $\dadi$ grid 1 & 3.3-07 & 1.5e-2 & -7.45032 & 1.2e-2  \\
+Selection 1D, T = 1.0   & $\dadi$ grid 2 & 6.5e-09 & 2.4e-3 & -7.45031 & 1.3e-2  \\
+ 				   & \textit{Moments} & 8.6e-07 & 6.6e-3 & -7.45033 & 2.2e-2  \\
+\hline
+ 				   & $\dadi$ grid 1 & 1.0e-06 & 1.2e-2 & -11.158077 & 4.9e-2  \\
+Selection 1D, T = 5.0   & $\dadi$ grid 2 & 2.1e-08 & 1.9e-3 & -11.158071 & 5.5e-2  \\
+ 				   & \textit{Moments} & 9.8e-08 & 1.7e-3 & -11.158071 & 2.3e-2  \\
+\hline
+ 				   & $\dadi$ grid 1 & 8.9e-05 & 4.2e-2 & -18.0965 & 0.11 \\
+Neutral equilibrium 2D & $\dadi$ grid 2 & 1.6e-05 & 1.9e-2 & -18.1066 & 0.98  \\
+ 				   & \textit{Moments} & 1.1e-05 & 1.9e-2 & -18.1056 & 1.7e-2  \\
+\hline
+ 				   & $\dadi$ grid 1 & 4.6e-3 & 0.98 & -15.2435 & 8.5e-2  \\
+Selection 2D, T = 1.0   & $\dadi$ grid 2 & 1.1e-3 & 0.95 & -15.2375 &  0.38 \\
+ 				   & \textit{Moments} & 2.4e-05 & 4e12 & -15.2326 & 6.6e-2  \\
+\hline
+ 				   & $\dadi$ grid 1 & 1.8e-05 & 1.0 & -24.011 & 0.35 \\
+Selection 2D, T = 5.0   & $\dadi$ grid 2 & 2.1e-06 & 1.0 & -23.992 & 1.8  \\
+ 				   & \textit{Moments} & 1.5e-07 & 1.7e-3 & -23.976 & 6.7e-2  \\
+\hline
+ 				   		   & $\dadi$ grid 1 & 4.8e-05 & 4e-2 & -21.8441 & 0.55  \\
+Selection, migration 2D, T = 1.0   & $\dadi$ grid 2 & 1.6e-06 & 6e-3 & -21.8438 & 2.85 \\
+ 				   		   & \textit{Moments} & 2.7e-06 & 7e-3 & -21.8438 & 0.97  \\
+\hline
+ 				   		   & $\dadi$ grid 1 & 9.7e-05 & 8e-2 & -53.2255 & 2.6  \\
+Selection, migration 2D, T = 5.0   & $\dadi$ grid 2 & 3.0e-06 & 5e-2 & -53.2241 & 14.3  \\
+ 				   		   & \textit{Moments} & 1.3e-06 & 7e-2 & -53.2241 & 0.97  \\
+\hline
 
-\subsubsection{General cases - with selection, migrations}
+ 				   & $\dadi$ grid 1 & 1.2e-4 & 4.0e-2 & -27.7803 & 6.5  \\
+Neutral equilibrium 3D & $\dadi$ grid 2 & 2.1e-5 & 2.0e-2 & -27.7895 &  303 \\
+ 				   & \textit{Moments} & 1.1e-5 & 1.9e-2 & -27.7931 & 0.73  \\
+\hline
+ 				   & $\dadi$ grid 1 & 2.3e-3 & 0.97 & -22.95 & 5.5  \\
+Selection 3D, T = 1.0   & $\dadi$ grid 2 & 2.2e-4 & 0.77 & -22.93 & 79.8  \\
+ 				   & \textit{Moments} & 4.7e-4 & 4.0e12 & -22.88 & 1.16  \\
+\hline
+ 				   & $\dadi$ grid 1 & 2.8e-3 & 0.97 & -38.69 & 25.4 \\
+Selection 3D, T = 5.0   & $\dadi$ grid 2 & 2.3e-4 & 0.77 & -38.65 &  390 \\
+ 				   & \textit{Moments} & 4.3e-4 & 8.6e12 & -38.46 & 0.96  \\
+\hline
+ 				   		   & $\dadi$ grid 1 & 2.3e-04 & 0.63 & -41.0623 & 80  \\
+Selection, migration 3D, T = 1.0   & $\dadi$ grid 2 & 4.0e-06 & 0.05 & -41.0598 & 1247  \\
+ 				   		   & \textit{Moments} & 1.45e-05 & 0.13 & -41.0599 & 14  \\
+\hline
+ 				   		   & $\dadi$ grid 1 & 5.8e-04 & 4.5 & -128.8944 & 401  \\
+Selection, migration 3D, T = 5.0   & $\dadi$ grid 2 & 9.2e-06 & 5.1 & -128.8805 & 6213  \\
+ 				   		   & \textit{Moments} & 1.55e-05 & 22.1 & -128.8806 & 14  \\
+\hline
+%\end{supertabular}
+\end{tabular}
+\end{scriptsize}
+\caption{Performance comparisons between $\dadi$ and \textit{Moments} on several scenarios. For $\dadi$ simulations we use $\gamma \times ns$ number of grid points for each dimension, $ns$ being the sample size per population (30 here).  "$\dadi$ grid 1" corresponds to  simulation with $\gamma=1.5$ for neutral cases or $\gamma=2$ for cases with selection whereas "$\dadi$ grid 2" are performed with a finer grid $\gamma=5$}
+\end{table}
+
+One these several examples, we notice that \textit{Moments} offers an interesting trade off between accuracy and execution speed. It happens to be particularly remarkable for high dimensional problems and when dealing with large time scales. Indeed, for most of the cases we considered a rather short time epoch ($T=1.0$) and a longer epoch ($T=5.0$). \textit{Moments} scalability regarding to this parameter is particularly interesting compared to $\dadi$. This is due to the fact that there are less restrictive conditions on the integration time step imposed by the system solved in \textit{Moments} than in $\dadi$'s one.
+
+Thanks to these features, we can handle 4 and even 5 populations models in reasonable computational times.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
