@@ -97,10 +97,11 @@ In this paragraph we compare our new method to $\dadi$ on several test cases. To
 
 In the case of \textit{Moments} we do not solve a partial differential equation so we don't have to deal with this grid choice considerations. It results in a naturally easier to converge algorithm. However we introduce moments closure approximations and one may want to minimize their effects. A way to gain in accuracy is to compute the AFS for a larger sample size than needed and then to subsample to the expected sample size. Doing that, the Jackknife approximations are performed on larger samples and are consequently more accurate.
 
-\subsubsection{Neutral cases}
 First of all we can compare the methods on the neutral case without migrations with constant effective population size and after the equilibrium is reached.
 This case is interesting as it is the simplest we can consider and we know the analytical solution. We thus can compare the simulations to the theoretic equilibrium spectrum. For convenience, we initialize the simulations with null spectra.
 
+Unfortunately, we do not know analytical solutions for more complex cases. However, we can run $\dadi$ with a very fine frequency grid and use the spectrum obtained thus as a reference to compare our method and $\dadi$. Note that the fact that the reference is generated with $\dadi$ can induce a slight bias, penalizing our method.
+We consider several configurations with up to 3 dimensions, selection, migration and non constant reference populations sizes. Each scenario is simulated using on the one hand \textit{Moments} and on the other hand $\dadi$. Simulations with $\dadi$ are performed with two grids with different levels of 
 
 \subsubsection{General cases - with selection, migrations}
 
