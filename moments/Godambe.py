@@ -122,7 +122,7 @@ def get_grad(func, p0, eps, args=()):
     eps = numpy.empty([len(p0)])
     for i, pval in enumerate(p0):
         if pval != 0:
-            eps[i] = eps_in*pval
+            eps[i] = eps_in * pval
         else:
             # Account for parameters equal to zero
             eps[i] = eps_in
@@ -191,7 +191,7 @@ def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
     # Now the expectation of J over the bootstrap data
     J = numpy.zeros((len(p0), len(p0)))
     # cU is a column vector
-    cU = numpy.zeros((len(p0),1))
+    cU = numpy.zeros((len(p0), 1))
     for ii, boot in enumerate(all_boot):
         boot = Spectrum(boot)
         if not log:
@@ -202,8 +202,8 @@ def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
-    J = J/len(all_boot)
-    cU = cU/len(all_boot)
+    J = J / len(all_boot)
+    cU = cU / len(all_boot)
 
     # G = H*J^-1*H
     J_inv = numpy.linalg.inv(J)
@@ -302,7 +302,7 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices,
         model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+        func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
 
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
@@ -346,12 +346,12 @@ def sum_chi2_ppf(x, weights=(0,1)):
     x = numpy.atleast_1d(x)
     # Calculate total cdf of all chi^2 dists with dof > 1.
     # (ssd.chi2.cdf(x,0) is always nan, so we avoid that.)
-    cdf = numpy.sum([w*ssd.chi2.cdf(x, d+1) for (d, w)
+    cdf = numpy.sum([w * ssd.chi2.cdf(x, d+1) for (d, w)
                      in enumerate(weights[1:])], axis=0)
     # Add in contribution from 0 d.o.f.
     cdf[x > 0] += weights[0]
     # Convert to ppf
-    ppf = 1-cdf
+    ppf = 1 - cdf
 
     if scalar_input:
         return ppf[0]
@@ -393,7 +393,7 @@ def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
          if len(full_params) == len(p0):
              full_params = numpy.concatenate((full_params, [theta_opt]))
          p0 = list(p0) + [theta_opt]
-         func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+         func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
          
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
@@ -417,8 +417,8 @@ def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
                                 eps, log=False)
     param_diff = full_params-p_nested
 
-    wald_adj = numpy.dot(numpy.dot(numpy.transpose(param_diff),GIM), param_diff)
-    wald_org = numpy.dot(numpy.dot(numpy.transpose(param_diff),H),param_diff)
+    wald_adj = numpy.dot(numpy.dot(numpy.transpose(param_diff), GIM), param_diff)
+    wald_org = numpy.dot(numpy.dot(numpy.transpose(param_diff), H), param_diff)
 
     if adj_and_org:
         return wald_adj, wald_org
@@ -451,7 +451,7 @@ def score_stat(func_ex, all_boot, p0, data, nested_indices,
         model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+        func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
 
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
@@ -468,9 +468,9 @@ def score_stat(func_ex, all_boot, p0, data, nested_indices,
                                 eps, log=False)
     
     score_org = numpy.dot(numpy.dot(numpy.transpose(cU),
-                                    numpy.linalg.inv(H)),cU)[0,0]
+                                    numpy.linalg.inv(H)), cU)[0,0]
     score_adj = numpy.dot(numpy.dot(numpy.transpose(cU),
-                                    numpy.linalg.inv(J)),cU)[0,0]
+                                    numpy.linalg.inv(J)), cU)[0,0]
 
     if adj_and_org:
         return score_adj, score_org

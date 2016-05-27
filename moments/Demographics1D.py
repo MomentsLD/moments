@@ -46,7 +46,7 @@ def growth(params, ns):
     """
     nu, T = params
 
-    nu_func = lambda t: [numpy.exp(numpy.log(nu) * t/T)]
+    nu_func = lambda t: [numpy.exp(numpy.log(nu) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
     fs.integrate(nu_func, ns, T, 0.01)
@@ -67,7 +67,7 @@ def bottlegrowth(params, ns):
     ns: Number of samples in resulting Spectrum.
     """
     nuB, nuF, T = params
-    nu_func = lambda t: [nuB*numpy.exp(numpy.log(nuF/nuB) * t/T)]
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)

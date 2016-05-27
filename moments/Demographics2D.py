@@ -7,19 +7,19 @@ import moments
 
 def snm(ns):
     """
-    ns = [n1,n2]
+    ns = [n1, n2]
 
     Standard neutral model, populations never diverge.
     """
-    sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1])
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     return fs
 
 def bottlegrowth(params, ns):
     """
-    params = (nuB,nuF,T)
-    ns = [n1,n2]
+    params = (nuB, nuF, T)
+    ns = [n1, n2]
 
     Instantanous size change followed by exponential growth with no population
     split.
@@ -29,15 +29,15 @@ def bottlegrowth(params, ns):
     nuF: Ratio of contempoary to ancient population size
     T: Time in the past at which instantaneous change happened and growth began
        (in units of 2*Na generations) 
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     nuB, nuF, T = params
     return bottlegrowth_split_mig((nuB, nuF, 0, T, 0), ns)
 
 def bottlegrowth_split(params, ns):
     """
-    params = (nuB,nuF,T,Ts)
-    ns = [n1,n2]
+    params = (nuB, nuF, T, Ts)
+    ns = [n1, n2]
 
     Instantanous size change followed by exponential growth then split.
 
@@ -47,15 +47,15 @@ def bottlegrowth_split(params, ns):
     T: Time in the past at which instantaneous change happened and growth began
        (in units of 2*Na generations) 
     Ts: Time in the past at which the two populations split.
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     nuB, nuF, T, Ts = params
     return bottlegrowth_split_mig((nuB, nuF, 0.0, T, Ts), ns)
 
 def bottlegrowth_split_mig(params, ns):
     """
-    params = (nuB,nuF,m,T,Ts)
-    ns = [n1,n2]
+    params = (nuB, nuF, m, T, Ts)
+    ns = [n1, n2]
 
     Instantanous size change followed by exponential growth then split with
     migration.
@@ -67,26 +67,26 @@ def bottlegrowth_split_mig(params, ns):
     T: Time in the past at which instantaneous change happened and growth began
        (in units of 2*Na generations) 
     Ts: Time in the past at which the two populations split.
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     nuB, nuF, m, T, Ts = params
 
-    nu_func = lambda t: [nuB*numpy.exp(numpy.log(nuF/nuB) * t/T)]
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, [ns[0]+ns[1]], T-Ts, dt_fac = 0.01)
+    fs.integrate(nu_func, [ns[0] + ns[1]], T - Ts, dt_fac=0.01)
     # we split the population
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    nu0 = nu_func(T-Ts)[0]
-    nu_func = lambda t: 2 * [nu0 * numpy.exp(numpy.log(nuF/nu0) * t/Ts)]
+    nu0 = nu_func(T - Ts)[0]
+    nu_func = lambda t: 2 * [nu0 * numpy.exp(numpy.log(nuF/nu0) * t / Ts)]
     fs.integrate(nu_func, ns, Ts, m = numpy.array([[0, m], [m, 0]]))
     
     return fs
 
 def split_mig(params, ns):
     """
-    params = (nu1,nu2,T,m)
-    ns = [n1,n2]
+    params = (nu1, nu2, T, m)
+    ns = [n1, n2]
 
     Split into two populations of specifed size, with migration.
 
@@ -94,10 +94,10 @@ def split_mig(params, ns):
     nu2: Size of population 2 after split.
     T: Time in the past of split (in units of 2*Na generations) 
     m: Migration rate between populations (2*Na*m)
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     nu1, nu2, T, m = params
-    sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1])
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     fs.integrate([nu1, nu2], ns, T, m = numpy.array([[0, m], [m, 0]]))
@@ -106,8 +106,8 @@ def split_mig(params, ns):
 
 def IM(params, ns):
     """
-    ns = [n1,n2]
-    params = (s,nu1,nu2,T,m12,m21)
+    params = (s, nu1, nu2, T, m12, m21)
+    ns = [n1, n2]
 
     Isolation-with-migration model with exponential pop growth.
 
@@ -115,13 +115,13 @@ def IM(params, ns):
     nu1: Final size of pop 1.
     nu2: Final size of pop 2.
     T: Time in the past of split (in units of 2*Na generations) 
-    m12: Migration from pop 2 to pop 1 (2*Na*m12)
+    m12: Migration from pop 2 to pop 1 (2 * Na * m12)
     m21: Migration from pop 1 to pop 2
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     s, nu1, nu2, T, m12, m21 = params
 
-    sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1])
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     
@@ -129,14 +129,14 @@ def IM(params, ns):
     nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
-    fs.integrate(nu_func, ns, T, dt_fac = 0.01, m = numpy.array([[0, m12], [m21, 0]]))
+    fs.integrate(nu_func, ns, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
 
     return fs
 
 def IM_pre(params, ns):
     """
-    params = (nuPre,TPre,s,nu1,nu2,T,m12,m21)
-    ns = [n1,n2]
+    params = (nuPre, TPre, s, nu1, nu2, T, m12, m21)
+    ns = [n1, n2]
 
     Isolation-with-migration model with exponential pop growth and a size change
     prior to split.
@@ -149,13 +149,13 @@ def IM_pre(params, ns):
     T: Time in the past of split (in units of 2*Na generations) 
     m12: Migration from pop 2 to pop 1 (2*Na*m12)
     m21: Migration from pop 1 to pop 2
-    n1,n2: Sample sizes of resulting Spectrum.
+    n1, n2: Sample sizes of resulting Spectrum.
     """
     nuPre, TPre, s, nu1, nu2, T, m12, m21 = params
 
-    sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1])
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
-    fs.integrate([nuPre], [ns[0]+ns[1]], TPre, dt_fac = 0.01)
+    fs.integrate([nuPre], [ns[0] + ns[1]], TPre, dt_fac=0.01)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     
     nu1_0 = nuPre * s
@@ -164,6 +164,6 @@ def IM_pre(params, ns):
     nu2_func = lambda t: nu2_0 * (nu2/nu2_0)**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
     
-    fs.integrate(nu_func, ns, T, dt_fac = 0.01, m = numpy.array([[0, m12], [m21, 0]]))
+    fs.integrate(nu_func, ns, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
     
     return fs

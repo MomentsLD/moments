@@ -28,7 +28,7 @@ import Tridiag_solve as ts
 def calcB(dims, u):
     B = np.zeros(dims)
     for k in range(len(dims)):
-        ind = np.zeros(len(dims), dtype = 'int')
+        ind = np.zeros(len(dims), dtype='int')
         ind[k] = int(1)
         tp = tuple(ind)
         B[tp] = dims[k] - 1
@@ -40,6 +40,14 @@ def calcB(dims, u):
 
 # 2D
 def ud1_2pop_1(sfs, Q):
+    sfs = Q[0].dot(sfs)
+    return sfs
+
+def ud1_2pop_2(sfs, Q):
+    sfs = Q[1].dot(sfs.transpose()).transpose()
+    return sfs
+
+'''def ud1_2pop_1(sfs, Q):
     for i in range(int(sfs.shape[1])):
         sfs[:,i] = Q[0].dot(sfs[:,i])
     return sfs
@@ -47,16 +55,16 @@ def ud1_2pop_1(sfs, Q):
 def ud1_2pop_2(sfs, Q):
     for i in range(int(sfs.shape[0])):
         sfs[i,:] = Q[1].dot(sfs[i,:])
-    return sfs
+    return sfs'''
 
 def ud2_2pop_1(sfs, slv):
     for i in range(int(sfs.shape[1])):
-        sfs[:,i] = slv[0](sfs[:,i])
+        sfs[:, i] = slv[0](sfs[:, i])
     return sfs
 
 def ud2_2pop_2(sfs, slv):
     for i in range(int(sfs.shape[0])):
-        sfs[i,:] = slv[1](sfs[i,:])
+        sfs[i, :] = slv[1](sfs[i, :])
     return sfs
 
 # for 3D, 4D and 5D cases, each couple of directions are coded separately to simplify the permutations...
@@ -64,23 +72,39 @@ def ud2_2pop_2(sfs, slv):
 # 3D
 # step 1
 
-def ud1_3pop_1(sfs, Q):
+'''def ud1_3pop_1(sfs, Q):
     for i in range(int(sfs.shape[2])):
         for j in range(int(sfs.shape[1])):
             sfs[:, j, i] = Q[0].dot(sfs[:, j, i])
+    return sfs'''
+
+def ud1_3pop_1(sfs, Q):
+    dims = sfs.shape
+    dim2 = np.prod(dims[1::])
+    sfs = Q[0].dot(sfs.reshape(dims[0], dim2)).reshape(dims)
     return sfs
 
-def ud1_3pop_2(sfs, Q):
+'''def ud1_3pop_2(sfs, Q):
     for i in range(int(sfs.shape[2])):
         for j in range(int(sfs.shape[0])):
             sfs[j, :, i] = Q[1].dot(sfs[j, :, i])
-    return sfs
+    return sfs'''
 
-def ud1_3pop_3(sfs, Q):
+def ud1_3pop_2(sfs, Q):
+    Q = [Q[1]]
+    sfs = ud1_3pop_1(np.transpose(sfs, (1, 0, 2)), Q)
+    return np.transpose(sfs, (1, 0, 2))
+
+'''def ud1_3pop_3(sfs, Q):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[0])):
             sfs[j, i, :] = Q[2].dot(sfs[j, i, :])
-    return sfs
+    return sfs'''
+
+def ud1_3pop_3(sfs, Q):
+    Q = [Q[2]]
+    sfs = ud1_3pop_1(np.transpose(sfs, (2, 1, 0)), Q)
+    return np.transpose(sfs, (2, 1, 0))
 
 # step 2
 def ud2_3pop_1(sfs, slv):
@@ -104,122 +128,166 @@ def ud2_3pop_3(sfs, slv):
 #------------------------------
 # 4D
 # step 1
+'''
 def ud1_4pop_1(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                sfs[i, j, k, :] = Q[3].dot(sfs[i, j, k, :])
-    return sfs
-
-def ud1_4pop_2(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, j, :, k] = Q[2].dot(sfs[i, j, :, k])
-    return sfs
-
-def ud1_4pop_3(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, :, j, k] = Q[1].dot(sfs[i, :, j, k])
-    return sfs
-
-def ud1_4pop_4(sfs, Q):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[2])):
             for k in range(int(sfs.shape[3])):
                 sfs[:, i, j, k] = Q[0].dot(sfs[:, i, j, k])
     return sfs
 
-# step 2
-def ud2_4pop_1(sfs, slv):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                sfs[i, j, k, :] = slv[3](sfs[i, j, k, :])
-    return sfs
-
-def ud2_4pop_2(sfs, slv):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, j, :, k] = slv[2](sfs[i, j, :, k])
-    return sfs
-
-def ud2_4pop_3(sfs, slv):
+def ud1_4pop_2(sfs, Q):
     for i in range(int(sfs.shape[0])):
         for j in range(int(sfs.shape[2])):
             for k in range(int(sfs.shape[3])):
-                sfs[i, :, j, k] = slv[1](sfs[i, :, j, k])
+                sfs[i, :, j, k] = Q[1].dot(sfs[i, :, j, k])
     return sfs
 
-def ud2_4pop_4(sfs, slv):
+def ud1_4pop_3(sfs, Q):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[3])):
+                sfs[i, j, :, k] = Q[2].dot(sfs[i, j, :, k])
+    return sfs
+
+def ud1_4pop_4(sfs, Q):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
+                sfs[i, j, k, :] = Q[3].dot(sfs[i, j, k, :])
+    return sfs
+
+'''
+def ud1_4pop_1(sfs, Q):
+    return ud1_3pop_1(sfs, Q)
+
+def ud1_4pop_2(sfs, Q):
+    Q = [Q[1]]
+    sfs = ud1_4pop_1(np.transpose(sfs, (1, 0, 2, 3)), Q)
+    return np.transpose(sfs, (1, 0, 2, 3))
+
+def ud1_4pop_3(sfs, Q):
+    Q = [Q[2]]
+    sfs = ud1_4pop_1(np.transpose(sfs, (2, 1, 0, 3)), Q)
+    return np.transpose(sfs, (2, 1, 0, 3))
+
+def ud1_4pop_4(sfs, Q):
+    Q = [Q[3]]
+    sfs = ud1_4pop_1(np.transpose(sfs, (3, 1, 2, 0)), Q)
+    return np.transpose(sfs, (3, 1, 2, 0))
+
+# step 2
+def ud2_4pop_1(sfs, slv):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[2])):
             for k in range(int(sfs.shape[3])):
                 sfs[:, i, j, k] = slv[0](sfs[:, i, j, k])
     return sfs
 
+def ud2_4pop_2(sfs, slv):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                sfs[i, :, j, k] = slv[1](sfs[i, :, j, k])
+    return sfs
+
+def ud2_4pop_3(sfs, slv):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[3])):
+                sfs[i, j, :, k] = slv[2](sfs[i, j, :, k])
+    return sfs
+
+def ud2_4pop_4(sfs, slv):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
+                sfs[i, j, k, :] = slv[3](sfs[i, j, k, :])
+    return sfs
+
+
 
 #------------------------------
 # 5D
 # step 1
-def ud1_5pop_1(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                for l in range(int(sfs.shape[3])):
-                    sfs[i, j, k, l, :] = Q[4].dot(sfs[i, j, k, l, :])
-    return sfs
-
-def ud1_5pop_2(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                for l in range(int(sfs.shape[4])):
-                    sfs[i, j, k, :, l] = Q[3].dot(sfs[i, j, k, :, l])
-    return sfs
-
-def ud1_5pop_3(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[3])):
-                for l in range(int(sfs.shape[4])):
-                    sfs[i, j, :, k, l] = Q[2].dot(sfs[i, j, :, k, l])
-    return sfs
-
-def ud1_5pop_4(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                for l in range(int(sfs.shape[4])):
-                    sfs[i, :, j, k, l] = Q[1].dot(sfs[i, :, j, k, l])
-    return sfs
-
-def ud1_5pop_5(sfs, Q):
+'''def ud1_5pop_1(sfs, Q):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[2])):
             for k in range(int(sfs.shape[3])):
                 for l in range(int(sfs.shape[4])):
                     sfs[:, i, j, k, l] = Q[0].dot(sfs[:, i, j, k, l])
-    return sfs
+    return sfs'''
 
-# step 2
-def ud2_5pop_1(sfs, slv):
+def ud1_5pop_1(sfs, Q):
+    return ud1_3pop_1(sfs, Q)
+
+'''def ud1_5pop_2(sfs, Q):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                for l in range(int(sfs.shape[4])):
+                    sfs[i, :, j, k, l] = Q[1].dot(sfs[i, :, j, k, l])
+    return sfs'''
+
+def ud1_5pop_2(sfs, Q):
+    Q = [Q[1]]
+    sfs = ud1_5pop_1(np.transpose(sfs, (1, 0, 2, 3, 4)), Q)
+    return np.transpose(sfs, (1, 0, 2, 3, 4))
+
+'''def ud1_5pop_3(sfs, Q):
     for i in range(int(sfs.shape[0])):
         for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                for l in range(int(sfs.shape[3])):
-                    sfs[i, j, k, l, :] = slv[4](sfs[i, j, k, l, :])
-    return sfs
+            for k in range(int(sfs.shape[3])):
+                for l in range(int(sfs.shape[4])):
+                    sfs[i, j, :, k, l] = Q[2].dot(sfs[i, j, :, k, l])
+    return sfs'''
 
-def ud2_5pop_2(sfs, slv):
+def ud1_5pop_3(sfs, Q):
+    Q = [Q[2]]
+    sfs = ud1_5pop_1(np.transpose(sfs, (2, 1, 0, 3, 4)), Q)
+    return np.transpose(sfs, (2, 1, 0, 3, 4))
+
+'''def ud1_5pop_4(sfs, Q):
     for i in range(int(sfs.shape[0])):
         for j in range(int(sfs.shape[1])):
             for k in range(int(sfs.shape[2])):
                 for l in range(int(sfs.shape[4])):
-                    sfs[i, j, k, :, l] = slv[3](sfs[i, j, k, :, l])
+                    sfs[i, j, k, :, l] = Q[3].dot(sfs[i, j, k, :, l])
+    return sfs'''
+
+def ud1_5pop_4(sfs, Q):
+    Q = [Q[3]]
+    sfs = ud1_5pop_1(np.transpose(sfs, (3, 1, 2, 0, 4)), Q)
+    return np.transpose(sfs, (3, 1, 2, 0, 4))
+
+'''def ud1_5pop_5(sfs, Q):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
+                for l in range(int(sfs.shape[3])):
+                    sfs[i, j, k, l, :] = Q[4].dot(sfs[i, j, k, l, :])
+    return sfs'''
+
+def ud1_5pop_5(sfs, Q):
+    Q = [Q[4]]
+    sfs = ud1_5pop_1(np.transpose(sfs, (4, 1, 2, 3, 0)), Q)
+    return np.transpose(sfs, (4, 1, 2, 3, 0))
+
+# step 2
+def ud2_5pop_1(sfs, slv):
+    for i in range(int(sfs.shape[1])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                for l in range(int(sfs.shape[4])):
+                    sfs[:, i, j, k, l] = slv[0](sfs[:, i, j, k, l])
+    return sfs
+
+def ud2_5pop_2(sfs, slv):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                for l in range(int(sfs.shape[4])):
+                    sfs[i, :, j, k, l] = slv[1](sfs[i, :, j, k, l])
     return sfs
 
 def ud2_5pop_3(sfs, slv):
@@ -232,30 +300,30 @@ def ud2_5pop_3(sfs, slv):
 
 def ud2_5pop_4(sfs, slv):
     for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
                 for l in range(int(sfs.shape[4])):
-                    sfs[i, :, j, k, l] = slv[1](sfs[i, :, j, k, l])
+                    sfs[i, j, k, :, l] = slv[3](sfs[i, j, k, :, l])
     return sfs
 
 def ud2_5pop_5(sfs, slv):
-    for i in range(int(sfs.shape[1])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                for l in range(int(sfs.shape[4])):
-                    sfs[:, i, j, k, l] = slv[0](sfs[:, i, j, k, l])
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
+                for l in range(int(sfs.shape[3])):
+                    sfs[i, j, k, l, :] = slv[4](sfs[i, j, k, l, :])
     return sfs
 
 # neutral case step 2 (tridiag solver)
 # 2D
 def udn2_2pop_1(sfs, A, Di, C):
     for i in range(int(sfs.shape[1])):
-        sfs[:,i] = ts.solve(A[0], Di[0], C[0], sfs[:,i])
+        sfs[:, i] = ts.solve(A[0], Di[0], C[0], sfs[:, i])
     return sfs
 
 def udn2_2pop_2(sfs, A, Di, C):
     for i in range(int(sfs.shape[0])):
-        sfs[i,:] = ts.solve(A[1], Di[1], C[1], sfs[i,:])
+        sfs[i, :] = ts.solve(A[1], Di[1], C[1], sfs[i, :])
     return sfs
 
 # 3D
@@ -279,48 +347,48 @@ def udn2_3pop_3(sfs, A, Di, C):
 
 # 4D
 def udn2_4pop_1(sfs, A, Di, C):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                sfs[i, j, k, :] = ts.solve(A[3], Di[3], C[3], sfs[i, j, k, :])
-    return sfs
-
-def udn2_4pop_2(sfs, A, Di, C):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, j, :, k] = ts.solve(A[2], Di[2], C[2], sfs[i, j, :, k])
-    return sfs
-
-def udn2_4pop_3(sfs, A, Di, C):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, :, j, k] = ts.solve(A[1], Di[1], C[1], sfs[i, :, j, k])
-    return sfs
-
-def udn2_4pop_4(sfs, A, Di, C):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[2])):
             for k in range(int(sfs.shape[3])):
                 sfs[:, i, j, k] = ts.solve(A[0], Di[0], C[0], sfs[:, i, j, k])
     return sfs
 
-# 5D
-def udn2_5pop_1(sfs, A, Di, C):
+def udn2_4pop_2(sfs, A, Di, C):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                sfs[i, :, j, k] = ts.solve(A[1], Di[1], C[1], sfs[i, :, j, k])
+    return sfs
+
+def udn2_4pop_3(sfs, A, Di, C):
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[3])):
+                sfs[i, j, :, k] = ts.solve(A[2], Di[2], C[2], sfs[i, j, :, k])
+    return sfs
+
+def udn2_4pop_4(sfs, A, Di, C):
     for i in range(int(sfs.shape[0])):
         for j in range(int(sfs.shape[1])):
             for k in range(int(sfs.shape[2])):
-                for l in range(int(sfs.shape[3])):
-                    sfs[i, j, k, l, :] = ts.solve(A[4], Di[4], C[4], sfs[i, j, k, l, :])
+                sfs[i, j, k, :] = ts.solve(A[3], Di[3], C[3], sfs[i, j, k, :])
+    return sfs
+
+# 5D
+def udn2_5pop_1(sfs, A, Di, C):
+    for i in range(int(sfs.shape[1])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
+                for l in range(int(sfs.shape[4])):
+                    sfs[:, i, j, k, l] = ts.solve(A[0], Di[0], C[0], sfs[:, i, j, k, l])
     return sfs
 
 def udn2_5pop_2(sfs, A, Di, C):
     for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
+        for j in range(int(sfs.shape[2])):
+            for k in range(int(sfs.shape[3])):
                 for l in range(int(sfs.shape[4])):
-                    sfs[i, j, k, :, l] = ts.solve(A[3], Di[3], C[3], sfs[i, j, k, :, l])
+                    sfs[i, :, j, k, l] = ts.solve(A[1], Di[1], C[1], sfs[i, :, j, k, l])
     return sfs
 
 def udn2_5pop_3(sfs, A, Di, C):
@@ -333,18 +401,18 @@ def udn2_5pop_3(sfs, A, Di, C):
 
 def udn2_5pop_4(sfs, A, Di, C):
     for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
                 for l in range(int(sfs.shape[4])):
-                    sfs[i, :, j, k, l] = ts.solve(A[1], Di[1], C[1], sfs[i, :, j, k, l])
+                    sfs[i, j, k, :, l] = ts.solve(A[3], Di[3], C[3], sfs[i, j, k, :, l])
     return sfs
 
 def udn2_5pop_5(sfs, A, Di, C):
-    for i in range(int(sfs.shape[1])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                for l in range(int(sfs.shape[4])):
-                    sfs[:, i, j, k, l] = ts.solve(A[0], Di[0], C[0], sfs[:, i, j, k, l])
+    for i in range(int(sfs.shape[0])):
+        for j in range(int(sfs.shape[1])):
+            for k in range(int(sfs.shape[2])):
+                for l in range(int(sfs.shape[3])):
+                    sfs[i, j, k, l, :] = ts.solve(A[4], Di[4], C[4], sfs[i, j, k, l, :])
     return sfs
 
 # sfs update 
@@ -375,21 +443,27 @@ def update_step2_neutral(sfs, A, Di, C):
 # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
 # theta : mutation rate
 # h : allele dominance (vector h = (h1,...,hp))
-# m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
+# m : migration rates matrix (2D array, m[i,j] is the migration rate 
+#   from pop j to pop i, normalized by 1/4N1)
 
 # for a "lambda" definition of N - with backward Euler integration scheme
 # where t is the relative time in generations such as t = 0 initially
-# Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
+# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
+#   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, theta = 1.0):
+def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0):
     # neutral case if the parameters are not provided
-    if gamma is None : gamma = np.zeros(len(n))
-    if h is None : h = 0.5 * np.ones(len(n))
+    if gamma is None:
+        gamma = np.zeros(len(n))
+    if h is None:
+        h = 0.5 * np.ones(len(n))
     
     sfs0 = np.array(sfs0)
     # parameters of the equation
-    if callable(Npop): N = np.array(Npop(0))
-    else : N = np.array(Npop)
+    if callable(Npop):
+        N = np.array(Npop(0))
+    else:
+        N = np.array(Npop)
     
     Nold = N + np.ones(len(N))
     s = np.array(gamma)
@@ -402,8 +476,8 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, th
     d = int(np.prod(dims))
 
     # we compute the matrices we will need
-    ljk = [jk.calcJK13(int(dims[i]-1)) for i in range(len(dims))]
-    ljk2 = [jk.calcJK23(int(dims[i]-1)) for i in range(len(dims))]
+    ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(len(dims))]
+    ljk2 = [jk.calcJK23(int(dims[i] - 1)) for i in range(len(dims))]
     
     # drift
     vd = [ls1.calcD(np.array(dims[i])) for i in range(len(dims))]
@@ -424,14 +498,18 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, th
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        if t+dt > Tmax: dt = Tmax-t
+        if t + dt > Tmax:
+            dt = Tmax - t
         # we recompute the matrix only if N has changed...
         if (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
             
             # system inversion for backward scheme
-            slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc') - dt/2.0*(D[i]+S1[i]+S2[i])) for i in range(len(n))]
-            Q = [sp.sparse.identity(S1[i].shape[0], dtype = 'float', format = 'csc') + dt/2.0*(D[i]+S1[i]+S2[i]) for i in range(len(n))]
+            slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
+                   - dt/2.0*(D[i]+S1[i]+S2[i])) for i in range(len(n))]
+            Q = [sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
+                 + dt/2.0*(D[i]+S1[i]+S2[i]) for i in range(len(n))]
+
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
@@ -442,14 +520,17 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac = 0.05, gamma = None, h = None, th
         Nold = N
         t += dt
         # we update the value of N if a function was provided as argument
-        if callable(Npop) : N = np.array(Npop(t / 2.0))
+        if callable(Npop):
+            N = np.array(Npop(t / 2.0))
     return Spectrum_mod.Spectrum(sfs)
 
-def integrate_neutral(sfs0, Npop, n, tf, dt_fac = 0.05, theta = 1.0):
+def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0):
     sfs0 = np.array(sfs0)
     # parameters of the equation
-    if callable(Npop): N = np.array(Npop(0))
-    else : N = np.array(Npop)
+    if callable(Npop):
+        N = np.array(Npop(0))
+    else:
+        N = np.array(Npop)
     
     Nold = N + np.ones(len(N))
     Tmax = tf * 2.0
@@ -471,7 +552,8 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac = 0.05, theta = 1.0):
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        if t+dt > Tmax: dt = Tmax-t
+        if t + dt > Tmax:
+            dt = Tmax - t
         # we recompute the matrix only if N has changed...
         if (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
@@ -491,5 +573,6 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac = 0.05, theta = 1.0):
         Nold = N
         t += dt
         # we update the value of N if a function was provided as argument
-        if callable(Npop) : N = np.array(Npop(t / 2.0))
+        if callable(Npop):
+            N = np.array(Npop(t / 2.0))
     return Spectrum_mod.Spectrum(sfs)

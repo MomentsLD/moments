@@ -37,11 +37,11 @@ def _object_func(params, data, model_func,
     if lower_bound is not None:
         for pval,bound in zip(params_up, lower_bound):
             if bound is not None and pval < bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val / ll_scale
     if upper_bound is not None:
         for pval,bound in zip(params_up, upper_bound):
             if bound is not None and pval > bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val / ll_scale
 
     ns = data.sample_sizes 
     all_args = [params_up, ns] + list(func_args)
@@ -68,7 +68,7 @@ def _object_func(params, data, model_func,
                                                    os.linesep))
         Misc.delayed_flush(delay=flush_delay)
 
-    return -result/ll_scale
+    return -result / ll_scale
 
 def _object_func_log(log_params, *args, **kwargs):
     """
@@ -271,7 +271,7 @@ def optimize_log_lbfgsb(p0, data, model_func,
         upper_bound = numpy.log(upper_bound)
         upper_bound[numpy.isnan(upper_bound)] = None
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound,upper_bound))
+    bounds = list(zip(lower_bound, upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 
@@ -340,7 +340,7 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
 
     missing = logical_and(model < 0, not_data_mask)
     if numpy.any(missing)\
-       and data[missing].sum()/data.sum() > missing_model_cutoff:
+       and data[missing].sum() / data.sum() > missing_model_cutoff:
         logger.warn('Model is < 0 where data is not masked.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
@@ -349,14 +349,14 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     # contribution is 0, which is fine.
     missing = logical_and(model == 0, logical_and(data > 0, not_data_mask))
     if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
+       and data[missing].sum() / data_sum > missing_model_cutoff:
         logger.warn('Model is 0 where data is neither masked nor 0.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
 
     missing = numpy.logical_and(model.mask, not_data_mask)
     if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
+       and data[missing].sum() / data_sum > missing_model_cutoff:
         print data[missing].sum(), data_sum
         logger.warn('Model is masked in some entries where data is not.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
@@ -364,7 +364,7 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
 
     missing = numpy.logical_and(numpy.isnan(model), not_data_mask)
     if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
+       and data[missing].sum() / data_sum > missing_model_cutoff:
         logger.warn('Model is nan in some entries where data is not masked.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
@@ -379,7 +379,7 @@ def ll_multinom_per_bin(model, data):
     Scales the model sfs to have the optimal theta for comparison with the data.
     """
     theta_opt = optimal_sfs_scaling(model, data)
-    return ll_per_bin(theta_opt*model, data)
+    return ll_per_bin(theta_opt * model, data)
 
 def ll_multinom(model, data):
     """
@@ -421,7 +421,7 @@ def linear_Poisson_residual(model, data, mask=None):
     if data.folded and not model.folded:
         model = model.fold()
 
-    resid = (model - data)/numpy.ma.sqrt(model)
+    resid = (model-data) / numpy.ma.sqrt(model)
     if mask is not None:
         tomask = numpy.logical_and(model <= mask, data <= mask)
         resid = numpy.ma.masked_where(tomask, resid)
@@ -488,7 +488,7 @@ def optimal_sfs_scaling(model, data):
         model = model.fold()
 
     model, data = Numerics.intersect_masks(model, data)
-    return data.sum()/model.sum()
+    return data.sum() / model.sum()
 
 def optimize_log_fmin(p0, data, model_func,
                       lower_bound=None, upper_bound=None,
@@ -739,7 +739,7 @@ def optimize_lbfgsb(p0, data, model_func,
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound,upper_bound))
+    bounds = list(zip(lower_bound, upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 

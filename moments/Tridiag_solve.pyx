@@ -19,14 +19,14 @@ def mat_to_diag(numpy.ndarray[numpy.float64_t, ndim=2] mat):
     """
     cdef int i
     cdef int n = mat.shape[0]
-    cdef numpy.ndarray[numpy.float64_t] a = numpy.zeros(n-1)
-    cdef numpy.ndarray[numpy.float64_t] c = numpy.zeros(n-1)
+    cdef numpy.ndarray[numpy.float64_t] a = numpy.zeros(n - 1)
+    cdef numpy.ndarray[numpy.float64_t] c = numpy.zeros(n - 1)
     cdef numpy.ndarray[numpy.float64_t] d = numpy.zeros(n)
-    for i in xrange(n-1):
-        a[i] = mat[i+1, i]
-        c[i] = mat[i, i+1]
+    for i in xrange(n - 1):
+        a[i] = mat[i + 1, i]
+        c[i] = mat[i, i + 1]
         d[i] = mat[i, i]
-    d[n-1] = mat[n-1, n-1]
+    d[n - 1] = mat[n - 1, n - 1]
     return a, d, c
 
 def factor(numpy.ndarray[numpy.float64_t] a, numpy.ndarray[numpy.float64_t] d, 
@@ -54,8 +54,8 @@ def factor(numpy.ndarray[numpy.float64_t] a, numpy.ndarray[numpy.float64_t] d,
     cdef int i
     cdef int n = len(d)
     for i in xrange(1, n):
-        a[i-1] = a[i-1] / d[i-1]
-        d[i] = d[i] - a[i-1] * c[i-1]
+        a[i - 1] = a[i - 1] / d[i - 1]
+        d[i] = d[i] - a[i - 1] * c[i - 1]
 
     return
 
@@ -82,11 +82,11 @@ cpdef numpy.ndarray[numpy.float64_t] solve(numpy.ndarray[numpy.float64_t] a, num
     x[0] = b[0]
 
     for i in xrange(1, n):
-        x[i] = b[i] - a[i-1] * x[i-1]
+        x[i] = b[i] - a[i - 1] * x[i - 1]
 
-    x[n-1] = x[n-1] / d[n-1]
+    x[n - 1] = x[n - 1] / d[n - 1]
 
     for i in xrange(n-2, -1, -1):
-        x[i] = (x[i] - c[i] * x[i+1]) / d[i]
+        x[i] = (x[i] - c[i] * x[i + 1]) / d[i]
 
     return x

@@ -27,7 +27,7 @@ class _sfsTickLocator(matplotlib.ticker.Locator):
         tmin = max(vmin, dmin)
         tmax = min(vmax, dmax)
 
-        return numpy.array([round(tmin)+0.5, round(tmax)-0.5])
+        return numpy.array([round(tmin) + 0.5, round(tmax) - 0.5])
 #: Custom tick formatter
 _ctf = matplotlib.ticker.FuncFormatter(lambda x,pos: '%i' % (x-0.4))
 
@@ -51,10 +51,10 @@ def plot_1d_fs(fs, fig_num=None, show=True):
     if fig_num is None:
         fig = pylab.gcf()
     else:
-        fig = pylab.figure(fig_num, figsize=(7,7))
+        fig = pylab.figure(fig_num, figsize=(7, 7))
     fig.clear()
 
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
     ax.semilogy(fs, '-ob')
 
     ax.set_xlim(0, fs.sample_sizes[0])
@@ -105,7 +105,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(7,7))
+        f = pylab.figure(fig_num, figsize=(7, 7))
     pylab.clf()
 
     if data.folded and not model.folded:
@@ -113,7 +113,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
 
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
-    ax = pylab.subplot(2,1,1)
+    ax = pylab.subplot(2, 1, 1)
     pylab.semilogy(masked_data, '-ob')
     pylab.semilogy(masked_model, '-or')
 
@@ -121,7 +121,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
         pylab.semilogy(masked_data.data, '--ob', mfc='w', zorder=-100)
         pylab.semilogy(masked_model.data, '--or', mfc='w', zorder=-100)
 
-    pylab.subplot(2,1,2, sharex = ax)
+    pylab.subplot(2, 1, 2, sharex = ax)
     if residual == 'Anscombe':
         resid = Inference.Anscombe_Poisson_residual(masked_model, masked_data)
     elif residual == 'linear':
@@ -132,7 +132,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
     if plot_masked:
         pylab.plot(resid.data, '--og', mfc='w', zorder=-100)
 
-    ax.set_xlim(0, data.shape[0]-1)
+    ax.set_xlim(0, data.shape[0] - 1)
     if show:
         pylab.show()
 
@@ -168,13 +168,13 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
     if vmax / vmin > 10:
         # Under matplotlib 1.0.1, default LogFormatter omits some tick lines.
         # This works more consistently.
-        norm = matplotlib.colors.LogNorm(vmin=vmin*(1-1e-3), vmax=vmax*(1+1e-3))
+        norm = matplotlib.colors.LogNorm(vmin=vmin * (1-1e-3), vmax=vmax * (1+1e-3))
         format = matplotlib.ticker.LogFormatterMathtext()
     else:
-        norm = matplotlib.colors.Normalize(vmin=vmin*(1-1e-3), 
-                                           vmax=vmax*(1+1e-3))
+        norm = matplotlib.colors.Normalize(vmin=vmin * (1-1e-3), 
+                                           vmax=vmax * (1+1e-3))
         format = None
-    mappable=ax.pcolor(numpy.ma.masked_where(sfs<vmin, sfs), 
+    mappable=ax.pcolor(numpy.ma.masked_where(sfs < vmin, sfs), 
                        cmap=cmap, edgecolors='none',
                        norm=norm)
     cb = ax.figure.colorbar(mappable, extend=extend, format=format)
@@ -245,7 +245,7 @@ def plot_2d_resid(resid, resid_range=None, ax=None, pop_ids=None,
         except AttributeError:
             ax.figure.moments_colorbars = [cb]
 
-    ax.plot([0,resid.shape[1]],[0, resid.shape[0]], '-k', lw=0.2)
+    ax.plot([0, resid.shape[1]],[0, resid.shape[0]], '-k', lw=0.2)
 
     if pop_ids is None:
         if resid.pop_ids is not None:
@@ -333,7 +333,7 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(7,7))
+        f = pylab.figure(fig_num, figsize=(7, 7))
 
     pylab.clf()
     if adjust:
@@ -363,22 +363,22 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
         else:
             resid_pop_ids = None
 
-    ax = pylab.subplot(2,2,1)
+    ax = pylab.subplot(2, 2, 1)
     plot_single_2d_sfs(masked_data, vmin=vmin, vmax=vmax,
                        pop_ids=data_pop_ids, colorbar=False)
     ax.set_title('data')
 
-    ax2 = pylab.subplot(2,2,2, sharex=ax, sharey=ax)
+    ax2 = pylab.subplot(2, 2, 2, sharex=ax, sharey=ax)
     plot_single_2d_sfs(masked_model, vmin=vmin, vmax=vmax,
                        pop_ids=model_pop_ids, extend=extend)
     ax2.set_title('model')
 
     if residual == 'Anscombe':
         resid = Inference.Anscombe_Poisson_residual(masked_model, masked_data,
-                                              mask=vmin)
+                                                    mask=vmin)
     elif residual == 'linear':
         resid = Inference.linear_Poisson_residual(masked_model, masked_data,
-                                            mask=vmin)
+                                                  mask=vmin)
     else:
         raise ValueError("Unknown class of residual '%s'." % residual)
 
@@ -387,7 +387,7 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
     resid_extend = _extend_mapping[-resid_range <= resid.min(), 
                                    resid_range >= resid.max()]
 
-    ax3 = pylab.subplot(2,2,3, sharex=ax, sharey=ax)
+    ax3 = pylab.subplot(2, 2, 3, sharex=ax, sharey=ax)
     plot_2d_resid(resid, resid_range, pop_ids=resid_pop_ids,
                   extend=resid_extend)
     ax3.set_title('residuals')
@@ -462,7 +462,7 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(8,10))
+        f = pylab.figure(fig_num, figsize=(8, 10))
 
     pylab.clf()
     if adjust:
@@ -484,13 +484,13 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
     # Calculate the residuals
     if residual == 'Anscombe':
         resids = [Inference.\
-                  Anscombe_Poisson_residual(masked_model.sum(axis=2-sax), 
-                                            masked_data.sum(axis=2-sax), 
+                  Anscombe_Poisson_residual(masked_model.sum(axis=2 - sax), 
+                                            masked_data.sum(axis=2 - sax), 
                                             mask=vmin) for sax in range(3)]
     elif residual == 'linear':
         resids =[Inference.\
-                 linear_Poisson_residual(masked_model.sum(axis=2-sax), 
-                                         masked_data.sum(axis=2-sax), 
+                 linear_Poisson_residual(masked_model.sum(axis=2 - sax), 
+                                         masked_data.sum(axis=2 - sax), 
                                          mask=vmin) for sax in range(3)]
     else:
         raise ValueError("Unknown class of residual '%s'." % residual)
@@ -520,8 +520,8 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
             resid_ids = None
 
     for sax in range(3):
-        marg_data = masked_data.sum(axis=2-sax)
-        marg_model = masked_model.sum(axis=2-sax)
+        marg_data = masked_data.sum(axis=2 - sax)
+        marg_model = masked_model.sum(axis=2 - sax)
 
         curr_ids = []
         for ids in [data_ids, model_ids, resid_ids]:
@@ -530,25 +530,25 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
 
             if ids is not None:
                 ids = list(ids)
-                del ids[2-sax]
+                del ids[2 - sax]
 
             curr_ids.append(ids)
 
-        ax = pylab.subplot(4,3,sax+1)
+        ax = pylab.subplot(4, 3, sax + 1)
         plot_colorbar = (sax == 2)
         plot_single_2d_sfs(marg_data, vmin=vmin, vmax=vmax, pop_ids=curr_ids[0],
                            extend=extend, colorbar=plot_colorbar)
 
-        pylab.subplot(4,3,sax+4, sharex=ax, sharey=ax)
+        pylab.subplot(4, 3, sax + 4, sharex=ax, sharey=ax)
         plot_single_2d_sfs(marg_model, vmin=vmin, vmax=vmax, 
                            pop_ids=curr_ids[1], extend=extend, colorbar=False)
 
         resid = resids[sax]
-        pylab.subplot(4,3,sax+7, sharex=ax, sharey=ax)
+        pylab.subplot(4, 3, sax + 7, sharex=ax, sharey=ax)
         plot_2d_resid(resid, resid_range, pop_ids=curr_ids[2],
                       extend=resid_extend, colorbar=plot_colorbar)
 
-        ax = pylab.subplot(4,3,sax+10)
+        ax = pylab.subplot(4, 3, sax + 10)
         flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), 
                                    resid.ravel())
         ax.hist(flatresid, bins=20, normed=True)
@@ -597,50 +597,50 @@ def plot_3d_spectrum(fs, fignum=None, vmin=None, vmax=None, pop_ids=None,
     for ii in range(fs.shape[0]):
         for jj in range(fs.shape[1]):
             for kk in range(fs.shape[2]):
-                if not toplot[ii,jj,kk]:
+                if not toplot[ii, jj, kk]:
                     continue
-                if kk < fs.shape[2]-1 and toplot[ii,jj,kk+1]:
+                if kk < fs.shape[2] - 1 and toplot[ii, jj, kk + 1]:
                     pass
                 else:
-                    polys.append([[ii-0.5,jj+0.5,kk+0.5],[ii+0.5,jj+0.5,kk+0.5],
-                                  [ii+0.5,jj-0.5,kk+0.5],[ii-0.5,jj-0.5,kk+0.5]]
+                    polys.append([[ii - 0.5, jj + 0.5, kk + 0.5], [ii + 0.5, jj + 0.5, kk + 0.5],
+                                  [ii + 0.5, jj - 0.5, kk + 0.5], [ii - 0.5, jj - 0.5, kk + 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
-                if kk > 0 and toplot[ii,jj,kk-1]:
+                    polycolors.append(colors[ii, jj, kk])
+                if kk > 0 and toplot[ii, jj, kk - 1]:
                     pass
                 else:
-                    polys.append([[ii-0.5,jj+0.5,kk-0.5],[ii+0.5,jj+0.5,kk-0.5],
-                                  [ii+0.5,jj-0.5,kk-0.5],[ii-0.5,jj-0.5,kk-0.5]]
+                    polys.append([[ii - 0.5, jj + 0.5, kk - 0.5], [ii + 0.5, jj + 0.5, kk - 0.5],
+                                  [ii + 0.5, jj - 0.5, kk - 0.5], [ii - 0.5, jj - 0.5, kk - 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
-                if jj < fs.shape[1]-1 and toplot[ii,jj+1,kk]:
+                    polycolors.append(colors[ii, jj, kk])
+                if jj < fs.shape[1] - 1 and toplot[ii, jj + 1, kk]:
                     pass
                 else:
-                    polys.append([[ii-0.5,jj+0.5,kk+0.5],[ii+0.5,jj+0.5,kk+0.5],
-                                  [ii+0.5,jj+0.5,kk-0.5],[ii-0.5,jj+0.5,kk-0.5]]
+                    polys.append([[ii - 0.5, jj + 0.5, kk + 0.5], [ii + 0.5, jj + 0.5, kk + 0.5],
+                                  [ii + 0.5, jj + 0.5, kk - 0.5], [ii - 0.5, jj + 0.5, kk - 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
-                if jj > 0 and toplot[ii,jj-1,kk]:
+                    polycolors.append(colors[ii, jj, kk])
+                if jj > 0 and toplot[ii, jj - 1, kk]:
                     pass
                 else:
-                    polys.append([[ii-0.5,jj-0.5,kk+0.5],[ii+0.5,jj-0.5,kk+0.5],
-                                  [ii+0.5,jj-0.5,kk-0.5],[ii-0.5,jj-0.5,kk-0.5]]
+                    polys.append([[ii - 0.5, jj - 0.5, kk + 0.5], [ii + 0.5, jj - 0.5, kk + 0.5],
+                                  [ii + 0.5, jj - 0.5, kk - 0.5], [ii - 0.5, jj - 0.5, kk - 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
-                if ii < fs.shape[0]-1 and toplot[ii+1,jj,kk]:
+                    polycolors.append(colors[ii, jj, kk])
+                if ii < fs.shape[0] - 1 and toplot[ii + 1, jj, kk]:
                     pass
                 else:
-                    polys.append([[ii+0.5,jj-0.5,kk+0.5],[ii+0.5,jj+0.5,kk+0.5],
-                                  [ii+0.5,jj+0.5,kk-0.5],[ii+0.5,jj-0.5,kk-0.5]]
+                    polys.append([[ii + 0.5, jj - 0.5, kk + 0.5], [ii + 0.5, jj + 0.5, kk + 0.5],
+                                  [ii + 0.5, jj + 0.5, kk - 0.5], [ii + 0.5, jj - 0.5, kk - 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
-                if ii > 0 and toplot[ii-1,jj,kk]:
+                    polycolors.append(colors[ii, jj, kk])
+                if ii > 0 and toplot[ii - 1, jj, kk]:
                     pass
                 else:
-                    polys.append([[ii-0.5,jj-0.5,kk+0.5],[ii-0.5,jj+0.5,kk+0.5],
-                                  [ii-0.5,jj+0.5,kk-0.5],[ii-0.5,jj-0.5,kk-0.5]]
+                    polys.append([[ii - 0.5, jj - 0.5, kk + 0.5], [ii - 0.5, jj + 0.5, kk + 0.5],
+                                  [ii - 0.5, jj + 0.5, kk - 0.5], [ii - 0.5, jj - 0.5, kk - 0.5]]
                                  )
-                    polycolors.append(colors[ii,jj,kk])
+                    polycolors.append(colors[ii, jj, kk])
                     
 
     polycoll = mplot3d.art3d.Poly3DCollection(polys, facecolor=polycolors, 
@@ -648,15 +648,15 @@ def plot_3d_spectrum(fs, fignum=None, vmin=None, vmax=None, pop_ids=None,
     ax.add_collection(polycoll)
 
     # Set the limits
-    ax.set_xlim3d(-0.5,fs.shape[0]-0.5)
-    ax.set_ylim3d(-0.5,fs.shape[1]-0.5)
-    ax.set_zlim3d(-0.5,fs.shape[2]-0.5)
+    ax.set_xlim3d(-0.5, fs.shape[0] - 0.5)
+    ax.set_ylim3d(-0.5, fs.shape[1] - 0.5)
+    ax.set_zlim3d(-0.5, fs.shape[2] - 0.5)
 
     if pop_ids is None:
         if fs.pop_ids is not None:
             pop_ids = fs.pop_ids
         else:
-            pop_ids = ['pop0','pop1','pop2']
+            pop_ids = ['pop0', 'pop1', 'pop2']
     ax.set_xlabel(pop_ids[0], horizontalalignment='left')
     ax.set_ylabel(pop_ids[1], verticalalignment='bottom')
     ax.set_zlabel(pop_ids[2], verticalalignment='bottom')
@@ -688,7 +688,7 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
     """
     from enthought.mayavi import mlab
 
-    fig = mlab.figure(fignum, bgcolor=(1,1,1))
+    fig = mlab.figure(fignum, bgcolor=(1, 1, 1))
     mlab.clf(fig)
 
     if vmin is None:
@@ -705,7 +705,7 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
             /(numpy.log(vmax)-numpy.log(vmin))
     normalized = numpy.minimum(normalized, 1)
 
-    xs,ys,zs = numpy.indices(fs.shape)
+    xs, ys, zs = numpy.indices(fs.shape)
     flat_xs = xs.flatten()
     flat_ys = ys.flatten()
     flat_zs = zs.flatten()
@@ -720,15 +720,15 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
         if fs.pop_ids is not None:
             pop_ids = fs.pop_ids
         else:
-            pop_ids = ['pop0','pop1','pop2']
+            pop_ids = ['pop0', 'pop1', 'pop2']
 
-    a = mlab.axes(xlabel=pop_ids[0],ylabel=pop_ids[1],zlabel=pop_ids[2], 
-                  figure=fig, color=(0,0,0))
+    a = mlab.axes(xlabel=pop_ids[0], ylabel=pop_ids[1], zlabel=pop_ids[2], 
+                  figure=fig, color=(0, 0, 0))
     a.axes.label_format = ""
-    a.title_text_property.color = (0,0,0)
-    mlab.text3d(fs.sample_sizes[0],fs.sample_sizes[1],fs.sample_sizes[2]+1, 
-                '(%i,%i,%i)'%tuple(fs.sample_sizes), scale=0.75, figure=fig,
-                color=(0,0,0))
+    a.title_text_property.color = (0, 0, 0)
+    mlab.text3d(fs.sample_sizes[0], fs.sample_sizes[1], fs.sample_sizes[2] + 1, 
+                '(%i, %i, %i)'%tuple(fs.sample_sizes), scale=0.75, figure=fig,
+                color=(0, 0, 0))
     mlab.view(azimuth=-40, elevation=65, distance='auto', focalpoint='auto')
 
     if show:
@@ -794,7 +794,7 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(8,10))
+        f = pylab.figure(fig_num, figsize=(8, 10))
 
     pylab.clf()
     if adjust:
@@ -853,7 +853,7 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
             resid_ids = None
     cptr = 0
     for i in range(4):
-        for j in range(i+1, 4):
+        for j in range(i + 1, 4):
             ind = list(range(4))
             ind.remove(j)
             ind.remove(i)
@@ -870,22 +870,22 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
             
                 curr_ids.append(ids)
     
-            ax = pylab.subplot(4,6,cptr+1)
+            ax = pylab.subplot(4, 6, cptr + 1)
             plot_colorbar = (cptr == 5)
             
             plot_single_2d_sfs(marg_data, vmin=vmin, vmax=vmax, pop_ids=curr_ids[0],
                                extend=extend, colorbar=plot_colorbar)
             
-            pylab.subplot(4,6,cptr+7, sharex=ax, sharey=ax)
+            pylab.subplot(4, 6, cptr + 7, sharex=ax, sharey=ax)
             plot_single_2d_sfs(marg_model, vmin=vmin, vmax=vmax,
                                pop_ids=curr_ids[1], extend=extend, colorbar=False)
                            
             resid = resids[cptr]
-            pylab.subplot(4,6,cptr+13, sharex=ax, sharey=ax)
+            pylab.subplot(4, 6, cptr + 13, sharex=ax, sharey=ax)
             plot_2d_resid(resid, resid_range, pop_ids=curr_ids[2],
                           extend=resid_extend, colorbar=plot_colorbar)
                                        
-            ax = pylab.subplot(4,6,cptr+19)
+            ax = pylab.subplot(4, 6, cptr + 19)
             flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()),
                                        resid.ravel())
             ax.hist(flatresid, bins=20, normed=True)

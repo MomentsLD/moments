@@ -56,26 +56,26 @@ def trapz(yy, xx=None, dx=None, axis=-1):
     yy = numpy.asanyarray(yy)
     nd = yy.ndim
 
-    if yy.shape[axis] != (len(dx)+1):
+    if yy.shape[axis] != (len(dx) + 1):
         raise ValueError('Length of xx must be equal to length of yy along '
                          'specified axis. Here len(xx) = %i and '
-                         'yy.shape[axis] = %i.' % (len(dx)+1, yy.shape[axis]))
+                         'yy.shape[axis] = %i.' % (len(dx) + 1, yy.shape[axis]))
 
-    slice1 = [slice(None)]*nd
-    slice2 = [slice(None)]*nd
+    slice1 = [slice(None)] * nd
+    slice2 = [slice(None)] * nd
     slice1[axis] = slice(1,None)
-    slice2[axis] = slice(None,-1)
-    sliceX = [numpy.newaxis]*nd
+    slice2[axis] = slice(None, -1)
+    sliceX = [numpy.newaxis] * nd
     sliceX[axis] = slice(None)
 
-    return numpy.sum(dx[sliceX] * (yy[slice1]+yy[slice2])/2.0, axis=axis)
+    return numpy.sum(dx[sliceX] * (yy[slice1]+yy[slice2]) / 2.0, axis=axis)
 
 _projection_cache = {}
-def _lncomb(N,k):
+def _lncomb(N, k):
     """
     Log of N choose k.
     """
-    return gammaln(N+1) - gammaln(k+1) - gammaln(N-k+1)
+    return gammaln(N + 1) - gammaln(k + 1) - gammaln(N - k + 1)
 
 def _cached_projection(proj_to, proj_from, hits):
     """
@@ -94,17 +94,17 @@ def _cached_projection(proj_to, proj_from, hits):
     if numpy.isscalar(proj_to) and numpy.isscalar(proj_from)\
        and proj_from < proj_to:
         # Short-circuit calculation.
-        contrib = numpy.zeros(proj_to+1)
+        contrib = numpy.zeros(proj_to + 1)
     else:
         # We set numpy's error reporting so that it will ignore underflows, 
         # because those just imply that contrib is 0.
         previous_err_state = numpy.seterr(under='ignore', divide='raise',
                                           over='raise', invalid='raise')
-        proj_hits = numpy.arange(proj_to+1)
+        proj_hits = numpy.arange(proj_to + 1)
         # For large sample sizes, we need to do the calculation in logs, and it
         # is accurate enough for small sizes as well.
-        lncontrib = _lncomb(proj_to,proj_hits)
-        lncontrib += _lncomb(proj_from-proj_to,hits-proj_hits)
+        lncontrib = _lncomb(proj_to, proj_hits)
+        lncontrib += _lncomb(proj_from - proj_to, hits - proj_hits)
         lncontrib -= _lncomb(proj_from, hits)
         contrib = numpy.exp(lncontrib)
         numpy.seterr(**previous_err_state)
