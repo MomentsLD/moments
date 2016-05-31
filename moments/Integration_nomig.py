@@ -72,11 +72,11 @@ def ud2_2pop_2(sfs, slv):
 # 3D
 # step 1
 
-'''def ud1_3pop_1(sfs, Q):
+def ud1_3pop_1(sfs, Q):
     for i in range(int(sfs.shape[2])):
         for j in range(int(sfs.shape[1])):
             sfs[:, j, i] = Q[0].dot(sfs[:, j, i])
-    return sfs'''
+    return sfs
 
 def ud1_3pop_1(sfs, Q):
     dims = sfs.shape
@@ -84,22 +84,22 @@ def ud1_3pop_1(sfs, Q):
     sfs = Q[0].dot(sfs.reshape(dims[0], dim2)).reshape(dims)
     return sfs
 
-'''def ud1_3pop_2(sfs, Q):
+def ud1_3pop_2(sfs, Q):
     for i in range(int(sfs.shape[2])):
         for j in range(int(sfs.shape[0])):
             sfs[j, :, i] = Q[1].dot(sfs[j, :, i])
-    return sfs'''
+    return sfs
 
 def ud1_3pop_2(sfs, Q):
     Q = [Q[1]]
     sfs = ud1_3pop_1(np.transpose(sfs, (1, 0, 2)), Q)
     return np.transpose(sfs, (1, 0, 2))
 
-'''def ud1_3pop_3(sfs, Q):
+def ud1_3pop_3(sfs, Q):
     for i in range(int(sfs.shape[1])):
         for j in range(int(sfs.shape[0])):
             sfs[j, i, :] = Q[2].dot(sfs[j, i, :])
-    return sfs'''
+    return sfs
 
 def ud1_3pop_3(sfs, Q):
     Q = [Q[2]]
@@ -451,7 +451,7 @@ def update_step2_neutral(sfs, A, Di, C):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
 #   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0):
+def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0, adapt_tstep=True):
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -498,8 +498,19 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
+        dt = Tmax * dt_fac
         if t + dt > Tmax:
             dt = Tmax - t
+        
+        # timestep subdivision if the changes in population size are too fast
+        if callable(Npop) and adapt_tstep:
+            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
+                dt /= 2.0
+
+        # we update the value of N if a function was provided as argument
+        if callable(Npop):
+            N = np.array(Npop((t+dt) / 2.0))
+
         # we recompute the matrix only if N has changed...
         if (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
@@ -519,12 +530,10 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
             sfs = update_step2(sfs + dt*B, slv)
         Nold = N
         t += dt
-        # we update the value of N if a function was provided as argument
-        if callable(Npop):
-            N = np.array(Npop(t / 2.0))
+
     return Spectrum_mod.Spectrum(sfs)
 
-def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0):
+def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=True):
     sfs0 = np.array(sfs0)
     # parameters of the equation
     if callable(Npop):
@@ -552,8 +561,19 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0):
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
+        dt = Tmax * dt_fac
         if t + dt > Tmax:
             dt = Tmax - t
+
+        # timestep subdivision if the changes in population size are too fast
+        if callable(Npop) and adapt_tstep:
+            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
+                dt /= 2.0
+                
+        # we update the value of N if a function was provided as argument
+        if callable(Npop):
+            N = np.array(Npop((t+dt) / 2.0))
+            
         # we recompute the matrix only if N has changed...
         if (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
@@ -572,7 +592,5 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0):
             sfs = update_step2_neutral(sfs + dt*B, A, Di, C)
         Nold = N
         t += dt
-        # we update the value of N if a function was provided as argument
-        if callable(Npop):
-            N = np.array(Npop(t / 2.0))
+
     return Spectrum_mod.Spectrum(sfs)
