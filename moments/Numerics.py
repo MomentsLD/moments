@@ -204,3 +204,26 @@ def array_to_file(data, fid, precision=16, comment_lines = []):
     # Close file
     if newfile:
         fid.close()
+
+def check_function_regularity(function, t):
+    """
+    Method to check the regularity and monotony of a function.
+    May be usefull to warn the user if the population size evolves 
+    to fast or with monotony changes.
+
+    function: callable scalar function with taking 1 scalar argument.
+    t: scalar, final simulation time.
+    """
+    assert(callable(function))
+    nb_eval = 1000
+    dt = float(t) / (nb_eval-1)
+    ls = numpy.linspace(0, t, nb_eval)
+    # array of increments
+    relative_increase = numpy.array([(function(ls[i+1])-function(ls[i])) / dt
+                                     for i in range(nb_eval-1)])
+    
+    if (relative_increase > 0).any() and (relative_increase < 0).any():
+        logger.warn('Warning: non monotonic function!')
+
+    if (abs(relative_increase) > 5).any():
+        logger.warn('Warning: rapid changes in your function!')
