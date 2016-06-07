@@ -6,6 +6,8 @@ import os.path
 import moments
 import dadi
 
+from demographic_models_dadi import model_ooa_3D_extrap
+
 #--------------
 # dadi models :
 #--------------
@@ -50,7 +52,7 @@ def model_extrap3((nu1, nu2, nu3, t), (n1,n2,n3), (g, h, m), (pt1, pt2, pt3)):
 
 # population expansion for dadi models
 f = lambda x: 1+0.01*x
-n = 80
+n = 30
 #------------------------------
 # 1D neutral N varying , T = 1:
 #------------------------------
@@ -233,3 +235,18 @@ if not os.path.exists('limits/lim_3dsmf_t5_'+str(n)):
     sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (10*n, 15*n, 20*n))
     # export : 
     sfsd.to_file('limits/lim_3dsmf_t5_'+str(n))
+
+#-------------------
+# Out of africa 3D :
+#-------------------
+if not os.path.exists('limits/lim_ooa_3d_'+str(n)):
+    print('processing out of Africa 3D')
+    # parameters :
+    params = [6.87846000e-01, 7.52004000e-02, 9.54548000e-02, 9.29661000e-01,
+          3.55988000e-02, 2.01524000e+00, 1.49964000e+01, 7.64217000e-01,
+          3.76222364e-01, 3.02770000e+00, 1.35484000e-03, 7.71636000e-01,
+          2.42014000e-02]
+    # dadi limit : 
+    sfsd = model_ooa_3D_extrap(params, (n, n, n), (10*n, 15*n, 20*n))
+    # export : 
+    sfsd.to_file('limits/lim_ooa_3d_'+str(n))
