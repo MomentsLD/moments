@@ -1,6 +1,34 @@
 import numpy
 import dadi
 
+
+def model_YRI_CEU((nu1F, nu2B, nu2F, m, Tp, T), (n1,n2), pts):
+    # Define the grid we'll use
+    xx = yy = dadi.Numerics.default_grid(pts)
+
+    # phi for the equilibrium ancestral population
+    phi = dadi.PhiManip.phi_1D(xx)
+    # Now do the population growth event.
+    phi = dadi.Integration.one_pop(phi, xx, Tp, nu=nu1F)
+
+    # The divergence
+    phi = dadi.PhiManip.phi_1D_to_2D(xx, phi)
+    # We need to define a function to describe the non-constant population 2
+    # size. lambda is a convenient way to do so.
+    nu2_func = lambda t: nu2B*(nu2F/nu2B)**(t/T)
+    phi = dadi.Integration.two_pops(phi, xx, T, nu1=nu1F, nu2=nu2_func, 
+                                    m12=m, m21=m)
+    # Finally, calculate the spectrum.
+    sfs = dadi.Spectrum.from_phi(phi, (n1,n2), (xx,yy))
+    return sfs
+
+def model_YRI_CEU_extrap((nu1F, nu2B, nu2F, m, Tp, T), (n1,n2), (pts1, pts2, pts3)):
+    """ Richardson extrapolation version of the model above"""
+    model_extrap = dadi.Numerics.make_extrap_log_func(model_YRI_CEU)
+    sfs = model_extrap((nu1F, nu2B, nu2F, m, Tp, T), (n1,n2), [pts1, pts2, pts3])
+    return sfs
+
+
 def model_ooa_3D((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs, mAfB, mAfEu,
                  mAfAs, mEuAs, TAf, TB, TEuAs), (n1,n2,n3), pts):
     """A three-population model used to model out-of-Africa demography. swap describes the order in which we wish to output the Afr, Eur, Asian. (0,1,2) means [Afr, Eur, Asian], (1,2,0) means [Eur, As,Af] """

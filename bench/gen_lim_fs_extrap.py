@@ -6,7 +6,7 @@ import os.path
 import moments
 import dadi
 
-from demographic_models_dadi import model_ooa_3D_extrap
+from demographic_models_dadi import model_ooa_3D_extrap, model_YRI_CEU_extrap
 
 #--------------
 # dadi models :
@@ -52,7 +52,7 @@ def model_extrap3((nu1, nu2, nu3, t), (n1,n2,n3), (g, h, m), (pt1, pt2, pt3)):
 
 # population expansion for dadi models
 f = lambda x: 1+0.01*x
-n = 30
+n = 80
 #------------------------------
 # 1D neutral N varying , T = 1:
 #------------------------------
@@ -176,6 +176,34 @@ if not os.path.exists('limits/lim_2dsmf_t5_'+str(n)):
     # export : 
     sfsd.to_file('limits/lim_2dsmf_t5_'+str(n))
 
+#------------------------------------------------------
+# 2D selection and migration croissance rapide, T = 1 :
+#------------------------------------------------------
+if not os.path.exists('limits/lim_2dfg_t1_'+str(n)):
+    print('Selection, migration, croissance rapide 2D, T = 1')
+    # parameters :
+    T= 1.0
+    h = 0.7
+    g = 1.0
+    m = 2.0
+    fexp = lambda x: np.exp(np.log(10.0)*x)
+    # dadi limit : 
+    sfsd = model_extrap2((fexp, fexp, T), (n, n), (g, h, m), (30*n, 35*n, 40*n))
+    # export : 
+    sfsd.to_file('limits/lim_2dfg_t1_'+str(n))
+
+#---------
+# YRI CEU:
+#---------
+if not os.path.exists('limits/lim_2d_yri_ceu_'+str(n)):
+    print('computing limit for 2D, YRI-CEU')
+    # parameters :
+    params = [1.881, 0.0710, 1.845, 0.911, 0.355, 0.111]
+    # dadi limit : 
+    sfsd = model_YRI_CEU_extrap(params, (n, n), (30*n, 35*n, 40*n))
+    # export : 
+    sfsd.to_file('limits/lim_2d_yri_ceu_'+str(n))
+
 #------------------------------------
 # 3D selection, no migration, T = 1 :
 #------------------------------------
@@ -187,7 +215,7 @@ if not os.path.exists('limits/lim_3dsf_t1_'+str(n)):
     g = 1.0
     m = 0
     # dadi limit : 
-    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (10*n, 15*n, 20*n))
+    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (5*n, 6*n, 7*n))
     # export : 
     sfsd.to_file('limits/lim_3dsf_t1_'+str(n))
 
@@ -202,7 +230,7 @@ if not os.path.exists('limits/lim_3dsf_t5_'+str(n)):
     g = 1.0
     m = 0
     # dadi limit : 
-    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (10*n, 15*n, 20*n))
+    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (5*n, 6*n, 7*n))
     # export : 
     sfsd.to_file('limits/lim_3dsf_t5_'+str(n))
 
@@ -217,10 +245,10 @@ if not os.path.exists('limits/lim_3dsmf_t1_'+str(n)):
     g = 1.0
     m = 2.0
     # dadi limit : 
-    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (10*n, 15*n, 20*n))
+    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (5*n, 6*n, 7*n))
     # export : 
     sfsd.to_file('limits/lim_3dsmf_t1_'+str(n))
-
+'''
 #------------------------------------
 # 3D selection and migration, T = 5 :
 #------------------------------------
@@ -232,9 +260,25 @@ if not os.path.exists('limits/lim_3dsmf_t5_'+str(n)):
     g = 1.0
     m = 2.0
     # dadi limit : 
-    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (10*n, 15*n, 20*n))
+    sfsd = model_extrap3((f, f, f, T), (n, n, n), (g, h, m), (5*n, 6*n, 7*n))
     # export : 
     sfsd.to_file('limits/lim_3dsmf_t5_'+str(n))
+'''
+#------------------------------------------------------
+# 3D selection and migration croissance rapide, T = 1 :
+#------------------------------------------------------
+if not os.path.exists('limits/lim_3dfg_t1_'+str(n)):
+    print('Selection, migration, croissance rapide 3D, T = 1')
+    # parameters :
+    T= 1.0
+    h = 0.7
+    g = 1.0
+    m = 2.0
+    fexp = lambda x: np.exp(np.log(10.0)*x)
+    # dadi limit : 
+    sfsd = model_extrap3((fexp, fexp, fexp, T), (n, n, n), (g, h, m), (5*n, 6*n, 7*n))
+    # export : 
+    sfsd.to_file('limits/lim_3dfg_t1_'+str(n))
 
 #-------------------
 # Out of africa 3D :
@@ -247,6 +291,6 @@ if not os.path.exists('limits/lim_ooa_3d_'+str(n)):
           3.76222364e-01, 3.02770000e+00, 1.35484000e-03, 7.71636000e-01,
           2.42014000e-02]
     # dadi limit : 
-    sfsd = model_ooa_3D_extrap(params, (n, n, n), (10*n, 15*n, 20*n))
+    sfsd = model_ooa_3D_extrap(params, (n, n, n), (5*n, 6*n, 7*n))
     # export : 
     sfsd.to_file('limits/lim_ooa_3d_'+str(n))

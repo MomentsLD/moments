@@ -8,7 +8,7 @@ def format_data(arr):
     res = []
     for j in range(4):
         res_col = []
-        for i in range(3):
+        for i in range(2):
             if arr[i, j] == np.min(arr[:, j]):
                 res_col.append('\\textbf{'+"%.2e"%arr[i, j]+'}')
             else:
@@ -20,7 +20,7 @@ def format_data(arr):
     for i in range(3):
         res_col.append(str(int(arr[i, 4])))
     res.append(res_col)'''
-    res.append([str(int(arr[i, 4])) for i in range(3)])
+    res.append([str(int(arr[i, 4])) for i in range(2)])
     return np.array(res).transpose()
 
 
@@ -29,7 +29,7 @@ def generate_tex_table(data, names):
     with open('table.tex', 'w') as myfile:
         # header
         myfile.write('\\begin{table}[h!] \n \label{table:vs} \n \\begin{scriptsize} \n \\begin{tabular}{l|c|*{5}{c}} \n')
-        myfile.write('Demographic model & method & exec time (s) & KL div & max($\\varepsilon_r$) & $\Delta$ LL & $<0$ entries\\\ \n \hline \n')
+        myfile.write('Demographic model & method & exec time (s) & KL div & mean($\\varepsilon_r$) & $\Delta$ LL & $<0$ entries\\\ \n \hline \n')
         for i in range(len(names)):
             dt = np.array(data[i])
 
@@ -52,16 +52,16 @@ def generate_formated_table(data, names):
     with open('table.tex', 'w') as myfile:
         # header
         myfile.write('\\begin{table}[h!] \n \label{table:vs} \n \\begin{scriptsize} \n \\begin{tabular}{l|c|*{5}{c}} \n')
-        myfile.write('Demographic model & method & exec time (s) & KL div & max($\\varepsilon_r$) & $\Delta$ LL & $<0$ entries\\\ \n \hline \n')
+        myfile.write('Demographic model & method & exec time (s) & KL div & mean($\\varepsilon_r$) & $\Delta$ LL & $<0$ entries\\\ \n \hline \n')
         for i in range(len(names)):
             dt = format_data(data[i])
-
+            '''
             myfile.write('& $\dadi$ grid 1 & '+dt[0, 0]+' & '+dt[0, 1]
+                         +' & '+dt[0, 2]+' & '+dt[0, 3]+' & '+dt[0, 4]+' \\\ \n ')'''
+            myfile.write(names[i]+' & $\dadi$ extrapolation & '+dt[0, 0]+' & '+dt[0, 1]
                          +' & '+dt[0, 2]+' & '+dt[0, 3]+' & '+dt[0, 4]+' \\\ \n ')
-            myfile.write(names[i]+' & $\dadi$ extrapolation & '+dt[1, 0]+' & '+dt[1, 1]
-                         +' & '+dt[1, 2]+' & '+dt[1, 3]+' & '+dt[1, 4]+' \\\ \n ')
-            myfile.write(' & \\textit{Moments} & '+dt[2, 0]+' & '+dt[2, 1]
-                         +' & '+dt[2, 2]+' & '+dt[2, 3]+' & '+dt[2, 4]+' \\\ \n \hline \n')
+            myfile.write(' & \\textit{Moments} & '+dt[1, 0]+' & '+dt[1, 1]
+                         +' & '+dt[1, 2]+' & '+dt[1, 3]+' & '+dt[1, 4]+' \\\ \n \hline \n')
         # end of the table
         myfile.write('\end{tabular} \n \end{scriptsize}'
                      +'\caption{Performance comparisons between $\dadi$ and \\textit{Moments} on several scenarios. '

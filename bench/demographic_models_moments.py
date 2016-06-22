@@ -31,3 +31,21 @@ def model_ooa_3D((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs, mAfB, mAfEu,
     fs.integrate(nu2, [n1, n2, n3], TEuAs, 0.05, m=mig2)
                                 
     return fs
+
+def model_YRI_CEU((nu1F, nu2B, nu2F, m, Tp, T), (n1,n2)):
+    # f for the equilibrium ancestral population
+    sts = moments.LinearSystem_1D.steady_state_1D(n1+n2)
+    fs = moments.Spectrum(sts)
+
+    
+    # Now do the population growth event.
+    fs.integrate([nu1F], [n1+n2], Tp)#, dt_fac=0.01)
+
+    # The divergence
+    fs = moments.Manips.split_1D_to_2D(fs, n1, n2)
+    # We need to define a function to describe the non-constant population 2
+    # size. lambda is a convenient way to do so.
+    nu2_func = lambda t: [nu1F, nu2B*(nu2F/nu2B)**(t/T)]
+    fs.integrate(nu2_func, [n1, n2], T, 0.05, m=numpy.array([[0, m],[m, 0]]))
+
+    return fs
