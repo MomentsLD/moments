@@ -4,6 +4,7 @@ import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
+import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
@@ -448,15 +449,32 @@ def _permute(tab):
     return res
 
 # timestep computation 
-def compute_dt(N, s, h, m, dt_default):
-    N = np.amin(np.array(N))
-    sel1 = np.amax(abs(np.array(s) * np.array(h)))
-    sel2 = np.amax(abs(np.array(s)*(1-2.0*np.array(h))))
-    mig = np.amax(m)
-    eps = 10e-10 # to avoid division by zero
-    return min(dt_default, 0.75*min(2*N, 1.0 / (mig+eps),
+def compute_dt(sample_sizes, N, s, h, m, dt_default, factor=10.0):
+    sample_sizes = np.array(sample_sizes, dtype=np.float64)
+    N = np.amin(np.array(N)/sample_sizes)
+    sel1 = np.amax(abs(np.array(s) * np.array(h) * sample_sizes))
+    sel2 = np.amax(abs(np.array(s) * (1-2.0*np.array(h)) * sample_sizes))
+    mig = np.amax(m) * np.amax(sample_sizes)
+    eps = 10e-16 # to avoid division by zero
+    return min(dt_default, factor * min(2*N, 1.0 / (mig+eps),
                1.0 / (sel1+eps), 1.0 / (sel2+eps)))
 
+def compute_dt_bis(N, T, drift, selmig, dims):
+    if callable(N):
+        Nmin = N(0)#np.amin(N(0), N(T))
+    else:
+        Nmin = N
+    nbp = int(len(dims) * (len(dims)-1) / 2)
+    D = _buildD(drift, dims, Nmin)
+    Mat =  [(D[i] + selmig[i]).todense() for i in range(nbp)]
+    ev = [np.linalg.eigvals(Mat[i]) for i in range(nbp)]
+    return 0
+
+'''
+def calcul_dt(B, M):
+    factor = 30.0
+    diag = [factor/np.amax(abs(np.diag(M[i].todense()))) for i in range(len(M))]
+    return min(np.amin(diag), factor/np.amax(B))'''
 
 
 #--------------------
@@ -474,67 +492,7 @@ def compute_dt(N, s, h, m, dt_default):
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
-def integrate_1D(sfs0, Npop, n, tf, dt_fac=0.05, gamma=0.0, h=0.5, theta=1.0, adapt_tstep=True):
-    sfs0 = np.array(sfs0)
-    # parameters of the equation
-    if callable(Npop): N = np.array(Npop(0))
-    else: N = np.array(Npop)
-    
-    Nold = np.ones(len(N))
-    s = np.float(gamma)
-    h = np.float(h)
-    Tmax = tf * 2.0
-    dt = Tmax * dt_fac
-    u = theta / 4.0
-    # dimensions of the sfs
-    d = n[0] + 1
-    # we compute the matrices we will need
-    ljk = jk.calcJK13(int(d - 1))
-    ljk2 = jk.calcJK23(int(d - 1))
-    vd = ls1.calcD(d)
-    D = 1 / 4.0 / N[0] * vd
-    S1 = s * h * ls1.calcS(d, ljk)
-    S2 = s * (1-2.0*h) * ls1.calcS2(d, ljk2)
-    
-    # mutation term
-    B = np.zeros([d])
-    B[1] = (d-1) * u
-    
-    # time loop:
-    t = 0.0
-    sfs = sfs0
-    while t < Tmax:
-        dt_old = dt
-        dt = compute_dt(N, gamma, h, 0, Tmax * dt_fac)
-        if t+dt > Tmax: 
-            dt = Tmax-t
-
-        # timestep subdivision if the changes in population size are too fast
-        if callable(Npop) and adapt_tstep:
-            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0
-        # we update the value of N if a function was provided as argument
-        if callable(Npop):
-            N = np.array(Npop((t+dt) / 2.0))
-
-        # we recompute the matrix only if N has changed...
-        if t == 0.0 or Nold != N or dt != dt_old:
-            Dnew = 1 / 4.0 / N[0] * vd
-            
-            # system inversion for backward scheme
-            slv = linalg.factorized(sp.sparse.identity(S1.shape[0], dtype='float', format='csc')
-                                    - dt/2.0*(Dnew+S1+S2))
-            Q = sp.sparse.identity(S1.shape[0], dtype='float', format='csc') + dt/2.0*(D+S1+S2)
-        D = Dnew
-        # drift, selection and mutation
-        sfs = Q.dot(sfs)
-        sfs = slv(sfs + dt*B)
-        Nold = N
-        t += dt
-    
-    return Spectrum_mod.Spectrum(sfs)
-
-def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0, adapt_tstep=True):
+def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0, adapt_tstep=False):
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
@@ -542,10 +500,13 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
     
     sfs0 = np.array(sfs0)
     # parameters of the equation
-    if callable(Npop): N = np.array(Npop(0))
-    else: N = np.array(Npop)
+    if callable(Npop): 
+        N = np.array(Npop(0))
+    else: 
+        N = np.array(Npop)
     
     Nold = np.ones(len(N))
+    Neff = N
     mm = np.array(m) / 2.0
     s = np.array(gamma)
     h = np.array(h)
@@ -583,6 +544,10 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
     
     # indexes for the permutation trick
     order = list(range(nbp))
+
+    # time step computation
+    dt_bis = compute_dt_bis(Npop, Tmax, vd, [S1[i]+S2[i]+Mi[i]for i in range(nbp)], dims)
+
     # time step splitting
     split_dt = 1.0
     if len(n) > 2: split_dt = 2.0*len(n)
@@ -592,30 +557,27 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(N, gamma, h, m, Tmax * dt_fac)
-        if t+dt > Tmax: 
+        dt = compute_dt(sfs.shape, N, gamma, h, m, Tmax * dt_fac)
+        if t+dt > Tmax:
             dt = Tmax-t
-
         # timestep subdivision if the changes in population size are too fast
-        if callable(Npop) and adapt_tstep:
+        '''if callable(Npop) and adapt_tstep:
             while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0
-
+                dt /= 2.0'''
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
+            Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
 
         # we recompute the matrix only if N has changed...
         if t == 0.0 or (Nold != N).any() or dt != dt_old:
-            Dnew = _buildD(vd, dims, N)
-            
+            D = _buildD(vd, dims, Neff)
             # system inversion for backward scheme
             slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc') 
-                   - dt/2.0/split_dt*(1.0/(max(len(n), 2)-1)*(Dnew[i]+S1[i]+S2[i])+Mi[i])) for i in range(nbp)]
+                   - dt/2.0/split_dt*(1.0/(max(len(n), 2)-1)*(D[i]+S1[i]+S2[i])+Mi[i])) for i in range(nbp)]
             Q = [sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
                  + dt/2.0/split_dt*(1.0/(max(len(n), 2)-1)*(D[i]+S1[i]+S2[i])+Mi[i]) for i in range(nbp)]
-            D = Dnew
-        
+            
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)

@@ -40,6 +40,22 @@ def intersect_masks(m1, m2):
         m2 = moments.Spectrum(m2, mask=joint_mask.copy())
     return m1,m2
 
+def compute_N_effective(f, t0, t1):
+    """
+    Function to compute the effective population sizes considering drift 
+    between 2 time steps.
+
+    N is a function of time (1 scalar argument), it can be multi-dimensions.
+
+    t0 < t1 are scalars giving the time bounds of the integration step. 
+    """
+    # Number of points for the integration.
+    nb_pts = 10
+    step = float(t1-t0)/nb_pts
+    values = numpy.array([1.0/numpy.array(f(t0+i*step)) for i in range(nb_pts+1)])
+    res = numpy.sum(0.5*(values[0:-1] + values[1::])*step, axis=0)
+    return (t1-t0)/res
+
 def trapz(yy, xx=None, dx=None, axis=-1):
     """
     Integrate yy(xx) along given axis using the composite trapezoidal rule.
@@ -76,6 +92,7 @@ def _lncomb(N, k):
     Log of N choose k.
     """
     return gammaln(N + 1) - gammaln(k + 1) - gammaln(N - k + 1)
+
 
 def _cached_projection(proj_to, proj_from, hits):
     """

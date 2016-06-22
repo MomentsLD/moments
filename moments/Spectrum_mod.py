@@ -19,7 +19,7 @@ except ImportError:
 from scipy.integrate import trapz
 from scipy.special import betainc
 
-from moments.Integration import integrate_1D, integrate_nD
+from moments.Integration import integrate_nD
 from moments.Integration_nomig import integrate_nomig, integrate_neutral
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
@@ -1511,7 +1511,7 @@ def %(method)s(self, other):
 
     # spectrum integration
     # We chose the most efficient solver for each case
-    def integrate(self, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0):
+    def integrate(self, Npop, n, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0):
         if len(n)==1 :
             if gamma is None:
                 gamma = 0.0
@@ -1520,7 +1520,8 @@ def %(method)s(self, other):
             if gamma == 0:
                 self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
             else:
-                self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
+                #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
+                self.data[:] = integrate_nomig(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
         else:
             if gamma is None:
                 gamma = numpy.zeros(len(n))

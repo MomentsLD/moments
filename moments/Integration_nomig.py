@@ -4,6 +4,7 @@ import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
+import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import Tridiag_solve as ts
@@ -395,7 +396,17 @@ def _update_step2_neutral(sfs, A, Di, C):
     for i in range(len(sfs.shape)):
         sfs = eval('_udn2_'+str(len(sfs.shape))+'pop_'+str(i+1)+'(sfs, A, Di, C)')
     return sfs
+'''
+def calcul_dt(B, M):
+    factor = 30.0
+    diag = [factor/np.amax(abs(np.diag(M[i].todense()))) for i in range(len(M))]
+    return min(np.amin(diag), factor/np.amax(B))
 
+def calcul_dt_dense(B, M):
+    factor = 30.0
+    diag = [factor/np.amax(abs(np.diag(M[i]))) for i in range(len(M))]
+    return min(np.amin(diag), factor/np.amax(B))
+'''
 #--------------------
 # Integration in time
 #--------------------
@@ -413,7 +424,7 @@ def _update_step2_neutral(sfs, A, Di, C):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
 #   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0, adapt_tstep=True):
+def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0, adapt_tstep=False):
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -427,9 +438,19 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     else:
         N = np.array(Npop)
     
-    Nold = N + np.ones(len(N))
-    s = np.array(gamma)
-    h = np.array(h)
+    Nold = np.ones(len(N))
+    # effective pop size for the integration
+    Neff = N
+
+    # we convert s and h into numpy arrays 
+    if hasattr(gamma, "__len__"):
+        s = np.array(gamma)
+    else: 
+        s = np.array([gamma])
+    if hasattr(h, "__len__"):
+        h = np.array(h)
+    else:
+        h = np.array([h])
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
     u = theta / 4.0
@@ -443,7 +464,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     
     # drift
     vd = [ls1.calcD(np.array(dims[i])) for i in range(len(dims))]
-    
+    D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
     # selection part 1
     vs = [ls1.calcS(dims[i], ljk[i]) for i in range(len(n))]
     S1 = [s[i] * h[i] * vs[i] for i in range(len(n))]
@@ -451,7 +472,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     # selection part 2
     vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
     S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
-    
+
     # mutations
     B = _calcB(dims, u)
 
@@ -460,29 +481,29 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(N, gamma, h, 0, Tmax * dt_fac)
+        dt = compute_dt(sfs.shape, N, gamma, h, 0, Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
         
         # timestep subdivision if the changes in population size are too fast
-        if callable(Npop) and adapt_tstep:
+        '''if callable(Npop) and adapt_tstep:
             while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0
+                dt /= 2.0'''
 
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
+            Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
 
         # we recompute the matrix only if N has changed...
-        if (Nold != N).any() or dt != dt_old:
-            D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
-            
+        if t==0.0 or (Nold != N).any() or dt != dt_old:
+            D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(dims))]
             # system inversion for backward scheme
             slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
                    - dt/2.0*(D[i]+S1[i]+S2[i])) for i in range(len(n))]
             Q = [sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
                  + dt/2.0*(D[i]+S1[i]+S2[i]) for i in range(len(n))]
-
+            
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
@@ -495,7 +516,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
 
     return Spectrum_mod.Spectrum(sfs)
 
-def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=True):
+def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=False):
     sfs0 = np.array(sfs0)
     # parameters of the equation
     if callable(Npop):
@@ -503,7 +524,8 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=Tru
     else:
         N = np.array(Npop)
     
-    Nold = N + np.ones(len(N))
+    Nold = np.ones(len(N))
+    Neff = N
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
     u = theta / 4.0
@@ -514,7 +536,7 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=Tru
     # drift
     vd = [ls1.calcD_dense(dims[i]) for i in range(len(n))]
     diags = [ts.mat_to_diag(x) for x in vd]
-
+    D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
     # mutations
     B = _calcB(dims, u)
 
@@ -523,29 +545,31 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=Tru
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(N, 0, 0, 0, Tmax * dt_fac)
+        dt = compute_dt(sfs.shape, N, 0, 0, 0, Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
 
         # timestep subdivision if the changes in population size are too fast
-        if callable(Npop) and adapt_tstep:
+        '''if callable(Npop) and adapt_tstep:
             while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0
+                dt /= 2.0'''
                 
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
+            Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
             
         # we recompute the matrix only if N has changed...
-        if (Nold != N).any() or dt != dt_old:
-            D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
-            A = [-0.5 * dt/ 4 / N[i] * diags[i][0] for i in range(len(n))]
-            Di = [np.ones(dims[i])-0.5 * dt / 4 / N[i] * diags[i][1] for i in range(len(n))]
-            C = [-0.5 * dt/ 4 / N[i] * diags[i][2] for i in range(len(n))]
+        if t==0.0 or (Nold != N).any() or dt != dt_old:
+            D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(n))]
+            A = [-0.5 * dt/ 4 / Neff[i] * diags[i][0] for i in range(len(n))]
+            Di = [np.ones(dims[i])-0.5 * dt / 4 / Neff[i] * diags[i][1] for i in range(len(n))]
+            C = [-0.5 * dt/ 4 / Neff[i] * diags[i][2] for i in range(len(n))]
             # system inversion for backward scheme
             for i in range(len(n)):
                 ts.factor(A[i], Di[i], C[i])
             Q = [np.eye(dims[i]) + 0.5*dt*D[i] for i in range(len(n))]
+            
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
