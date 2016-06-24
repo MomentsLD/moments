@@ -10,3 +10,6 @@ build
 *.gz
 moments.egg-info
 .DS_Store
+
+UNKNOWN.egg-info/
+dist/

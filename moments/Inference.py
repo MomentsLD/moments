@@ -899,3 +899,90 @@ def add_misid_param(func):
         fs = func(params[:-1], *args, **kwargs)
         return (1-misid)*fs + misid*Numerics.reverse_array(fs)
     return misid_func
+
+def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
+                    verbose=0, flush_delay=0.5, xtol=1e-4, ftol=1e-4, 
+                    multinom=True, maxiter=None, maxfunc=None,
+                    full_output=False, func_args=[], func_kwargs={},
+                    fixed_params=None, ll_scale=1, output_file=None):
+    """
+    Optimize parameters using Powell's conjugate direction method.
+
+    This method works without calculating any derivatives, and optimizes along
+    one direction at a time. May be useful
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_func: Function to evaluate model spectrum. Should take arguments
+                (params, (n1,n2...)).
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0.
+    verbose: If > 0, print optimization status every <verbose> steps.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    xtol: Error tolerance for line search.
+    ftol: Relative error acceptable for convergence.
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum iterations to run for.
+    maxfunc: Maximum number of function evalutions.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_powell).
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, and its second argument is an array of sample sizes
+               for the sfs.
+               For example, you could define your model function as
+               def func((p1,p2), ns, f1, f2):
+                   ....
+               If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you
+               would pass func_args = [0.1,0.2].
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+                  For example, suppose your model function is 
+                  def func((p1,f1,p2,f2), ns):
+                      ....
+                  If you wanted to fix f1=0.1 and f2=0.2 in the optimization, 
+                  you would pass fixed_params = [None,0.1,None,0.2].
+    ll_scale: The algorithm may fail if your initial log-likelihood is
+              too large. To overcome this, pass ll_scale > 1, which will
+              simply reduce the magnitude of the log-likelihood. Once in a
+              region of reasonable likelihood, you'll probably want to
+              re-optimize with ll_scale=1.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, lower_bound, upper_bound, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
+            ll_scale, output_stream)
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin_powell(_object_func, p0, args=args,
+                                         xtol=xtol, ftol=ftol, maxiter=maxiter,
+                                         maxfun=maxfunc, disp=False,
+                                         full_output=True)
+    xopt, fopt, direc, iters, funcalls, warnflag = outputs
+    xopt = _project_params_up(xopt, fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    else:
+        return xopt, fopt, direc, iters, funcalls, warnflag
