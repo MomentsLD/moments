@@ -80,7 +80,7 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
                  verbose=0, flush_delay=0.5, epsilon=1e-3, 
                  gtol=1e-5, multinom=True, maxiter=None, full_output=False,
                  func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-                 output_file=None):
+                 output_file=None, retall=False):
     """
     Optimize log(params) to fit model to data using the BFGS method.
 
@@ -145,6 +145,7 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
               simply reduce the magnitude of the log-likelihood. Once in a
               region of reasonable likelihood, you'll probably want to
               re-optimize with ll_scale=1.
+    retall: If True, returns a list of results at each iteration.
     """
     if output_file:
         output_stream = file(output_file, 'w')
@@ -161,8 +162,12 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
                                        args = args, gtol=gtol, 
                                        full_output=True,
                                        disp=False,
-                                       maxiter=maxiter)
-    xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
+                                       maxiter=maxiter,
+                                       retall=retall)
+    if retall:
+        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs = outputs
+    else:
+        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
 
     if output_file:
@@ -170,6 +175,8 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
 
     if not full_output:
         return xopt
+    elif retall:
+        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs
     else:
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
@@ -292,6 +299,479 @@ def optimize_log_lbfgsb(p0, data, model_func,
     else:
         return xopt, fopt, info_dict
 
+def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
+                    verbose=0, flush_delay=0.5, xtol=1e-4, ftol=1e-4, 
+                    multinom=True, maxiter=None, maxfunc=None,
+                    full_output=False, func_args=[], func_kwargs={},
+                    fixed_params=None, ll_scale=1, output_file=None, retall=False):
+    """
+    Optimize parameters using Powell's conjugate direction method.
+
+    This method works without calculating any derivatives, and optimizes along
+    one direction at a time. May be useful as an initial search for an approximate
+    solution, followed by further optimization using a gradient optimizer.
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_func: Function to evaluate model spectrum. Should take arguments
+                (params, (n1,n2...)).
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0.
+    verbose: If > 0, print optimization status every <verbose> steps.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    xtol: Error tolerance for line search.
+    ftol: Relative error acceptable for convergence.
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum iterations to run for.
+    maxfunc: Maximum number of function evalutions.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_powell).
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, and its second argument is an array of sample sizes
+               for the sfs.
+               For example, you could define your model function as
+               def func((p1,p2), ns, f1, f2):
+                   ....
+               If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you
+               would pass func_args = [0.1,0.2].
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+                  For example, suppose your model function is 
+                  def func((p1,f1,p2,f2), ns):
+                      ....
+                  If you wanted to fix f1=0.1 and f2=0.2 in the optimization, 
+                  you would pass fixed_params = [None,0.1,None,0.2].
+    ll_scale: The algorithm may fail if your initial log-likelihood is
+              too large. To overcome this, pass ll_scale > 1, which will
+              simply reduce the magnitude of the log-likelihood. Once in a
+              region of reasonable likelihood, you'll probably want to
+              re-optimize with ll_scale=1.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    retall: If True, return a list of solutions at each iteration.
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, lower_bound, upper_bound, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
+            ll_scale, output_stream)
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin_powell(_object_func, p0, args=args,
+                                         xtol=xtol, ftol=ftol, maxiter=maxiter,
+                                         maxfun=maxfunc, disp=False,
+                                         full_output=True, retall=retall)
+    if retall:
+        xopt, fopt, direc, iters, funcalls, warnflag, allvecs = outputs
+    else:
+        xopt, fopt, direc, iters, funcalls, warnflag = outputs
+    xopt = _project_params_up(xopt, fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    elif retall:
+        return xopt, fopt, direc, iters, funcalls, warnflag, allvecs
+    else:
+        return xopt, fopt, direc, iters, funcalls, warnflag
+
+def optimize_log_fmin(p0, data, model_func,
+                      lower_bound=None, upper_bound=None,
+                      verbose=0, flush_delay=0.5, 
+                      multinom=True, maxiter=None, 
+                      full_output=False, func_args=[], 
+                      func_kwargs={},
+                      fixed_params=None, output_file=None, retall=False):
+    """
+    Optimize log(params) to fit model to data using Nelder-Mead. 
+
+    This optimization method may work better than BFGS when far from a
+    minimum. It is much slower, but more robust, because it doesn't use
+    gradient information.
+
+    Because this works in log(params), it cannot explore values of params < 0.
+    It should also perform better when parameters range over large scales.
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_function: Function to evaluate model spectrum. Should take arguments
+                    (params, (n1,n2...))
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    verbose: If True, print optimization status every <verbose> steps.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum iterations to run for.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_bfgs)
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, that its second argument is an array of sample sizes
+               for the sfs, and that its last argument is the list of grid
+               points to use in evaluation.
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+    retall: If True, return a list of solutions at each iteration.
+
+    (See help(moments.Inference.optimize_log for examples of func_args and 
+    fixed_params usage.)
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, lower_bound, upper_bound, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
+            output_stream)
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin(_object_func_log, numpy.log(p0), args = args,
+                                  disp=False, maxiter=maxiter, full_output=True,
+                                  retall=retall)
+    if retall:
+        xopt, fopt, iter, funcalls, warnflag, allvecs = outputs
+    else:
+        xopt, fopt, iter, funcalls, warnflag = outputs
+    xopt = _project_params_up(numpy.exp(xopt), fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    elif retall:
+        return xopt, fopt, iter, funcalls, warnflag, allvecs
+    else:
+        return xopt, fopt, iter, funcalls, warnflag 
+
+def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
+             verbose=0, flush_delay=0.5, epsilon=1e-3, 
+             gtol=1e-5, multinom=True, maxiter=None, full_output=False,
+             func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
+             output_file=None, retall=False):
+    """
+    Optimize params to fit model to data using the BFGS method.
+
+    This optimization method works well when we start reasonably close to the
+    optimum. It is best at burrowing down a single minimum.
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_function: Function to evaluate model spectrum. Should take arguments
+                    (params, (n1,n2...))
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0.
+    verbose: If > 0, print optimization status every <verbose> steps.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    epsilon: Step-size to use for finite-difference derivatives.
+    gtol: Convergence criterion for optimization. For more info, 
+          see help(scipy.optimize.fmin_bfgs)
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum iterations to run for.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_bfgs)
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, that its second argument is an array of sample sizes
+               for the sfs, and that its last argument is the list of grid
+               points to use in evaluation.
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+    (See help(moments.Inference.optimize_log for examples of func_args and 
+     fixed_params usage.)
+    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is
+              too large. (This appears to be a flaw in the scipy
+              implementation.) To overcome this, pass ll_scale > 1, which will
+              simply reduce the magnitude of the log-likelihood. Once in a
+              region of reasonable likelihood, you'll probably want to
+              re-optimize with ll_scale=1.
+    retall: If True, return a list of solutions at each iteration.
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, lower_bound, upper_bound, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
+            ll_scale, output_stream)
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin_bfgs(_object_func, p0, 
+                                       epsilon=epsilon,
+                                       args = args, gtol=gtol, 
+                                       full_output=True,
+                                       disp=False,
+                                       maxiter=maxiter,
+                                       retall=retall)
+    if retall:
+        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs = outputs
+    else:
+        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
+    xopt = _project_params_up(xopt, fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    elif retall:
+        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs
+    else:
+        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
+
+def optimize_lbfgsb(p0, data, model_func,
+                    lower_bound=None, upper_bound=None,
+                    verbose=0, flush_delay=0.5, epsilon=1e-3, 
+                    pgtol=1e-5, multinom=True, maxiter=1e5, full_output=False,
+                    func_args=[], func_kwargs={}, fixed_params=None, 
+                    ll_scale=1, output_file=None):
+    """
+    Optimize log(params) to fit model to data using the L-BFGS-B method.
+
+    This optimization method works well when we start reasonably close to the
+    optimum. It is best at burrowing down a single minimum. This method is
+    better than optimize_log if the optimum lies at one or more of the
+    parameter bounds. However, if your optimum is not on the bounds, this
+    method may be much slower.
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_function: Function to evaluate model spectrum. Should take arguments
+                    (params, (n1,n2...))
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    verbose: If > 0, print optimization status every <verbose> steps.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    epsilon: Step-size to use for finite-difference derivatives.
+    pgtol: Convergence criterion for optimization. For more info, 
+          see help(scipy.optimize.fmin_l_bfgs_b)
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum algorithm iterations evaluations to run.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_bfgs)
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, that its second argument is an array of sample sizes
+               for the sfs, and that its last argument is the list of grid
+               points to use in evaluation.
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+    (See help(moments.Inference.optimize_log for examples of func_args and 
+     fixed_params usage.)
+    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is
+              too large. (This appears to be a flaw in the scipy
+              implementation.) To overcome this, pass ll_scale > 1, which will
+              simply reduce the magnitude of the log-likelihood. Once in a
+              region of reasonable likelihood, you'll probably want to
+              re-optimize with ll_scale=1.
+
+    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge
+    Nocedal. The algorithm is described in:
+      * R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
+        Constrained Optimization, (1995), SIAM Journal on Scientific and
+        Statistical Computing , 16, 5, pp. 1190-1208.
+      * C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
+        FORTRAN routines for large scale bound constrained optimization (1997),
+        ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, None, None, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
+            ll_scale, output_stream)
+
+    # Make bounds list. For this method it needs to be in terms of log params.
+    if lower_bound is None:
+        lower_bound = [None] * len(p0)
+    lower_bound = _project_params_down(lower_bound, fixed_params)
+    if upper_bound is None:
+        upper_bound = [None] * len(p0)
+    upper_bound = _project_params_down(upper_bound, fixed_params)
+    bounds = list(zip(lower_bound, upper_bound))
+
+    p0 = _project_params_down(p0, fixed_params)
+
+    outputs = scipy.optimize.fmin_l_bfgs_b(_object_func, 
+                                           numpy.log(p0), bounds=bounds,
+                                           epsilon=epsilon, args=args,
+                                           iprint=-1, pgtol=pgtol,
+                                           maxfun=maxiter, approx_grad=True)
+    xopt, fopt, info_dict = outputs
+
+    xopt = _project_params_up(xopt, fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    else:
+        return xopt, fopt, info_dict
+
+index_exp = numpy.index_exp
+def optimize_grid(data, model_func, grid,
+                  verbose=0, flush_delay=0.5,
+                  multinom=True, full_output=False,
+                  func_args=[], func_kwargs={}, fixed_params=None,
+                  output_file=None):
+    """
+    Optimize params to fit model to data using brute force search over a grid.
+
+    data: Spectrum with data.
+    model_func: Function to evaluate model spectrum. Should take arguments
+                (params, (n1,n2...))
+    grid: Grid of parameter values over which to evaluate likelihood. See
+          below for specification instructions.
+    verbose: If > 0, print optimization status every <verbose> steps.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    full_output: If True, return popt, llopt, grid, llout, thetas. Here popt is
+                 the best parameter set found and llopt is the corresponding
+                 (composite) log-likelihood. grid is the array of parameter
+                 values tried, llout is the corresponding log-likelihoods, and
+                 thetas is the corresponding thetas. Note that the grid includes
+                 only the parameters optimized over, and that the order of
+                 indices is such that grid[:,0,2] would be a set of parameters
+                 if two parameters were optimized over. (Note the : in the
+                 first index.)
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, that its second argument is an array of sample sizes
+               for the sfs, and that its last argument is the list of grid
+               points to use in evaluation.
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+    (See help(moments.Inference.optimize_log for examples of func_args and 
+     fixed_params usage.)
+
+    Search grids are specified using a moments.Inference.index_exp object (which
+    is an alias for numpy.index_exp). The grid is specified by passing a range
+    of values for each parameter. For example, index_exp[0:1.1:0.3,
+    0.7:0.9:11j] will search over parameter 1 with values 0,0.3,0.6,0.9 and
+    over parameter 2 with 11 points between 0.7 and 0.9 (inclusive). (Notice
+    the 11j in the second parameter range specification.) Note that the grid
+    list should include only parameters that are optimized over, not fixed
+    parameter values.
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, None, None, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
+            output_stream, full_output)
+
+    if full_output:
+        global _theta_store
+        _theta_store = {}
+
+    outputs = scipy.optimize.brute(_object_func, ranges=grid,
+                                   args=args, full_output=full_output,
+                                   finish=False)
+    if full_output:
+        xopt, fopt, grid, fout = outputs
+        # Thetas are stored as a dictionary, because we can't guarantee
+        # iteration order in brute(). So we have to iterate back over them
+        # to produce the proper order to return.
+        thetas = numpy.zeros(fout.shape)
+        for indices, temp in numpy.ndenumerate(fout):
+            # This is awkward, because we need to access grid[:,indices]
+            grid_indices = tuple([slice(None,None,None)] + list(indices))
+            thetas[indices] = _theta_store[tuple(grid[grid_indices])]
+    else:
+        xopt = outputs
+    xopt = _project_params_up(xopt, fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    else:
+        return xopt, fopt, grid, fout, thetas
+
 def minus_ll(model, data):
     """
     The negative of the log-likelihood of the data given the model sfs.
@@ -370,7 +850,6 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
 
     return result
-
 
 def ll_multinom_per_bin(model, data):
     """
@@ -490,276 +969,6 @@ def optimal_sfs_scaling(model, data):
     model, data = Numerics.intersect_masks(model, data)
     return data.sum() / model.sum()
 
-def optimize_log_fmin(p0, data, model_func,
-                      lower_bound=None, upper_bound=None,
-                      verbose=0, flush_delay=0.5, 
-                      multinom=True, maxiter=None, 
-                      full_output=False, func_args=[], 
-                      func_kwargs={},
-                      fixed_params=None, output_file=None):
-    """
-    Optimize log(params) to fit model to data using Nelder-Mead. 
-
-    This optimization method may work better than BFGS when far from a
-    minimum. It is much slower, but more robust, because it doesn't use
-    gradient information.
-
-    Because this works in log(params), it cannot explore values of params < 0.
-    It should also perform better when parameters range over large scales.
-
-    p0: Initial parameters.
-    data: Spectrum with data.
-    model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...))
-    lower_bound: Lower bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
-    upper_bound: Upper bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
-    verbose: If True, print optimization status every <verbose> steps.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
-    flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
-    maxiter: Maximum iterations to run for.
-    full_output: If True, return full outputs as in described in 
-                 help(scipy.optimize.fmin_bfgs)
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, that its second argument is an array of sample sizes
-               for the sfs, and that its last argument is the list of grid
-               points to use in evaluation.
-    func_kwargs: Additional keyword arguments to model_func.
-    fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-    (See help(moments.Inference.optimize_log for examples of func_args and 
-     fixed_params usage.)
-    """
-    if output_file:
-        output_stream = file(output_file, 'w')
-    else:
-        output_stream = sys.stdout
-
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
-            output_stream)
-
-    p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin(_object_func_log, numpy.log(p0), args = args,
-                                  disp=False, maxiter=maxiter, full_output=True)
-    xopt, fopt, iter, funcalls, warnflag = outputs
-    xopt = _project_params_up(numpy.exp(xopt), fixed_params)
-
-    if output_file:
-        output_stream.close()
-
-    if not full_output:
-        return xopt
-    else:
-        return xopt, fopt, iter, funcalls, warnflag 
-
-def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
-             verbose=0, flush_delay=0.5, epsilon=1e-3, 
-             gtol=1e-5, multinom=True, maxiter=None, full_output=False,
-             func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-             output_file=None):
-    """
-    Optimize params to fit model to data using the BFGS method.
-
-    This optimization method works well when we start reasonably close to the
-    optimum. It is best at burrowing down a single minimum.
-
-    p0: Initial parameters.
-    data: Spectrum with data.
-    model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...))
-    lower_bound: Lower bound on parameter values. If not None, must be of same
-                 length as p0.
-    upper_bound: Upper bound on parameter values. If not None, must be of same
-                 length as p0.
-    verbose: If > 0, print optimization status every <verbose> steps.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
-    flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    epsilon: Step-size to use for finite-difference derivatives.
-    gtol: Convergence criterion for optimization. For more info, 
-          see help(scipy.optimize.fmin_bfgs)
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
-    maxiter: Maximum iterations to run for.
-    full_output: If True, return full outputs as in described in 
-                 help(scipy.optimize.fmin_bfgs)
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, that its second argument is an array of sample sizes
-               for the sfs, and that its last argument is the list of grid
-               points to use in evaluation.
-    func_kwargs: Additional keyword arguments to model_func.
-    fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-    (See help(moments.Inference.optimize_log for examples of func_args and 
-     fixed_params usage.)
-    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is
-              too large. (This appears to be a flaw in the scipy
-              implementation.) To overcome this, pass ll_scale > 1, which will
-              simply reduce the magnitude of the log-likelihood. Once in a
-              region of reasonable likelihood, you'll probably want to
-              re-optimize with ll_scale=1.
-    """
-    if output_file:
-        output_stream = file(output_file, 'w')
-    else:
-        output_stream = sys.stdout
-
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
-
-    p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_bfgs(_object_func, p0, 
-                                       epsilon=epsilon,
-                                       args = args, gtol=gtol, 
-                                       full_output=True,
-                                       disp=False,
-                                       maxiter=maxiter)
-    xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
-    xopt = _project_params_up(xopt, fixed_params)
-
-    if output_file:
-        output_stream.close()
-
-    if not full_output:
-        return xopt
-    else:
-        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
-
-
-def optimize_lbfgsb(p0, data, model_func,
-                    lower_bound=None, upper_bound=None,
-                    verbose=0, flush_delay=0.5, epsilon=1e-3, 
-                    pgtol=1e-5, multinom=True, maxiter=1e5, full_output=False,
-                    func_args=[], func_kwargs={}, fixed_params=None, 
-                    ll_scale=1, output_file=None):
-    """
-    Optimize log(params) to fit model to data using the L-BFGS-B method.
-
-    This optimization method works well when we start reasonably close to the
-    optimum. It is best at burrowing down a single minimum. This method is
-    better than optimize_log if the optimum lies at one or more of the
-    parameter bounds. However, if your optimum is not on the bounds, this
-    method may be much slower.
-
-    p0: Initial parameters.
-    data: Spectrum with data.
-    model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...))
-    lower_bound: Lower bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
-    upper_bound: Upper bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
-    verbose: If > 0, print optimization status every <verbose> steps.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
-    flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    epsilon: Step-size to use for finite-difference derivatives.
-    pgtol: Convergence criterion for optimization. For more info, 
-          see help(scipy.optimize.fmin_l_bfgs_b)
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
-    maxiter: Maximum algorithm iterations evaluations to run.
-    full_output: If True, return full outputs as in described in 
-                 help(scipy.optimize.fmin_bfgs)
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, that its second argument is an array of sample sizes
-               for the sfs, and that its last argument is the list of grid
-               points to use in evaluation.
-    func_kwargs: Additional keyword arguments to model_func.
-    fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-    (See help(moments.Inference.optimize_log for examples of func_args and 
-     fixed_params usage.)
-    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is
-              too large. (This appears to be a flaw in the scipy
-              implementation.) To overcome this, pass ll_scale > 1, which will
-              simply reduce the magnitude of the log-likelihood. Once in a
-              region of reasonable likelihood, you'll probably want to
-              re-optimize with ll_scale=1.
-
-    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge
-    Nocedal. The algorithm is described in:
-      * R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
-        Constrained Optimization, (1995), SIAM Journal on Scientific and
-        Statistical Computing , 16, 5, pp. 1190-1208.
-      * C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
-        FORTRAN routines for large scale bound constrained optimization (1997),
-        ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
-    """
-    if output_file:
-        output_stream = file(output_file, 'w')
-    else:
-        output_stream = sys.stdout
-
-    args = (data, model_func, None, None, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
-
-    # Make bounds list. For this method it needs to be in terms of log params.
-    if lower_bound is None:
-        lower_bound = [None] * len(p0)
-    lower_bound = _project_params_down(lower_bound, fixed_params)
-    if upper_bound is None:
-        upper_bound = [None] * len(p0)
-    upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound, upper_bound))
-
-    p0 = _project_params_down(p0, fixed_params)
-
-    outputs = scipy.optimize.fmin_l_bfgs_b(_object_func, 
-                                           numpy.log(p0), bounds=bounds,
-                                           epsilon=epsilon, args=args,
-                                           iprint=-1, pgtol=pgtol,
-                                           maxfun=maxiter, approx_grad=True)
-    xopt, fopt, info_dict = outputs
-
-    xopt = _project_params_up(xopt, fixed_params)
-
-    if output_file:
-        output_stream.close()
-
-    if not full_output:
-        return xopt
-    else:
-        return xopt, fopt, info_dict
-
 def _project_params_down(pin, fixed_params):
     """
     Eliminate fixed parameters from pin.
@@ -798,191 +1007,9 @@ def _project_params_up(pin, fixed_params):
             pout[out_ii] = fixed_params[out_ii]
     return pout
 
-index_exp = numpy.index_exp
-def optimize_grid(data, model_func, grid,
-                  verbose=0, flush_delay=0.5,
-                  multinom=True, full_output=False,
-                  func_args=[], func_kwargs={}, fixed_params=None,
-                  output_file=None):
-    """
-    Optimize params to fit model to data using brute force search over a grid.
-
-    data: Spectrum with data.
-    model_func: Function to evaluate model spectrum. Should take arguments
-                (params, (n1,n2...))
-    grid: Grid of parameter values over which to evaluate likelihood. See
-          below for specification instructions.
-    verbose: If > 0, print optimization status every <verbose> steps.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
-    flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
-    full_output: If True, return popt, llopt, grid, llout, thetas. Here popt is
-                 the best parameter set found and llopt is the corresponding
-                 (composite) log-likelihood. grid is the array of parameter
-                 values tried, llout is the corresponding log-likelihoods, and
-                 thetas is the corresponding thetas. Note that the grid includes
-                 only the parameters optimized over, and that the order of
-                 indices is such that grid[:,0,2] would be a set of parameters
-                 if two parameters were optimized over. (Note the : in the
-                 first index.)
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, that its second argument is an array of sample sizes
-               for the sfs, and that its last argument is the list of grid
-               points to use in evaluation.
-    func_kwargs: Additional keyword arguments to model_func.
-    fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-    (See help(moments.Inference.optimize_log for examples of func_args and 
-     fixed_params usage.)
-
-    Search grids are specified using a moments.Inference.index_exp object (which
-    is an alias for numpy.index_exp). The grid is specified by passing a range
-    of values for each parameter. For example, index_exp[0:1.1:0.3,
-    0.7:0.9:11j] will search over parameter 1 with values 0,0.3,0.6,0.9 and
-    over parameter 2 with 11 points between 0.7 and 0.9 (inclusive). (Notice
-    the 11j in the second parameter range specification.) Note that the grid
-    list should include only parameters that are optimized over, not fixed
-    parameter values.
-    """
-    if output_file:
-        output_stream = file(output_file, 'w')
-    else:
-        output_stream = sys.stdout
-
-    args = (data, model_func, None, None, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
-            output_stream, full_output)
-
-    if full_output:
-        global _theta_store
-        _theta_store = {}
-
-    outputs = scipy.optimize.brute(_object_func, ranges=grid,
-                                   args=args, full_output=full_output,
-                                   finish=False)
-    if full_output:
-        xopt, fopt, grid, fout = outputs
-        # Thetas are stored as a dictionary, because we can't guarantee
-        # iteration order in brute(). So we have to iterate back over them
-        # to produce the proper order to return.
-        thetas = numpy.zeros(fout.shape)
-        for indices, temp in numpy.ndenumerate(fout):
-            # This is awkward, because we need to access grid[:,indices]
-            grid_indices = tuple([slice(None,None,None)] + list(indices))
-            thetas[indices] = _theta_store[tuple(grid[grid_indices])]
-    else:
-        xopt = outputs
-    xopt = _project_params_up(xopt, fixed_params)
-
-    if output_file:
-        output_stream.close()
-
-    if not full_output:
-        return xopt
-    else:
-        return xopt, fopt, grid, fout, thetas
-
 def add_misid_param(func):
     def misid_func(params, *args, **kwargs):
         misid = params[-1]
         fs = func(params[:-1], *args, **kwargs)
         return (1-misid)*fs + misid*Numerics.reverse_array(fs)
     return misid_func
-
-def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
-                    verbose=0, flush_delay=0.5, xtol=1e-4, ftol=1e-4, 
-                    multinom=True, maxiter=None, maxfunc=None,
-                    full_output=False, func_args=[], func_kwargs={},
-                    fixed_params=None, ll_scale=1, output_file=None):
-    """
-    Optimize parameters using Powell's conjugate direction method.
-
-    This method works without calculating any derivatives, and optimizes along
-    one direction at a time. May be useful
-
-    p0: Initial parameters.
-    data: Spectrum with data.
-    model_func: Function to evaluate model spectrum. Should take arguments
-                (params, (n1,n2...)).
-    lower_bound: Lower bound on parameter values. If not None, must be of same
-                 length as p0.
-    upper_bound: Upper bound on parameter values. If not None, must be of same
-                 length as p0.
-    verbose: If > 0, print optimization status every <verbose> steps.
-    flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    xtol: Error tolerance for line search.
-    ftol: Relative error acceptable for convergence.
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
-    maxiter: Maximum iterations to run for.
-    maxfunc: Maximum number of function evalutions.
-    full_output: If True, return full outputs as in described in 
-                 help(scipy.optimize.fmin_powell).
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, and its second argument is an array of sample sizes
-               for the sfs.
-               For example, you could define your model function as
-               def func((p1,p2), ns, f1, f2):
-                   ....
-               If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you
-               would pass func_args = [0.1,0.2].
-    func_kwargs: Additional keyword arguments to model_func.
-    fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-                  For example, suppose your model function is 
-                  def func((p1,f1,p2,f2), ns):
-                      ....
-                  If you wanted to fix f1=0.1 and f2=0.2 in the optimization, 
-                  you would pass fixed_params = [None,0.1,None,0.2].
-    ll_scale: The algorithm may fail if your initial log-likelihood is
-              too large. To overcome this, pass ll_scale > 1, which will
-              simply reduce the magnitude of the log-likelihood. Once in a
-              region of reasonable likelihood, you'll probably want to
-              re-optimize with ll_scale=1.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
-    """
-    if output_file:
-        output_stream = file(output_file, 'w')
-    else:
-        output_stream = sys.stdout
-
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
-
-    p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_powell(_object_func, p0, args=args,
-                                         xtol=xtol, ftol=ftol, maxiter=maxiter,
-                                         maxfun=maxfunc, disp=False,
-                                         full_output=True)
-    xopt, fopt, direc, iters, funcalls, warnflag = outputs
-    xopt = _project_params_up(xopt, fixed_params)
-
-    if output_file:
-        output_stream.close()
-
-    if not full_output:
-        return xopt
-    else:
-        return xopt, fopt, direc, iters, funcalls, warnflag
