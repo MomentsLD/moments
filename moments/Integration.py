@@ -470,11 +470,28 @@ def compute_dt_bis(N, T, drift, selmig, dims):
     ev = [np.linalg.eigvals(Mat[i]) for i in range(nbp)]
     return 0
 
-'''
-def calcul_dt(B, M):
-    factor = 30.0
-    diag = [factor/np.amax(abs(np.diag(M[i].todense()))) for i in range(len(M))]
-    return min(np.amin(diag), factor/np.amax(B))'''
+def _compute_dt_1pop(N, m, s, h, timescale_factor=0.15):
+    maxVM = max(0.25/N, max(m),\
+                abs(s) * 2*max(np.abs(h + (1-2*h)*0.5) * 0.5*(1-0.5),
+                                   np.abs(h + (1-2*h)*0.25) * 0.25*(1-0.25)))
+    if maxVM > 0:
+        dt = timescale_factor / maxVM
+    else:
+        dt = np.inf
+    if dt == 0:
+        raise ValueError('Timestep is zero. Values passed in are N=%f, m=%s,'
+                         's=%f, h=%f.' % (N, str(m), s, h))
+    return dt
+
+def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
+    if m is None:
+        m = np.zeros([len(N), len(N)])
+    if s is None:
+        s = np.zeros(len(N))
+    if h is None:
+        h = 0.5*np.ones(len(N))
+    timesteps = [_compute_dt_1pop(N[i], m[i, :], s[i], h[i], timescale_factor) for i in range(len(N))]
+    return min(timesteps)
 
 
 #--------------------
@@ -492,7 +509,7 @@ def calcul_dt(B, M):
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
-def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, theta=1.0, adapt_tstep=False):
+def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_tstep=False):
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
@@ -545,9 +562,6 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
     # indexes for the permutation trick
     order = list(range(nbp))
 
-    # time step computation
-    dt_bis = compute_dt_bis(Npop, Tmax, vd, [S1[i]+S2[i]+Mi[i]for i in range(nbp)], dims)
-
     # time step splitting
     split_dt = 1.0
     if len(n) > 2: split_dt = 2.0*len(n)
@@ -557,7 +571,8 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, m=None, the
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(sfs.shape, N, gamma, h, m, Tmax * dt_fac)
+        #dt = compute_dt(sfs.shape, N, gamma, h, m, Tmax * dt_fac)
+        dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
         if t+dt > Tmax:
             dt = Tmax-t
         # timestep subdivision if the changes in population size are too fast

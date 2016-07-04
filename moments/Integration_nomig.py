@@ -407,6 +407,7 @@ def calcul_dt_dense(B, M):
     diag = [factor/np.amax(abs(np.diag(M[i]))) for i in range(len(M))]
     return min(np.amin(diag), factor/np.amax(B))
 '''
+
 #--------------------
 # Integration in time
 #--------------------
@@ -424,7 +425,7 @@ def calcul_dt_dense(B, M):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
 #   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.0, adapt_tstep=False):
+def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -468,7 +469,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     # selection part 1
     vs = [ls1.calcS(dims[i], ljk[i]) for i in range(len(n))]
     S1 = [s[i] * h[i] * vs[i] for i in range(len(n))]
-    
+
     # selection part 2
     vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
     S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
@@ -481,7 +482,8 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(sfs.shape, N, gamma, h, 0, Tmax * dt_fac)
+        #dt = compute_dt(sfs.shape, N, gamma, h, 0, Tmax * dt_fac)
+        dt = min(compute_dt(N, s=s, h=h), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
         
@@ -503,7 +505,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
                    - dt/2.0*(D[i]+S1[i]+S2[i])) for i in range(len(n))]
             Q = [sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc')
                  + dt/2.0*(D[i]+S1[i]+S2[i]) for i in range(len(n))]
-            
+
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
@@ -516,7 +518,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.05, gamma=None, h=None, theta=1.
 
     return Spectrum_mod.Spectrum(sfs)
 
-def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=False):
+def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
     sfs0 = np.array(sfs0)
     # parameters of the equation
     if callable(Npop):
@@ -545,7 +547,8 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.05, theta=1.0, adapt_tstep=Fal
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
-        dt = compute_dt(sfs.shape, N, 0, 0, 0, Tmax * dt_fac)
+        #dt = compute_dt(sfs.shape, N, 0, 0, 0, Tmax * dt_fac)
+        dt = min(compute_dt(N), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
 
