@@ -19,7 +19,7 @@ _theta_store = {}
 _counter = 0
 #: Returned when object_func is passed out-of-bounds params or gets a NaN ll.
 _out_of_bounds_val = -1e8
-def _object_func(params, data, model_func,
+def _object_func(params, data, model_func, 
                  lower_bound=None, upper_bound=None, 
                  verbose=0, multinom=True, flush_delay=0,
                  func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
@@ -37,16 +37,15 @@ def _object_func(params, data, model_func,
     if lower_bound is not None:
         for pval,bound in zip(params_up, lower_bound):
             if bound is not None and pval < bound:
-                return -_out_of_bounds_val / ll_scale
+                return -_out_of_bounds_val/ll_scale
     if upper_bound is not None:
         for pval,bound in zip(params_up, upper_bound):
             if bound is not None and pval > bound:
-                return -_out_of_bounds_val / ll_scale
+                return -_out_of_bounds_val/ll_scale
 
     ns = data.sample_sizes 
     all_args = [params_up, ns] + list(func_args)
-    # Pass the pts argument via keyword, but don't alter the passed-in 
-    # func_kwargs
+
     func_kwargs = func_kwargs.copy()
     sfs = model_func(*all_args, **func_kwargs)
     if multinom:
@@ -68,7 +67,7 @@ def _object_func(params, data, model_func,
                                                    os.linesep))
         Misc.delayed_flush(delay=flush_delay)
 
-    return -result / ll_scale
+    return -result/ll_scale
 
 def _object_func_log(log_params, *args, **kwargs):
     """
@@ -80,7 +79,7 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
                  verbose=0, flush_delay=0.5, epsilon=1e-3, 
                  gtol=1e-5, multinom=True, maxiter=None, full_output=False,
                  func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-                 output_file=None, retall=False):
+                 output_file=None):
     """
     Optimize log(params) to fit model to data using the BFGS method.
 
@@ -145,7 +144,6 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
               simply reduce the magnitude of the log-likelihood. Once in a
               region of reasonable likelihood, you'll probably want to
               re-optimize with ll_scale=1.
-    retall: If True, returns a list of results at each iteration.
     """
     if output_file:
         output_stream = file(output_file, 'w')
@@ -162,12 +160,8 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
                                        args = args, gtol=gtol, 
                                        full_output=True,
                                        disp=False,
-                                       maxiter=maxiter,
-                                       retall=retall)
-    if retall:
-        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs = outputs
-    else:
-        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
+                                       maxiter=maxiter)
+    xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
 
     if output_file:
@@ -175,8 +169,6 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
 
     if not full_output:
         return xopt
-    elif retall:
-        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs
     else:
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
@@ -278,7 +270,7 @@ def optimize_log_lbfgsb(p0, data, model_func,
         upper_bound = numpy.log(upper_bound)
         upper_bound[numpy.isnan(upper_bound)] = None
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound, upper_bound))
+    bounds = list(zip(lower_bound,upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 
@@ -298,6 +290,282 @@ def optimize_log_lbfgsb(p0, data, model_func,
         return xopt
     else:
         return xopt, fopt, info_dict
+
+def minus_ll(model, data):
+    """
+    The negative of the log-likelihood of the data given the model sfs.
+    """
+    return -ll(model, data)
+
+def ll(model, data):
+    """
+    The log-likelihood of the data given the model sfs.
+
+    Evaluate the log-likelihood of the data given the model. This is based on
+    Poisson statistics, where the probability of observing k entries in a cell
+    given that the mean number is given by the model is 
+    P(k) = exp(-model) * model**k / k!
+
+    Note: If either the model or the data is a masked array, the return ll will
+          ignore any elements that are masked in *either* the model or the data.
+    """
+    ll_arr = ll_per_bin(model, data)
+    return ll_arr.sum()
+
+def ll_per_bin(model, data, missing_model_cutoff=1e-6):
+    """
+    The Poisson log-likelihood of each entry in the data given the model sfs.
+
+    missing_model_cutoff: Due to numerical issues, there may be entries in the
+                          FS that cannot be stable calculated. If these entries
+                          involve a fraction of the data larger than
+                          missing_model_cutoff, a warning is printed.
+    """
+    if data.folded and not model.folded:
+        model = model.fold()
+
+    # Using numpy.ma.log here ensures that any negative or nan entries in model
+    # yield masked entries in result. We can then check for correctness of
+    # calculation by simply comparing masks.
+    # Note: Using .data attributes directly saves a little computation time. We
+    # use model and data as a whole at least once, to ensure masking is done
+    # properly.
+    result = -model.data + data.data*model.log() - gammaln(data + 1.)
+    if numpy.all(result.mask == data.mask):
+        return result
+
+    not_data_mask = logical_not(data.mask)
+    data_sum = data.sum()
+
+    missing = logical_and(model < 0, not_data_mask)
+    if numpy.any(missing)\
+       and data[missing].sum()/data.sum() > missing_model_cutoff:
+        logger.warn('Model is < 0 where data is not masked.')
+        logger.warn('Number of affected entries is %i. Sum of data in those '
+                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+
+    # If the data is 0, it's okay for the model to be 0. In that case the ll
+    # contribution is 0, which is fine.
+    missing = logical_and(model == 0, logical_and(data > 0, not_data_mask))
+    if numpy.any(missing)\
+       and data[missing].sum()/data_sum > missing_model_cutoff:
+        logger.warn('Model is 0 where data is neither masked nor 0.')
+        logger.warn('Number of affected entries is %i. Sum of data in those '
+                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+
+    missing = numpy.logical_and(model.mask, not_data_mask)
+    if numpy.any(missing)\
+       and data[missing].sum()/data_sum > missing_model_cutoff:
+        print data[missing].sum(), data_sum
+        logger.warn('Model is masked in some entries where data is not.')
+        logger.warn('Number of affected entries is %i. Sum of data in those '
+                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+
+    missing = numpy.logical_and(numpy.isnan(model), not_data_mask)
+    if numpy.any(missing)\
+       and data[missing].sum()/data_sum > missing_model_cutoff:
+        logger.warn('Model is nan in some entries where data is not masked.')
+        logger.warn('Number of affected entries is %i. Sum of data in those '
+                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+
+    return result
+
+
+def ll_multinom_per_bin(model, data):
+    """
+    Mutlinomial log-likelihood of each entry in the data given the model.
+
+    Scales the model sfs to have the optimal theta for comparison with the data.
+    """
+    theta_opt = optimal_sfs_scaling(model, data)
+    return ll_per_bin(theta_opt*model, data)
+
+def ll_multinom(model, data):
+    """
+    Log-likelihood of the data given the model, with optimal rescaling.
+
+    Evaluate the log-likelihood of the data given the model. This is based on
+    Poisson statistics, where the probability of observing k entries in a cell
+    given that the mean number is given by the model is 
+    P(k) = exp(-model) * model**k / k!
+
+    model is optimally scaled to maximize ll before calculation.
+
+    Note: If either the model or the data is a masked array, the return ll will
+          ignore any elements that are masked in *either* the model or the data.
+    """
+    ll_arr = ll_multinom_per_bin(model, data)
+    return ll_arr.sum()
+
+def minus_ll_multinom(model, data):
+    """
+    The negative of the log-likelihood of the data given the model sfs.
+
+    Return a double that is -(log-likelihood)
+    """
+    return -ll_multinom(model, data)
+
+def linear_Poisson_residual(model, data, mask=None):
+    """
+    Return the Poisson residuals, (model - data)/sqrt(model), of model and data.
+
+    mask sets the level in model below which the returned residual array is
+    masked. The default of 0 excludes values where the residuals are not 
+    defined.
+
+    In the limit that the mean of the Poisson distribution is large, these
+    residuals are normally distributed. (If the mean is small, the Anscombe
+    residuals are better.)
+    """
+    if data.folded and not model.folded:
+        model = model.fold()
+
+    resid = (model - data)/numpy.ma.sqrt(model)
+    if mask is not None:
+        tomask = numpy.logical_and(model <= mask, data <= mask)
+        resid = numpy.ma.masked_where(tomask, resid)
+    return resid
+
+def Anscombe_Poisson_residual(model, data, mask=None):
+    """
+    Return the Anscombe Poisson residuals between model and data.
+
+    mask sets the level in model below which the returned residual array is
+    masked. This excludes very small values where the residuals are not normal.
+    1e-2 seems to be a good default for the NIEHS human data. (model = 1e-2,
+    data = 0, yields a residual of ~1.5.)
+
+    Residuals defined in this manner are more normally distributed than the
+    linear residuals when the mean is small. See this reference below for
+    justification: Pierce DA and Schafer DW, "Residuals in generalized linear
+    models" Journal of the American Statistical Association, 81(396)977-986
+    (1986).
+
+    Note that I tried implementing the "adjusted deviance" residuals, but they
+    always looked very biased for the cases where the data was 0.
+    """
+    if data.folded and not model.folded:
+        model = model.fold()
+    # Because my data have often been projected downward or averaged over many
+    # iterations, it appears better to apply the same transformation to the data
+    # and the model.
+    # For some reason data**(-1./3) results in entries in data that are zero
+    # becoming masked. Not just the result, but the data array itself. We use
+    # the power call to get around that.
+    # This seems to be a common problem, that we want to use numpy.ma functions
+    # on masked arrays, because otherwise the mask on the input itself can be
+    # changed. Subtle and annoying. If we need to create our own functions, we
+    # can use numpy.ma.core._MaskedUnaryOperation.
+    datatrans = data**(2./3) - numpy.ma.power(data,-1./3)/9
+    modeltrans = model**(2./3) - numpy.ma.power(model,-1./3)/9
+    resid = 1.5*(datatrans - modeltrans)/model**(1./6)
+    if mask is not None:
+        tomask = numpy.logical_and(model <= mask, data <= mask)
+        tomask = numpy.logical_or(tomask, data == 0)
+        resid = numpy.ma.masked_where(tomask, resid)
+    # It makes more sense to me to have a minus sign here... So when the
+    # model is high, the residual is positive. This is opposite of the
+    # Pierce and Schafner convention.
+    return -resid
+
+def optimally_scaled_sfs(model, data):
+    """
+    Optimially scale model sfs to data sfs.
+
+    Returns a new scaled model sfs.
+    """
+    return optimal_sfs_scaling(model,data) * model
+
+def optimal_sfs_scaling(model, data):
+    """
+    Optimal multiplicative scaling factor between model and data.
+
+    This scaling is based on only those entries that are masked in neither
+    model nor data.
+    """
+    if data.folded and not model.folded:
+        model = model.fold()
+
+    model, data = Numerics.intersect_masks(model, data)
+    return data.sum()/model.sum()
+
+def optimize_log_fmin(p0, data, model_func, 
+                      lower_bound=None, upper_bound=None,
+                      verbose=0, flush_delay=0.5, 
+                      multinom=True, maxiter=None, 
+                      full_output=False, func_args=[], 
+                      func_kwargs={},
+                      fixed_params=None, output_file=None):
+    """
+    Optimize log(params) to fit model to data using Nelder-Mead. 
+
+    This optimization method may work better than BFGS when far from a
+    minimum. It is much slower, but more robust, because it doesn't use
+    gradient information.
+
+    Because this works in log(params), it cannot explore values of params < 0.
+    It should also perform better when parameters range over large scales.
+
+    p0: Initial parameters.
+    data: Spectrum with data.
+    model_function: Function to evaluate model spectrum. Should take arguments
+                    (params, (n1,n2...))
+    lower_bound: Lower bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    upper_bound: Upper bound on parameter values. If not None, must be of same
+                 length as p0. A parameter can be declared unbound by assigning
+                 a bound of None.
+    verbose: If True, print optimization status every <verbose> steps.
+    output_file: Stream verbose output into this filename. If None, stream to
+                 standard out.
+    flush_delay: Standard output will be flushed once every <flush_delay>
+                 minutes. This is useful to avoid overloading I/O on clusters.
+    multinom: If True, do a multinomial fit where model is optimially scaled to
+              data at each step. If False, assume theta is a parameter and do
+              no scaling.
+    maxiter: Maximum iterations to run for.
+    full_output: If True, return full outputs as in described in 
+                 help(scipy.optimize.fmin_bfgs)
+    func_args: Additional arguments to model_func. It is assumed that 
+               model_func's first argument is an array of parameters to
+               optimize, that its second argument is an array of sample sizes
+               for the sfs, and that its last argument is the list of grid
+               points to use in evaluation.
+    func_kwargs: Additional keyword arguments to model_func.
+    fixed_params: If not None, should be a list used to fix model parameters at
+                  particular values. For example, if the model parameters
+                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+                  will hold nu1=0.5 and m=2. The optimizer will only change 
+                  T and m. Note that the bounds lists must include all
+                  parameters. Optimization will fail if the fixed values
+                  lie outside their bounds. A full-length p0 should be passed
+                  in; values corresponding to fixed parameters are ignored.
+    (See help(moments.Inference.optimize_log for examples of func_args and 
+     fixed_params usage.)
+    """
+    if output_file:
+        output_stream = file(output_file, 'w')
+    else:
+        output_stream = sys.stdout
+
+    args = (data, model_func, lower_bound, upper_bound, verbose,
+            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
+            output_stream)
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin(_object_func_log, numpy.log(p0), args = args,
+                                  disp=False, maxiter=maxiter, full_output=True)
+    xopt, fopt, iter, funcalls, warnflag = outputs
+    xopt = _project_params_up(numpy.exp(xopt), fixed_params)
+
+    if output_file:
+        output_stream.close()
+
+    if not full_output:
+        return xopt
+    else:
+        return xopt, fopt, iter, funcalls, warnflag
 
 def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
                     verbose=0, flush_delay=0.5, xtol=1e-4, ftol=1e-4, 
@@ -393,62 +661,55 @@ def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
     else:
         return xopt, fopt, direc, iters, funcalls, warnflag
 
-def optimize_log_fmin(p0, data, model_func,
+def optimize_log_powell(p0, data, model_func,
                       lower_bound=None, upper_bound=None,
-                      verbose=0, flush_delay=0.5, 
-                      multinom=True, maxiter=None, 
-                      full_output=False, func_args=[], 
+                      verbose=0, flush_delay=0.5,
+                      multinom=True, maxiter=None,
+                      full_output=False, func_args=[],
                       func_kwargs={},
-                      fixed_params=None, output_file=None, retall=False):
+                      fixed_params=None, output_file=None):
     """
-    Optimize log(params) to fit model to data using Nelder-Mead. 
-
-    This optimization method may work better than BFGS when far from a
-    minimum. It is much slower, but more robust, because it doesn't use
-    gradient information.
-
+    Optimize log(params) to fit model to data using Powell's method.
+        
     Because this works in log(params), it cannot explore values of params < 0.
-    It should also perform better when parameters range over large scales.
-
+    
     p0: Initial parameters.
     data: Spectrum with data.
     model_function: Function to evaluate model spectrum. Should take arguments
-                    (params, (n1,n2...))
+        (params, (n1,n2...))
     lower_bound: Lower bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
+        length as p0. A parameter can be declared unbound by assigning
+        a bound of None.
     upper_bound: Upper bound on parameter values. If not None, must be of same
-                 length as p0. A parameter can be declared unbound by assigning
-                 a bound of None.
+        length as p0. A parameter can be declared unbound by assigning
+        a bound of None.
     verbose: If True, print optimization status every <verbose> steps.
-    output_file: Stream verbose output into this filename. If None, stream to
-                 standard out.
+        output_file: Stream verbose output into this filename. If None, stream to
+        standard out.
     flush_delay: Standard output will be flushed once every <flush_delay>
-                 minutes. This is useful to avoid overloading I/O on clusters.
-    multinom: If True, do a multinomial fit where model is optimially scaled to
-              data at each step. If False, assume theta is a parameter and do
-              no scaling.
+        minutes. This is useful to avoid overloading I/O on clusters.
+        multinom: If True, do a multinomial fit where model is optimially scaled to
+        data at each step. If False, assume theta is a parameter and do
+        no scaling.
     maxiter: Maximum iterations to run for.
-    full_output: If True, return full outputs as in described in 
-                 help(scipy.optimize.fmin_bfgs)
-    func_args: Additional arguments to model_func. It is assumed that 
-               model_func's first argument is an array of parameters to
-               optimize, that its second argument is an array of sample sizes
-               for the sfs, and that its last argument is the list of grid
-               points to use in evaluation.
+    full_output: If True, return full outputs as in described in
+        help(scipy.optimize.fmin_bfgs)
+    func_args: Additional arguments to model_func. It is assumed that
+        model_func's first argument is an array of parameters to
+        optimize, that its second argument is an array of sample sizes
+        for the sfs, and that its last argument is the list of grid
+        points to use in evaluation.
     func_kwargs: Additional keyword arguments to model_func.
     fixed_params: If not None, should be a list used to fix model parameters at
-                  particular values. For example, if the model parameters
-                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
-                  will hold nu1=0.5 and m=2. The optimizer will only change 
-                  T and m. Note that the bounds lists must include all
-                  parameters. Optimization will fail if the fixed values
-                  lie outside their bounds. A full-length p0 should be passed
-                  in; values corresponding to fixed parameters are ignored.
-    retall: If True, return a list of solutions at each iteration.
-
-    (See help(moments.Inference.optimize_log for examples of func_args and 
-    fixed_params usage.)
+        particular values. For example, if the model parameters
+        are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]
+        will hold nu1=0.5 and m=2. The optimizer will only change
+        T and m. Note that the bounds lists must include all
+        parameters. Optimization will fail if the fixed values
+        lie outside their bounds. A full-length p0 should be passed
+        in; values corresponding to fixed parameters are ignored.
+        (See help(moments.Inference.optimize_log for examples of func_args and
+        fixed_params usage.)
     """
     if output_file:
         output_stream = file(output_file, 'w')
@@ -460,30 +721,24 @@ def optimize_log_fmin(p0, data, model_func,
             output_stream)
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin(_object_func_log, numpy.log(p0), args = args,
-                                  disp=False, maxiter=maxiter, full_output=True,
-                                  retall=retall)
-    if retall:
-        xopt, fopt, iter, funcalls, warnflag, allvecs = outputs
-    else:
-        xopt, fopt, iter, funcalls, warnflag = outputs
+    outputs = scipy.optimize.fmin_powell(_object_func_log, numpy.log(p0), args = args,
+                                  disp=False, maxiter=maxiter, full_output=True)
+    xopt, fopt, direc, iter, funcalls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
-
+                                  
     if output_file:
         output_stream.close()
 
     if not full_output:
         return xopt
-    elif retall:
-        return xopt, fopt, iter, funcalls, warnflag, allvecs
     else:
-        return xopt, fopt, iter, funcalls, warnflag 
+        return xopt, fopt, direc, iter, funcalls, warnflag
 
 def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
              verbose=0, flush_delay=0.5, epsilon=1e-3, 
              gtol=1e-5, multinom=True, maxiter=None, full_output=False,
              func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-             output_file=None, retall=False):
+             output_file=None):
     """
     Optimize params to fit model to data using the BFGS method.
 
@@ -534,7 +789,6 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
               simply reduce the magnitude of the log-likelihood. Once in a
               region of reasonable likelihood, you'll probably want to
               re-optimize with ll_scale=1.
-    retall: If True, return a list of solutions at each iteration.
     """
     if output_file:
         output_stream = file(output_file, 'w')
@@ -551,12 +805,8 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
                                        args = args, gtol=gtol, 
                                        full_output=True,
                                        disp=False,
-                                       maxiter=maxiter,
-                                       retall=retall)
-    if retall:
-        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs = outputs
-    else:
-        xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
+                                       maxiter=maxiter)
+    xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
     xopt = _project_params_up(xopt, fixed_params)
 
     if output_file:
@@ -564,12 +814,11 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
 
     if not full_output:
         return xopt
-    elif retall:
-        return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag, allvecs
     else:
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
-def optimize_lbfgsb(p0, data, model_func,
+
+def optimize_lbfgsb(p0, data, model_func, 
                     lower_bound=None, upper_bound=None,
                     verbose=0, flush_delay=0.5, epsilon=1e-3, 
                     pgtol=1e-5, multinom=True, maxiter=1e5, full_output=False,
@@ -656,7 +905,7 @@ def optimize_lbfgsb(p0, data, model_func,
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound, upper_bound))
+    bounds = list(zip(lower_bound,upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 
@@ -676,6 +925,44 @@ def optimize_lbfgsb(p0, data, model_func,
         return xopt
     else:
         return xopt, fopt, info_dict
+
+def _project_params_down(pin, fixed_params):
+    """
+    Eliminate fixed parameters from pin.
+    """
+    if fixed_params is None:
+        return pin
+
+    if len(pin) != len(fixed_params):
+        raise ValueError('fixed_params list must have same length as input '
+                         'parameter array.')
+
+    pout = []
+    for ii, (curr_val,fixed_val) in enumerate(zip(pin, fixed_params)):
+        if fixed_val is None:
+            pout.append(curr_val)
+
+    return numpy.array(pout)
+
+def _project_params_up(pin, fixed_params):
+    """
+    Fold fixed parameters into pin.
+    """
+    if fixed_params is None:
+        return pin
+
+    if numpy.isscalar(pin):
+        pin = [pin]
+
+    pout = numpy.zeros(len(fixed_params))
+    orig_ii = 0
+    for out_ii, val in enumerate(fixed_params):
+        if val is None:
+            pout[out_ii] = pin[orig_ii]
+            orig_ii += 1
+        else:
+            pout[out_ii] = fixed_params[out_ii]
+    return pout
 
 index_exp = numpy.index_exp
 def optimize_grid(data, model_func, grid,
@@ -771,241 +1058,6 @@ def optimize_grid(data, model_func, grid,
         return xopt
     else:
         return xopt, fopt, grid, fout, thetas
-
-def minus_ll(model, data):
-    """
-    The negative of the log-likelihood of the data given the model sfs.
-    """
-    return -ll(model, data)
-
-def ll(model, data):
-    """
-    The log-likelihood of the data given the model sfs.
-
-    Evaluate the log-likelihood of the data given the model. This is based on
-    Poisson statistics, where the probability of observing k entries in a cell
-    given that the mean number is given by the model is 
-    P(k) = exp(-model) * model**k / k!
-
-    Note: If either the model or the data is a masked array, the return ll will
-          ignore any elements that are masked in *either* the model or the data.
-    """
-    ll_arr = ll_per_bin(model, data)
-    return ll_arr.sum()
-
-def ll_per_bin(model, data, missing_model_cutoff=1e-6):
-    """
-    The Poisson log-likelihood of each entry in the data given the model sfs.
-
-    missing_model_cutoff: Due to numerical issues, there may be entries in the
-                          FS that cannot be stable calculated. If these entries
-                          involve a fraction of the data larger than
-                          missing_model_cutoff, a warning is printed.
-    """
-    if data.folded and not model.folded:
-        model = model.fold()
-
-    # Using numpy.ma.log here ensures that any negative or nan entries in model
-    # yield masked entries in result. We can then check for correctness of
-    # calculation by simply comparing masks.
-    # Note: Using .data attributes directly saves a little computation time. We
-    # use model and data as a whole at least once, to ensure masking is done
-    # properly.
-    result = -model.data + data.data*model.log() - gammaln(data + 1.)
-    if numpy.all(result.mask == data.mask):
-        return result
-
-    not_data_mask = logical_not(data.mask)
-    data_sum = data.sum()
-
-    missing = logical_and(model < 0, not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum() / data.sum() > missing_model_cutoff:
-        logger.warn('Model is < 0 where data is not masked.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
-
-    # If the data is 0, it's okay for the model to be 0. In that case the ll
-    # contribution is 0, which is fine.
-    missing = logical_and(model == 0, logical_and(data > 0, not_data_mask))
-    if numpy.any(missing)\
-       and data[missing].sum() / data_sum > missing_model_cutoff:
-        logger.warn('Model is 0 where data is neither masked nor 0.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
-
-    missing = numpy.logical_and(model.mask, not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum() / data_sum > missing_model_cutoff:
-        print data[missing].sum(), data_sum
-        logger.warn('Model is masked in some entries where data is not.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
-
-    missing = numpy.logical_and(numpy.isnan(model), not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum() / data_sum > missing_model_cutoff:
-        logger.warn('Model is nan in some entries where data is not masked.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
-
-    return result
-
-def ll_multinom_per_bin(model, data):
-    """
-    Mutlinomial log-likelihood of each entry in the data given the model.
-
-    Scales the model sfs to have the optimal theta for comparison with the data.
-    """
-    theta_opt = optimal_sfs_scaling(model, data)
-    return ll_per_bin(theta_opt * model, data)
-
-def ll_multinom(model, data):
-    """
-    Log-likelihood of the data given the model, with optimal rescaling.
-
-    Evaluate the log-likelihood of the data given the model. This is based on
-    Poisson statistics, where the probability of observing k entries in a cell
-    given that the mean number is given by the model is 
-    P(k) = exp(-model) * model**k / k!
-
-    model is optimally scaled to maximize ll before calculation.
-
-    Note: If either the model or the data is a masked array, the return ll will
-          ignore any elements that are masked in *either* the model or the data.
-    """
-    ll_arr = ll_multinom_per_bin(model, data)
-    return ll_arr.sum()
-
-def minus_ll_multinom(model, data):
-    """
-    The negative of the log-likelihood of the data given the model sfs.
-
-    Return a double that is -(log-likelihood)
-    """
-    return -ll_multinom(model, data)
-
-def linear_Poisson_residual(model, data, mask=None):
-    """
-    Return the Poisson residuals, (model - data)/sqrt(model), of model and data.
-
-    mask sets the level in model below which the returned residual array is
-    masked. The default of 0 excludes values where the residuals are not 
-    defined.
-
-    In the limit that the mean of the Poisson distribution is large, these
-    residuals are normally distributed. (If the mean is small, the Anscombe
-    residuals are better.)
-    """
-    if data.folded and not model.folded:
-        model = model.fold()
-
-    resid = (model-data) / numpy.ma.sqrt(model)
-    if mask is not None:
-        tomask = numpy.logical_and(model <= mask, data <= mask)
-        resid = numpy.ma.masked_where(tomask, resid)
-    return resid
-
-def Anscombe_Poisson_residual(model, data, mask=None):
-    """
-    Return the Anscombe Poisson residuals between model and data.
-
-    mask sets the level in model below which the returned residual array is
-    masked. This excludes very small values where the residuals are not normal.
-    1e-2 seems to be a good default for the NIEHS human data. (model = 1e-2,
-    data = 0, yields a residual of ~1.5.)
-
-    Residuals defined in this manner are more normally distributed than the
-    linear residuals when the mean is small. See this reference below for
-    justification: Pierce DA and Schafer DW, "Residuals in generalized linear
-    models" Journal of the American Statistical Association, 81(396)977-986
-    (1986).
-
-    Note that I tried implementing the "adjusted deviance" residuals, but they
-    always looked very biased for the cases where the data was 0.
-    """
-    if data.folded and not model.folded:
-        model = model.fold()
-    # Because my data have often been projected downward or averaged over many
-    # iterations, it appears better to apply the same transformation to the data
-    # and the model.
-    # For some reason data**(-1./3) results in entries in data that are zero
-    # becoming masked. Not just the result, but the data array itself. We use
-    # the power call to get around that.
-    # This seems to be a common problem, that we want to use numpy.ma functions
-    # on masked arrays, because otherwise the mask on the input itself can be
-    # changed. Subtle and annoying. If we need to create our own functions, we
-    # can use numpy.ma.core._MaskedUnaryOperation.
-    datatrans = data**(2./3) - numpy.ma.power(data,-1./3)/9
-    modeltrans = model**(2./3) - numpy.ma.power(model,-1./3)/9
-    resid = 1.5*(datatrans - modeltrans)/model**(1./6)
-    if mask is not None:
-        tomask = numpy.logical_and(model <= mask, data <= mask)
-        tomask = numpy.logical_or(tomask, data == 0)
-        resid = numpy.ma.masked_where(tomask, resid)
-    # It makes more sense to me to have a minus sign here... So when the
-    # model is high, the residual is positive. This is opposite of the
-    # Pierce and Schafner convention.
-    return -resid
-
-def optimally_scaled_sfs(model, data):
-    """
-    Optimially scale model sfs to data sfs.
-
-    Returns a new scaled model sfs.
-    """
-    return optimal_sfs_scaling(model,data) * model
-
-def optimal_sfs_scaling(model, data):
-    """
-    Optimal multiplicative scaling factor between model and data.
-
-    This scaling is based on only those entries that are masked in neither
-    model nor data.
-    """
-    if data.folded and not model.folded:
-        model = model.fold()
-
-    model, data = Numerics.intersect_masks(model, data)
-    return data.sum() / model.sum()
-
-def _project_params_down(pin, fixed_params):
-    """
-    Eliminate fixed parameters from pin.
-    """
-    if fixed_params is None:
-        return pin
-
-    if len(pin) != len(fixed_params):
-        raise ValueError('fixed_params list must have same length as input '
-                         'parameter array.')
-
-    pout = []
-    for ii, (curr_val,fixed_val) in enumerate(zip(pin, fixed_params)):
-        if fixed_val is None:
-            pout.append(curr_val)
-
-    return numpy.array(pout)
-
-def _project_params_up(pin, fixed_params):
-    """
-    Fold fixed parameters into pin.
-    """
-    if fixed_params is None:
-        return pin
-
-    if numpy.isscalar(pin):
-        pin = [pin]
-
-    pout = numpy.zeros(len(fixed_params))
-    orig_ii = 0
-    for out_ii, val in enumerate(fixed_params):
-        if val is None:
-            pout[out_ii] = pin[orig_ii]
-            orig_ii += 1
-        else:
-            pout[out_ii] = fixed_params[out_ii]
-    return pout
 
 def add_misid_param(func):
     def misid_func(params, *args, **kwargs):
