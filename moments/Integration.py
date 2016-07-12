@@ -484,6 +484,7 @@ def _compute_dt_1pop(N, m, s, h, timescale_factor=0.15):
     return dt
 
 def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
+#def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.05):
     if m is None:
         m = np.zeros([len(N), len(N)])
     if s is None:
@@ -531,7 +532,7 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
     dt = Tmax * dt_fac
     u = theta / 4.0
     # dimensions of the sfs
-    dims = n + np.ones(len(n))
+    dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
     # number of "directions" for the splitting
     nbp = int(len(n) * (len(n)-1) / 2)

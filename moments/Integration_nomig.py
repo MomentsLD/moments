@@ -456,7 +456,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0
     dt = Tmax * dt_fac
     u = theta / 4.0
     # dimensions of the sfs
-    dims = n + np.ones(len(n))
+    dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
 
     # we compute the matrices we will need
@@ -532,7 +532,7 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.1, theta=1.0, adapt_tstep=Fals
     dt = Tmax * dt_fac
     u = theta / 4.0
     # dimensions of the sfs
-    dims = n + np.ones(len(n))
+    dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
     
     # drift
