@@ -227,12 +227,10 @@ def total_instantaneous_rate(Q, pi):
 
 def make_data_dict(filename):
     """
-    Parse SNP file and store info in a properly formatted dictionary.
+    Parse a file containing genomic sequence information in the format described
+    by the wiki, and store the information in a properly formatted dictionary. 
 
     filename: Name of file to work with.
-
-    This is specific to the particular data format described on the wiki. 
-    Modification for other formats should be straightforward.
 
     The file can be zipped (extension .zip) or gzipped (extension .gz). If 
     zipped, there must be only a single file in the zip archive.
@@ -339,3 +337,180 @@ def count_data_dict(data_dict, pop_ids):
         count_dict[tuple(successful_calls),tuple(derived_calls),
                    this_snp_polarized] += 1
     return count_dict
+
+def make_data_dict_vcf(vcf_name, popinfo_name):
+    """
+    Parse a VCF file containing genomic sequence information, along with a file
+    identifying the population of each sample, and store the information in 
+    a properly formatted dictionary. 
+
+    Each file may be zipped (.zip) or gzipped (.gz). If a file is zipped,
+    it must be the only file in the archive. Both files must be present for the
+    function  to work, and they cannot be zipped together.
+    
+    vcf_name : Name of VCF file to work with. For any given SNP to be added to
+               the data_dict, both REF and ALT must be a single base (A,C,G,T),
+               genotype information must be present in the FORMAT field GT,
+               and the genotype info must be known for EVERY sample. Otherwise,
+               the SNP will be skipped. If the ancestral allele is known it 
+               should be specified in INFO field 'AA'. Otherwise, it will be 
+               set to '-'. Contexts are not fully implemented for VCF, so
+               flanking bases will always be set as '-'. 
+    
+    popinfo_name : Name of file containing the population assignments for each
+                    sample in the VCF. If a sample in the VCF file does not have
+                    a corresponding entry in this file, it will be skipped. See
+                    _get_popinfo for information on how this file must be
+                    formatted.
+    """
+    # Read population information from file
+    if os.path.splitext(popinfo_name)[1] == '.gz':
+        import gzip
+        popinfo_file = gzip.open(popinfo_name)
+    elif os.path.splitext(popinfo_name)[1] == '.zip':
+        import zipfile
+        archive = zipfile.ZipFile(popinfo_name)
+        namelist = archive.namelist()
+        if len(namelist) != 1:
+            raise ValueError("Must be only a single popinfo file in zip "
+                             "archive: {}".format(popinfo_name))
+        popinfo_file = archive.open(namelist[0])
+    else:
+        popinfo_file = open(popinfo_name)
+    # pop_dict has key,value pairs of "SAMPLE" : "POP"
+    popinfo_dict = _get_popinfo(popinfo_file)
+    popinfo_file.close()
+
+    # Open VCF file
+    if os.path.splitext(vcf_name)[1] == '.gz':
+        import gzip
+        vcf_file = gzip.open(vcf_name)
+    elif os.path.splitext(vcf_name)[1] == '.zip':
+        import zipfile
+        archive = zipfile.ZipFile(vcf_name)
+        namelist = archive.namelist()
+        if len(namelist) != 1:
+            raise ValueError("Must be only a single vcf file in zip "
+                             "archive: {}".format(vcf_name))
+        vcf_file = archive.open(namelist[0])
+    else:
+        vcf_file = open(vcf_name)
+    
+    data_dict = {}
+    for line in vcf_file:
+        # Skip metainformation
+        if line.startswith('##'):
+            continue
+        # Read header
+        if line.startswith('#'):
+            header_cols = line.split()
+            # Ensure there is at least one sample
+            if len(header_cols) <= 9:
+                raise ValueError("No samples in VCF file")
+            # List population each sample belongs to, in the same order
+            poplist = [popinfo_dict[sample] if sample in popinfo_dict else None
+                       for sample in header_cols[9:]] 
+            continue
+            
+        # Read SNP data
+        cols = line.split()
+        snp_id = '_'.join(cols[:2]) # CHROM_POS
+        snp_dict = {}
+        
+        # Add reference and alternate allele info to dict
+        ref, alt = (allele.upper() for allele in cols[3:5])
+        if ref not in ['A', 'C', 'G', 'T'] or alt not in ['A', 'C', 'G', 'T']:
+            # Skip SNP if REF or ALT not single base A, C, G, or T
+            continue
+        context = '-' + ref + '-' # Flanking bases unknown
+        segregating = (ref, alt)
+        snp_dict['context'] = context
+        snp_dict['segregating'] = segregating
+        
+        # Add ancestral allele information if available
+        info = cols[7].split(';')
+        for field in info:
+            if field.startswith('AA'):
+                outgroup_allele = field[3:].upper()
+                if outgroup_allele not in ['A','C','G','T']:    
+                    # Skip if ancestral not single base A, C, G, or T
+                    outgroup_allele = '-'
+                # Flanking bases unknown
+                outgroup_context = '-' + outgroup_allele + '-'
+                break
+        else:
+            outgroup_allele = '-'
+            outgroup_context = '---'
+        snp_dict['outgroup_allele'] = outgroup_allele
+        snp_dict['outgroup_context'] = outgroup_context
+        
+        # Add reference and alternate allele calls for each population
+        calls_dict = {}
+        full_info = True
+        gtindex = cols[8].split(':').index('GT')
+        for pop, sample in zip(poplist, cols[9:]):
+            if pop is None:
+                continue
+            gt = sample.split(':')[gtindex]
+            g1, g2 = gt[0], gt[2]
+            if g1 == '.' or g2 == '.':
+                full_info = False
+                break
+            if pop not in calls_dict:
+                calls_dict[pop] = (0,0)
+            refcalls, altcalls = calls_dict[pop]
+            refcalls += int(g1 == '0') + int(g2 == '0')
+            altcalls += int(g1 == '1') + int(g2 == '1')
+            calls_dict[pop] = (refcalls, altcalls)
+        if not full_info:
+            continue
+        snp_dict['calls'] = calls_dict
+        data_dict[snp_id] = snp_dict
+
+    vcf_file.close()
+    return data_dict
+
+def _get_popinfo(popinfo_file):
+    """
+    Used with make_data_dict_vcf. Takes an open file containing information on
+    the population designations of each sample within a VCF file, and returns
+    a dictionary containing {"SAMPLE" : "POP"} pairs. 
+
+    The file must contain a table, where columns are delimited by whitespace,
+    and rows are delimited by new lines. Lines beginning with # are considered
+    to be comments and will be ignored. Each sample must appear on its own line.
+    If no header information is provided, the first column will be assumed to be
+    the SAMPLE column, while the second column will be assumed to be the POP 
+    column. If a header is present, it must be the first non-commented line of 
+    the file. The column positions of the words "sample" and "pop" (ignoring
+    case) in this header will be used to determine proper positions of the 
+    SAMPLE and POP columns in the table.
+
+    popinfo_file : An open text file formatted in the way described above.
+    """
+    popinfo_dict = {}
+    sample_col = 0
+    pop_col = 1
+    
+    # check for header info
+    for line in popinfo_file:
+        if line.startswith('#'):
+            continue
+        cols = [col.lower() for col in line.split()]
+        if 'sample' in cols:
+            sample_col = cols.index('sample')
+        if 'pop' in cols:
+            pop_col = cols.index('pop')
+        break
+
+    popinfo_file.seek(0)
+    # read in population information for each sample
+    for line in popinfo_file:
+        if line.startswith('#'):
+            continue
+        cols = line.split()
+        sample = cols[sample_col]
+        pop = cols[pop_col]
+        popinfo_dict[sample] = pop
+    
+    return popinfo_dict
