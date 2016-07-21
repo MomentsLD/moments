@@ -27,9 +27,16 @@ try:
 except ImportError:
     pass
 
+# Protect import of ModelPlot in case matplotlib not installed.
+try:
+    import ModelPlot
+except ImportError:
+    pass
+
 # We do it this way so it's easier to reload.
 import Spectrum_mod 
 Spectrum = Spectrum_mod.Spectrum
+
 
 # When doing arithmetic with Spectrum objects (which are masked arrays), we
 # often have masked values which generate annoying arithmetic warnings. Here
