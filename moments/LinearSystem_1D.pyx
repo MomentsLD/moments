@@ -134,6 +134,12 @@ Steady state for 1D population
 """
 cpdef np.ndarray[np.float64_t] steady_state_1D(int n, float N=1.0, float gamma=0.0,
                                                float h=0.5, float theta=1.0):
+    # Update ModelPlot if necessary
+    import moments.ModelPlot as ModelPlot
+    mp = ModelPlot._get_plotter()
+    if mp is not None:
+        mp.initialize(1)
+    
     cdef int d
     # dimensions of the sfs
     d = n + 1
