@@ -321,9 +321,9 @@ def calcM_jk3(dims, m):
 #----------------------------------
 def steady_state(n, N=None, gamma=None, h=None, m=None, theta=1.0, reshape=True):
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None
-        mp.initialize(len(n))
+    model = ModelPlot._get_model()
+    if model is not None
+        model.initialize(len(n))
 
     # neutral case if the parameters are not provided
     if N is None:

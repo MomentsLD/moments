@@ -18,9 +18,9 @@ def split_1D_to_2D(sp, n1, n2):
     Returns a new 2D spectrum
     """
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None:
-        mp.split(0, (0,1))
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(0, (0,1))
     
     assert(len(sp.shape) == 1)
     assert(len(sp) >= n1 + n2 + 1)
@@ -45,9 +45,9 @@ def split_2D_to_3D_2(sp, n2new, n3):
     Returns a new 3D spectrum
     """
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None:
-        mp.split(1, (1,2))
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(1, (1,2))
     
     assert(len(sp.shape) == 2)
     n1 = sp.shape[0] - 1
@@ -74,9 +74,9 @@ def split_2D_to_3D_1(sp, n1new, n3):
     Returns a new 3D spectrum
     """
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None:
-        mp.split(0, (0,2))
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(0, (0,2))
   
     assert(len(sp.shape) == 2)
     n1 = sp.shape[0] - 1
@@ -104,9 +104,9 @@ def split_3D_to_4D_3(sp, n3new, n4):
     Returns a new 4D spectrum
     """ 
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None:
-        mp.split(2, (2,3))
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(2, (2,3))
   
     assert(len(sp.shape) == 3)
     n1 = sp.shape[0] - 1
@@ -134,9 +134,9 @@ def split_4D_to_5D_4(sp, n4new, n5):
     Returns a new 5D spectrum
     """
     # Update ModelPlot if necessary
-    mp = ModelPlot._get_plotter()
-    if mp is not None:
-        mp.split(3, (3,4))
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(3, (3,4))
     
     assert(len(sp.shape) == 4)
     n1 = sp.shape[0] - 1

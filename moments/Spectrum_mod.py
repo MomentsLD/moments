@@ -1514,9 +1514,9 @@ def %(method)s(self, other):
     # We chose the most efficient solver for each case
     def integrate(self, Npop, n, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0):
         # Update ModelPlot
-        mp = moments.ModelPlot._get_plotter()
-        if mp is not None:
-            mp.evolve(tf, Npop, m)
+        model = moments.ModelPlot._get_model()
+        if model is not None:
+            model.evolve(tf, Npop, m)
 
         if len(n)==1 :
             if gamma is None:
