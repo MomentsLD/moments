@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 ## USER FUNCTIONS ##
-def generate_model(model_func, params, ns):
+def generate_model(model_func, params, ns, precision=100):
     """
     Generates information about a demographic model, and returns the information
     in a format that can be used by the plot_model function (i.e. the info is 
@@ -36,32 +36,106 @@ def generate_model(model_func, params, ns):
              params argument to model_func.
 
     ns : List of sample sizes to be passed as the ns argument to model_func.
+
+    precision : Number of times to evaluate population sizes per period.
     """
-    model = _ModelInfo()
+    # Initialize model and collect necessary information
+    model = _ModelInfo(precision)
     model_func(params, ns)
     _close_model()
-    model.determine_poptree_sizes()
+    # Determine size of population trees
+    model.determine_framesizes()
+    # Determine information for plotting recursively for each population tree
+    vstart = 0
+    tp1 = model.tp_list[0]
+    for pop_index in range(len(tp1.popsizes)):
+        model.determine_drawinfo(0, pop_index, (0,vstart), 1)
+        vstart += tp1.framesizes[pop_index]
     return model
 
 def plot_model(model):
     """
     Plots a demographic model based on information contained within a _ModelInfo
-    object.
+    object. Returns the matplotlib Figure object that was created.
 
     model : A _ModelInfo object created using generate_model().
     """
+    # Set up plot
     plt.style.use('ggplot')
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xlabel("Time (Genetic Units)")
     ax.set_ylabel("Relative Population Sizes")
 
-    origin = (0,0)
-    tp1 = model.tp_list[0]
-    for pop_index in range(len(tp1.popsizes)):
-        _draw_poptree(ax, model.tp_list, 0, pop_index, origin, 1)
-        origin = (0, origin[1] + tp1.poptree_sizes[pop_index])
+    # Iterate through time periods and populations to draw everything
+    for tp_index, tp in enumerate(model.tp_list):
+        # Keep track of migrations plotted so arrows don't overlap
+        num_migrations = 0
+        for pop_index in range(len(tp.popsizes)):
+            # Draw current population
+            origin = tp.origins[pop_index]
+            popsize = tp.popsizes[pop_index]
+            direc = tp.direcs[pop_index]
+            y1 = origin[1]
+            y2 = origin[1] + (direc*popsize)
+            ax.fill_between(tp.time, y1, y2)
+
+            # Draw connections to next populations if necessary
+            if tp.descendants is not None:
+                desc = tp.descendants[pop_index]
+                tp_next = model.tp_list[tp_index+1]
+                # Split population case
+                if isinstance(desc, tuple):
+                    # Get origins
+                    connect_below = tp_next.origins[desc[0]][1]
+                    connect_above = tp_next.origins[desc[1]][1]
+                    # Get popsizes
+                    subpop_below = tp_next.popsizes[desc[0]][0]
+                    subpop_above = tp_next.popsizes[desc[1]][0]
+                    # Determine correct connection location
+                    connect_below -= direc * subpop_below
+                    connect_above += direc * subpop_above
+                # Single population case
+                else:
+                    connect_below = tp_next.origins[desc][1]
+                    subpop = tp_next.popsizes[desc][0]
+                    connect_above = connect_below + direc * subpop
+                # Draw the connections
+                cx = tp.time[-10:]
+                cy_below_1 = [origin[1]]*10
+                cy_above_1 = origin[1] + direc*popsize[-10:]
+                cy_below_2 = np.linspace(cy_below_1[0], connect_below, 10)
+                cy_above_2 = np.linspace(cy_above_1[0], connect_above, 10)
+                ax.fill_between(cx, cy_below_1, cy_below_2)
+                ax.fill_between(cx, cy_above_1, cy_above_2)
+
+            # Draw migrations if necessary
+            if tp.migrations is not None:
+                # Iterate through migrations for current population 
+                for mig_index, mig_val in enumerate(tp.migrations[pop_index]):
+                    # If no migration, continue
+                    if mig_val == 0:
+                        continue
+                    num_migrations += 1
+                    offset = num_migrations*10
+                    x = tp.time[offset]
+                    dx = 0
+                    # Determine which sides of populations are closest
+                    y1 = origin[1]
+                    y2 = y1 + direc*popsize[offset]
+                    mig_y1 = tp.origins[mig_index][1]
+                    mig_y2 = mig_y1 + (tp.direcs[mig_index] *
+                                       tp.popsizes[mig_index][offset])
+                    y = y1 if abs(mig_y1 - y1) < abs(mig_y1 - y2) else y2
+                    dy = mig_y1-y if abs(mig_y1 - y) < abs(mig_y2 - y) \
+                                  else mig_y2-y
+                    ax.arrow(x,y,dx,dy, width=0.01, head_width=0.03,
+                             head_length = 0.1, color='black',
+                             length_includes_head = True)
+    
+    # Display figure
     plt.show(fig)
+    return fig
         
 
 ## IMPLEMENTATION FUNCTIONS ##
@@ -82,29 +156,6 @@ def _close_model():
     global _current_model
     _current_model = None
 
-def _draw_poptree(ax, tp_list, tp_index, pop_index, origin, direc):
-    if tp_index >= len(tp_list):
-        return
-    tp = tp_list[tp_index]
-    popsize = tp.popsizes[pop_index]
-    max_popsize = max(popsize) if isinstance(popsize, np.ndarray) else popsize
-    desc = tp.descendants[pop_index]
-    if isinstance(desc, tuple):
-        subtree_size = tp_list[tp_index+1].poptree_sizes[desc[0]]
-        _draw_poptree(ax, tp_list, tp_index+1, desc[0], 
-                    (tp.end_time, origin[1] + direc*(subtree_size)), 
-                    -1*direc)
-        _draw_poptree(ax, tp_list, tp_index+1, desc[1], 
-                    (tp.end_time, origin[1] + direc*(subtree_size+max_popsize)),
-                    direc)
-        origin = (origin[0], origin[1] + direc*subtree_size)
-    else:
-        _draw_poptree(ax, tp_list, tp_index+1, desc, 
-                (tp.end_time, origin[1]), direc)
-    x = np.arange(tp.start_time, tp.end_time + 0.01, 0.02)
-    y1 = origin[1]
-    y2 = origin[1] + (direc*popsize)
-    ax.fill_between(x, y1, y2)
 
 class _ModelInfo():
     """
@@ -112,26 +163,87 @@ class _ModelInfo():
     model. Model information is stored as a list of TimePeriod objects, each of
     which stores demographic information (population sizes, splits, migration 
     rates) for a given time step in the model.
+
+    current_time : Float, to keep track of current point in time of model.
+
+    tp_list : List of TimePeriod objects of this model.
+
+    precision : Number of times population sizes are evaluated in each period.
     """
-    
+    def __init__(self, precision):
+        """
+        Sets itself as the current model, to be able to collect data from other
+        methods in moments, and initializes the class variables.
+
+        precision : Sets the precision variable.
+        """
+        global _current_model
+        _current_model = self
+        self.current_time = 0.0
+        self.tp_list = []
+        self.precision = precision
+
     class TimePeriod():
         """
         Keeps track of population information and relationships during a 
-        specific time period of the demographic model.
-        """
-        def __init__(self, time, npops):
-            self.start_time = time
-            self.end_time = time
-            self.popsizes = [1 for x in range(npops)]
-            self.descendants = [x for x in range(npops)]
-            self.migrations = None
-            self.poptree_sizes = None
+        specific time period of the demographic model. Also contains information
+        about how populations should be drawn.
+        
+        precision : Number of times to evaluate population size within period.
 
-    def __init__(self):
-        global _current_model
-        _current_model = self
-        self.current_time = -1
-        self.tp_list = None
+        time : List, with length specified by ModelInfo's precision variable.
+               Equally spaced time intervals running from the start of this time
+               period to the end of it.
+        
+        popsizes : List containing the size of each population in the current
+                   time period. Size of each population is stored as a list the
+                   same length as time, effectively providing a function from
+                   time to size for each population.
+
+        descendants : List that maps the descendant populations for the next
+                      TimePeriod. Each population has an entry in descendants,
+                      which is either a single int specifying the index of the
+                      descendant, or a tuple of two ints specifying the indices
+                      of the populations it splits into.
+        
+        migrations : 2D array of floats, specifying the migration rates between
+                     populations within the current time period.
+                     migrations[i][j]=x means that the migration rate from i to 
+                     j was x during this time period.
+        
+        framesizes : List specifying the overall space the tree rooted at each 
+                     population takes up. This is useful for plotting later, and
+                     is dependent on all descendant population sizes.
+
+        direcs : List of directions that each population in time period is 
+                 drawn. For each population the value is equal to 1 if the 
+                 population should be drawn facing up, and -1 if the population 
+                 should be drawn facing down.
+
+        origins : List of where each population in the time period should begin
+                  to be drawn. For each population, if direc is 1, then the 
+                  origin is the lower-left corner of the space. If direc is -1,
+                  then it is the upper-left corner. Represented as a tuple (x,y)
+        """
+        def __init__(self, time, npops, precision):
+            """
+            Sets basic information for the time period.
+            
+            time : Starting time of period.
+
+            npops : Number of populations in the time period.
+            
+            precision : Value of precision variable.
+            """
+            self.precision = precision
+            self.time = [time]*precision
+            self.popsizes = [[1]*precision for pop in range(npops)]
+            self.descendants = None
+            self.migrations = None
+            self.framesizes = None
+            self.direcs = None
+            self.origins = None
+
 
     def initialize(self, npops):
         """
@@ -140,7 +252,7 @@ class _ModelInfo():
         npops : Number of ancestral populations.
         """
         self.current_time = 0.0
-        tp = self.TimePeriod(0.0, npops)
+        tp = self.TimePeriod(self.current_time, npops, self.precision)
         self.tp_list = [tp]
 
     def split(self, initial_pop, split_pops):
@@ -148,12 +260,14 @@ class _ModelInfo():
         Splits one of the current populations into two.
 
         initial_pop : index of population to split.
-        split_pops : indices of the resulting populations. (tuple)
+
+        split_pops : tuple of the two indices of the resulting populations.
         """
-        current_tp = self.tp_list[-1]
-        current_tp.descendants[initial_pop] = split_pops
-        new_tp = self.TimePeriod(current_tp.end_time, 
-                                 len(current_tp.descendants) + 1)
+        tp = self.tp_list[-1]
+        tp.descendants = [pop for pop in range(len(tp.popsizes))]
+        tp.descendants[initial_pop] = split_pops
+        new_tp = self.TimePeriod(self.current_time, len(tp.popsizes) + 1,
+                                 self.precision)
         self.tp_list.append(new_tp)
 
     def evolve(self, time, popsizes, migrations):
@@ -161,36 +275,35 @@ class _ModelInfo():
         Evolves current populations forward in time.
         
         time : Length of time to evolve.
-        popsizes : List of sizes for each current population.
-        mig : 2D array describing migration rates between populations.
+
+        popsizes : Either a list of sizes for each current population, or a
+                   function that returns a list of sizes for any time value 
+                   given between 0 and time.
+
+        migrations : 2D array describing migration rates between populations.
         """
         self.current_time += time
-        current_tp = self.tp_list[-1]
-        current_tp.end_time = self.current_time
+        tp = self.tp_list[-1]
+        tp.time = np.linspace(tp.time[0], self.current_time, num=self.precision)
         if callable(popsizes):
-            times = np.arange(0, time+0.01, 0.02)
-            current_tp.popsizes = np.transpose([popsizes(t) for t in times])
+            popfunc = popsizes
         else:
-            current_tp.popsizes = popsizes
-        current_tp.migrations = migrations
+            popfunc = lambda t : popsizes
+        time_vals = np.linspace(0, time, num=self.precision)
+        tp.popsizes = np.transpose([popfunc(t) for t in time_vals])
+        tp.migrations = migrations
 
-    def determine_poptree_sizes(self):
+    def determine_framesizes(self):
         """
         Determines the overall size of the tree rooted at each population by
         working backwards through the list of time periods. This is necessary
         for allocating the proper amount of space to a given population when 
         drawing it.
         """
-        # Can't be called before time period info has been generated
-        if self.tp_list is None:
-            raise Exception("Must generate model information before determining"
-                            "sizes of the population trees")
-        
-        # Size of tree rooted at leaf node populations only dependent on the
-        # max size reached by that population
+        # Leaf node populations only dependent on their own max size reached
         last_tp = self.tp_list[-1]
-        last_tp.poptree_sizes = [max(size) if isinstance(size, np.ndarray) 
-                                 else size for size in last_tp.popsizes]
+        last_tp.framesizes = [max(size) for size in last_tp.popsizes]
+        
         # If only one time period, method is complete
         if len(self.tp_list) == 1:
             return
@@ -200,16 +313,61 @@ class _ModelInfo():
             tp = self.tp_list[tpindex]
             tpnext = self.tp_list[tpindex+1]
             # Begin by assigning size to be largest size from this time period
-            tp.poptree_sizes = [max(size) if isinstance(size, np.ndarray) 
-                                else size for size in tp.popsizes]
+            tp.framesizes = [max(size) for size in tp.popsizes]
             # Add information from descendant populations
             for i,desc in enumerate(tp.descendants):
                 # If a population splits, add information from both descendants
                 if isinstance(desc, tuple):
                     for dindex in desc:
-                        tp.poptree_sizes[i] += tpnext.poptree_sizes[dindex]
+                        tp.framesizes[i] += tpnext.framesizes[dindex]
                 # Otherwise, update size to max of this pop and its descendant
                 else:
-                    mysize = tp.poptree_sizes[i]
-                    nextsize = tpnext.poptree_sizes[desc]
-                    tp.poptree_sizes[i] = max(mysize, nextsize)
+                    mysize = tp.framesizes[i]
+                    nextsize = tpnext.framesizes[desc]
+                    tp.framesizes[i] = max(mysize, nextsize)
+    
+    def determine_drawinfo(self, tp_index, pop_index, origin, direc):
+        """
+        Determines the origin and draw direction of each population in the model
+        so that they may be properly plotted. Works recursively through each
+        population tree.
+
+        tp_index : Index of the current TimePeriod in self.tp_list.
+
+        pop_index : Index of the current population within the TimePeriod.
+
+        origin : Initial origin value for the current population. May be 
+                 adjusted based on subpopulations.
+
+        direc : Direc value for the current population.
+        """
+        tp = self.tp_list[tp_index]
+        # Set initial direc and origin info
+        if not tp.direcs:
+            tp.direcs = [1 for pop in range(len(tp.popsizes))]
+        if not tp.origins:
+            tp.origins = [(0,0) for pop in range(len(tp.popsizes))]
+        tp.direcs[pop_index] = direc
+        tp.origins[pop_index] = origin
+
+        # Recursively determine sub-population information if present
+        if tp.descendants is not None:
+            desc = tp.descendants[pop_index]
+            # Split population case (harder)
+            if isinstance(desc, tuple):
+                # Shift origin to account for sub-population taking up space
+                origin = (origin[0], origin[1] + (direc *
+                          (self.tp_list[tp_index+1].framesizes[desc[0]])))
+                tp.origins[pop_index] = origin
+                # Determine info for first sub-population
+                self. determine_drawinfo(tp_index+1, desc[0], 
+                                         (tp.time[-1], origin[1]), -1*direc)
+                # Determine info for second subpopulation 
+                # Shift origin to account for this population's size
+                popsize = tp.popsizes[pop_index]
+                self.determine_drawinfo(tp_index+1, desc[1], (tp.time[-1],
+                                        origin[1] + direc*max(popsize)), direc)
+            # Single descendant case (easier)
+            else:
+                self.determine_drawinfo(tp_index+1, desc, 
+                                        (tp.time[-1], origin[1]), direc)
