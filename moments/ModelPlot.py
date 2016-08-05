@@ -21,6 +21,7 @@ Spectrum_mod.Spectrum.integrate
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.ticker as mticker
 
 ## USER FUNCTIONS ##
 def generate_model(model_func, params, ns, precision=100):
@@ -53,20 +54,73 @@ def generate_model(model_func, params, ns, precision=100):
         vstart += tp1.framesizes[pop_index]
     return model
 
-def plot_model(model):
+def plot_model(model, fig_title="Demographic Model", fig_bg_color='#657b83', 
+               plot_bg_color='#839496', pop_color='#268bd2', 
+               arrow_color='#073642', arrow_scale=0.01, text_color='#002b36',
+               save_file = None, pop_labels=None):
     """
     Plots a demographic model based on information contained within a _ModelInfo
-    object. Returns the matplotlib Figure object that was created.
+    object. Returns the matplotlib Figure object that was created. See the
+    matplotlib documentation for valid values for the color options.
 
     model : A _ModelInfo object created using generate_model().
-    """
-    # Set up plot
-    plt.style.use('ggplot')
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlabel("Time (Genetic Units)")
-    ax.set_ylabel("Relative Population Sizes")
 
+    fig_title : Title of the figure.
+
+    fig_bg_color : Background color of figure (i.e. border surrounding the
+                   drawn model).
+
+    plot_bg_color : Background color of the actual plot area.
+
+    pop_color : Color of the populations.
+
+    arrow_color : Color of the arrows showing migrations between populations.
+
+    arrow_scale : Float to control the size of the migration arrows.
+    
+    text_color : Color of text in the figure.
+
+    save_file : If not None, the figure will be saved to this location.
+
+    pop_labels : If not None, should be a list of strings of the same length as
+                 the total number of final populations in the model. The string
+                 at index i should be the name of the population along axis i in
+                 the model's SFS.
+    """
+    # Set up basics of plot
+    fig = plt.figure(facecolor=fig_bg_color)
+    ax = fig.add_subplot(111)
+    ax.set_axis_bgcolor(plot_bg_color)
+    ax.set_title(fig_title, color=text_color,fontsize=24)
+    ax.set_xlabel("Time (Genetic Units)", color=text_color, fontsize=16)
+    ax.set_ylabel("Relative Population Sizes", color=text_color, fontsize=16)
+
+    # Determine various max values for proper scaling within the model
+    xmax = model.tp_list[-1].time[-1]
+    ymax = sum(model.tp_list[0].framesizes)
+    mig_max = 0
+    for tp in model.tp_list:
+        if tp.migrations is None:
+            continue
+        mig = np.amax(tp.migrations)
+        mig_max = mig_max if mig_max > mig else mig
+
+    # Configure minor ticks
+    ax.xaxis.set_minor_locator(mticker.NullLocator())
+    ax.yaxis.set_minor_locator(mticker.FixedLocator(np.arange(ymax)))
+    # Major tick on time axis only for change in time periods
+    xticks = [tp.time[0] for tp in model.tp_list]
+    xticks.append(xmax)
+    ax.xaxis.set_major_locator(mticker.FixedLocator(xticks))
+    
+    # Configure axis tick/label colors
+    ax.spines['top'].set_color(text_color)
+    ax.spines['right'].set_color(text_color)
+    ax.spines['bottom'].set_color(text_color)
+    ax.spines['left'].set_color(text_color)
+    ax.tick_params(which='both', colors=text_color, top=False, right=False,
+                   labelsize=12)
+    
     # Iterate through time periods and populations to draw everything
     for tp_index, tp in enumerate(model.tp_list):
         # Keep track of migrations plotted so arrows don't overlap
@@ -78,7 +132,8 @@ def plot_model(model):
             direc = tp.direcs[pop_index]
             y1 = origin[1]
             y2 = origin[1] + (direc*popsize)
-            ax.fill_between(tp.time, y1, y2)
+            ax.fill_between(tp.time, y1, y2, color=pop_color, 
+                            edgecolor=pop_color)
 
             # Draw connections to next populations if necessary
             if tp.descendants is not None:
@@ -106,8 +161,10 @@ def plot_model(model):
                 cy_above_1 = origin[1] + direc*popsize[-10:]
                 cy_below_2 = np.linspace(cy_below_1[0], connect_below, 10)
                 cy_above_2 = np.linspace(cy_above_1[0], connect_above, 10)
-                ax.fill_between(cx, cy_below_1, cy_below_2)
-                ax.fill_between(cx, cy_above_1, cy_above_2)
+                ax.fill_between(cx, cy_below_1, cy_below_2, color=pop_color,
+                                edgecolor=pop_color)
+                ax.fill_between(cx, cy_above_1, cy_above_2, color=pop_color,
+                                edgecolor=pop_color)
 
             # Draw migrations if necessary
             if tp.migrations is not None:
@@ -129,14 +186,39 @@ def plot_model(model):
                     y = y1 if abs(mig_y1 - y1) < abs(mig_y1 - y2) else y2
                     dy = mig_y1-y if abs(mig_y1 - y) < abs(mig_y2 - y) \
                                   else mig_y2-y
-                    ax.arrow(x,y,dx,dy, width=0.01, head_width=0.03,
-                             head_length = 0.1, color='black',
+                    # Scale arrow to proper size                  
+                    mig_scale = max(0.1, mig_val/mig_max)
+                    awidth = xmax * arrow_scale * mig_scale
+                    alength = ymax * arrow_scale
+                    ax.arrow(x,y,dx,dy, width=awidth, head_width=awidth*3,
+                             head_length = alength, color=arrow_color,
                              length_includes_head = True)
     
+    # Label populations, if correct labels are given
+    tp_last = model.tp_list[-1]
+    if pop_labels and len(pop_labels) == len(tp_last.popsizes):
+        ax2 = ax.twinx()
+        ax2.set_xlim(ax.get_xlim())
+        ax2.set_ylim(ax.get_ylim())
+        # Determine placement of ticks
+        yticks = [tp_last.origins[i][1] + 0.5 * tp_last.direcs[i] *
+                  tp_last.popsizes[i][-1] for i in range(len(tp_last.popsizes))]
+        ax2.yaxis.set_major_locator(mticker.FixedLocator(yticks))
+        ax2.set_yticklabels(pop_labels)
+        ax2.tick_params(which='both', color='none', labelcolor=text_color,
+                        labelsize=16)
+        ax2.spines['top'].set_color(text_color)
+        ax2.spines['left'].set_color(text_color)
+        ax2.spines['right'].set_color(text_color)
+        ax2.spines['bottom'].set_color(text_color)
+
     # Display figure
-    plt.show(fig)
-    return fig
-        
+    if save_file:
+        fig.set_size_inches(9.6, 5.4)
+        plt.savefig(save_file, dpi=200, facecolor=fig_bg_color)
+    else:
+        plt.show(fig)
+       
 
 ## IMPLEMENTATION FUNCTIONS ##
 _current_model = None
