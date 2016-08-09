@@ -1,23 +1,25 @@
 """
 This module provides functionality to gather and store information about a
-demographic model (as defined by a demographic model function), and to generate
-a visual representation of the model by using this information.
+demographic model (as defined by a demographic model function), and to use this
+information to generate a visual representation of the model.
 
-Generating information about a model and plotting it is simple. The following
-two functions are all that is necessary to generate a plot of the model defined
-by demographic_model_func(params, ns):
+Just two functions are used for generating and plotting models. For example, the
+following is all that is necessary to generate a plot of the model defined by
+demographic_model_func(params, ns):
 
 model = ModelPlot.generate_model(demographic_model_func, params, ns)
 ModelPlot.plot_model(model)
 
-This module is currently compatible with the following methods in moments used 
-to build demographic models:
+Additional options for customizing the model are described in the documentation
+of these two functions. The module is currently compatible with the following 
+methods in moments:
 
 LinearSystem_1D.steady_state_1D
 LinearSystem.steady_state
 Manips.split_{1D_to_2D,2D_to_3D_2,2D_to_3D_1,3D_to_4D_3,4D_to_5D_4}
 Spectrum_mod.Spectrum.integrate
 """
+import matplotlib.colors as mcolors
 import matplotlib.offsetbox as mbox
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -27,9 +29,8 @@ import numpy as np
 ## USER FUNCTIONS ##
 def generate_model(model_func, params, ns, precision=100):
     """
-    Generates information about a demographic model, and returns the information
-    in a format that can be used by the plot_model function (i.e. the info is 
-    stored in a ModelPlot._ModelInfo object).
+    Generates information about a demographic model, and stores the information
+    in a format that can be used by the plot_model function
     
     model_func : Function of the form model_func(params, ns). Describes the
                  demographic model to collect information on.
@@ -38,8 +39,13 @@ def generate_model(model_func, params, ns, precision=100):
              params argument to model_func.
 
     ns : List of sample sizes to be passed as the ns argument to model_func.
+         Values shouldn't matter, as long as the dimensionality is correct.
 
-    precision : Number of times to evaluate population sizes per period.
+    precision : Number of times to evaluate population sizes per period. This
+                value can be increased if any of the plotted populations do
+                not appear smooth.
+
+    Returns a _ModelInfo object storing the information.
     """
     # Initialize model and collect necessary information
     model = _ModelInfo(precision)
@@ -47,7 +53,7 @@ def generate_model(model_func, params, ns, precision=100):
     _close_model()
     # Determine size of population trees
     model.determine_framesizes()
-    # Determine information for plotting recursively for each population tree
+    # Recursively determine plotting information for each tree.
     vstart = 0
     tp1 = model.tp_list[0]
     for pop_index in range(len(tp1.popsizes)):
@@ -57,17 +63,18 @@ def generate_model(model_func, params, ns, precision=100):
 
 def plot_model(model, save_file=None, pop_labels=None, nref=None, 
                fig_title="Demographic Model", fig_bg_color='#ffffff', 
-               plot_bg_color='#93a1a1', gridline_color='#586e75', 
-               text_color='#002b36', pop_color='#268bd2', 
-               draw_migrations=True, arrow_color='#073642', arrow_scale=0.01):         
+               plot_bg_color='#ffffff', gridline_color='#586e75', 
+               text_color='#002b36', pop_color='#268bd2', draw_scale=True,
+               draw_ancestors=True, draw_migrations=True,
+               arrow_color='#073642', arrow_scale=0.01):         
     """
     Plots a demographic model based on information contained within a _ModelInfo
-    object. Returns the matplotlib Figure object that was created. See the
-    matplotlib documentation for valid entries for the color parameters.
+    object. See the matplotlib docs for valid entries for the color parameters.
 
     model : A _ModelInfo object created using generate_model().
 
-    save_file : If not None, the figure will be saved to this location.
+    save_file : If not None, the figure will be saved to this location. Otherwise
+                the figure will simply be displayed.
 
     nref : If specified, this will update the time and population size labels to
            use units based on an ancestral population size of nref. See the
@@ -91,13 +98,18 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
 
     pop_color : Color of the populations.
 
-    draw_migrations : If False, migration arrows will not be drawn.
+    draw_scale : Specify whether scale bar should be shown in top-left corner.
+
+    draw_ancestors : Specify whether the ancestral populations should be drawn
+                     in beginning of plot. Will fade off with a gradient.
+
+    draw_migrations : Specify whether migration arrows are drawn.
 
     arrow_color : Color of the arrows showing migrations between populations.
 
     arrow_scale : Float to control the size of the migration arrows.
     """
-    # Set up basics of plot
+    # Set up the plot with a title and axis labels
     fig = plt.figure(facecolor=fig_bg_color)
     ax = fig.add_subplot(111)
     ax.set_axis_bgcolor(plot_bg_color)
@@ -108,7 +120,8 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
     else:
         ax.set_xlabel("Time (Genetic Units)", color=text_color, fontsize=16)
         ax.set_ylabel("Relative Population Sizes", color=text_color, fontsize=16)
-    # Determine various max values for proper scaling within the model
+    
+    # Determine various maximum values for proper scaling within the plot
     xmax = model.tp_list[-1].time[-1]
     ymax = sum(model.tp_list[0].framesizes)
     mig_max = 0
@@ -124,7 +137,7 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
     ax.spines['bottom'].set_color(text_color)
     ax.spines['left'].set_color(text_color)
     
-    # Configure ticks along x-axis (time)
+    # Major ticks along x-axis (time) placed at each population split
     xticks = [tp.time[0] for tp in model.tp_list]
     xticks.append(xmax)
     ax.xaxis.set_major_locator(mticker.FixedLocator(xticks))
@@ -133,31 +146,70 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
                    labelsize=12, top=False)
     # If nref is given use the appropriate time units (2*nref generations)
     if nref:
-        ax.set_xticklabels([str(2*nref*x) for x in xticks])
+        ax.set_xticklabels(['{:.0f}'.format(2*nref*x) for x in xticks])
+    else:
+        ax.set_xticklabels(['{:.2f}'.format(x) for x in xticks])
 
-    # Configure gridlines along y-axis (population size)
+    # Gridlines along y-axis (population size) spaced by nref size
     ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
     ax.yaxis.set_minor_locator(mticker.NullLocator())
     ax.grid(b=True, which='major', axis='y', color=gridline_color)
     ax.tick_params(which='both', axis='y', colors='none')
 
-    # Add population size scale
-    bar = mbox.AuxTransformBox(ax.transData)
-    bar.add_artist(mpatches.Rectangle((0,0), 0, 1, edgecolor=text_color,
-                                      facecolor='none'))
-    label = mbox.TextArea(str(nref) if nref else "Nref")
-    label.get_children()[0].set_color(text_color)
-    bar = mbox.HPacker(children=[label, bar], pad=0, sep=2,
-                       align="center")
-    scalebar = mbox.AnchoredOffsetbox(2, pad=0.25, borderpad=0.25, child=bar,
-                                      frameon=False)
-    ax.add_artist(scalebar)
+    # Add scale in top-left corner displaying ancestral population size (Nref)
+    if draw_scale:
+        # Bidirectional arrow of height Nref
+        arrow = mbox.AuxTransformBox(ax.transData)
+        awidth = xmax * arrow_scale * 0.2
+        alength = ymax * arrow_scale
+        arrow_kwargs = {'width': awidth, 'head_width': awidth*3, 
+                        'head_length': alength, 'color': text_color,
+                        'length_includes_head': True}
+        arrow.add_artist(plt.arrow(0,0.25,0,0.75, zorder=100,**arrow_kwargs))
+        arrow.add_artist(plt.arrow(0,0.75,0,-0.75, zorder=100,**arrow_kwargs))
+        # Population bar of height Nref
+        bar = mbox.AuxTransformBox(ax.transData)
+        bar.add_artist(mpatches.Rectangle((0,0), xmax/ymax, 1, color=pop_color))
+        # Appropriate label depending on scale
+        label = mbox.TextArea(str(nref) if nref else "Nref")
+        label.get_children()[0].set_color(text_color)
+        bars = mbox.HPacker(children=[label, arrow, bar], pad=0, sep=2,
+                            align="center")
+        scalebar = mbox.AnchoredOffsetbox(2, pad=0.25, borderpad=0.25, child=bars,
+                                          frameon=False)
+        ax.add_artist(scalebar)
+
+    # Add ancestral populations using a gradient fill.
+    if draw_ancestors:
+        time = -1*xmax*0.1
+        for i, ori in enumerate(model.tp_list[0].origins):
+            # Draw ancestor for each initial pop
+            xlist = np.linspace(time, 0.0, model.precision)
+            dx = xlist[1]-xlist[0]
+            low, mid, top = (ori[1], ori[1]+1.0, 
+                             ori[1]+model.tp_list[0].popsizes[i][0])
+            y1list = np.array([low]*model.precision)
+            y2list = np.array([mid]*(model.precision-10))
+            y2list = np.append(y2list, np.linspace(mid, top, 10))
+            # Custom color map runs from bg color to pop color
+            cmap = mcolors.LinearSegmentedColormap.from_list("custom_map", 
+                                                             [plot_bg_color,
+                                                              pop_color])
+            colors = np.array(cmap(np.linspace(0.0, 1.0, model.precision-10)))
+            # Gradient created by drawing multiple small rectangles
+            for x, y1, y2, color in zip(xlist[:-10], y1list[:-10], 
+                                        y2list[:-10], colors):
+                rect = mpatches.Rectangle((x,y1), dx, y2-y1, color=color)
+                ax.add_patch(rect)
+            ax.fill_between(xlist[-10:], y1list[-10:], y2list[-10:],
+                            color=pop_color, edgecolor=pop_color)
 
     # Iterate through time periods and populations to draw everything
     for tp_index, tp in enumerate(model.tp_list):
         # Keep track of migrations to evenly space arrows across time period
         total_migrations = np.count_nonzero(tp.migrations)
         num_migrations = 0
+        
         for pop_index in range(len(tp.popsizes)):
             # Draw current population
             origin = tp.origins[pop_index]
@@ -206,6 +258,7 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
                     # If no migration, continue
                     if mig_val == 0:
                         continue
+                    # Calculate proper offset for arrow within this period
                     num_migrations += 1
                     offset = int(tp.precision * num_migrations / 
                              (total_migrations + 1.0))
@@ -228,7 +281,7 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
                              head_length = alength, color=arrow_color,
                              length_includes_head = True)
     
-    # Label populations, if correct labels are given
+    # Label populations if proper labels are given
     tp_last = model.tp_list[-1]
     if pop_labels and len(pop_labels) == len(tp_last.popsizes):
         ax2 = ax.twinx()
@@ -365,9 +418,9 @@ class _ModelInfo():
 
     def initialize(self, npops):
         """
-        Creates initial ancestral population(s) in steady-state.
+        Creates initial steady-state population(s)
 
-        npops : Number of ancestral populations.
+        npops : Number of original populations.
         """
         self.current_time = 0.0
         tp = self.TimePeriod(self.current_time, npops, self.precision)
@@ -489,46 +542,3 @@ class _ModelInfo():
             else:
                 self.determine_drawinfo(tp_index+1, desc, 
                                         (tp.time[-1], origin[1]), direc)
-
-
-# The following code was adapted from scalebars.py, by dmeliza, located here on
-# GitHub: https://gist.github.com/dmeliza/3251476. scalebars.py is licensed with
-# the Python Software Foundation license (http://docs.python.org/license.html).
-class _AnchoredScaleBar(mbox.AnchoredOffsetbox):
-    def __init__(self, transform, sizex=0, sizey=0, labelx=None, labely=None, 
-                 loc=4, pad=0.1, borderpad=0.1, sep=2, prop=None, **kwargs):
-        """
-        Draw a horizontal and/or vertical bar with the size in data coordinates
-        of the give axes. A label will be drawn underneath (center-aligned).
-        
-        transform : Coordinate frame to use (typically axes.transData)
-        
-        sizex,sizey: Width of the x and y bars, in data units. 0 to omit.
-
-        labelx,labely : Labels for the x and y  bars. None to omit.
-
-        loc : Position in containing axes.
-
-        pad,borderpad : Padding, in fraction of the legend font size (or prop).
-
-        sep : Separation between labels and bars in points.
-        
-        **kwargs : Additional arguments passed to base class constructor.
-        """
-        bars = mbox.AuxTransformBox(transform)
-        if sizex:
-            bars.add_artist(mpatches.Rectangle((0,0), sizex, 0, fc="none"))
-        if sizey:
-            bars.add_artist(mpatches.Rectangle((0,0), 0, sizey, fc="none"))
-
-        if sizex and labelx:
-            bars = mbox.VPacker(children=[bars, mbox.TextArea(labelx, 
-                                minimumdescent=False)], pad=0, sep=sep,
-                                align="center")
-        if sizey and labely:
-            bars = mbox.HPacker(children=[mbox.TextArea(labely), bars], pad=0,
-                                sep=sep, align="center")
-
-        mbox.AnchoredOffsetbox.__init__(self, loc, pad=pad, borderpad=borderpad,
-                                        child=bars, prop=prop, frameon=False, 
-                                        **kwargs)
