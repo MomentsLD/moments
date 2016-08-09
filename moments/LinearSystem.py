@@ -3,6 +3,8 @@ import scipy as sp
 from scipy.sparse import linalg
 
 import Jackknife as jk
+import ModelPlot
+
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -318,7 +320,11 @@ def calcM_jk3(dims, m):
 # Steady state (for initialization)
 #----------------------------------
 def steady_state(n, N=None, gamma=None, h=None, m=None, theta=1.0, reshape=True):
-    
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None
+        model.initialize(len(n))
+
     # neutral case if the parameters are not provided
     if N is None:
         N = np.ones(len(n))

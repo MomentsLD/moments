@@ -23,6 +23,7 @@ from moments.Integration import integrate_nD
 from moments.Integration_nomig import integrate_nomig, integrate_neutral
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
+import moments.ModelPlot
 
 class Spectrum(numpy.ma.masked_array):
     """
@@ -1512,6 +1513,11 @@ def %(method)s(self, other):
     # spectrum integration
     # We chose the most efficient solver for each case
     def integrate(self, Npop, n, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0):
+        # Update ModelPlot
+        model = moments.ModelPlot._get_model()
+        if model is not None:
+            model.evolve(tf, Npop, m)
+
         if len(n)==1 :
             if gamma is None:
                 gamma = 0.0
