@@ -39,7 +39,7 @@ def generate_model(model_func, params, ns, precision=100):
              params argument to model_func.
 
     ns : List of sample sizes to be passed as the ns argument to model_func.
-         Values shouldn't matter, as long as the dimensionality is correct.
+         Actual values do not matter, as long as the dimensionality is correct.
 
     precision : Number of times to evaluate population sizes per period. This
                 value can be increased if any of the plotted populations do
@@ -47,13 +47,14 @@ def generate_model(model_func, params, ns, precision=100):
 
     Returns a _ModelInfo object storing the information.
     """
-    # Initialize model and collect necessary information
+    # Initialize model and collect necessary information from model function
     model = _ModelInfo(precision)
     model_func(params, ns)
+    # Closing model prevents continued collection of information
     _close_model()
-    # Determine size of population trees
+    # Determine size of population trees for space allocation in plot
     model.determine_framesizes()
-    # Recursively determine plotting information for each tree.
+    # Determine location and orientation of each plotted population
     vstart = 0
     tp1 = model.tp_list[0]
     for pop_index in range(len(tp1.popsizes)):
@@ -61,12 +62,14 @@ def generate_model(model_func, params, ns, precision=100):
         vstart += tp1.framesizes[pop_index]
     return model
 
-def plot_model(model, save_file=None, pop_labels=None, nref=None, 
-               fig_title="Demographic Model", fig_bg_color='#ffffff', 
-               plot_bg_color='#ffffff', gridline_color='#586e75', 
-               text_color='#002b36', pop_color='#268bd2', draw_scale=True,
-               draw_ancestors=True, draw_migrations=True,
-               arrow_color='#073642', arrow_scale=0.01):         
+def plot_model(model, save_file=None, fig_title="Demographic Model", 
+               pop_labels=None, nref=None, draw_ancestors=True,
+               draw_migrations=True, draw_scale=True, arrow_size=0.01,
+               transition_size=0.05, gen_time=0, gen_time_units="Years",
+               reverse_timeline=False, fig_bg_color='#ffffff', 
+               plot_bg_color='#ffffff', text_color='#002b36', 
+               gridline_color='#586e75', pop_color='#268bd2', 
+               arrow_color='#073642'):         
     """
     Plots a demographic model based on information contained within a _ModelInfo
     object. See the matplotlib docs for valid entries for the color parameters.
@@ -74,53 +77,74 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
     model : A _ModelInfo object created using generate_model().
 
     save_file : If not None, the figure will be saved to this location. Otherwise
-                the figure will simply be displayed.
+                the figure will be displayed to the screen.
 
-    nref : If specified, this will update the time and population size labels to
-           use units based on an ancestral population size of nref. See the
-           documentation for details.
+    fig_title : Title of the figure.
 
     pop_labels : If not None, should be a list of strings of the same length as
                  the total number of final populations in the model. The string
                  at index i should be the name of the population along axis i in
                  the model's SFS.
+
+    nref : If specified, this will update the time and population size labels to
+           use units based on an ancestral population size of nref. See the
+           documentation for details.
+
+    draw_ancestors : Specify whether the ancestral populations should be drawn
+                     in beginning of plot. Will fade off with a gradient.
     
-    fig_title : Title of the figure.
+    draw_migrations : Specify whether migration arrows are drawn.
+
+    draw_scale : Specify whether scale bar should be shown in top-left corner.
+
+    arrow_size : Float to control the size of the migration arrows.
+
+    transition_size : Float specifying size of the "transitional periods"
+                      between populations.
+
+    gen_time : If greater than 0, and nref given, timeline will be adjusted to
+               show absolute time values, using this value as the time elapsed
+               per generation.
+
+    gen_time_units : Units used for gen_time (e.g. Years, Thousand Years, etc.).
+
+    reverse_timeline : If True, the labels on the timeline will be reversed, so
+                       that "0 time" is the present time period, rather than the
+                       time of the original population.
 
     fig_bg_color : Background color of figure (i.e. border surrounding the
                    drawn model).
 
     plot_bg_color : Background color of the actual plot area.
 
-    gridline_color : Color of the plot gridlines.
-
     text_color : Color of text in the figure.
+
+    gridline_color : Color of the plot gridlines.
 
     pop_color : Color of the populations.
 
-    draw_scale : Specify whether scale bar should be shown in top-left corner.
-
-    draw_ancestors : Specify whether the ancestral populations should be drawn
-                     in beginning of plot. Will fade off with a gradient.
-
-    draw_migrations : Specify whether migration arrows are drawn.
-
     arrow_color : Color of the arrows showing migrations between populations.
-
-    arrow_scale : Float to control the size of the migration arrows.
     """
     # Set up the plot with a title and axis labels
-    fig = plt.figure(facecolor=fig_bg_color)
+    fig_kwargs = {'figsize': (9.6,5.4), 'dpi':200, 'facecolor':fig_bg_color,
+                  'edgecolor': fig_bg_color}
+    fig = plt.figure(**fig_kwargs)
     ax = fig.add_subplot(111)
     ax.set_axis_bgcolor(plot_bg_color)
     ax.set_title(fig_title, color=text_color,fontsize=24)
+    xlabel = "Time Ago" if reverse_timeline else "Time"
     if nref:
-        ax.set_xlabel("Time (Generations)", color=text_color, fontsize=16)
-        ax.set_ylabel("Population Sizes", color=text_color, fontsize=16)
+        if gen_time > 0:
+            xlabel += " ({})".format(gen_time_units)
+        else:
+            xlabel += " (Generations)"
+        ylabel = "Population Sizes"
     else:
-        ax.set_xlabel("Time (Genetic Units)", color=text_color, fontsize=16)
-        ax.set_ylabel("Relative Population Sizes", color=text_color, fontsize=16)
-    
+        xlabel += " (Genetic Units)"
+        ylabel = "Relative Population Sizes"
+    ax.set_xlabel(xlabel, color=text_color, fontsize=16)
+    ax.set_ylabel(ylabel, color=text_color, fontsize=16)
+
     # Determine various maximum values for proper scaling within the plot
     xmax = model.tp_list[-1].time[-1]
     ymax = sum(model.tp_list[0].framesizes)
@@ -144,9 +168,15 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
     ax.xaxis.set_minor_locator(mticker.NullLocator())
     ax.tick_params(which='both', axis='x', labelcolor=text_color,
                    labelsize=12, top=False)
-    # If nref is given use the appropriate time units (2*nref generations)
+    # Choose correct time labels based on nref, gen_time, and reverse_timeline
+    if reverse_timeline:
+        xticks = [xmax - x for x in xticks]
     if nref:
-        ax.set_xticklabels(['{:.0f}'.format(2*nref*x) for x in xticks])
+        if gen_time > 0:
+            xticks = [2*nref*gen_time*x for x in xticks]
+        else:
+            xticks = [2*nref*x for x in xticks]
+        ax.set_xticklabels(['{:.0f}'.format(x) for x in xticks])
     else:
         ax.set_xticklabels(['{:.2f}'.format(x) for x in xticks])
 
@@ -160,8 +190,8 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
     if draw_scale:
         # Bidirectional arrow of height Nref
         arrow = mbox.AuxTransformBox(ax.transData)
-        awidth = xmax * arrow_scale * 0.2
-        alength = ymax * arrow_scale
+        awidth = xmax * arrow_size * 0.2
+        alength = ymax * arrow_size
         arrow_kwargs = {'width': awidth, 'head_width': awidth*3, 
                         'head_length': alength, 'color': text_color,
                         'length_includes_head': True}
@@ -188,21 +218,24 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
             dx = xlist[1]-xlist[0]
             low, mid, top = (ori[1], ori[1]+1.0, 
                              ori[1]+model.tp_list[0].popsizes[i][0])
+            tsize = int(transition_size * model.precision)
             y1list = np.array([low]*model.precision)
-            y2list = np.array([mid]*(model.precision-10))
-            y2list = np.append(y2list, np.linspace(mid, top, 10))
+            y2list = np.array([mid]*(model.precision-tsize))
+            y2list = np.append(y2list, np.linspace(mid, top, tsize))
             # Custom color map runs from bg color to pop color
             cmap = mcolors.LinearSegmentedColormap.from_list("custom_map", 
                                                              [plot_bg_color,
                                                               pop_color])
-            colors = np.array(cmap(np.linspace(0.0, 1.0, model.precision-10)))
+            colors = np.array(cmap(np.linspace(0.0, 1.0, 
+                                               model.precision-tsize)))
             # Gradient created by drawing multiple small rectangles
-            for x, y1, y2, color in zip(xlist[:-10], y1list[:-10], 
-                                        y2list[:-10], colors):
+            for x, y1, y2, color in zip(xlist[:-1*tsize], y1list[:-1*tsize], 
+                                        y2list[:-1*tsize], colors):
                 rect = mpatches.Rectangle((x,y1), dx, y2-y1, color=color)
                 ax.add_patch(rect)
-            ax.fill_between(xlist[-10:], y1list[-10:], y2list[-10:],
-                            color=pop_color, edgecolor=pop_color)
+            ax.fill_between(xlist[-1*tsize:], y1list[-1*tsize:], 
+                            y2list[-1*tsize:], color=pop_color, 
+                            edgecolor=pop_color)
 
     # Iterate through time periods and populations to draw everything
     for tp_index, tp in enumerate(model.tp_list):
@@ -241,11 +274,12 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
                     subpop = tp_next.popsizes[desc][0]
                     connect_above = connect_below + direc * subpop
                 # Draw the connections
-                cx = tp.time[-10:]
-                cy_below_1 = [origin[1]]*10
-                cy_above_1 = origin[1] + direc*popsize[-10:]
-                cy_below_2 = np.linspace(cy_below_1[0], connect_below, 10)
-                cy_above_2 = np.linspace(cy_above_1[0], connect_above, 10)
+                tsize = int(transition_size * model.precision)
+                cx = tp.time[-1*tsize:]
+                cy_below_1 = [origin[1]] * tsize
+                cy_above_1 = origin[1] + direc*popsize[-1*tsize:]
+                cy_below_2 = np.linspace(cy_below_1[0], connect_below, tsize)
+                cy_above_2 = np.linspace(cy_above_1[0], connect_above, tsize)
                 ax.fill_between(cx, cy_below_1, cy_below_2, color=pop_color,
                                 edgecolor=pop_color)
                 ax.fill_between(cx, cy_above_1, cy_above_2, color=pop_color,
@@ -275,8 +309,8 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
                                   else mig_y2-y
                     # Scale arrow to proper size                  
                     mig_scale = max(0.1, mig_val/mig_max)
-                    awidth = xmax * arrow_scale * mig_scale
-                    alength = ymax * arrow_scale
+                    awidth = xmax * arrow_size * mig_scale
+                    alength = ymax * arrow_size
                     ax.arrow(x,y,dx,dy, width=awidth, head_width=awidth*3,
                              head_length = alength, color=arrow_color,
                              length_includes_head = True)
@@ -301,13 +335,10 @@ def plot_model(model, save_file=None, pop_labels=None, nref=None,
 
     # Display figure
     if save_file:
-        fig.set_size_inches(9.6, 5.4)
-        plt.savefig(save_file, dpi=200, facecolor=fig_bg_color)
+        plt.savefig(save_file, **fig_kwargs)
     else:
-        plt.show(fig)
-
-    return fig
-       
+        plt.show()
+    plt.close(fig)
 
 ## IMPLEMENTATION FUNCTIONS ##
 _current_model = None
@@ -343,8 +374,8 @@ class _ModelInfo():
     """
     def __init__(self, precision):
         """
-        Sets itself as the current model, to be able to collect data from other
-        methods in moments, and initializes the class variables.
+        Sets itself as the global current model, to be able to collect data from
+        other methods in moments, and initializes instance variables.
 
         precision : Sets the precision variable.
         """
@@ -354,71 +385,9 @@ class _ModelInfo():
         self.tp_list = []
         self.precision = precision
 
-    class TimePeriod():
-        """
-        Keeps track of population information and relationships during a 
-        specific time period of the demographic model. Also contains information
-        about how populations should be drawn.
-        
-        precision : Number of times to evaluate population size within period.
-
-        time : List, with length specified by ModelInfo's precision variable.
-               Equally spaced time intervals running from the start of this time
-               period to the end of it.
-        
-        popsizes : List containing the size of each population in the current
-                   time period. Size of each population is stored as a list the
-                   same length as time, effectively providing a function from
-                   time to size for each population.
-
-        descendants : List that maps the descendant populations for the next
-                      TimePeriod. Each population has an entry in descendants,
-                      which is either a single int specifying the index of the
-                      descendant, or a tuple of two ints specifying the indices
-                      of the populations it splits into.
-        
-        migrations : 2D array of floats, specifying the migration rates between
-                     populations within the current time period.
-                     migrations[i][j]=x means that the migration rate from i to 
-                     j was x during this time period.
-        
-        framesizes : List specifying the overall space the tree rooted at each 
-                     population takes up. This is useful for plotting later, and
-                     is dependent on all descendant population sizes.
-
-        direcs : List of directions that each population in time period is 
-                 drawn. For each population the value is equal to 1 if the 
-                 population should be drawn facing up, and -1 if the population 
-                 should be drawn facing down.
-
-        origins : List of where each population in the time period should begin
-                  to be drawn. For each population, if direc is 1, then the 
-                  origin is the lower-left corner of the space. If direc is -1,
-                  then it is the upper-left corner. Represented as a tuple (x,y)
-        """
-        def __init__(self, time, npops, precision):
-            """
-            Sets basic information for the time period.
-            
-            time : Starting time of period.
-
-            npops : Number of populations in the time period.
-            
-            precision : Value of precision variable.
-            """
-            self.precision = precision
-            self.time = [time]*precision
-            self.popsizes = [[1]*precision for pop in range(npops)]
-            self.descendants = None
-            self.migrations = None
-            self.framesizes = None
-            self.direcs = None
-            self.origins = None
-
-
     def initialize(self, npops):
         """
-        Creates initial steady-state population(s)
+        Creates initial steady-state population(s) at time = 0.0.
 
         npops : Number of original populations.
         """
@@ -428,7 +397,9 @@ class _ModelInfo():
 
     def split(self, initial_pop, split_pops):
         """
-        Splits one of the current populations into two.
+        Sets the appropriate descendants for the current time period and
+        correctly splits one of them. Begins a new time period with one
+        additional population.
 
         initial_pop : index of population to split.
 
@@ -443,7 +414,9 @@ class _ModelInfo():
 
     def evolve(self, time, popsizes, migrations):
         """
-        Evolves current populations forward in time.
+        Begins a new time period if necessary. Evolves current populations 
+        forward in time by calculating their sizes throughout the interval. Also
+        moves model time forward and sets migration rates.
         
         time : Length of time to evolve.
 
@@ -455,6 +428,13 @@ class _ModelInfo():
         """
         self.current_time += time
         tp = self.tp_list[-1]
+        # Check if we need to begin a new time period
+        if tp.time[0] != tp.time[-1]:
+            tp.descendants = [pop for pop in range(len(tp.popsizes))]
+            new_tp = self.TimePeriod(self.current_time, len(tp.popsizes),
+                                     self.precision)
+            self.tp_list.append(new_tp)
+            tp = new_tp
         tp.time = np.linspace(tp.time[0], self.current_time, num=self.precision)
         if callable(popsizes):
             popfunc = popsizes
@@ -469,7 +449,8 @@ class _ModelInfo():
         Determines the overall size of the tree rooted at each population by
         working backwards through the list of time periods. This is necessary
         for allocating the proper amount of space to a given population when 
-        drawing it.
+        drawing it (i.e. a plotted population must be given enough vertical
+        room for both itself and all of its descendants.
         """
         # Leaf node populations only dependent on their own max size reached
         last_tp = self.tp_list[-1]
@@ -510,7 +491,7 @@ class _ModelInfo():
         origin : Initial origin value for the current population. May be 
                  adjusted based on subpopulations.
 
-        direc : Direc value for the current population.
+        direc : Plot direction for the current population.
         """
         tp = self.tp_list[tp_index]
         # Set initial direc and origin info
@@ -534,7 +515,7 @@ class _ModelInfo():
                 self. determine_drawinfo(tp_index+1, desc[0], 
                                          (tp.time[-1], origin[1]), -1*direc)
                 # Determine info for second subpopulation 
-                # Shift origin to account for this population's size
+                # Shift its origin to account for current population's size
                 popsize = tp.popsizes[pop_index]
                 self.determine_drawinfo(tp_index+1, desc[1], (tp.time[-1],
                                         origin[1] + direc*max(popsize)), direc)
@@ -542,3 +523,64 @@ class _ModelInfo():
             else:
                 self.determine_drawinfo(tp_index+1, desc, 
                                         (tp.time[-1], origin[1]), direc)
+    
+    class TimePeriod():
+        """
+        Keeps track of population information and relationships during a 
+        specific time period of the demographic model. Also contains information
+        about how populations should be drawn.
+        
+        precision : Number of times to evaluate population size within period.
+
+        time : List, of length 'precision'. Equally spaced time intervals 
+               running from the start of this time period to the end of it.
+        
+        popsizes : List containing the size of each population in the current
+                   time period. Size of each population is stored as a list of
+                   length 'precision', effectively providing a function from
+                   time to size for each population.
+
+        descendants : List that maps the descendant populations for the next
+                      TimePeriod. Each population has an entry in descendants,
+                      which is either a single int specifying the index of the
+                      descendant, or a tuple of two ints specifying the indices
+                      of the populations it splits into.
+        
+        migrations : 2D array of floats, specifying the migration rates between
+                     populations within the current time period.
+        
+        framesizes : List specifying the overall space the tree rooted at each 
+                     population takes up. This is useful for plotting later, and
+                     is dependent on all descendant population sizes.
+
+        direcs : List of directions that each population in time period is 
+                 drawn. For each population the value is equal to 1 if the 
+                 population should be drawn facing up, and -1 if the population 
+                 should be drawn facing down.
+
+        origins : List of where each population in the time period should begin
+                  to be drawn. For each population, if direc is 1, then the 
+                  origin is the lower-left corner of the space. If direc is -1,
+                  then it is the upper-left corner. Represented as a tuple (x,y)
+        """
+        def __init__(self, time, npops, precision):
+            """
+            Sets basic information for the time period.
+            
+            time : Starting time of period.
+
+            npops : Number of populations in the time period.
+            
+            precision : Value of precision variable.
+            """
+            self.precision = precision
+            self.time = [time]*precision
+            self.popsizes = [[1.0]*precision for pop in range(npops)]
+            self.descendants = None
+            self.migrations = None
+            self.framesizes = None
+            self.direcs = None
+            self.origins = None
+
+
+
