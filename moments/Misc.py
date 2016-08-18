@@ -2,10 +2,13 @@
 Miscellaneous utility functions. Including ms simulation.
 """
 
-import collections,os,sys,time
+import bisect,collections,operator,os,sys,time
 
 import numpy
 import scipy.linalg
+
+import moments.Numerics
+import moments.Spectrum_mod
 
 # Nucleotide order assumed in Q matrices.
 code = 'CGTA'
@@ -561,3 +564,160 @@ def _get_popinfo(popinfo_file):
         popinfo_dict[sample] = pop
     
     return popinfo_dict
+
+def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
+              polarized=True, bed_filename=None, num_boots=100, save_dir=None):
+    """
+    Use a non-parametric bootstrap on SNP information contained in a dictionary
+    to generate new data sets. The new data is created by sampling with
+    replacement from independent units of the original data. These units can 
+    simply be chromosomes, or they can be regions specified in a BED file.
+    
+    This function either returns a list of all the newly created SFS, or writes
+    them to disk in a specified directory.
+
+    data_dict : Dictionary containing properly formatted SNP information (i.e.
+                created using one of the make_data_dict methods). 
+
+    pop_ids, projections, 
+    mask_corners, polarized : Arguments to be passed to Spectrum.from_data_dict
+                              when creating the new frequency spectra. See 
+                              Spectrum_mod.py for details.
+
+    bed_filename : If None, chromosomes will be used as the units for 
+                   resampling. Otherwise, this should be the filename of a BED
+                   file specifying the regions to be used as resampling units.
+
+                   Chromosome names must be consistent between the BED file and
+                   the data dictionary, or bootstrap will not work. For example,
+                   if an entry in the data dict has ID X_Y, then the value in 
+                   in the chromosome field of the BED file must also be X (not 
+                   chrX, chromosomeX, etc.).
+                   
+                   If the name field is provided in the BED file, then any
+                   regions with the same name will be considered to be part of
+                   the same unit. This may be useful for sampling as one unit a
+                   gene that is located across non-continuous regions.
+
+    num_boots : Number of resampled SFS to generate.
+
+    save_dir : If None, the SFS are returned as a list. Otherwise this should be
+               a string specifying the name of a new directory under which all
+               of the new SFS should be saved.
+    """
+    # Read in information from BED file if present and store by chromosome
+    if bed_filename is not None:
+        bed_file = open(bed_filename)
+        bed_info_dict = {}
+        for linenum, line in enumerate(bed_file):
+            fields = line.split()
+            # Read in mandatory fields
+            chrom, start, end = fields[:3]
+            # Read label info if present, else assign unique label by line number
+            label = fields[3] if len(fields)>=3 else linenum
+            # Add information to the appropriate chromosome
+            if chrom not in bed_info_dict:
+                bed_info_dict[chrom] = []
+            bed_info_dict[chrom].append((start, end, label))
+        bed_file.close()
+        
+        # Sort entries by start position, for easier location of proper region
+        start_dict = {}
+        for chrom, bed_info in bed_info_dict.iteritems():
+            bed_info.sort(key = lambda k: k[0])
+            start_dict[chrom] = [region[0] for region in bed_info]
+    
+        # Dictionary will map region labels to the SNPs contained in that region
+        region_dict = {}
+        # Iterate through data_dict and add SNPs to proper region
+        for snp_id in data_dict:
+            chrom, pos = snp_id.split("_")
+            pos = int(pos)
+            # Quickly locate proper region in sorted list
+            loc = bisect.bisect_right(start_dict[chrom], pos) - 1
+            if loc >= 0 and bed_info_dict[chrom][loc][1] >= pos:
+                label = bed_info_dict[chrom][loc][2]
+                if label not in region_dict:
+                    region_dict[label] = []
+                region_dict[label].append(snp_id)
+    
+    # Separate by chromosome if no BED file provided
+    else:
+        region_dict = {}
+        for snp_id in data_dict:
+            chrom, pos = snp_id.split("_")
+            if chrom not in region_dict:
+                region_dict[chrom] = []
+            region_dict[chrom].append(snp_id)
+
+    # Each entry of list represents single region, with a tuple 
+    # containing the IDs of all SNPs in the region.
+    sample_regions = [tuple(val) for key, val in region_dict.iteritems()]
+    num_regions = len(sample_regions)
+    
+    if save_dir is None:
+        new_sfs_list = []
+    elif not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    # Repeatedly resample regions to create new data sets
+    for bootnum in range(num_boots):
+        # Set up new SFS
+        npops = len(pop_ids)
+        new_sfs = numpy.zeros(numpy.asarray(projections) + 1)
+        # Make random selection of regions (with replacement)
+        choices = numpy.random.randint(0, num_regions, num_regions)
+        # For each selected region, add its SNP info to SFS
+        for choice in choices:
+            for snp_id in sample_regions[choice]:
+                snp_info = data_dict[snp_id]
+                # Skip SNPs that aren't biallelic.
+                if len(snp_info['segregating']) != 2:
+                    continue
+
+                allele1, allele2 = snp_info['segregating']
+                if not polarized:
+                    # If not polarizing, derived allele is arbitrary
+                    outgroup_allele = allele1
+                elif 'outgroup_allele' in snp_info\
+                     and snp_info['outgroup_allele'] != '-'\
+                     and snp_info['outgroup_allele'] in snp_info['segregating']:
+                    # Otherwise check that it is a useful outgroup
+                    outgroup_allele = snp_info['outgroup_allele']
+                else: 
+                    # If polarized and without good outgroup, skip SNP
+                    continue
+                
+                # Extract allele calls for each population.
+                allele1_calls = [snp_info['calls'][pop][0] for pop in pop_ids]
+                allele2_calls = [snp_info['calls'][pop][1] for pop in pop_ids]
+                successful_calls = [a1 + a2 for (a1, a2) in 
+                                    zip(allele1_calls, allele2_calls)]
+                derived_calls = allele2_calls if allele1 == outgroup_allele\
+                                              else allele1_calls
+                
+                # Slicing allows handling of arbitray population numbers
+                slices = [[numpy.newaxis] * npops for i in range(npops)]
+                for i in range(npops):
+                    slices[i][i] = slice(None, None, None)
+                
+                # Do projections for this SNP
+                pop_contribs = []
+                call_iter = zip(projections, successful_calls, derived_calls)
+                for pop_index, (p_to, p_from, hits) in enumerate(call_iter):
+                    contrib = moments.Numerics._cached_projection(
+                                      p_to, p_from, hits)[slices[pop_index]]
+                    pop_contribs.append(contrib)
+                new_sfs += reduce(operator.mul, pop_contribs)
+            
+        new_sfs = moments.Spectrum_mod.Spectrum(new_sfs, 
+                                                mask_corners=mask_corners, 
+                                                pop_ids=pop_ids)
+        if not polarized:
+            new_sfs.fold()
+        if save_dir is None:
+            new_sfs_list.append(new_sfs)
+        else:
+            filename = "{}/SFS_{}".format(save_dir, bootnum)
+            new_sfs.to_file(filename)
+    
+    return new_sfs_list if save_dir is None else None
