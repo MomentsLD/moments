@@ -157,6 +157,37 @@ def split_4D_to_5D_4(sp, n4new, n5):
                                      * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
     return Spectrum_mod.Spectrum(data_5D)
 
+def split_4D_to_5D_3(sp, n3new, n4):
+    """
+    Four-to-five population split for the spectrum.
+    n3new, n4 are population sizes for the two resulting populations
+    needs the spectrum to be 4D and n3 >= n3new+n4
+    Returns a new 5D spectrum
+    """
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(2, (2,3))
+    
+    assert(len(sp.shape) == 4)
+    n1 = sp.shape[0] - 1
+    n2 = sp.shape[1] - 1
+    n3 = sp.shape[2] - 1
+    n5 = sp.shape[3] - 1
+    assert(n3 >= n3new + n4)
+    # if the sample size before split is too large, we project
+    if n3 > n3new + n4:
+        sp = sp.project([n1, n2, n3new + n4 + 1, n5])
+    sp.unmask_all()
+    
+    # then we compute the join fs resulting from the split
+    data_5D = numpy.zeros((n1 + 1, n2 + 1, n3new + 1, n4 + 1, n5 + 1))
+    for i in range(n3new + 1):
+        for j in range(n4 + 1):
+            data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * misc.comb(n3new, i)  \
+                                     * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
+    return Spectrum_mod.Spectrum(data_5D)
+
 
 # merge two populations into one population
 def merge_2D_to_1D(sp):
