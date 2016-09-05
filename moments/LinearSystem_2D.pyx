@@ -250,7 +250,7 @@ cpdef calcM_1(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
         # 2D index of the current variable
         i, j = k // d2, k % d2
         j_ter = jk.index_bis(j + 1, d2 - 1)
-        # arrays for the creation of the sparse (coo) matrix
+
         c = (j+1) / np.float64(d2)
         coeff1 = (2*i-(d1-1)) * c
         coeff2 = (d1-i) * c
@@ -322,7 +322,6 @@ cpdef calcM_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
         # 2D index of the current variable
         i, j = k // d2, k % d2
         i_ter = jk.index_bis(i + 1, d1 - 1)
-        
         c = (i+1) / np.float64(d1)
         coeff1 = (2*j-(d2-1)) * c
         coeff2 = (d2-j) * c

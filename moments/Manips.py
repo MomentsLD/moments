@@ -12,9 +12,15 @@ Usefull functions for Spectra manipulations:
 
 def split_1D_to_2D(sp, n1, n2):
     """
-    One-to-two population split for the spectrum.
-    n1, n2 are population sizes for the two resulting populations
-    needs the spectrum to be 1D and n >= n1+n2
+    One-to-two population split for the spectrum,
+    needs that n >= n1+n2.
+
+    sp : 1D spectrum
+    
+    n1 : sample size for resulting pop 1
+    
+    n2 : sample size for resulting pop 2
+    
     Returns a new 2D spectrum
     """
     # Update ModelPlot if necessary
@@ -39,9 +45,15 @@ def split_1D_to_2D(sp, n1, n2):
 
 def split_2D_to_3D_2(sp, n2new, n3):
     """
-    Two-to-three population split for the spectrum.
-    n2new, n3 are population sizes for the two resulting populations
-    needs the spectrum to be 2D and n2 >= n2new+n3
+    Two-to-three population split for the spectrum, 
+    needs that n2 >= n2new+n3.
+
+    sp : 2D spectrum
+
+    n2new : sample size for resulting pop 2
+
+    n3 : sample size for resulting pop 3
+
     Returns a new 3D spectrum
     """
     # Update ModelPlot if necessary
@@ -68,9 +80,15 @@ def split_2D_to_3D_2(sp, n2new, n3):
 
 def split_2D_to_3D_1(sp, n1new, n3):
     """
-    Two-to-three population split for the spectrum.
-    n1new, n3 are population sizes for the two resulting populations
-    needs the spectrum to be 2D and n1 >= n1new+n3
+    Two-to-three population split for the spectrum, 
+    needs that n2 >= n2new+n3.
+
+    sp : 2D spectrum
+    
+    n1new : sample size for resulting pop 1
+
+    n3 : sample size for resulting pop 3
+    
     Returns a new 3D spectrum
     """
     # Update ModelPlot if necessary
@@ -98,9 +116,15 @@ def split_2D_to_3D_1(sp, n1new, n3):
 
 def split_3D_to_4D_3(sp, n3new, n4):
     """
-    Three-to-four population split for the spectrum.
-    n3new, n4 are population sizes for the two resulting populations
-    needs the spectrum to be 3D and n3 >= n3new+n4
+    Three-to-four population split for the spectrum,
+    needs that n3 >= n3new+n4.
+
+    sp : 3D spectrum
+
+    n3new : sample size for resulting pop 3
+
+    n4 : sample size for resulting pop 4 
+   
     Returns a new 4D spectrum
     """ 
     # Update ModelPlot if necessary
@@ -115,7 +139,7 @@ def split_3D_to_4D_3(sp, n3new, n4):
     assert(n3 >= n3new + n4)
     # if the sample size before split is too large, we project
     if n3 > n3new + n4:
-        sp = sp.project([n1, n2, n2new + n3 + 1])
+        sp = sp.project([n1, n2, n3new + n4 + 1])
     sp.unmask_all()
     
     # then we compute the join fs resulting from the split
@@ -128,9 +152,15 @@ def split_3D_to_4D_3(sp, n3new, n4):
 
 def split_4D_to_5D_4(sp, n4new, n5):
     """
-    Four-to-five population split for the spectrum.
-    n4new, n5 are population sizes for the two resulting populations
-    needs the spectrum to be 4D and n4 >= n4new+n5
+    Four-to-five population split for the spectrum,
+    n4 >= n4new+n5.
+
+    sp : 4D spectrum
+    
+    n4new : sample size for resulting pop 4
+
+    n5 : sample size for resulting pop 5
+    
     Returns a new 5D spectrum
     """
     # Update ModelPlot if necessary
@@ -159,9 +189,15 @@ def split_4D_to_5D_4(sp, n4new, n5):
 
 def split_4D_to_5D_3(sp, n3new, n4):
     """
-    Four-to-five population split for the spectrum.
-    n3new, n4 are population sizes for the two resulting populations
-    needs the spectrum to be 4D and n3 >= n3new+n4
+    Four-to-five population split for the spectrum,
+    n4 >= n4new+n5.
+
+    sp : 4D spectrum
+    
+    n3new : sample size for resulting pop 3
+
+    n4 : sample size for resulting pop 4
+    
     Returns a new 5D spectrum
     """
     # Update ModelPlot if necessary
@@ -193,7 +229,9 @@ def split_4D_to_5D_3(sp, n3new, n4):
 def merge_2D_to_1D(sp):
     """
     Two-to-one populations fusion
-    needs the input spectrum to be 2D
+    
+    sp : 2D spectrum
+    
     Returns a new 1D spectrum
     """
     assert(len(sp.shape) == 2)

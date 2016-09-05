@@ -1,6 +1,5 @@
 import numpy as np
 import scipy as sp
-import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
@@ -10,7 +9,8 @@ import LinearSystem_1D as ls1
 import Tridiag_solve as ts
 from Integration import compute_dt
 #------------------------------------------------------------------------------
-# Functions for the computation of the Phi-moments for multidimensional models:
+# Functions for the computation of the Phi-moments for multidimensional models
+# without migrations:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
 # we write it (and solve it) as an approximated linear system:
 #       Phi_n' = Bn(N) + (1/(4N)Dn + S1n + S2n)Phi_n
@@ -39,8 +39,12 @@ def _calcB(dims, u):
 #----------------------------------
 # updates for the time integration-
 #----------------------------------
+# we solve a system like PX = QY
+# step 1 functions correspond to the QY computation
+# and step 2 to the resolution of PX = Y'
 
 # 2D
+# step 1
 def _ud1_2pop_1(sfs, Q):
     sfs = Q[0].dot(sfs)
     return sfs
@@ -49,16 +53,7 @@ def _ud1_2pop_2(sfs, Q):
     sfs = Q[1].dot(sfs.transpose()).transpose()
     return sfs
 
-'''def ud1_2pop_1(sfs, Q):
-    for i in range(int(sfs.shape[1])):
-        sfs[:,i] = Q[0].dot(sfs[:,i])
-    return sfs
-
-def ud1_2pop_2(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        sfs[i,:] = Q[1].dot(sfs[i,:])
-    return sfs'''
-
+# step 2
 def _ud2_2pop_1(sfs, slv):
     for i in range(int(sfs.shape[1])):
         sfs[:, i] = slv[0](sfs[:, i])
@@ -73,12 +68,6 @@ def _ud2_2pop_2(sfs, slv):
 #------------------------------
 # 3D
 # step 1
-'''
-def ud1_3pop_1(sfs, Q):
-    for i in range(int(sfs.shape[2])):
-        for j in range(int(sfs.shape[1])):
-            sfs[:, j, i] = Q[0].dot(sfs[:, j, i])
-    return sfs'''
 
 def _ud1_3pop_1(sfs, Q):
     dims = sfs.shape
@@ -86,22 +75,10 @@ def _ud1_3pop_1(sfs, Q):
     sfs = Q[0].dot(sfs.reshape(dims[0], dim2)).reshape(dims)
     return sfs
 
-'''def ud1_3pop_2(sfs, Q):
-    for i in range(int(sfs.shape[2])):
-        for j in range(int(sfs.shape[0])):
-            sfs[j, :, i] = Q[1].dot(sfs[j, :, i])
-    return sfs'''
-
 def _ud1_3pop_2(sfs, Q):
     Q = [Q[1]]
     sfs = _ud1_3pop_1(np.transpose(sfs, (1, 0, 2)), Q)
     return np.transpose(sfs, (1, 0, 2))
-
-'''def ud1_3pop_3(sfs, Q):
-    for i in range(int(sfs.shape[1])):
-        for j in range(int(sfs.shape[0])):
-            sfs[j, i, :] = Q[2].dot(sfs[j, i, :])
-    return sfs'''
 
 def _ud1_3pop_3(sfs, Q):
     Q = [Q[2]]
@@ -130,36 +107,6 @@ def _ud2_3pop_3(sfs, slv):
 #------------------------------
 # 4D
 # step 1
-'''
-def ud1_4pop_1(sfs, Q):
-    for i in range(int(sfs.shape[1])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                sfs[:, i, j, k] = Q[0].dot(sfs[:, i, j, k])
-    return sfs
-
-def ud1_4pop_2(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[2])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, :, j, k] = Q[1].dot(sfs[i, :, j, k])
-    return sfs
-
-def ud1_4pop_3(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[3])):
-                sfs[i, j, :, k] = Q[2].dot(sfs[i, j, :, k])
-    return sfs
-
-def ud1_4pop_4(sfs, Q):
-    for i in range(int(sfs.shape[0])):
-        for j in range(int(sfs.shape[1])):
-            for k in range(int(sfs.shape[2])):
-                sfs[i, j, k, :] = Q[3].dot(sfs[i, j, k, :])
-    return sfs
-
-'''
 def _ud1_4pop_1(sfs, Q):
     return _ud1_3pop_1(sfs, Q)
 
@@ -396,17 +343,7 @@ def _update_step2_neutral(sfs, A, Di, C):
     for i in range(len(sfs.shape)):
         sfs = eval('_udn2_'+str(len(sfs.shape))+'pop_'+str(i+1)+'(sfs, A, Di, C)')
     return sfs
-'''
-def calcul_dt(B, M):
-    factor = 30.0
-    diag = [factor/np.amax(abs(np.diag(M[i].todense()))) for i in range(len(M))]
-    return min(np.amin(diag), factor/np.amax(B))
 
-def calcul_dt_dense(B, M):
-    factor = 30.0
-    diag = [factor/np.amax(abs(np.diag(M[i]))) for i in range(len(M))]
-    return min(np.amin(diag), factor/np.amax(B))
-'''
 
 #--------------------
 # Integration in time
@@ -486,11 +423,6 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0
         dt = min(compute_dt(N, s=s, h=h), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
-        
-        # timestep subdivision if the changes in population size are too fast
-        '''if callable(Npop) and adapt_tstep:
-            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0'''
 
         # we update the value of N if a function was provided as argument
         if callable(Npop):
@@ -551,11 +483,6 @@ def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.1, theta=1.0, adapt_tstep=Fals
         dt = min(compute_dt(N), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
-
-        # timestep subdivision if the changes in population size are too fast
-        '''if callable(Npop) and adapt_tstep:
-            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0'''
                 
         # we update the value of N if a function was provided as argument
         if callable(Npop):

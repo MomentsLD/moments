@@ -1,13 +1,12 @@
 import numpy as np
 import scipy as sp
-import time
 from scipy.sparse import linalg
 
 import Spectrum_mod
 import Numerics
 import Jackknife as jk
-import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
+
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -26,6 +25,13 @@ import LinearSystem_2D as ls2
 #-----------------------------------
 # Mutations
 def _calcB(dims, u):
+    """
+    dims : List containing the pop sizes
+
+    u : scalar mutation rate
+
+    Returns a mutation matrix
+    """ 
     B = np.zeros(dims)
     for k in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
@@ -36,6 +42,11 @@ def _calcB(dims, u):
 
 # Drift
 def _calcD(dims):
+    """
+    dims : List containing the pop sizes
+
+    Returns a list of drift matrices for each pair of pops
+    """ 
     res = []
     for i in range(len(dims)):
         for j in range(i + 1, len(dims)):
@@ -44,6 +55,17 @@ def _calcD(dims):
     return res
 
 def _buildD(vd, dims, N):
+    """
+    Builds the effective drift matrices by multiplying by the 1/4N coeff
+
+    vd : List containing the drift matrices
+
+    dims : List containing the pop sizes
+    
+    N : List containing the effective pop sizes for each pop 
+
+    Returns a list of effective drift matrices for each pair of pops
+    """ 
     if (len(dims) == 1): return [1.0 / 4 / N[0] * vd[0][0]]
     res = []
     ctr = 0
@@ -55,6 +77,13 @@ def _buildD(vd, dims, N):
 
 # Selection 1
 def _calcS(dims, ljk):
+    """
+    dims : List containing the pop sizes
+
+    ljk : List containing the 1 jump jackknife matrices for each pair of pop
+
+    Returns a list of selection matrices for each pair of pops
+    """ 
     res = []
     for i in range(len(dims)):
         for j in range(i + 1, len(dims)):
@@ -63,6 +92,19 @@ def _calcS(dims, ljk):
     return res
 
 def _buildS(vs, dims, s, h):
+    """
+    Builds the effective selection matrices by multiplying by the correct coeff
+
+    vs : List containing the selection matrices
+
+    dims : List containing the pop sizes
+    
+    s : List containing the selection coefficients 
+
+    h : List containing the dominance coefficients 
+
+    Returns a list of effective selection matrices for each pair of pops
+    """ 
     if (len(dims) == 1): return [vs[0][0]]
     res = []
     ctr = 0
@@ -74,6 +116,13 @@ def _buildS(vs, dims, s, h):
 
 # Selection 2
 def _calcS2(dims, ljk):
+    """
+    dims : List containing the pop sizes
+
+    ljk : List containing the 2 jumps jackknife matrices for each pair of pop
+
+    Returns a list of selection matrices for each pair of pops
+    """ 
     res = []
     for i in range(len(dims)):
         for j in range(i + 1, len(dims)):
@@ -82,6 +131,20 @@ def _calcS2(dims, ljk):
     return res
 
 def _buildS2(vs, dims, s, h):
+    """
+    Builds the effective selection matrices (part due to dominance)
+    by multiplying by the correct coeff
+
+    vs : List containing the selection matrices
+
+    dims : List containing the pop sizes
+    
+    s : List containing the selection coefficients 
+
+    h : List containing the dominance coefficients 
+
+    Returns a list of effective selection matrices for each pair of pops
+    """ 
     if (len(dims) == 1): return [vs[0][0]]
     res = []
     ctr = 0
@@ -93,6 +156,13 @@ def _buildS2(vs, dims, s, h):
 
 # Migrations
 def _calcM(dims, ljk):
+    """
+    dims : List containing the pop sizes
+
+    ljk : List containing the 1 jump jackknife matrices for each pair of pop
+
+    Returns a list of migration matrices for each pair of pops
+    """ 
     res = []
     for i in range(len(dims)):
         for j in range(i + 1, len(dims)):
@@ -101,6 +171,17 @@ def _calcM(dims, ljk):
     return res
 
 def _buildM(vm, dims, m):
+    """
+    Builds the effective migration matrices by multiplying by the migration coeff
+
+    vm : List containing the migration matrices
+
+    dims : List containing the pop sizes
+    
+    m : matrix containing the migration coefficients
+
+    Returns a list of effective migration matrices for each pair of pops
+    """ 
     res = []
     ctr = 0
     for i in range(len(dims)):
@@ -112,12 +193,17 @@ def _buildM(vm, dims, m):
 #----------------------------------
 # updates for the time integration-
 #----------------------------------
+# we solve a system like PX = QY
+# step 1 functions correspond to the QY computation
+# and step 2 to the resolution of PX = Y'
 
 # 2D
+#step 1
 def _ud1_2pop_1(sfs, Q, dims):
     sfs = Q[0].dot(sfs.reshape(dims[0] * dims[1])).reshape(dims)
     return sfs
 
+# step 2
 def _ud2_2pop_1(sfs, slv, dims):
     sfs = (slv[0](sfs.reshape(dims[0] * dims[1]))).reshape(dims)
     return sfs
@@ -125,47 +211,22 @@ def _ud2_2pop_1(sfs, slv, dims):
 # for 3D, 4D and 5D cases, each couple of directions are coded separately to simplify the permutations...
 #------------------------------
 # 3D
+
 # step 1
-'''
-def shape_3D(sfs):
-    dims = sfs.shape
-    res = [sfs[:, :, i].reshape(dims[0] * dims[1]) for i in range(dims[2])]
-    return np.array(res).transpose()
-
-def reshape_3D(sfs, dims):
-    res = [sfs[:, i].reshape(dims[0], dims[1]) for i in range(int(dims[2]))]
-    return np.transpose(np.array(res), (1, 2, 0))'''
-
 def _ud1_3pop_1(sfs, Q, dims):
     for i in range(int(dims[2])):
         sfs[:, :, i] = Q[0].dot(sfs[:, :, i].reshape(dims[0] * dims[1])).reshape(dims[0], dims[1])
     return sfs
-'''
-def ud1_3pop_11(sfs, Q, dims):
-    sfs = reshape_3D(Q[0].dot(shape_3D(sfs)), dims)
-    return sfs'''
 
 def _ud1_3pop_2(sfs, Q, dims):
     for i in range(int(dims[1])):
         sfs[:, i, :] = Q[1].dot(sfs[:, i, :].reshape(dims[0] * dims[2])).reshape(dims[0], dims[2])
     return sfs
-'''
-def ud1_3pop_21(sfs, Q, dims):
-    Q = [Q[1]]
-    sfs = np.transpose(sfs, (0, 2, 1))
-    sfs = ud1_3pop_1(sfs, Q, [dims[0], dims[2], dims[1]])
-    return np.transpose(sfs, (0, 2, 1))'''
 
 def _ud1_3pop_3(sfs, Q, dims):
     for i in range(int(dims[0])):
         sfs[i, :, :] = Q[2].dot(sfs[i, :, :].reshape(dims[1] * dims[2])).reshape(dims[1], dims[2])
     return sfs
-'''
-def ud1_3pop_31(sfs, Q, dims):
-    Q = [Q[2]]
-    sfs = np.transpose(sfs, (1, 2, 0))
-    sfs = ud1_3pop_1(sfs, Q, [dims[1], dims[2], dims[0]])
-    return np.transpose(sfs, (2, 0, 1))'''
 
 # step 2
 def _ud2_3pop_1(sfs, slv, dims):
@@ -186,43 +247,20 @@ def _ud2_3pop_3(sfs, slv, dims):
 
 #------------------------------
 # 4D
-'''
-def shape_4D(sfs):
-    dims = sfs.shape
-    tpl = ()
-    for i in range(int(dims[3])):
-        tpl = tpl + (shape_3D(sfs[:, :, :, i]),)
-    return np.hstack(tpl)
 
-def reshape_4D(sfs, dims):
-    res = []
-    for i in range(int(dims[3])):
-        res.append(reshape_3D(sfs[:, i*dims[2]:(i+1)*dims[2]], dims[0:-1]))
-    return np.transpose(np.array(res), (1, 2, 3, 0))
-'''
 # step 1
 def _ud1_4pop_1(sfs, Q, dims):
     for i in range(int(dims[2])):
         for j in range(int(dims[3])):
             sfs[:, :, i, j] = Q[0].dot(sfs[:, :, i, j].reshape(dims[0] * dims[1])).reshape(dims[0], dims[1])
     return sfs
-'''
-def ud1_4pop_1(sfs, Q, dims):
-    sfs = reshape_4D(Q[0].dot(shape_4D(sfs)), dims)
-    return sfs
-'''
+
 def _ud1_4pop_2(sfs, Q, dims):
     for i in range(int(dims[1])):
         for j in range(int(dims[3])):
             sfs[:, i, :, j] = Q[1].dot(sfs[:, i, :, j].reshape(dims[0] * dims[2])).reshape(dims[0], dims[2])
     return sfs
-'''
-def ud1_4pop_2(sfs, Q, dims):
-    Q = [Q[1]]
-    sfs = np.transpose(sfs, (0, 2, 1, 3))
-    sfs = ud1_4pop_1(sfs, Q, [dims[0], dims[2], dims[1], dims[3]])
-    return np.transpose(sfs, (0, 2, 1, 3))
-'''
+
 def _ud1_4pop_3(sfs, Q, dims):
     for i in range(int(dims[1])):
         for j in range(int(dims[2])):
@@ -284,8 +322,10 @@ def _ud2_4pop_6(sfs, slv, dims):
         for j in range(int(dims[1])):
             sfs[i, j, :, :] = slv[5](sfs[i, j, :, :].reshape(dims[2] * dims[3])).reshape(dims[2], dims[3])
     return sfs
+
 #------------------------------
 # 5D
+
 # step 1
 def _ud1_5pop_1(sfs, Q, dims):
     for i in range(int(dims[0])):
@@ -570,16 +610,14 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
     # time loop:
     t = 0.0
     sfs = sfs0
+    
     while t < Tmax:
         dt_old = dt
         #dt = compute_dt(sfs.shape, N, gamma, h, m, Tmax * dt_fac)
         dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
         if t+dt > Tmax:
             dt = Tmax-t
-        # timestep subdivision if the changes in population size are too fast
-        '''if callable(Npop) and adapt_tstep:
-            while (abs(Nold-Npop((t+dt)/2.0))/Nold > 0.15).any() and dt>0.005*Tmax:
-                dt /= 2.0'''
+
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
