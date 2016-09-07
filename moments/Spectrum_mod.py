@@ -427,6 +427,11 @@ class Spectrum(numpy.ma.masked_array):
         mask_corners: If True, the typical corners of the resulting fs will be
                       masked
         """
+        # Update ModelPlot
+        model = moments.ModelPlot._get_model()
+        if model is not None:
+            model.extinction(over)
+
         original_folded = self.folded
         # If we started with an folded Spectrum, we need to unfold before
         # marginalizing.

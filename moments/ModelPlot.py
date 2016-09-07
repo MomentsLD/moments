@@ -254,7 +254,7 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
                             edgecolor=pop_color)
 
             # Draw connections to next populations if necessary
-            if tp.descendants is not None:
+            if tp.descendants is not None and tp.descendants[pop_index] != -1:
                 desc = tp.descendants[pop_index]
                 tp_next = model.tp_list[tp_index+1]
                 # Split population case
@@ -353,9 +353,11 @@ def _get_model():
 def _close_model():
     """
     Sets _current_model to None to ensure that ModelPlot does not waste
-    resources by collecting information when it is not being used.
+    resources by collecting information when it is not being used. Also
+    ends model by setting descendants of final populations to None.
     """
     global _current_model
+    _current_model.tp_list[-1].descendants = None
     _current_model = None
 
 
@@ -398,19 +400,21 @@ class _ModelInfo():
     def split(self, initial_pop, split_pops):
         """
         Sets the appropriate descendants for the current time period and
-        correctly splits one of them. Begins a new time period with one
-        additional population.
+        correctly splits one of them. 
 
         initial_pop : index of population to split.
 
         split_pops : tuple of the two indices of the resulting populations.
         """
         tp = self.tp_list[-1]
-        tp.descendants = [pop for pop in range(len(tp.popsizes))]
-        tp.descendants[initial_pop] = split_pops
-        new_tp = self.TimePeriod(self.current_time, len(tp.popsizes) + 1,
-                                 self.precision)
-        self.tp_list.append(new_tp)
+        count = 0
+        for i in range(len(tp.descendants)):
+            if tp.descendants[i] == -1:
+                continue
+            if count == initial_pop:
+                tp.descendants[i] = split_pops
+                break
+            count += 1
 
     def evolve(self, time, popsizes, migrations):
         """
@@ -426,15 +430,19 @@ class _ModelInfo():
 
         migrations : 2D array describing migration rates between populations.
         """
-        self.current_time += time
+        # Create new time period
         tp = self.tp_list[-1]
-        # Check if we need to begin a new time period
-        if tp.time[0] != tp.time[-1]:
-            tp.descendants = [pop for pop in range(len(tp.popsizes))]
-            new_tp = self.TimePeriod(self.current_time, len(tp.popsizes),
-                                     self.precision)
-            self.tp_list.append(new_tp)
-            tp = new_tp
+        npops = 0
+        for desc in tp.descendants:
+            if isinstance(desc, tuple):
+                npops += 2
+            elif desc != -1:
+                npops += 1
+        new_tp = self.TimePeriod(self.current_time, npops, self.precision)
+        self.tp_list.append(new_tp)
+        tp = new_tp
+        # Update current time period
+        self.current_time += time
         tp.time = np.linspace(tp.time[0], self.current_time, num=self.precision)
         if callable(popsizes):
             popfunc = popsizes
@@ -444,6 +452,27 @@ class _ModelInfo():
         tp.popsizes = np.transpose([popfunc(t) for t in time_vals])
         tp.migrations = migrations
 
+    def extinction(self, extinct_pops):
+        """
+        Cause extinction of populations in extinct_pops and begin a new time
+        period without them.
+
+        extinct_pops : Sequence listing the indices of the populations to go 
+                       extinct.
+        """
+        tp = self.tp_list[-1]
+        count = 0
+        for i in range(len(tp.descendants)):
+            if i in extinct_pops:
+                tp.descendants[i] = -1
+                count += 1
+            else:
+                if isinstance(tp.descendants[i], tuple):
+                    tp.descendants[i][0] -= count
+                    tp.descendants[i][1] -= count
+                else:
+                    tp.descendants[i] -= count
+
     def determine_framesizes(self):
         """
         Determines the overall size of the tree rooted at each population by
@@ -452,28 +481,23 @@ class _ModelInfo():
         drawing it (i.e. a plotted population must be given enough vertical
         room for both itself and all of its descendants.
         """
-        # Leaf node populations only dependent on their own max size reached
-        last_tp = self.tp_list[-1]
-        last_tp.framesizes = [max(size) for size in last_tp.popsizes]
-        
-        # If only one time period, method is complete
-        if len(self.tp_list) == 1:
-            return
-
         # Work backwards through population histories to update all tree sizes
-        for tpindex in range(len(self.tp_list)-2,-1,-1):
+        for tpindex in range(len(self.tp_list)-1,-1,-1):
             tp = self.tp_list[tpindex]
-            tpnext = self.tp_list[tpindex+1]
             # Begin by assigning size to be largest size from this time period
             tp.framesizes = [max(size) for size in tp.popsizes]
+            # Done if there are no descendants to consider
+            if tp.descendants is None:
+                continue
+            tpnext = self.tp_list[tpindex+1]
             # Add information from descendant populations
-            for i,desc in enumerate(tp.descendants):
+            for i, desc in enumerate(tp.descendants):
                 # If a population splits, add information from both descendants
                 if isinstance(desc, tuple):
                     for dindex in desc:
                         tp.framesizes[i] += tpnext.framesizes[dindex]
                 # Otherwise, update size to max of this pop and its descendant
-                else:
+                elif desc != -1:
                     mysize = tp.framesizes[i]
                     nextsize = tpnext.framesizes[desc]
                     tp.framesizes[i] = max(mysize, nextsize)
@@ -501,6 +525,7 @@ class _ModelInfo():
             tp.origins = [(0,0) for pop in range(len(tp.popsizes))]
         tp.direcs[pop_index] = direc
         tp.origins[pop_index] = origin
+        vshift = 0
 
         # Recursively determine sub-population information if present
         if tp.descendants is not None:
@@ -508,22 +533,24 @@ class _ModelInfo():
             # Split population case (harder)
             if isinstance(desc, tuple):
                 # Shift origin to account for sub-population taking up space
-                origin = (origin[0], origin[1] + (direc *
-                          (self.tp_list[tp_index+1].framesizes[desc[0]])))
-                tp.origins[pop_index] = origin
+                vshift = (direc * (self.tp_list[tp_index+1].framesizes[desc[0]]))
                 # Determine info for first sub-population
-                self. determine_drawinfo(tp_index+1, desc[0], 
-                                         (tp.time[-1], origin[1]), -1*direc)
+                vshift += self.determine_drawinfo(tp_index+1, desc[0], 
+                               (tp.time[-1], origin[1] + vshift), -1*direc)
                 # Determine info for second subpopulation 
                 # Shift its origin to account for current population's size
                 popsize = tp.popsizes[pop_index]
                 self.determine_drawinfo(tp_index+1, desc[1], (tp.time[-1],
-                                        origin[1] + direc*max(popsize)), direc)
+                                        origin[1]+direc*max(popsize)+vshift),
+                                        direc)
             # Single descendant case (easier)
-            else:
-                self.determine_drawinfo(tp_index+1, desc, 
-                                        (tp.time[-1], origin[1]), direc)
-    
+            elif desc != -1:
+                vshift = self.determine_drawinfo(tp_index+1, desc, 
+                                                 (tp.time[-1], origin[1]), 
+                                                 direc)
+            tp.origins[pop_index] = (origin[0], origin[1] + vshift)
+        return vshift
+
     class TimePeriod():
         """
         Keeps track of population information and relationships during a 
@@ -575,8 +602,8 @@ class _ModelInfo():
             """
             self.precision = precision
             self.time = [time]*precision
-            self.popsizes = [[1.0]*precision for pop in range(npops)]
-            self.descendants = None
+            self.popsizes = [np.array([1.0]*precision) for pop in range(npops)]
+            self.descendants = [pop for pop in range(npops)]
             self.migrations = None
             self.framesizes = None
             self.direcs = None
