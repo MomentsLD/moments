@@ -614,7 +614,9 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
             # Read in mandatory fields
             chrom, start, end = fields[:3]
             # Read label info if present, else assign unique label by line number
-            label = fields[3] if len(fields)>=3 else linenum
+            label = linenum
+            if len(fields)>=3: 
+                label = fields[3]
             # Add information to the appropriate chromosome
             if chrom not in bed_info_dict:
                 bed_info_dict[chrom] = []
