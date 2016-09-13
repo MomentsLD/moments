@@ -613,9 +613,11 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
             fields = line.split()
             # Read in mandatory fields
             chrom, start, end = fields[:3]
+            start = int(start)
+            end = int(end)
             # Read label info if present, else assign unique label by line number
             label = linenum
-            if len(fields)>=3: 
+            if len(fields)>=4: 
                 label = fields[3]
             # Add information to the appropriate chromosome
             if chrom not in bed_info_dict:
@@ -628,7 +630,6 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
         for chrom, bed_info in bed_info_dict.iteritems():
             bed_info.sort(key = lambda k: k[0])
             start_dict[chrom] = [region[0] for region in bed_info]
-    
         # Dictionary will map region labels to the SNPs contained in that region
         region_dict = {}
         # Iterate through data_dict and add SNPs to proper region
@@ -642,7 +643,6 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
                 if label not in region_dict:
                     region_dict[label] = []
                 region_dict[label].append(snp_id)
-    
     # Separate by chromosome if no BED file provided
     else:
         region_dict = {}
@@ -656,7 +656,6 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
     # containing the IDs of all SNPs in the region.
     sample_regions = [tuple(val) for key, val in region_dict.iteritems()]
     num_regions = len(sample_regions)
-    
     if save_dir is None:
         new_sfs_list = []
     elif not os.path.exists(save_dir):
