@@ -15,13 +15,3 @@ To install `moments`, run the following command in the repository containing the
 	sudo python setup.py install
 
 You must then be able to import `moments` in your python scripts.
-
-
-## To do: ##
-- Create a to-do list. ✅
-- Implement admixture.
-- Adimensioned to real world units.
-- Interpolation to reduce the number of variables.
-
-## Bugs to correct: ##
-- Inference solvers sometimes behave oddly (not selectionning the effective most likely parameters set).
