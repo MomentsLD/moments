@@ -4,6 +4,9 @@ build
 *.c
 *.csv
 *.log
+*.lol
+*.out
+*.toc
 *.aux
 *.bbl
 *.blg
