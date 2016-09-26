@@ -607,14 +607,18 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
     split_dt = 1.0
     if len(n) > 2: split_dt = 2.0*len(n)
 
+    # indicator of negative entries
+    neg = False
+
     # time loop:
     t = 0.0
     sfs = sfs0
     
     while t < Tmax:
         dt_old = dt
-        #dt = compute_dt(sfs.shape, N, gamma, h, m, Tmax * dt_fac)
-        dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
+        sfs_old = sfs
+        if neg == False:
+            dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
         if t+dt > Tmax:
             dt = Tmax-t
 
@@ -624,7 +628,7 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
 
         # we recompute the matrix only if N has changed...
-        if t == 0.0 or (Nold != N).any() or dt != dt_old:
+        if t == 0.0 or (Nold != N).any() or dt != dt_old or neg == True:
             D = _buildD(vd, dims, Neff)
             # system inversion for backward scheme
             slv = [linalg.factorized(sp.sparse.identity(S1[i].shape[0], dtype='float', format='csc') 
@@ -642,7 +646,14 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
                 sfs += dt / split_dt * B
                 sfs = _update_step2(sfs, slv, dims, order)
                 order = _permute(order)
-        Nold = N
-        t += dt
+
+        if (sfs<0).any():
+            neg = True
+            dt*=0.5
+            sfs = sfs_old
+        else:
+            neg = False
+            Nold = N
+            t += dt
 
     return Spectrum_mod.Spectrum(sfs)
