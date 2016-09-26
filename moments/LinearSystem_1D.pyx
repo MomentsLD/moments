@@ -10,6 +10,31 @@ The code below is written for 1D cases.
 """
 
 """
+Matrix for mutations (foreward and backward)
+dims = n1+1
+"""
+cpdef calcB_FB(int d, np.float64_t u, np.float64_t v):
+    cdef int i
+    cdef list data, row, col
+    # arrays for the creation of the sparse (coo) matrix
+    data = []
+    row = []
+    col = []
+    # loop over the fs elements:
+    for i in range(d):
+        if i > 0:
+            data += [u * (d-i), -v * i]
+            row += 2 * [i]
+            col += [i - 1, i]
+        if i < d - 1:
+            data += [-u * (d-i-1), v * (i+1)]
+            row += 2 * [i]
+            col += [i, i + 1]
+
+    return coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+
+
+"""
 Matrix for drift
 dims = n1+1
 """
