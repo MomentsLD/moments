@@ -621,7 +621,6 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
             dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
         if t+dt > Tmax:
             dt = Tmax-t
-
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
@@ -649,7 +648,8 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
 
         if (sfs<0).any():
             neg = True
-            dt*=0.5
+            if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:
+                dt*=0.5
             sfs = sfs_old
         else:
             neg = False
