@@ -1542,7 +1542,7 @@ def %(method)s(self, other):
                 m = numpy.zeros([len(n), len(n)])
             if (m == 0).all(): 
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
-                if (np.array(gamma) == 0).all() and len(n)<3:
+                if (numpy.array(gamma) == 0).all() and len(n)<3:
                     self.data[:] = integrate_neutral(self.data, Npop, n, tf, dt_fac, theta)
                 else:
                     self.data[:] = integrate_nomig(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
