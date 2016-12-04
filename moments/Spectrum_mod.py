@@ -1517,8 +1517,20 @@ def %(method)s(self, other):
 
     # spectrum integration
     # We chose the most efficient solver for each case
-    def integrate(self, Npop, n, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0):
-        # Update ModelPlot
+    def integrate(self, Npop, n, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0, adapt_dt=True):
+        """
+        Method to simulate the spectrum's evolution for a given set of demographic parameters.
+        Npop: Populations effective sizes.
+        n: samples sizes.
+        tf: integration time in genetic units.
+        dt_fac: timestep factor. 
+        gamma: selection parameter (Ns).
+        h: dominance coefficient.
+        m: migration matrix.
+        theta: theta parameter.
+        adatpt_dt: flag to allow dt correction avoiding negative entries.
+        """
+
         model = moments.ModelPlot._get_model()
         if model is not None:
             model.evolve(tf, Npop, m)
@@ -1547,7 +1559,7 @@ def %(method)s(self, other):
                 else:
                     self.data[:] = integrate_nomig(self.data, Npop, n, tf, dt_fac, gamma, h, theta)
             else:
-                self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta)
+                self.data[:] = integrate_nD(self.data, Npop, n, tf, dt_fac, gamma, h, m, theta, adapt_dt)
         return self
 
 # Allow spectrum objects to be pickled.
