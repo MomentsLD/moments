@@ -362,7 +362,7 @@ def _update_step2_neutral(sfs, A, Di, C):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
 #   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
+def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -370,6 +370,7 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0
         h = 0.5 * np.ones(len(n))
     
     sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
@@ -450,8 +451,10 @@ def integrate_nomig(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0
 
     return Spectrum_mod.Spectrum(sfs)
 
-def integrate_neutral(sfs0, Npop, n, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
+
+def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
     sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))

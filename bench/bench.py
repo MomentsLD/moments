@@ -118,7 +118,7 @@ def model_extrap3((nu1, nu2, nu3, t), (n1,n2,n3), (g, h, m), (pt1, pt2, pt3)):
 #---------------------------------------------
 # population expansion for dadi models
 f = lambda x: 1+0.01*x
-n = 30 # sample size
+n = 80 # sample size
 nb_e = 100 # number of drawing for the entropy computation
 # we store the result to edit a report at the end...
 results = []
@@ -145,7 +145,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs, neutral_fs)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate([N], [n], T)
+sfsm.integrate([N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], neutral_fs[1:-1])
 maxdm = np.mean(distm)
@@ -198,7 +198,7 @@ ref_ll = moments.Inference.ll_multinom(lim_1dnf, lim_1dnf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate(N, [n], T)
+sfsm.integrate(N, T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], lim_1dnf[1:-1])
 maxdm = np.mean(distm)
@@ -250,7 +250,7 @@ ref_ll = moments.Inference.ll_multinom(lim_1dnf, lim_1dnf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate(N, [n], T)
+sfsm.integrate(N, T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], lim_1dnf[1:-1])
 maxdm = np.mean(distm)
@@ -304,7 +304,7 @@ ref_ll = moments.Inference.ll_multinom(lim_1dsf, lim_1dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate(N, [n], T, gamma=g, h=h)
+sfsm.integrate(N, T, gamma=g, h=h)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], lim_1dsf[1:-1])
 maxdm = np.mean(distm)
@@ -358,7 +358,7 @@ ref_ll = moments.Inference.ll_multinom(lim_1dsf, lim_1dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate(N, [n], T, gamma=g, h=h)
+sfsm.integrate(N, T, gamma=g, h=h)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], lim_1dsf[1:-1])
 maxdm = np.mean(distm)
@@ -414,7 +414,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs[:-1, :-1], neutral_fs[:-1, :-1
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate([N, N], [n, n], T)
+sfsm.integrate([N, N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[0,1:-1], neutral_fs[0,1:-1])
 maxdm = np.mean(distm)
@@ -470,7 +470,7 @@ ref_ll = moments.Inference.ll_multinom(lim_2dsf, lim_2dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate(N, [n, n], T, gamma=gamma, h=hh)
+sfsm.integrate(N, T, gamma=gamma, h=hh)
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**2)[1:-1], lim_2dsf.reshape((n+1)**2)[1:-1], True)
 maxdm = np.mean(distm)
@@ -527,7 +527,7 @@ ref_ll = moments.Inference.ll_multinom(lim_2dsf, lim_2dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate(N, [n, n], T, gamma=gamma, h=hh)
+sfsm.integrate(N, T, gamma=gamma, h=hh)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[0,:], lim_2dsf[0,:])
 maxdm = np.mean(distm)
@@ -584,7 +584,7 @@ ref_ll = moments.Inference.ll_multinom(lim_2dsmf, lim_2dsmf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate(N, [n, n], T, 0.1, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(N, T, 0.1, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**2)[1:-1], lim_2dsmf.reshape((n+1)**2)[1:-1])
 maxdm = np.mean(distm)
@@ -641,7 +641,7 @@ ref_ll = moments.Inference.ll_multinom(lim_2dsmf, lim_2dsmf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate(N, [n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(N, T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**2)[1:-1], lim_2dsmf.reshape((n+1)**2)[1:-1])
 maxdm = np.mean(distm)
@@ -699,7 +699,7 @@ ref_ll = moments.Inference.ll_multinom(lim_2dfg, lim_2dfg)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate(Nexp, [n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(Nexp, T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**2)[1:-1], lim_2dfg.reshape((n+1)**2)[1:-1])
 maxdm = np.mean(distm)
@@ -805,7 +805,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs[:-1, :-1, :-1], neutral_fs[:-1
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate([N, N, N], [n, n, n], T)
+sfsm.integrate([N, N, N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[0, 1:-1, 0], neutral_fs[0, 1:-1, 0])
 maxdm = np.mean(distm)
@@ -862,7 +862,7 @@ ref_ll = moments.Inference.ll_multinom(lim_3dsf, lim_3dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate(N, [n, n, n], T, gamma=gamma, h=hh)
+sfsm.integrate(N, T, gamma=gamma, h=hh)
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**3)[1:-1], lim_3dsf.reshape((n+1)**3)[1:-1], True)
 maxdm = np.mean(distm)
@@ -919,7 +919,7 @@ ref_ll = moments.Inference.ll_multinom(lim_3dsf, lim_3dsf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate(N, [n, n, n], T, gamma=gamma, h=hh)
+sfsm.integrate(N, T, gamma=gamma, h=hh)
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**3)[1:-1], lim_3dsf.reshape((n+1)**3)[1:-1], True)
 maxdm = np.mean(distm)
@@ -976,7 +976,7 @@ ref_ll = moments.Inference.ll_multinom(lim_3dsmf, lim_3dsmf)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate(N, [n, n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(N, T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**3)[1:-1], lim_3dsmf.reshape((n+1)**3)[1:-1])
 maxdm = np.mean(distm)
@@ -1034,7 +1034,7 @@ print(count_neg(lim_3dsmf))
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate(N, [n, n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(N, T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**3)[1:-1], lim_3dsmf.reshape((n+1)**3)[1:-1])
 maxdm = np.mean(distm)
@@ -1094,7 +1094,7 @@ start_time = time.time()
 #sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
 #sfsm.integrate(Nexp, [n, n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate(Nexp, [n, n, n], T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
+sfsm.integrate(Nexp, T, gamma=gamma, h=hh, m=m*np.ones([ndim, ndim]))
 tps_mom = time.time() - start_time
 distm = distance(sfsm.reshape((n+1)**3)[1:-1], lim_3dfg.reshape((n+1)**3)[1:-1])
 maxdm = np.mean(distm)

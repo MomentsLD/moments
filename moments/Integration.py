@@ -550,13 +550,14 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
-def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=True):
+def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=True):
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
     if m is None: m = np.zeros([len(n), len(n)])
     
     sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop): 
         N = np.array(Npop(0))
