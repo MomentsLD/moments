@@ -9,6 +9,7 @@
 `moments` uses cython for performances improvement, it can be installed using pip:
 
 	pip install cython
+Depending on the python distribution you use, it may be usefull to add the directory to `cython` in your python path.
 
 To install `moments`, run the following command in the repository containing the sources:
 
