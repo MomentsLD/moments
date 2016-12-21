@@ -1528,7 +1528,7 @@ def %(method)s(self, other):
         h: dominance coefficient.
         m: migration matrix.
         theta: theta parameter.
-        adatpt_dt: flag to allow dt correction avoiding negative entries.
+        adapt_dt: flag to allow dt correction avoiding negative entries.
         """
         n = numpy.array(self.shape)-1
 
