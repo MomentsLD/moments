@@ -1526,7 +1526,7 @@ def %(method)s(self, other):
         dt_fac: timestep factor. 
         gamma: selection parameter (Ns).
         h: dominance coefficient.
-        m: migration matrix.
+        m: migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1).
         theta: theta parameter.
         adatpt_dt: flag to allow dt correction avoiding negative entries.
         """
