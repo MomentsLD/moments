@@ -647,7 +647,7 @@ def integrate_nD(sfs0, Npop, n, tf, dt_fac=0.1, gamma=None, h=None, m=None, thet
                 sfs = _update_step2(sfs, slv, dims, order)
                 order = _permute(order)
 
-        if (sfs<0).any():
+        if False: #(sfs<0).any():
             neg = True
             dt*=0.5
             sfs = sfs_old
