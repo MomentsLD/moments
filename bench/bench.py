@@ -146,7 +146,9 @@ def model_extrap3_neutral_init((nu1, nu2, nu3, t), (n1,n2,n3), (g, h, m), (pt1, 
 #---------------------------------------------
 # population expansion for dadi models
 f = lambda x: 1+0.01*x
-n = 200 # sample size
+
+n = 80 # sample size
+
 nb_e = 100 # number of drawing for the entropy computation
 # we store the result to edit a report at the end...
 results = []
@@ -173,7 +175,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs, neutral_fs)
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros(n+1))
-sfsm.integrate([N], [n], T)
+sfsm.integrate([N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[1:-1], neutral_fs[1:-1])
 maxdm = np.mean(distm)
@@ -448,7 +450,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs[:-1, :-1], neutral_fs[:-1, :-1
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1]))
-sfsm.integrate([N, N], [n, n], T)
+sfsm.integrate([N, N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[0,1:-1], neutral_fs[0,1:-1])
 maxdm = np.mean(distm)
@@ -968,7 +970,7 @@ ref_ll = moments.Inference.ll_multinom(neutral_fs[:-1, :-1, :-1], neutral_fs[:-1
 # moments : 
 start_time = time.time()
 sfsm = moments.Spectrum(np.zeros([n+1, n+1, n+1]))
-sfsm.integrate([N, N, N], [n, n, n], T)
+sfsm.integrate([N, N, N], T)
 tps_mom = time.time() - start_time
 distm = distance(sfsm[0, 1:-1, 0], neutral_fs[0, 1:-1, 0])
 maxdm = np.mean(distm)

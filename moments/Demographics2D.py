@@ -74,12 +74,12 @@ def bottlegrowth_split_mig(params, ns):
     nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, [ns[0] + ns[1]], T - Ts, dt_fac=0.01)
+    fs.integrate(nu_func, T - Ts, dt_fac=0.01)
     # we split the population
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     nu0 = nu_func(T - Ts)[0]
     nu_func = lambda t: 2 * [nu0 * numpy.exp(numpy.log(nuF/nu0) * t / Ts)]
-    fs.integrate(nu_func, ns, Ts, m = numpy.array([[0, m], [m, 0]]))
+    fs.integrate(nu_func, Ts, m = numpy.array([[0, m], [m, 0]]))
     
     return fs
 
@@ -100,7 +100,7 @@ def split_mig(params, ns):
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    fs.integrate([nu1, nu2], ns, T, m = numpy.array([[0, m], [m, 0]]))
+    fs.integrate([nu1, nu2], T, m = numpy.array([[0, m], [m, 0]]))
 
     return fs
 
@@ -129,7 +129,7 @@ def IM(params, ns):
     nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
-    fs.integrate(nu_func, ns, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
+    fs.integrate(nu_func, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
 
     return fs
 
@@ -155,7 +155,7 @@ def IM_pre(params, ns):
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
-    fs.integrate([nuPre], [ns[0] + ns[1]], TPre, dt_fac=0.01)
+    fs.integrate([nuPre], TPre, dt_fac=0.01)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     
     nu1_0 = nuPre * s
@@ -164,6 +164,6 @@ def IM_pre(params, ns):
     nu2_func = lambda t: nu2_0 * (nu2/nu2_0)**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
     
-    fs.integrate(nu_func, ns, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
+    fs.integrate(nu_func, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
     
     return fs

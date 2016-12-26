@@ -11,6 +11,62 @@ For each component (drift, selection, migration) we consider separately the 2 di
 """
 
 """
+Matrices for forward and backward mutations
+dims = numpy.array([n1+1,n2+1])
+"""
+# mutations in the first population:
+cpdef calcB_FB1(np.ndarray dims, np.float64_t u, np.float64_t v):
+    cdef int d, d1, d2, i, index
+    cdef list data, row, col
+    # number of degrees of freedom
+    d = int(np.prod(dims))
+    d1, d2 = dims
+    # arrays for the creation of the sparse (coo) matrix
+    data = []
+    row = []
+    col = []
+    # loop over the fs elements:
+    for i in range(d):
+        # index in the first dimension
+        index = i // d2
+        if index > 0:
+            data += [u * (d1-index), -v * index]
+            row += 2 * [i]
+            col += [i - d2, i]
+        if index < d1 - 1:
+            data += [-u * (d1-index-1), v * (index+1)]
+            row += 2 * [i]
+            col += [i, i + d2]
+
+    return coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+
+# mutations in the second population:
+cpdef calcB_FB2(np.ndarray dims, np.float64_t u, np.float64_t v):
+    cdef int d, d2, i, index
+    cdef list data, row, col
+    # number of degrees of freedom
+    d = int(np.prod(dims))
+    d2 = dims[1]
+    # arrays for the creation of the sparse (coo) matrix
+    data = []
+    row = []
+    col = []
+    # loop over the fs elements:
+    for i in range(d):
+        # index in the second dimension
+        index = i % d2
+        if index > 0:
+            data += [u * (d2-index), -v * index]
+            row += 2 * [i]
+            col += [i - 1, i]
+        if index < d2 - 1:
+            data += [-u * (d2-index-1), v * (index+1)]
+            row += 2 * [i]
+            col += [i, i + 1]
+    
+    return coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+
+"""
 Matrices for drift
 dims = numpy.array([n1+1,n2+1])
 """
@@ -35,8 +91,8 @@ cpdef calcD1(np.ndarray dims):
             col.append(i - d2)
         if index < d1 - 2:
             data.append((index+1) * (d1-index-2))
-            col.append(i + d2)
             row.append(i)
+            col.append(i + d2)
         if index > 0 and index < d1 - 1:
             data.append(-2 * index * (d1-index-1))
             row.append(i)
@@ -64,8 +120,8 @@ cpdef calcD2(np.ndarray dims):
             col.append(i - 1)
         if index < d2 - 2:
             data.append((index+1) * (d2-index-2))
-            col.append(i + 1)
             row.append(i)
+            col.append(i + 1)
         if index > 0 and index < d2 - 1:
             data.append(-2 * index * (d2-index-1))
             row.append(i)

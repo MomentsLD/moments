@@ -30,7 +30,7 @@ def two_epoch(params, ns):
     
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate([nu], ns, T)
+    fs.integrate([nu], T)
     return fs
 
 def growth(params, ns):
@@ -49,7 +49,7 @@ def growth(params, ns):
     nu_func = lambda t: [numpy.exp(numpy.log(nu) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, ns, T, 0.01)
+    fs.integrate(nu_func, T, 0.01)
 
     return fs
 
@@ -71,7 +71,7 @@ def bottlegrowth(params, ns):
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, ns, T, 0.01)
+    fs.integrate(nu_func, T, 0.01)
 
     return fs
 
@@ -90,7 +90,7 @@ def three_epoch(params, ns):
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate([nuB], ns, TB, 0.01)
-    fs.integrate([nuF], ns, TF, 0.01)
+    fs.integrate([nuB], TB, 0.01)
+    fs.integrate([nuF], TF, 0.01)
 
     return fs
