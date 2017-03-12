@@ -190,7 +190,7 @@ def split_4D_to_5D_4(sp, n4new, n5):
 def split_4D_to_5D_3(sp, n3new, n4):
     """
     Four-to-five population split for the spectrum,
-    n4 >= n4new+n5.
+    n3 >= n3new+n4.
 
     sp : 4D spectrum
     

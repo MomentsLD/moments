@@ -1517,7 +1517,7 @@ def %(method)s(self, other):
 
     # spectrum integration
     # We chose the most efficient solver for each case
-    def integrate(self, Npop, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0, adapt_dt=True):
+    def integrate(self, Npop, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
         """
         Method to simulate the spectrum's evolution for a given set of demographic parameters.
         Npop: Populations effective sizes.

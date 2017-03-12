@@ -550,7 +550,7 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
-def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=True):
+def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
@@ -646,15 +646,19 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                 sfs += dt / split_dt * B
                 sfs = _update_step2(sfs, slv, dims, order)
                 order = _permute(order)
-
+        
         if (sfs<0).any() and adapt_dt:
             neg = True
             if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:
                 dt*=0.5
             sfs = sfs_old
+
         else:
             neg = False
             Nold = N
             t += dt
+        
+        Nold = N
+        t += dt
 
     return Spectrum_mod.Spectrum(sfs)
