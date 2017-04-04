@@ -5,6 +5,7 @@ import ModelPlot
 import Spectrum_mod
 from scipy.optimize import _nnls
 import scipy as sp
+from scipy import stats
 from numpy import asarray_chkfinite, zeros, double
 
 """
@@ -488,7 +489,7 @@ def admix_inplace(sfs, dimension1, dimension2, keep_1, m1):
     gamma = __Gamma__(max_replacements, N) # the conversion matrix giving us the num of 
                                        # replacements after 0,1,...,max_replacements 
                                        # replacements    
-    target = np.array([sp.stats.binom(N,m1).pmf(i) for i in range(N+1)]) # binomial is 
+    target = np.array([stats.binom(N,m1).pmf(i) for i in range(N+1)]) # binomial is 
                             # the standard, but we could use any distribution! 
 
     weights = __nnls_mod__(gamma.transpose(), target) # find a positive definite set of 
