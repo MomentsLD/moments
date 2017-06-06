@@ -45,7 +45,7 @@ print('Beginning optimization ************************************************')
 popt = moments.Inference.optimize_log(p0, data, func,
                                    lower_bound=lower_bound,
                                    upper_bound=upper_bound,
-                                   verbose=len(p0), maxiter=3)
+                                   verbose=len(p0), maxiter=100)
 # The verbose argument controls how often progress of the optimizer should be
 # printed. It's useful to keep track of optimization process.
 print('Finished optimization **************************************************')
