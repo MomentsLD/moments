@@ -48,7 +48,7 @@ popt = moments.Inference.optimize_log(p0, data, func,
                                    verbose=len(p0), maxiter=3)
 # The verbose argument controls how often progress of the optimizer should be
 # printed. It's useful to keep track of optimization process.
-print('Finshed optimization **************************************************')
+print('Finished optimization **************************************************')
 print(popt)
 
 # These are the actual best-fit model parameters, which we found through
