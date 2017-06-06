@@ -535,6 +535,10 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
     return min(timesteps)
 
 
+
+
+def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
+    """
 #--------------------
 # Integration in time
 #--------------------
@@ -549,8 +553,10 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # for a "lambda" definition of N - with backward Euler integration scheme
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
-
-def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
+    """
+    
+    
+    
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
