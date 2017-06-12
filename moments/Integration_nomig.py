@@ -345,24 +345,25 @@ def _update_step2_neutral(sfs, A, Di, C):
     return sfs
 
 
-#--------------------
-# Integration in time
-#--------------------
-# N : total population size (vector N = (N1,...,Np))
-# n : samples size (vector n = (n1,...,np))
-# tf : final simulation time (/2N1 generations)
-# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
-# theta : mutation rate
-# h : allele dominance (vector h = (h1,...,hp))
-# m : migration rates matrix (2D array, m[i,j] is the migration rate 
-#   from pop j to pop i, normalized by 1/4N1)
 
-# for a "lambda" definition of N - with backward Euler integration scheme
-# where t is the relative time in generations such as t = 0 initially
-# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
-#   or directly the vector if N does not evolve in time
 
 def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
+    """ Integration in time \n
+# N : total population size (vector N = (N1,...,Np))\n
+# n : samples size (vector n = (n1,...,np))\n
+# tf : final simulation time (/2N1 generations)\n
+# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
+# theta : mutation rate\n
+# h : allele dominance (vector h = (h1,...,hp))\n
+# m : migration rates matrix (2D array, m[i,j] is the migration rate \n
+#   from pop j to pop i, normalized by 1/4N1)\n
+
+# for a "lambda" definition of N - with backward Euler integration scheme\n
+# where t is the relative time in generations such as t = 0 initially\n
+# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
+#   or directly the vector if N does not evolve in time\n
+    """
+    
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -427,9 +428,13 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 
         # we update the value of N if a function was provided as argument
         if callable(Npop):
+            N_old = N[:]
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-
+            if np.max(np.abs(N-N_old)/N_old)>0.1: 
+                print("warning: large change in population size at time t = %2.2f" % (t,))
+                print("N_old, " , N_old)
+                print("N_new, " , N)
         # we recompute the matrix only if N has changed...
         if t==0.0 or (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(dims))]
@@ -460,7 +465,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
         N = np.array(Npop(0))
     else:
         N = np.array(Npop)
-    
     Nold = np.ones(len(N))
     Neff = N
     Tmax = tf * 2.0
@@ -491,9 +495,23 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-            
+            n_iter_max = 10
+            n_iter = 0
+            while (np.max(np.abs(N-Nold)/Nold)>0.02): 
+                
+                dt/=2
+                N = np.array(Npop((t+dt) / 2.0))
+                Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+                
+                n_iter+=1
+                if n_iter >= n_iter_max:
+                    print("warning: large change in population size at time t = %2.2f" % (t,))
+                    print("N_old, " , Nold, "N_new", N)
+                    print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    break
+              
         # we recompute the matrix only if N has changed...
-        if t==0.0 or (Nold != N).any() or dt != dt_old:
+        if t==0.0 or (Nold != N).any() or dt != dt_old: #SG not sure why dt_old is involved here. 
             D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(n))]
             A = [-0.5 * dt/ 4 / Neff[i] * diags[i][0] for i in range(len(n))]
             Di = [np.ones(dims[i])-0.5 * dt / 4 / Neff[i] * diags[i][1] for i in range(len(n))]

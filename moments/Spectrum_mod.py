@@ -1532,7 +1532,6 @@ def %(method)s(self, other):
         adapt_dt: flag to allow dt correction avoiding negative entries.
         """
         n = numpy.array(self.shape)-1
-
         model = moments.ModelPlot._get_model()
         if model is not None:
             model.evolve(tf, Npop, m)
