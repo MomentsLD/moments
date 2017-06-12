@@ -77,6 +77,23 @@ pylab.show()
 # Save the figure
 pylab.savefig('YRI_CEU.png', dpi=50)
 
+# Now that we've found the optimal parameters, we can use ModelPlot to
+# automatically generate a graph of our determined model.
+
+# First we generate the model by passing in the demographic function we used,
+# and the optimal parameters determined for it.
+model = moments.ModelPlot.generate_model(func, popt, ns)
+
+# Next, we plot the model. See ModelPlot.py for more information on the various
+# parameters that can be passed to the plotting function. In this case, we scale
+# the model to have an original starting population of size 11293 and a 
+# generation time of 29 years. Results are saved to YRI_CEU_model.png.
+moments.ModelPlot.plot_model(model, save_file='YRI_CEU_model.png',
+                             fig_title='YRI CEU Example Model',
+                             pop_labels=['YRI', 'CEU'], nref=11293,
+                             gen_time=29.0, gen_time_units='Years',
+                             reverse_timeline=True)
+
 # Let's generate some data using ms, if you have it installed.
 '''
 mscore = demographic_models.prior_onegrow_mig_mscore(popt)
