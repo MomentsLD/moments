@@ -450,7 +450,11 @@ class _ModelInfo():
             popfunc = lambda t : popsizes
         time_vals = np.linspace(0, time, num=self.precision)
         tp.popsizes = np.transpose([popfunc(t) for t in time_vals])
-        tp.migrations = migrations
+        # Transpose because plotting assumes m[i,j] corresponds to migration from i to j
+        if migrations is not None:
+            tp.migrations = migrations.transpose()
+        else:
+            tp.migrations = migrations
 
     def extinction(self, extinct_pops):
         """
