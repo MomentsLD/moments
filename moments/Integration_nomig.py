@@ -498,13 +498,13 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
             n_iter_max = 10
             n_iter = 0
             while (np.max(np.abs(N-Nold)/Nold)>0.02): 
-                
                 dt/=2
                 N = np.array(Npop((t+dt) / 2.0))
                 Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
                 
                 n_iter+=1
                 if n_iter >= n_iter_max:
+                    #failed to find timestep that kept population shanges in check.
                     print("warning: large change in population size at time t = %2.2f" % (t,))
                     print("N_old, " , Nold, "N_new", N)
                     print("relative change", np.max(np.abs(N-Nold)/Nold))
