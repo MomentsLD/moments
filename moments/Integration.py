@@ -569,7 +569,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     else: 
         N = np.array(Npop)
     
-    Nold = np.ones(len(N))
+    Nold = N.copy()
     Neff = N
     mm = np.array(m) / 2.0
     s = np.array(gamma)
@@ -628,10 +628,38 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         if t+dt > Tmax:
             dt = Tmax-t
         # we update the value of N if a function was provided as argument
+        #if callable(Npop):
+        #    N_old = N[:]
+        #    N = np.array(Npop((t+dt) / 2.0))
+        #    Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+        #    if np.max(np.abs(N-N_old)/N_old)>0.1: 
+        #        print("warning: large change size at time"
+        #                + " t = %2.2f in function integrate_nD" % (t,))
+        #        print("N_old, " , N_old)
+        #        print("N_new, " , N)
+        
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-
+            n_iter_max = 10
+            n_iter = 0
+            acceptable_change = 0.5
+            while (np.max(np.abs(N-Nold)/Nold) > acceptable_change): 
+                dt /= 2
+                N = np.array(Npop((t+dt) / 2.0))
+                Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+                
+                n_iter += 1
+                if n_iter >= n_iter_max:
+                    #failed to find timestep that kept population shanges in check.
+                    print("warning: large change size at time"
+                        + " t = %2.2f in function integrate_nD" % (t,))
+                    
+                    print("N_old, " , Nold, "N_new", N)
+                    print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    break
+        
+            
         # we recompute the matrix only if N has changed...
         if t == 0.0 or (Nold != N).any() or dt != dt_old or neg == True:
             D = _buildD(vd, dims, Neff)
