@@ -16,7 +16,7 @@ def prior_onegrow_mig((nu1F, nu2B, nu2F, m, Tp, T), ns):
     Tp: The scaled time between ancestral population growth and the split.
     T: The time between the split and present
 
-    n1,n2: Size of fs to generate.
+    ns = n1,n2: Size of fs to generate.
     """
     # f for the equilibrium ancestral population
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1])
@@ -24,14 +24,12 @@ def prior_onegrow_mig((nu1F, nu2B, nu2F, m, Tp, T), ns):
 
     
     # Now do the population growth event.
-    #fs.integrate([nu1F], [ns[0]+ns[1]], Tp)#, dt_fac=0.01)
     fs.integrate([nu1F], Tp)
     # The divergence
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     # We need to define a function to describe the non-constant population 2
     # size. lambda is a convenient way to do so.
     nu2_func = lambda t: [nu1F, nu2B*(nu2F/nu2B)**(t/T)]
-    #fs.integrate(nu2_func, ns, T, m=numpy.array([[0, m],[m, 0]]))
     fs.integrate(nu2_func, T, m=numpy.array([[0, m],[m, 0]]))
 
     return fs
