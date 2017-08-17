@@ -8,7 +8,7 @@
 \usepackage{subfigure}
 \usepackage{hyperref}
 
-\bibliographystyle{plos2009}
+%\bibliographystyle{plos2009}
 
 \usepackage{xspace}
 \newcommand{\dadi}{$\partial$a$\partial$i\xspace}
@@ -27,9 +27,9 @@ aboveskip=0pt,
 captionpos=b,
 belowskip=0pt
 }
-\newcommand{\py}[1]{\lstinline[language=Python, showstringspaces=False]@#1@}
-\newcommand{\ccode}[1]{\lstinline[language=C, showstringspaces=False]@#1@}
-\newcommand{\shell}[1]{\lstinline[language=csh, showstringspaces=False]@#1@}
+\newcommand{\py}[1]{\lstinline[breaklines=true,language=Python, showstringspaces=False]@#1@}
+\newcommand{\ccode}[1]{\lstinline[breaklines=true,language=C, showstringspaces=False]@#1@}
+\newcommand{\shell}[1]{\lstinline[breaklines=true, language=csh, showstringspaces=False]@#1@}
 % For calibration, lines can be 60 characters long in
 % lstlistings.
 %\begin{lstlisting}
@@ -365,9 +365,10 @@ This function employs various methods defined by \textit{Moments} to specify the
 When defining a demographic function the arguments must be specified in a particular order.
 The \emph{first} argument must be a list of free parameters that will be optimized.
 The \emph{second} argument (usually called \py{ns}) must be a list of sample sizes.
-Note that in \textit{Moments}, contrary to \dadi, we don't have to specify a number of grid points as we do not use a classical frequency discretization.
+Note that in \textit{Moments}, contrary to \dadi, we do not have to specify a number of grid points as we do not use a frequency discretization. 
+
 Any additional arguments (between the second and last) can be used to pass additional non-optimized parameters, using the \py{func_args} argument of the optimization methods.
-(See Listing~\ref{lst:new_world} for an example.)
+%(See Listing~\ref{lst:new_world} for an example.) TODO: provide example
 
 The demographic model function tracks the evolution of $\Phi$ the allele frequency spectrum.
 
@@ -393,8 +394,7 @@ Note that for all these methods, the integration time \py{T} must be positive.
 To ensure this, it is best to define your time parameters as the \emph{interval between} events rather than the absolute time of those events.
 For example, a size change happened a time \py{Tsize} before a population split \py{Tsplit} in the past.
 
-Importantly, population sizes may be functions of time.
-This allows one to simulate exponential growth and other more complex scenarios.
+Population sizes may be functions of time to simulate population growth and other more complex scenarios.
 To do so, simply pass a function that takes a single argument (the time) and returns the given variable.
 The Python \py{lambda} expression is a convenient way to do this.
 For example, to simulate a single population growing exponentially from size \py{nu0} to size \py{nuF} over a time \py{T}, one can do:
@@ -402,10 +402,10 @@ For example, to simulate a single population growing exponentially from size \py
 sts = moments.LinearSystem_1D.steady_state_1D(ns)
 phi = moments.Spectrum(sts) 
 nu_func = lambda t: nu0 * (nuF/nu0)**(t/T)
-phi.integrate(nu = nu_func, [ns], T=T)
+phi.integrate(nu = nu_func, T=T)
 \end{lstlisting}
 
-Numerous examples are provided in Listings~\ref{lst:bottleneck} through~\ref{lst:new_world}.
+Numerous examples are provided in Listings~\ref{lst:bottleneck} through~\ref{lst:OOA}.
 
 \subsection{Units}
 The units \textit{Moments} uses are slightly different than those used by some other programs, \ms in particular.
@@ -424,7 +424,7 @@ So to get equivalent migration ($m_{ij}$) in \ms for a given rate in \textit{Mom
 \subsection{Fixed $\theta$}\label{sec:fixed_theta}
 
 If you wish to set a fixed value of $\theta = 4 N_0 \mu$ in your analysis, that information must be provided to the initial $\Phi$ creation function and the \py{Integration} functions.
-For an example, see Listing~\ref{lst:fixed_theta}, which defines a demographic model in which $\theta$ is fixed to be 137 for derived population 1.
+%For an example, see Listing~\ref{lst:fixed_theta}, which defines a demographic model in which $\theta$ is fixed to be 137 for derived population 1.
 Derived pop 1 is thus the reference population for specifying all population sizes, so its size is set to 1 in the call to \py{Integration.two_pops}.
 When fixing $\theta$, every \py{Integration} function must be told what the reference $\theta$ is, using the option \py{theta0}.
 In addition, the methods for creating an initial $\Phi$ distribution must be passed the appropriate value of $\theta$ using the \py{theta0} option.
@@ -434,11 +434,12 @@ In addition, the methods for creating an initial $\Phi$ distribution must be pas
 \begin{lstlisting}[caption={\textbf{Bottleneck:} At time \py{TF} + \py{TB} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF}.}, float, label={lst:bottleneck}]
 def bottleneck(params, ns):
     nuB, nuF, T = params
-    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) 
+    			   * t / T)]
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, ns, T)
+    fs.integrate(nu_func, T)
 
     return fs
 \end{lstlisting}
@@ -450,7 +451,7 @@ def growth(params, ns):
     nu_func = lambda t: [numpy.exp(numpy.log(nu) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, ns, T)
+    fs.integrate(nu_func, T)
 
     return fs
 \end{lstlisting}
@@ -461,7 +462,8 @@ def split_mig(params, ns):
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    fs.integrate([nu1, nu2], ns, T, m = numpy.array([[0, m], [m, 0]]))
+    fs.integrate([nu1, nu2], T, 
+    		   m = numpy.array([[0, m], [m, 0]]))
 
     return fs
 \end{lstlisting}
@@ -478,12 +480,13 @@ def IM(params, ns):
     nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
-    fs.integrate(nu_func, ns, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
+    fs.integrate(nu_func, T, dt_fac=0.01, 
+    		 m=numpy.array([[0, m12], [m21, 0]]))
 
     return fs
 \end{lstlisting}
 
-\begin{lstlisting}[caption={\textbf{Out-of-Africa model from Gutenkunst (2009):} This model involves a size change in the ancestral population, a split, another split, and then exponential growth of populations 1 and 2.}, float]
+\begin{lstlisting}[caption={\textbf{Out-of-Africa model from Gutenkunst (2009):} This model involves a size change in the ancestral population, a split, another split, and then exponential growth of populations 1 and 2.}, float,label={lst:OOA}]
 
 def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs, 
                  mAfB, mAfEu, mAfAs, mEuAs, TAf, TB, TEuAs),
@@ -491,21 +494,22 @@ def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs,
     sts = moments.LinearSystem_1D.steady_state_1D(n1+n2+n3)
     fs = moments.Spectrum(sts)
 
-    fs.integrate([nuAf], [n1+n2+n3], TAf, 0.05)
+    fs.integrate([nuAf], TAf, 0.05)
     
     fs = moments.Manips.split_1D_to_2D(fs, n1, n2+n3)
     
-    mig1=numpy.array([[0, mAfB],[mAfB, 0]])
-    fs.integrate([nuAf, nuB], [n1, n2+n3], TB, 0.05, m=mig1)
+    mig1 = numpy.array([[0, mAfB],[mAfB, 0]])
+    fs.integrate([nuAf, nuB], TB, 0.05, m=mig1)
     
     fs = moments.Manips.split_2D_to_3D_2(fs, n2, n3)
 
     nuEu_func = lambda t: nuEu0*(nuEu/nuEu0)**(t/TEuAs)
     nuAs_func = lambda t: nuAs0*(nuAs/nuAs0)**(t/TEuAs)
     nu2 = lambda t: [nuAf, nuEu_func(t), nuAs_func(t)]
-    mig2=numpy.array([[0, mAfEu, mAfAs],[mAfEu, 0, mEuAs],[mAfAs, mEuAs, 0]])
+    mig2 = numpy.array([[0, mAfEu, mAfAs], [mAfEu, 0, mEuAs],
+    			[mAfAs, mEuAs, 0]])
     
-    fs.integrate(nu2, [n1, n2, n3], TEuAs, 0.05, m=mig2)
+    fs.integrate(nu2, TEuAs, 0.05, m=mig2)
                                 
     return fs
 \end{lstlisting}
@@ -689,7 +693,8 @@ plot_mod = moments.ModelPlot.generate_model(model, params, ns)
 moments.ModelPlot.plot_model(plot_mod, save_file='model.png',
 			     pop_labels=['YRI', 'CEU', 'CHB'],
 		 	     nref=11293, gen_time=0.029,
-			     gen_time_units="KY", reverse_timeline=True)
+			     gen_time_units="KY", 
+			     reverse_timeline=True)
 \end{lstlisting}
 In the example above, we declared previously our model in the \py{model} function. The first line corresponds to the \py{ModelPlot} object generation specific to our model. \py{params} corresponds to the parameters set and \py{ns} the samples sizes. The second line generates the plot for this model. Several options can be specified to save the figure, specify the populations ID or the time and populations sizes scale.
 The figure generated by the code above for the Out of Africa model is given in Figure \ref{fig:model_plot}
@@ -720,8 +725,8 @@ As an example:
 import os
 
 core = "-n 1 -n 2 -ej 0.3 2 1"
-command = moments.Misc.ms_command(theta=1000, ns=(20,20), core, 1000,
-                               recomb=0.3)
+command = moments.Misc.ms_command(theta=1000, ns=(20,20), core, 
+				   1000, recomb=0.3)
 ms_fs = moments.Spectrum.from_ms_file(os.popen(command))
 \end{lstlisting}
 Here the \py{os.popen} command lets us read the \ms output straight from the command, without writing an intermediate file to disk.
@@ -760,8 +765,9 @@ Model selection is then performed by comparing this test statistic to a $\chi^2$
 To perform likelihood ratio tests using composite likelihoods, a multiplicative adjustment to the likelihood ratio test statistic shown above is needed.
 \textit{Moments} can calculate this adjustment, using the function.
 \begin{lstlisting}
-adj = moments.Godambe.LRT_adjust(func_ex, grid_pts, all_boot, p0, 
-			  data, nested_indices, multinom=True, eps)
+adj = moments.Godambe.LRT_adjust(func_ex, grid_pts, all_boot,
+			 	   p0, data, nested_indices, 
+				   multinom=True, eps)
 \end{lstlisting}
 The parameters have the same meaning as for \py{Godambe.GIM_uncert}, where \py{func_ex} is the complex model function and \py{p0} is the best-fit parameters for the simple implemented in the complex model.
 The additional parameter \py{nested_indices} is a list that indicates which positions in the complex model arguments are fixed to create the simple model.
@@ -872,5 +878,6 @@ A (growing) series of tests can be run in the \py{tests} directory, via \py{pyth
 %\end{enumerate}
 
 \bibliography{popgen}
+\bibliographystyle{plain}
 
 \end{document}
