@@ -543,7 +543,6 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
 # Integration in time
 #--------------------
 # N : total population size (vector N = (N1,...,Np))
-# n : samples size (vector n = (n1,...,np))
 # tf : final simulation time (/2N1 generations)
 # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
 # theta : mutation rate

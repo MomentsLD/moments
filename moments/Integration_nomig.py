@@ -349,8 +349,7 @@ def _update_step2_neutral(sfs, A, Di, C):
 
 def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
     """ Integration in time \n
-# N : total population size (vector N = (N1,...,Np))\n
-# n : samples size (vector n = (n1,...,np))\n
+# 
 # tf : final simulation time (/2N1 generations)\n
 # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
 # theta : mutation rate\n
@@ -458,6 +457,19 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 
 
 def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
+""" Integration in time \n
+# tf : final simulation time (/2N1 generations)\n
+# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
+# theta : mutation rate\n
+# h : allele dominance (vector h = (h1,...,hp))\n
+# m : migration rates matrix (2D array, m[i,j] is the migration rate \n
+#   from pop j to pop i, normalized by 1/4N1)\n
+
+# for a "lambda" definition of N - with backward Euler integration scheme\n
+# where t is the relative time in generations such as t = 0 initially\n
+# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
+#   or directly the vector if N does not evolve in time\n
+    """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
     # parameters of the equation
@@ -465,7 +477,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
         N = np.array(Npop(0))
     else:
         N = np.array(Npop)
-    Nold = np.ones(len(N))
+    Nold = N.copy()
     Neff = N
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
@@ -497,12 +509,12 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
             n_iter_max = 10
             n_iter = 0
-            while (np.max(np.abs(N-Nold)/Nold)>0.02): 
-                dt/=2
+            while (np.max(np.abs(N-Nold)/Nold) > 0.02): 
+                dt /= 2
                 N = np.array(Npop((t+dt) / 2.0))
                 Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
                 
-                n_iter+=1
+                n_iter += 1
                 if n_iter >= n_iter_max:
                     #failed to find timestep that kept population shanges in check.
                     print("warning: large change in population size at time t = %2.2f" % (t,))
