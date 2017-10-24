@@ -15,7 +15,7 @@ The code below is written for 1D cases.
 """
 
 """
-Matrix for mutations (foreward and backward)
+Matrix for mutations (forward and backward)
 dims = n1+1
 """
 cpdef calcB_FB(int d, np.float64_t u, np.float64_t v):
