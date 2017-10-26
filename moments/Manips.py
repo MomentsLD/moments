@@ -45,7 +45,12 @@ def split_1D_to_2D(sp, n1, n2):
         for j in range(n2 + 1):
             data_2D[i, j] = sp[i + j] * misc.comb(n1, i) * misc.comb(n2, j)  \
                             / misc.comb(n1 + n2, i + j)
-    return Spectrum_mod.Spectrum(data_2D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_2D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_2D)
 
 def split_2D_to_3D_2(sp, n2new, n3):
     """
@@ -80,7 +85,12 @@ def split_2D_to_3D_2(sp, n2new, n3):
         for j in range(n3 + 1):
             data_3D[:, i, j] = sp[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
                                / misc.comb(n2new + n3, i + j)
-    return Spectrum_mod.Spectrum(data_3D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_3D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_3D)
 
 def split_2D_to_3D_1(sp, n1new, n3):
     """
@@ -115,7 +125,12 @@ def split_2D_to_3D_1(sp, n1new, n3):
         for j in range(n3 + 1):
             data_3D[i, :, j] = sp[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
                                / misc.comb(n1new + n3, i + j)
-    return Spectrum_mod.Spectrum(data_3D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_3D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_3D)
 
 
 def split_3D_to_4D_3(sp, n3new, n4):
@@ -152,7 +167,12 @@ def split_3D_to_4D_3(sp, n3new, n4):
         for j in range(n4 + 1):
             data_4D[:, :, i, j] = sp[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
                                   / misc.comb(n3new + n4, i + j)
-    return Spectrum_mod.Spectrum(data_4D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_4D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_4D)
 
 def split_4D_to_5D_4(sp, n4new, n5):
     """
@@ -189,7 +209,12 @@ def split_4D_to_5D_4(sp, n4new, n5):
         for j in range(n5 + 1):
             data_5D[:, :, :, i, j] = sp[:, :, :, i + j] * misc.comb(n4new, i)  \
                                      * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
-    return Spectrum_mod.Spectrum(data_5D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_5D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_5D)
 
 def split_4D_to_5D_3(sp, n3new, n4):
     """
@@ -226,7 +251,12 @@ def split_4D_to_5D_3(sp, n3new, n4):
         for j in range(n4 + 1):
             data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * misc.comb(n3new, i)  \
                                      * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
-    return Spectrum_mod.Spectrum(data_5D)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data_5D, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data_5D)
 
 
 # merge two populations into one population
@@ -245,7 +275,12 @@ def merge_2D_to_1D(sp):
     for k in range(dim1):
         for l in range(dim2):
             data[k + l] += sp[k, l]
-    return Spectrum_mod.Spectrum(data)
+    # if all entries unmasked, keep them all unmaksed in the split spectrum
+    # care about this for finite genome model
+    if np.any(sp.mask) == False:
+        return Spectrum_mod.Spectrum(data, mask_corners=False)
+    else:
+        return Spectrum_mod.Spectrum(data)
 
 
 #  Methods for admixture

@@ -47,6 +47,9 @@ class Spectrum(numpy.ma.masked_array):
                       entries are unobservable, and dadi cannot reliably
                       calculate them, so you will almost always want
                       mask_corners=True.g
+                      The exception is if we are simulating under the finite 
+                      genome model, in which case we track the probability of
+                      a site to be fixed for either allele
         data_folded: If True, it is assumed that the input data is folded. An
                      error will be raised if the input data and mask are not
                      consistent with a folded Spectrum.
