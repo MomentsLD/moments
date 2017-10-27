@@ -90,5 +90,5 @@ def integrate_cn(F, nu, tf, dt=0.01, gammas=None, theta=1.0):
             
             N_old = N
             t_elapsed += dt
-        return reform(Phi,ns)
+        return moments.Triallele.Numerics.reform(Phi,ns)
     
