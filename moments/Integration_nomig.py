@@ -6,11 +6,8 @@ import Spectrum_mod
 import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
-import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from Integration import compute_dt
-
-
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -38,30 +35,6 @@ def _calcB(dims, u):
         tp = tuple(ind)
         B[tp] = dims[k] - 1
     return u * B
-
-import Reversible
-# Finite genome mutation model
-def _calcB_FB(dims, u, v):
-    """
-    dims : List containing the pop sizes
-    
-    u: scalar forward mutation rate
-    
-    v: scalar backward mutation rate
-    
-    Returns mutation matrix for finite genome model
-    """
-    if len(dims) == 1:
-        return ls1.calcB_FB(dims[0], u, v)
-    elif len(dims) == 2: # return list of mutation matrices
-        return [ls2.calcB_FB1(dims, u, v), ls2.calcB_FB2(dims, u, v)]
-    elif len(dims) == 3:
-        return Reversible.calc_FB_3pop(dims, u, v)
-    elif len(dims) == 4:
-        return Reversible.calc_FB_4pop(dims, u, v)
-    elif len(dims) == 5:
-        return Reversible.calc_FB_5pop(dims, u, v)
-        
 
 #----------------------------------
 # updates for the time integration-
@@ -372,26 +345,23 @@ def _update_step2_neutral(sfs, A, Di, C):
     return sfs
 
 
-#--------------------
-# Integration in time
-#--------------------
-# N : total population size (vector N = (N1,...,Np))
-# n : samples size (vector n = (n1,...,np))
-# tf : final simulation time (/2N1 generations)
-# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
-# theta : mutation rate
-# h : allele dominance (vector h = (h1,...,hp))
-# m : migration rates matrix (2D array, m[i,j] is the migration rate 
-#   from pop j to pop i, normalized by 1/4N1)
 
-# for a "lambda" definition of N - with backward Euler integration scheme
-# where t is the relative time in generations such as t = 0 initially
-# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
-#   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False, finite_genome=False, theta1=None, theta2=None):
-    sfs0 = np.array(sfs0)
-    n = np.array(sfs0.shape)-1
+def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
+    """ Integration in time \n
+# 
+# tf : final simulation time (/2N1 generations)\n
+# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
+# theta : mutation rate\n
+# h : allele dominance (vector h = (h1,...,hp))\n
+# m : migration rates matrix (2D array, m[i,j] is the migration rate \n
+#   from pop j to pop i, normalized by 1/4N1)\n
+
+# for a "lambda" definition of N - with backward Euler integration scheme\n
+# where t is the relative time in generations such as t = 0 initially\n
+# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
+#   or directly the vector if N does not evolve in time\n
+    """
     
     # neutral case if the parameters are not provided
     if gamma is None:
@@ -399,13 +369,15 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     if h is None:
         h = 0.5 * np.ones(len(n))
     
+    sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
     else:
         N = np.array(Npop)
     
-    Nold = np.ones(len(N))
+    Nold = N.copy()
     # effective pop size for the integration
     Neff = N
 
@@ -414,14 +386,13 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         s = np.array(gamma)
     else: 
         s = np.array([gamma])
-    
     if hasattr(h, "__len__"):
         h = np.array(h)
     else:
         h = np.array([h])
-    
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
+    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -442,14 +413,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
 
     # mutations
-    if finite_genome == False:
-        B = _calcB(dims, theta/4.0)
-    else:
-        if theta1 == None:
-            theta1 = 4e-4
-        if theta2 == None:
-            theta2 = 4e-4
-        Bf = _calcB_FB(dims, theta1/4., theta2/4.)
+    B = _calcB(dims, u)
 
     # time loop:
     t = 0.0
@@ -462,10 +426,38 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
             dt = Tmax - t
 
         # we update the value of N if a function was provided as argument
+        #if callable(Npop):
+        #    N_old = N[:]
+        #    N = np.array(Npop((t+dt) / 2.0))
+        #    Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+        #    if np.max(np.abs(N-N_old)/N_old)>0.1: 
+        #        print("warning: large change size at time"
+        #                + " t = %2.2f in function integrate_nomig" % (t,))
+        #        print("N_old, " , N_old)
+        #        print("N_new, " , N)
+                
+                
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-
+            n_iter_max = 10
+            n_iter = 0
+            acceptable_change = 0.5
+            while (np.max(np.abs(N-Nold)/Nold) > acceptable_change): 
+                dt /= 2
+                N = np.array(Npop((t+dt) / 2.0))
+                Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+                
+                n_iter += 1
+                if n_iter >= n_iter_max:
+                    #failed to find timestep that kept population shanges in check.
+                    print("warning: large change size at time"
+                        + " t = %2.2f in function integrate_nomig" % (t,))
+                    
+                    print("N_old, " , Nold, "N_new", N)
+                    print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    break
+                            
         # we recompute the matrix only if N has changed...
         if t==0.0 or (Nold != N).any() or dt != dt_old:
             D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(dims))]
@@ -478,28 +470,30 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
-            if finite_genome == False:
-                sfs = slv[0](sfs + dt*B)
-            else:
-                sfs = slv[0](sfs + (dt*Bf).dot(sfs))
+            sfs = slv[0](sfs + dt*B)
         elif len(n) > 1:
             sfs = _update_step1(sfs, Q)
-            if finite_genome == False:
-                sfs = _update_step2(sfs + dt*B, slv)
-            else:
-                for i in range(len(n)):
-                    sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
-                sfs = _update_step2(sfs, slv)
+            sfs = _update_step2(sfs + dt*B, slv)
         Nold = N
         t += dt
+
+    return Spectrum_mod.Spectrum(sfs)
+
+
+def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
+    """ Integration in time \n
+    # tf : final simulation time (/2N1 generations)\n
+    # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
+    # theta : mutation rate\n
+    # h : allele dominance (vector h = (h1,...,hp))\n
+    # m : migration rates matrix (2D array, m[i,j] is the migration rate \n
+    #   from pop j to pop i, normalized by 1/4N1)\n
     
-    if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
-    else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
-
-
-def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, finite_genome=False, theta1=None, theta2=None):
+    # for a "lambda" definition of N - with backward Euler integration scheme\n
+    # where t is the relative time in generations such as t = 0 initially\n
+    # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
+    #   or directly the vector if N does not evolve in time\n
+    """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
     # parameters of the equation
@@ -507,11 +501,11 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
         N = np.array(Npop(0))
     else:
         N = np.array(Npop)
-    
-    Nold = np.ones(len(N))
+    Nold = N.copy()
     Neff = N
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
+    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -521,14 +515,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
     diags = [ts.mat_to_diag(x) for x in vd]
     D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
     # mutations
-    if finite_genome == False:
-        B = _calcB(dims, theta/4.0)
-    else:
-        if theta1 == None:
-            theta1 = 4e-4
-        if theta2 == None:
-            theta2 = 4e-4
-        Bf = _calcB_FB(dims, theta1/4., theta2/4.)
+    B = _calcB(dims, u)
 
     # time loop:
     t = 0.0
@@ -544,9 +531,26 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-            
+            n_iter_max = 10
+            n_iter = 0
+            acceptable_change = 0.5
+            while (np.max(np.abs(N-Nold)/Nold) > acceptable_change): 
+                dt /= 2
+                N = np.array(Npop((t+dt) / 2.0))
+                Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+                
+                n_iter += 1
+                if n_iter >= n_iter_max:
+                    #failed to find timestep that kept population shanges in check.
+                    print("warning: large change size at time"
+                        + " t = %2.2f in function integrate_neutral" % (t,))
+                    
+                    print("N_old, " , Nold, "N_new", N)
+                    print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    break
+              
         # we recompute the matrix only if N has changed...
-        if t==0.0 or (Nold != N).any() or dt != dt_old:
+        if t==0.0 or (Nold != N).any() or dt != dt_old: #SG not sure why dt_old is involved here. 
             D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(n))]
             A = [-0.5 * dt/ 4 / Neff[i] * diags[i][0] for i in range(len(n))]
             Di = [np.ones(dims[i])-0.5 * dt / 4 / Neff[i] * diags[i][1] for i in range(len(n))]
@@ -558,23 +562,11 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
             
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
-            if finite_genome == False:
-                sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
-            else:
-                sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*Bf).dot(sfs))
+            sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
         else:
             sfs = _update_step1(sfs, Q)
-            if finite_genome == False:
-                sfs = _update_step2_neutral(sfs + dt*B, A, Di, C)
-            else:
-                for i in range(len(n)):
-                    sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
-                sfs = _update_step2_neutral(sfs, A, Di, C)
-        
+            sfs = _update_step2_neutral(sfs + dt*B, A, Di, C)
         Nold = N
         t += dt
-    
-    if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
-    else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
+
+    return Spectrum_mod.Spectrum(sfs)

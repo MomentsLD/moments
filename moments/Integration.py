@@ -6,7 +6,6 @@ import Spectrum_mod
 import Numerics
 import Jackknife as jk
 import LinearSystem_2D as ls2
-import LinearSystem_1D as ls1
 
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
@@ -40,27 +39,6 @@ def _calcB(dims, u):
         tp = tuple(ind)
         B[tp] = dims[k] - 1
     return u * B
-
-def _calcB_FB(dims, u, v):
-    """
-    dims : List containing the pop sizes
-    
-    u: scalar forward mutation rate
-    
-    v: scalar backward mutation rate
-    
-    Returns mutation matrix for finite genome model
-    """
-    if len(dims) == 1:
-        return ls1.calcB_FB(dims[0], u, v)
-    elif len(dims) == 2: # return list of mutation matrices
-        return [ls2.calcB_FB1(dims, u, v), ls2.calcB_FB2(dims, u, v)]
-    elif len(dims) == 3:
-        return Reversible.calc_FB_3pop(dims, u, v)
-    elif len(dims) == 4:
-        return Reversible.calc_FB_4pop(dims, u, v)
-    elif len(dims) == 5:
-        return Reversible.calc_FB_5pop(dims, u, v)
 
 # Drift
 def _calcD(dims):
@@ -557,11 +535,14 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
     return min(timesteps)
 
 
+
+
+def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
+    """
 #--------------------
 # Integration in time
 #--------------------
 # N : total population size (vector N = (N1,...,Np))
-# n : samples size (vector n = (n1,...,np))
 # tf : final simulation time (/2N1 generations)
 # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
 # theta : mutation rate
@@ -571,8 +552,10 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # for a "lambda" definition of N - with backward Euler integration scheme
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
-
-def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False, finite_genome=False, theta1=None, theta2=None):
+    """
+    
+    
+    
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
@@ -586,13 +569,14 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     else: 
         N = np.array(Npop)
     
-    Nold = np.ones(len(N))
+    Nold = N.copy()
     Neff = N
     mm = np.array(m) / 2.0
     s = np.array(gamma)
     h = np.array(h)
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
+    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -620,15 +604,8 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     Mi = _buildM(vm, dims, mm)
     
     # mutations
-    if finite_genome == False:
-        B = _calcB(dims, theta/4.0)
-    else:
-        if u == None:
-            u = 4e-4
-        if v == None:
-            v = 4e-4
-        Bf = _calcB_FB(dims, u/4., v/4.)
-
+    B = _calcB(dims, u)
+    
     # indexes for the permutation trick
     order = list(range(nbp))
 
@@ -651,10 +628,38 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         if t+dt > Tmax:
             dt = Tmax-t
         # we update the value of N if a function was provided as argument
+        #if callable(Npop):
+        #    N_old = N[:]
+        #    N = np.array(Npop((t+dt) / 2.0))
+        #    Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+        #    if np.max(np.abs(N-N_old)/N_old)>0.1: 
+        #        print("warning: large change size at time"
+        #                + " t = %2.2f in function integrate_nD" % (t,))
+        #        print("N_old, " , N_old)
+        #        print("N_new, " , N)
+        
         if callable(Npop):
             N = np.array(Npop((t+dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-
+            n_iter_max = 10
+            n_iter = 0
+            acceptable_change = 0.5
+            while (np.max(np.abs(N-Nold)/Nold) > acceptable_change): 
+                dt /= 2
+                N = np.array(Npop((t+dt) / 2.0))
+                Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
+                
+                n_iter += 1
+                if n_iter >= n_iter_max:
+                    #failed to find timestep that kept population shanges in check.
+                    print("warning: large change size at time"
+                        + " t = %2.2f in function integrate_nD" % (t,))
+                    
+                    print("N_old, " , Nold, "N_new", N)
+                    print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    break
+        
+            
         # we recompute the matrix only if N has changed...
         if t == 0.0 or (Nold != N).any() or dt != dt_old or neg == True:
             D = _buildD(vd, dims, Neff)
@@ -667,19 +672,11 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
-            if finite_genome == False:
-                sfs = slv[0](sfs + dt*B)
-            else:
-                sfs = slv[0](sfs + (dt*Bf).dot(sfs))
+            sfs = slv[0](sfs + dt*B)
         elif len(n) > 1:
             for i in range(int(split_dt)):
                 sfs = _update_step1(sfs, Q, dims, order)
-                if finite_genome == False:
-                    sfs += dt / split_dt * B # this is for infinite sites model
-                                             # if we want finite genome model, need to 
-                else:
-                    for i in range(len(n)):
-                        sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
+                sfs += dt / split_dt * B
                 sfs = _update_step2(sfs, slv, dims, order)
                 order = _permute(order)
         
@@ -697,7 +694,4 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         Nold = N
         t += dt
 
-    if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
-    else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
+    return Spectrum_mod.Spectrum(sfs)
