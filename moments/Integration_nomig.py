@@ -37,14 +37,28 @@ def _calcB(dims, u):
         B[tp] = dims[k] - 1
     return u * B
 
-# transitions for finite genome mutation model
+import Reversible
+# Finite genome mutation model
 def _calcB_FB(dims, theta_fd, theta_bd):
+    """
+    dims : List containing the pop sizes
+    
+    u: scalar forward mutation rate
+    
+    v: scalar backward mutation rate
+    
+    Returns mutation matrix for finite genome model
+    """
     if len(dims) == 1:
         return ls1.calcB_FB(dims[0], theta_fd, theta_bd)
-    elif len(dims) == 2:
+    elif len(dims) == 2: # return list of mutation matrices
         return [ls2.calcB_FB1(dims, theta_fd, theta_bd), ls2.calcB_FB2(dims, theta_fd, theta_bd)]
-    else:
-        pass
+    elif len(dims) == 3:
+        return Reversible.calc_FB_3pop(dims, theta_fd, theta_bd)
+    elif len(dims) == 4:
+        return Reversible.calc_FB_4pop(dims, theta_fd, theta_bd)
+    elif len(dims) == 5:
+        return Reversible.calc_FB_5pop(dims, theta_fd, theta_bd)
 
 #----------------------------------
 # updates for the time integration-
