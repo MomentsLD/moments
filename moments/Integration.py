@@ -6,6 +6,7 @@ import Spectrum_mod
 import Numerics
 import Jackknife as jk
 import LinearSystem_2D as ls2
+import LinearSystem_1D as ls1
 
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
@@ -39,6 +40,27 @@ def _calcB(dims, u):
         tp = tuple(ind)
         B[tp] = dims[k] - 1
     return u * B
+
+def _calcB_FB(dims, u, v):
+    """
+    dims : List containing the pop sizes
+    
+    u: scalar forward mutation rate
+    
+    v: scalar backward mutation rate
+    
+    Returns mutation matrix for finite genome model
+    """
+    if len(dims) == 1:
+        return ls1.calcB_FB(dims[0], u, v)
+    elif len(dims) == 2: # return list of mutation matrices
+        return [ls2.calcB_FB1(dims, u, v), ls2.calcB_FB2(dims, u, v)]
+    elif len(dims) == 3:
+        return Reversible.calc_FB_3pop(dims, u, v)
+    elif len(dims) == 4:
+        return Reversible.calc_FB_4pop(dims, u, v)
+    elif len(dims) == 5:
+        return Reversible.calc_FB_5pop(dims, u, v)
 
 # Drift
 def _calcD(dims):
@@ -550,7 +572,7 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # where t is the relative time in generations such as t = 0 initially
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
 
-def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
+def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False, finite_genome=False, theta1=None, theta2=None):
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
@@ -571,7 +593,6 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     h = np.array(h)
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
-    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -599,8 +620,15 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     Mi = _buildM(vm, dims, mm)
     
     # mutations
-    B = _calcB(dims, u)
-    
+    if finite_genome == False:
+        B = _calcB(dims, theta/4.0)
+    else:
+        if u == None:
+            u = 4e-4
+        if v == None:
+            v = 4e-4
+        Bf = _calcB_FB(dims, u/4., v/4.)
+
     # indexes for the permutation trick
     order = list(range(nbp))
 
@@ -639,11 +667,19 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
-            sfs = slv[0](sfs + dt*B)
+            if finite_genome == False:
+                sfs = slv[0](sfs + dt*B)
+            else:
+                sfs = slv[0](sfs + (dt*Bf).dot(sfs))
         elif len(n) > 1:
             for i in range(int(split_dt)):
                 sfs = _update_step1(sfs, Q, dims, order)
-                sfs += dt / split_dt * B
+                if finite_genome == False:
+                    sfs += dt / split_dt * B # this is for infinite sites model
+                                             # if we want finite genome model, need to 
+                else:
+                    for i in range(len(n)):
+                        sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
                 sfs = _update_step2(sfs, slv, dims, order)
                 order = _permute(order)
         
@@ -661,4 +697,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         Nold = N
         t += dt
 
-    return Spectrum_mod.Spectrum(sfs)
+    if finite_genome == False:
+        return Spectrum_mod.Spectrum(sfs)
+    else:
+        return Spectrum_mod.Spectrum(sfs, mask_corners=False)

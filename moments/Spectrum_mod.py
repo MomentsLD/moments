@@ -1517,7 +1517,7 @@ def %(method)s(self, other):
 
     # spectrum integration
     # We chose the most efficient solver for each case
-    def integrate(self, Npop, tf, dt_fac=0.2, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False):
+    def integrate(self, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False, finite_genome=False, theta1=None, theta2=None):
         """
         Method to simulate the spectrum's evolution for a given set of demographic parameters.
         Npop: Populations effective sizes.
@@ -1542,10 +1542,17 @@ def %(method)s(self, other):
             if h is None:
                 h = 0.5
             if gamma == 0:
-                self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta)
+                if finite_genome == True:
+                    self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, finite_genome=True, theta1=theta1, theta2=theta2)
+                else:
+                    self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta)
             else:
-                #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
-                self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta)
+                if finite_genome == True:
+                    self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, finite_genome=finite_genome, theta1=theta1, theta2=theta2)
+                else:
+                    self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta)
+
+                
         else:
             if gamma is None:
                 gamma = numpy.zeros(len(n))
@@ -1556,11 +1563,20 @@ def %(method)s(self, other):
             if (m == 0).all(): 
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n)<3:
-                    self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta)
+                    if finite_genome == True:
+                        self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, finite_genome=True, theta1=theta1, theta2=theta2)
+                    else:
+                        self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta)
                 else:
-                    self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta)
+                    if finite_genome == True:
+                        self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, finite_genome=True, theta1=theta1, theta2=theta2)
+                    else:
+                        self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta)
             else:
-                self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt)
+                if finite_genome == True:
+                    self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, finite_genome=True, theta1=theta1, theta2=theta2)
+                else:
+                    self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt)
         return self
 
 # Allow spectrum objects to be pickled.

@@ -6,8 +6,11 @@ import Spectrum_mod
 import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
+import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from Integration import compute_dt
+
+
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -35,6 +38,30 @@ def _calcB(dims, u):
         tp = tuple(ind)
         B[tp] = dims[k] - 1
     return u * B
+
+import Reversible
+# Finite genome mutation model
+def _calcB_FB(dims, u, v):
+    """
+    dims : List containing the pop sizes
+    
+    u: scalar forward mutation rate
+    
+    v: scalar backward mutation rate
+    
+    Returns mutation matrix for finite genome model
+    """
+    if len(dims) == 1:
+        return ls1.calcB_FB(dims[0], u, v)
+    elif len(dims) == 2: # return list of mutation matrices
+        return [ls2.calcB_FB1(dims, u, v), ls2.calcB_FB2(dims, u, v)]
+    elif len(dims) == 3:
+        return Reversible.calc_FB_3pop(dims, u, v)
+    elif len(dims) == 4:
+        return Reversible.calc_FB_4pop(dims, u, v)
+    elif len(dims) == 5:
+        return Reversible.calc_FB_5pop(dims, u, v)
+        
 
 #----------------------------------
 # updates for the time integration-
@@ -362,15 +389,16 @@ def _update_step2_neutral(sfs, A, Di, C):
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
 #   or directly the vector if N does not evolve in time
 
-def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False):
+def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False, finite_genome=False, theta1=None, theta2=None):
+    sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
+    
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
     if h is None:
         h = 0.5 * np.ones(len(n))
     
-    sfs0 = np.array(sfs0)
-    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
@@ -386,13 +414,14 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         s = np.array(gamma)
     else: 
         s = np.array([gamma])
+    
     if hasattr(h, "__len__"):
         h = np.array(h)
     else:
         h = np.array([h])
+    
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
-    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -413,7 +442,14 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
 
     # mutations
-    B = _calcB(dims, u)
+    if finite_genome == False:
+        B = _calcB(dims, theta/4.0)
+    else:
+        if theta1 == None:
+            theta1 = 4e-4
+        if theta2 == None:
+            theta2 = 4e-4
+        Bf = _calcB_FB(dims, theta1/4., theta2/4.)
 
     # time loop:
     t = 0.0
@@ -442,17 +478,28 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
             sfs = Q[0].dot(sfs)
-            sfs = slv[0](sfs + dt*B)
+            if finite_genome == False:
+                sfs = slv[0](sfs + dt*B)
+            else:
+                sfs = slv[0](sfs + (dt*Bf).dot(sfs))
         elif len(n) > 1:
             sfs = _update_step1(sfs, Q)
-            sfs = _update_step2(sfs + dt*B, slv)
+            if finite_genome == False:
+                sfs = _update_step2(sfs + dt*B, slv)
+            else:
+                for i in range(len(n)):
+                    sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
+                sfs = _update_step2(sfs, slv)
         Nold = N
         t += dt
+    
+    if finite_genome == False:
+        return Spectrum_mod.Spectrum(sfs)
+    else:
+        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
 
-    return Spectrum_mod.Spectrum(sfs)
 
-
-def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
+def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, finite_genome=False, theta1=None, theta2=None):
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
     # parameters of the equation
@@ -465,7 +512,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
     Neff = N
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
-    u = theta / 4.0
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
@@ -475,7 +521,14 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
     diags = [ts.mat_to_diag(x) for x in vd]
     D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
     # mutations
-    B = _calcB(dims, u)
+    if finite_genome == False:
+        B = _calcB(dims, theta/4.0)
+    else:
+        if theta1 == None:
+            theta1 = 4e-4
+        if theta2 == None:
+            theta2 = 4e-4
+        Bf = _calcB_FB(dims, theta1/4., theta2/4.)
 
     # time loop:
     t = 0.0
@@ -505,11 +558,23 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False):
             
         # drift, selection and migration (depends on the dimension)
         if len(n) == 1:
-            sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
+            if finite_genome == False:
+                sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
+            else:
+                sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*Bf).dot(sfs))
         else:
             sfs = _update_step1(sfs, Q)
-            sfs = _update_step2_neutral(sfs + dt*B, A, Di, C)
+            if finite_genome == False:
+                sfs = _update_step2_neutral(sfs + dt*B, A, Di, C)
+            else:
+                for i in range(len(n)):
+                    sfs = sfs + (dt*Bf[i]).dot(sfs.flatten()).reshape(n+1)
+                sfs = _update_step2_neutral(sfs, A, Di, C)
+        
         Nold = N
         t += dt
-
-    return Spectrum_mod.Spectrum(sfs)
+    
+    if finite_genome == False:
+        return Spectrum_mod.Spectrum(sfs)
+    else:
+        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
