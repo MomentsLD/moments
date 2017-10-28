@@ -24,6 +24,9 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 
 """
 
+import warnings
+warnings.filterwarnings("ignore")
+
 def integrate_cn(F, nu, tf, dt=0.01, gammas=None, theta=1.0):
     if tf <= 0:
         print('Integration time should be positive.')
