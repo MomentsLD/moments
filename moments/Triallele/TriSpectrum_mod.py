@@ -43,7 +43,7 @@ class TriSpectrum(numpy.ma.masked_array):
                 shrink=True):
         if finite_genome == True:
             mask_fixed = False
-            print('If we simulate under the finite genome model, we do not mask fixed sites')
+            #print('If we simulate under the finite genome model, we do not mask fixed sites')
         data = numpy.asanyarray(data)
         
         if mask is numpy.ma.nomask:
