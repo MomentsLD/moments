@@ -5,6 +5,7 @@ from scipy.sparse.linalg import factorized
 from scipy.sparse import identity
 import moments.Triallele.Numerics
 import moments.Triallele.Jackknife
+import copy
 
 """
 Integration for triallele model
@@ -30,7 +31,7 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 import warnings
 warnings.filterwarnings("ignore")
 
-def integrate_cn(F, nu, tf, dt=0.001, gammas=None, theta=1.0):
+def integrate_cn(F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2**-6, gammas=None, theta=1.0):
     if tf <= 0:
         print('Integration time should be positive.')
         return F
@@ -49,51 +50,97 @@ def integrate_cn(F, nu, tf, dt=0.001, gammas=None, theta=1.0):
     
     Phi = moments.Triallele.Numerics.flatten(F)
     
+    negs = False
+    
     if gammas is None:
         gammas = (0,0,0,0,0)
+    
+    dt0 = copy.copy(dt)
+    dt_old = dt
     
     if np.any(gammas) == False:
         t_elapsed = 0
         while t_elapsed < tf:
-            dt_old = dt
+            # if negs is True, reset t_elapsed and Phi
+            if negs == True:
+                Phi = Phi_last
+                t_elapsed = last_t
+                negs = False
+            
+            # so that dt doesn't push us past final time
             if t_elapsed + dt > tf:
                 dt = tf - t_elapsed
+            
             
             if callable(nu):
                 N = nu(t_elapsed + dt/2.)
             
+            # if integration has just started, population has changed size, or dt has change, update matrices
             if t_elapsed == 0 or N_old != N or dt != dt_old:
                 Ab = B_tri+D/(2.*N)
                 Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                 slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
             
+            Phi_last = Phi
             Phi = slv(Ab1.dot(Phi)+dt*B_bi)
             
             N_old = N
+            dt_old = dt
+            
+            # check if any entries are negative or nan
+            if np.any(Phi < 0) and dt > dt0*dt_adjust_factor:
+                negs = True
+                dt *= 1./2
+            else:
+                negs = False
+                dt = dt0
+            
+            last_t = t_elapsed
             t_elapsed += dt
+            
         return moments.Triallele.Numerics.reform(Phi,ns)
     else:
         S = moments.Triallele.Numerics.selection(ns, gammas)
         J = moments.Triallele.Jackknife.calcJK_2(ns)
         t_elapsed = 0
         while t_elapsed < tf:
-            dt_old = dt
+            # if negs is True, reset t_elapsed and Phi
+            if negs == True:
+                Phi = Phi_last
+                t_elapsed = last_t
+                negs = False
+            
+            # so that dt doesn't push us past final time
             if t_elapsed + dt > tf:
                 dt = tf - t_elapsed
             
             if callable(nu):
                 N = nu(t_elapsed + dt/2.)
             
+            # if integration has just started, population has changed size, or dt has change, update matrices
+            # can we fix this to work with C-N?
             if t_elapsed == 0 or N_old != N or dt != dt_old:
                 Ab = D/(2.*N) + S.dot(J) + B_tri
                 #Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                 #slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                 Ab_fd = identity(Ab.shape[0]) + dt*Ab
             
+            Phi_last = Phi
             Phi = Ab_fd.dot(Phi) + dt*B_bi
             #Phi = slv(Ab1.dot(Phi)+dt*B_bi)
             
             N_old = N
+            dt_old = dt
+            
+            # check if any entries are negative or nan
+            if np.any(Phi < 0) and dt > dt0*dt_adjust_factor:
+                negs = True
+                dt *= 1./2
+            else:
+                negs = False
+                dt = dt0
+            
+            last_t = t_elapsed
             t_elapsed += dt
         return moments.Triallele.Numerics.reform(Phi,ns)
     
