@@ -25,9 +25,6 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 
 """
 
-## XXX 10/29 - implement adaptive timestepping to ensure no nans or negative values in selection case
-## some negative values are to be expected due to the jackknife at first, but they should be smoothed out - need to ignore getting caught up on those negative values...
-
 import warnings
 warnings.filterwarnings("ignore")
 
