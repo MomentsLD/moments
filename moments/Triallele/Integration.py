@@ -24,10 +24,13 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 
 """
 
+## XXX 10/29 - implement adaptive timestepping to ensure no nans or negative values in selection case
+## some negative values are to be expected due to the jackknife at first, but they should be smoothed out - need to ignore getting caught up on those negative values...
+
 import warnings
 warnings.filterwarnings("ignore")
 
-def integrate_cn(F, nu, tf, dt=0.01, gammas=None, theta=1.0):
+def integrate_cn(F, nu, tf, dt=0.001, gammas=None, theta=1.0):
     if tf <= 0:
         print('Integration time should be positive.')
         return F
@@ -72,7 +75,6 @@ def integrate_cn(F, nu, tf, dt=0.01, gammas=None, theta=1.0):
     else:
         S = moments.Triallele.Numerics.selection(ns, gammas)
         J = moments.Triallele.Jackknife.calcJK_2(ns)
-        
         t_elapsed = 0
         while t_elapsed < tf:
             dt_old = dt

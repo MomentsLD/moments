@@ -5,6 +5,7 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger('Spectrum_mod')
 
+import os
 import numpy, numpy as np
 import moments.Triallele.Numerics
 from moments.Triallele.Integration import integrate_cn
@@ -412,7 +413,7 @@ def %(method)s(self, other):
             raise ValueError('Cannot operate with a folded Spectrum and an '
                              'unfolded one.')
     
-    def integrate(self, nu, tf, dt=0.01, gammas=None, theta=1.0):
+    def integrate(self, nu, tf, dt=0.001, gammas=None, theta=1.0):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
@@ -423,8 +424,6 @@ def %(method)s(self, other):
                 See documentation for definition and use
         theta: Population size scale mutation parameter
         """
-        n = np.array(self.shape)[0]-1
-        
         if gammas == None:
             gammas = [0,0,0,0,0]
         
