@@ -44,7 +44,7 @@ class Spectrum(numpy.ma.masked_array):
               SNP calling.)
         mask_corners: If True (default), the 'observed in none' and 'observed 
                       in all' entries of the FS will be masked. Typically these
-                      entries are unobservable, and dadi cannot reliably
+                      entries are unobservable, and moments cannot reliably
                       calculate them, so you will almost always want
                       mask_corners=True.g
         data_folded: If True, it is assumed that the input data is folded. An
@@ -277,8 +277,7 @@ class Spectrum(numpy.ma.masked_array):
         comment lines: list of strings to be used as comment lines in the header
                        of the output file.
         foldmaskinfo: If False, folding and mask and population label
-                      information will not be saved. This conforms to the file
-                      format for dadi versions prior to 1.3.0.
+                      information will not be saved. 
 
         The file format is:
             # Any number of comment lines beginning with a '#'
@@ -1264,7 +1263,7 @@ class Spectrum(numpy.ma.masked_array):
         for ii in range(len(projections)):
             slices[ii][ii] = slice(None, None, None)
             
-        fs_total = dadi.Spectrum(numpy.zeros(numpy.array(projections) + 1),
+        fs_total = moments.Spectrum(numpy.zeros(numpy.array(projections) + 1),
                                  pop_ids=pop_ids)
         for (called_by_pop, derived_by_pop, this_snp_polarized), count\
                 in count_dict.items():
@@ -1567,7 +1566,8 @@ def %(method)s(self, other):
 # See http://effbot.org/librarybook/copy-reg.htm
 import copy_reg
 def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
-    return dadi.Spectrum(data, mask, mask_corners=False, data_folded=data_folded, check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
+    return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded, 
+                            check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
 def Spectrum_pickler(fs):
     return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
 copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
