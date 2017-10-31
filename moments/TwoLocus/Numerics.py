@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np, math
 from scipy.special import gammaln
 from scipy.sparse import csc_matrix
 from scipy.sparse import identity
@@ -182,7 +182,7 @@ def mutations(n, theta=1.0):
     
     return M_0to1, csc_matrix(M_1to2)
 
-def recombination(n, rho): #### XXXX !!!!! starting on surfaces should push density into interior with rho>0, but right now, the off-axis surface doesn't have this behavior (8/15) - is this still the case? (10/20)
+def recombination(n, rho):
     """
     rho = 4*Ne*r
     where r is the recombination probability
@@ -314,3 +314,62 @@ def selection_dominance_component(n):
 
     return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize2))
 
+
+# from dadi.TwoLocus, projecting the spectrum to smaller sample size
+def ln_binomial(n,k):
+    return math.lgamma(n+1) - math.lgamma(k+1) - math.lgamma(n-k+1)
+
+# gets too big when I need to cache hundreds of different sample sizes
+projection_cache = {}
+def cached_projection(proj_to, proj_from, hits):
+    """
+    Coefficients for projection from a larger size to smaller
+    proj_to: Number of samples to project down to
+    proj_from: Number of samples to project from
+    hits: Number of derived alleles projecting from - tuple of (n1,n2,n3)
+    """
+    key = (proj_to, proj_from, hits)
+    try:
+        return projection_cache[key]
+    except KeyError:
+        X1, X2, X3 = hits
+        X4 = proj_from - X1 - X2 - X3
+        proj_weights = np.zeros((proj_to+1,proj_to+1,proj_to+1))
+        for ii in range(X1+1):
+            for jj in range(X2+1):
+                for kk in range(X3+1):
+                    ll = proj_to - ii - jj - kk
+                    if ll > X4 or ll <0:
+                        continue
+                    f = ln_binomial(X1,ii) + ln_binomial(X2,jj) + ln_binomial(X3,kk) + ln_binomial(X4,ll) - ln_binomial(proj_from,proj_to)
+                    proj_weights[ii,jj,kk] = np.exp(f)
+                    
+        
+        projection_cache[key] = proj_weights
+        return projection_cache[key]
+    
+def project(F_from, proj_to):
+    proj_from = len(F_from)-1
+    if proj_to == proj_from:
+        return F_from
+    elif proj_to > proj_from:
+        raise ValueError('Projection size must be smaller than spectrum size.')
+    else:
+        F_proj = np.zeros((proj_to+1,proj_to+1,proj_to+1))
+        for X1 in range(proj_from):
+            for X2 in range(proj_from):
+                for X3 in range(proj_from):
+                    if F_from.mask[X1,X2,X3] == False:
+                        hits = (X1,X2,X3)
+                        proj_weights = cached_projection(proj_to,proj_from,hits)
+                        F_proj += proj_weights * F_from[X1,X2,X3]
+        F_proj[0,:,0] = F_proj[0,0,:] = 0
+        for X2 in range(1,proj_from):
+            hits = (0,X2,0)
+            proj_weights = cached_projection(proj_to,proj_from,hits)
+            F_proj += proj_weights * F_from[0,X2,0]
+        for X3 in range(1,proj_from):
+            hits = (0,0,X3)
+            proj_weights = cached_projection(proj_to,proj_from,hits)
+            F_proj += proj_weights * F_from[0,0,X3]
+        return F_proj

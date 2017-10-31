@@ -144,7 +144,7 @@ class TLSpectrum(numpy.ma.masked_array):
             line = fid.readline()
 
         # Read the shape of the data
-        shape,folded,extrap_x,extrap_t = line.split()
+        shape,folded = line.split()
         shape = [int(shape)+1,int(shape)+1,int(shape)+1]
 
         data = np.fromstring(fid.readline().strip(), 
@@ -261,8 +261,6 @@ class TLSpectrum(numpy.ma.masked_array):
                         folded.mask[ii,jj,kk] = True
         
         folded.folded = True
-        folded.extrap_x = self.extrap_x
-        folded.extrap_t = self.extrap_t
         return folded
     
 
@@ -271,7 +269,9 @@ class TLSpectrum(numpy.ma.masked_array):
         Project to smaller sample size.
         ns: Sample size for new spectrum.
         """
-        pass            
+        data = moments.TwoLocus.Numerics.project(self, ns)
+        output = TLSpectrum(data, mask_infeasible=True)
+        return output            
     
     # Ensures that when arithmetic is done with TLSpectrum objects,
     # attributes are preserved. For details, see similar code in
@@ -288,18 +288,9 @@ def %(method)s(self, other):
     else:
         newdata = self.data.%(method)s (other)
         newmask = self.mask
-    if hasattr(other, 'extrap_x') and self.extrap_x != other.extrap_x:
-        extrap_x = None
-    else:
-        extrap_x = self.extrap_x
-    if hasattr(other, 'extrap_t') and self.extrap_t != other.extrap_t:
-        extrap_t = None
-    else:
-        extrap_t = self.extrap_t
     outfs = self.__class__.__new__(self.__class__, newdata, newmask, 
                                    mask_infeasible=False, 
-                                   data_folded=self.folded,
-                                   extrap_x=extrap_x, extrap_t=extrap_t)
+                                   data_folded=self.folded)
     return outfs
 """ % {'method':method})
 
@@ -314,10 +305,6 @@ def %(method)s(self, other):
         self.mask = np.ma.mask_or(self.mask, other.mask)
     else:
         self.data.%(method)s (other)
-    if hasattr(other, 'extrap_x') and self.extrap_x != other.extrap_x:
-        self.extrap_x = None
-    if hasattr(other, 'extrap_t') and self.extrap_t != other.extrap_t:
-        self.extrap_t = None
     return self
 """ % {'method':method})
 
@@ -358,12 +345,9 @@ def %(method)s(self, other):
 import copy_reg
 def TLSpectrum_pickler(fs):
     # Collect all the info necessary to save the state of a TLSpectrum
-    return TLSpectrum_unpickler, (fs.data, fs.mask, fs.folded,
-                                   fs.extrap_x, fs.extrap_t)
-def TLSpectrum_unpickler(data, mask, folded,
-                          extrap_x, extrap_t):
+    return TLSpectrum_unpickler, (fs.data, fs.mask, fs.folded)
+def TLSpectrum_unpickler(data, mask, folded):
     # Use that info to recreate the TLSpectrum
     return TLSpectrum(data, mask, mask_infeasible=False,
-                       data_folded=folded,
-                       extrap_x=extrap_x, extrap_t=extrap_t)
+                       data_folded=folded)
 copy_reg.pickle(TLSpectrum, TLSpectrum_pickler, TLSpectrum_unpickler)
