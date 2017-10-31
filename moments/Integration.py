@@ -657,6 +657,9 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                     
                     print("N_old, " , Nold, "N_new", N)
                     print("relative change", np.max(np.abs(N-Nold)/Nold))
+                    print("This can cause issues in integration.")
+                    print("consider reducing timestep factor dt_fac in integrate function")
+                    print("currently %2.2f" % dt_fac)
                     break
         
             
