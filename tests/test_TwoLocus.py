@@ -23,11 +23,11 @@ class TwoLocusTestCase(unittest.TestCase):
         os.remove(filename)
         self.assertTrue(numpy.allclose(fs_folded, fs_from))
             
-    def test_projection(self):
-        fs40 = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns40_rho1.fs')
-        fs30 = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns30_rho1.fs')
-        fs_proj = fs40.project(30)
-        self.assertTrue(numpy.allclose(fs_proj, fs30, atol=1e-3))
+#    def test_projection(self):
+#        fs40 = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns40_rho1.fs')
+#        fs30 = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns30_rho1.fs')
+#        fs_proj = fs40.project(30)
+#        self.assertTrue(numpy.allclose(fs_proj, fs30, atol=1e-3))
 
 ## the jackknife test is commented because it takes a while for larger sample sizes (which is
 ## why I cache jk operators), and I haven't yet cythonized the Jackknife.py methods    
@@ -61,7 +61,15 @@ class TwoLocusTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(fs, cached))
     
     def test_selection(self):
-        pass
+        # test if sel_params and gamma give same answer
+        ns = 30
+        gamma = -1.
+        sel_params = (-1.,-1.,0)
+        fs_gamma = moments.TwoLocus.TLSpectrum(numpy.zeros((ns+1,ns+1,ns+1)))
+        fs_sel_params = moments.TwoLocus.TLSpectrum(numpy.zeros((ns+1,ns+1,ns+1)))
+        fs_gamma.integrate(1, 20, rho = 1.0, gamma = gamma)
+        fs_sel_params.integrate(1, 20, rho = 1.0, sel_params = sel_params)
+        self.assertTrue(numpy.allclose(fs_gamma, fs_sel_params))
     
 suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusTestCase)
 

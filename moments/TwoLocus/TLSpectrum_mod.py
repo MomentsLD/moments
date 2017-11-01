@@ -317,7 +317,7 @@ def %(method)s(self, other):
             raise ValueError('Cannot operate with a folded Spectrum and an '
                              'unfolded one.')
     
-    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, theta=1.0):
+    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, sel_params=None, theta=1.0):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
@@ -336,7 +336,8 @@ def %(method)s(self, other):
             rho = 0.0
             print('Warning: rho was not specified. Simulating with rho = 0.')
         
-        self.data[:] = integrate(self.data, nu, tf, rho=rho, dt=dt, gamma=gamma, h=h, theta=theta)
+        self.data[:] = integrate(self.data, nu, tf, rho=rho, dt=dt, theta=theta,
+                                    gamma=gamma, h=h, sel_params=sel_params)
         
         return self
 

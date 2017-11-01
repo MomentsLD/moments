@@ -244,6 +244,9 @@ def recombination(n, rho):
     return csc_matrix((data,(row,col)),shape=(Rsize0,Rsize1))
 
 def selection_additive_component(n):
+    """
+    This is for selection at just the left locus
+    """
     Ssize0 = (n+1)*(n+2)*(n+3)/6
     Ssize1 = (n+2)*(n+3)*(n+4)/6
     
@@ -273,6 +276,9 @@ def selection_additive_component(n):
     return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
 
 def selection_dominance_component(n):
+    """
+    This is for selection at just the left locus
+    """
     Ssize0 = (n+1)*(n+2)*(n+3)/6
     Ssize2 = (n+3)*(n+4)*(n+5)/6
     
@@ -314,7 +320,41 @@ def selection_dominance_component(n):
 
     return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize2))
 
-
+def selection_two_locus(n, sel_params):
+    """
+    This is for selection at both loci, where Ab has selection coefficient sA, 
+    aB has sB, and AB has sAB
+    Additive model, allowing for epistasis if sAB != sA+sB
+    """
+    sAB, sA, sB = sel_params
+    Ssize0 = (n+1)*(n+2)*(n+3)/6
+    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    
+    row = []
+    col = []
+    data = []
+    for i in range(n+1):
+        for j in range(n+1-i):
+            for k in range(n+1-i-j):
+                this_ind = index_n(n,i,j,k)
+                if i > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n+1,i+1,j,k))
+                    data.append( 1./(n+1) * ( -sAB * (i+1)*(n-i) + sA * (i+1)*j + sB * (i+1)*k ) )
+                if j > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n+1,i,j+1,k))
+                    data.append( 1./(n+1) * ( sAB * i*(j+1) - sA * (j+1)*(n-j) + sB * (j+1)*k ) )
+                if k > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n+1,i,j,k+1))
+                    data.append( 1./(n+1) * ( sAB * i*(k+1) + sA * j*(k+1) - sB * (k+1)*(n-k) ) )
+                if n-i-j-k > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n+1,i,j,k))
+                    data.append( 1./(n+1) * ( sAB * i*(n-i-j-k+1) + sA * j*(n-i-j-k+1) + sB * k*(n-i-j-k+1) ) )
+    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
+    
 # from dadi.TwoLocus, projecting the spectrum to smaller sample size
 def ln_binomial(n,k):
     return math.lgamma(n+1) - math.lgamma(k+1) - math.lgamma(n-k+1)
