@@ -23,8 +23,12 @@ from moments.Integration import integrate_nD
 from moments.Integration_nomig import integrate_nomig, integrate_neutral
 import moments.Numerics
 from moments.Numerics import reverse_array, _cached_projection, _lncomb
-import moments.ModelPlot
-
+plotting = True
+try:
+    import moments.ModelPlot
+except ImportError: #if matplotlib is not present, do not import, and do not run plotting 
+                    # functions
+    plotting = False
 class Spectrum(numpy.ma.masked_array):
     """
     Represents a frequency spectrum.
@@ -426,10 +430,11 @@ class Spectrum(numpy.ma.masked_array):
         mask_corners: If True, the typical corners of the resulting fs will be
                       masked
         """
-        # Update ModelPlot
-        model = moments.ModelPlot._get_model()
-        if model is not None:
-            model.extinction(over)
+        if plotting:
+            # Update ModelPlot
+            model = moments.ModelPlot._get_model()
+            if model is not None:
+                model.extinction(over)
 
         original_folded = self.folded
         # If we started with an folded Spectrum, we need to unfold before
@@ -1531,9 +1536,10 @@ def %(method)s(self, other):
         adapt_dt: flag to allow dt correction avoiding negative entries.
         """
         n = numpy.array(self.shape)-1
-        model = moments.ModelPlot._get_model()
-        if model is not None:
-            model.evolve(tf, Npop, m)
+        if plotting:
+            model = moments.ModelPlot._get_model()
+            if model is not None:
+                model.evolve(tf, Npop, m)
 
         if len(n)==1 :
             if gamma is None:
