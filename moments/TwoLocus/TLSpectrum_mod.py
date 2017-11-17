@@ -17,7 +17,7 @@ class TLSpectrum(numpy.ma.masked_array):
     Spectra are represented ...
     
     The constructor has the format:
-        fs = moments.TwoLocus.TLSpectrum(data, mask, mask_infeasible,
+        fs = moments.TwoLocus.TLSpectrum(data, mask, mask_infeasible, mask_fixed,
                                 data_folded)
         
         data: The frequency spectrum data
@@ -30,6 +30,7 @@ class TLSpectrum(numpy.ma.masked_array):
                        mask will be checked to ensure they are consistent
     """
     def __new__(subtype, data, mask=numpy.ma.nomask, mask_infeasible=True,
+                mask_fixed=False,
                 data_folded=None, check_folding=True,
                 dtype=float, copy=True, fill_value=numpy.nan, keep_mask=True,
                 shrink=True):
@@ -55,6 +56,9 @@ class TLSpectrum(numpy.ma.masked_array):
                 
         if mask_infeasible:
             subarr.mask_infeasible()
+        
+        if mask_fixed:
+            subarr.mask_fixed()
         
         return subarr
     
@@ -102,6 +106,32 @@ class TLSpectrum(numpy.ma.masked_array):
             self.mask[ii,ns-ii,0] = True
             self.mask[ii,0,ns-ii] = True
         
+        return self
+    
+    def mask_fixed(self):
+        """
+        Mask all infeasible, as well as any where both sites are not segregating
+        """
+        ns = len(self)-1
+        # mask fixed entries
+        self.mask[0,0,0] = True
+        self.mask[0,0,-1] = True
+        self.mask[0,-1,0] = True
+        self.mask[-1,0,0] = True
+        # mask entries with i+j+k > ns
+        for ii in range(len(self)):
+            for jj in range(len(self)):
+                for kk in range(len(self)):
+                    if ii+jj+kk > ns:
+                        self.mask[ii,jj,kk] = True
+        
+        # mask fA = 0 and fB = 0
+        for ii in range(len(self)):
+            self.mask[ii,ns-ii,0] = True
+            self.mask[ii,0,ns-ii] = True
+
+        self.mask[0,:,0] = True
+        self.mask[0,0,:] = True
         return self
     
     def unfold(self):
@@ -182,8 +212,7 @@ class TLSpectrum(numpy.ma.masked_array):
         comment lines: list of strings to be used as comment lines in the header
                        of the output file.
         foldmaskinfo: If False, folding and mask and population label
-                      information will not be saved. This conforms to the file
-                      format for dadi versions prior to 1.3.0.
+                      information will not be saved.
 
         The file format is:
             # Any number of comment lines beginning with a '#'
@@ -275,7 +304,7 @@ class TLSpectrum(numpy.ma.masked_array):
     
     # Ensures that when arithmetic is done with TLSpectrum objects,
     # attributes are preserved. For details, see similar code in
-    # dadi.Spectrum_mod
+    # moments.Spectrum_mod
     for method in ['__add__','__radd__','__sub__','__rsub__','__mul__',
                    '__rmul__','__div__','__rdiv__','__truediv__','__rtruediv__',
                    '__floordiv__','__rfloordiv__','__rpow__','__pow__']:

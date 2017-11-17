@@ -211,8 +211,7 @@ class TriSpectrum(numpy.ma.masked_array):
         comment lines: list of strings to be used as comment lines in the header
                        of the output file.
         foldmaskinfo: If False, folding and mask and population label
-                      information will not be saved. This conforms to the file
-                      format for dadi versions prior to 1.3.0.
+                      information will not be saved.
 
         The file format is:
             # Any number of comment lines beginning with a '#'
@@ -369,7 +368,7 @@ class TriSpectrum(numpy.ma.masked_array):
     
     # Ensures that when arithmetic is done with TriSpectrum objects,
     # attributes are preserved. For details, see similar code in
-    # dadi.Spectrum_mod
+    # moments.Spectrum_mod
     for method in ['__add__','__radd__','__sub__','__rsub__','__mul__',
                    '__rmul__','__div__','__rdiv__','__truediv__','__rtruediv__',
                    '__floordiv__','__rfloordiv__','__rpow__','__pow__']:
