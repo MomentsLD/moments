@@ -131,16 +131,18 @@ def _object_func(params, data_list, model_func, rhos=[0],
     if lower_bound is not None:
         for pval,bound in zip(params_up, lower_bound):
             if bound is not None and pval < bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val
     if upper_bound is not None:
         for pval,bound in zip(params_up, upper_bound):
             if bound is not None and pval > bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val
     
+    ns = len(data_list[0])-1
     all_args = [params_up, ns]
     func_kwargs = func_kwargs.copy()
     func_kwargs['rhos'] = rhos
     model_list = model_func(*all_args, **func_kwargs)
+    model_list = [(m1+m2)/2. for m1,m2 in zip(model_list[:-1],model_list[1:])]
     
     if multinom:
         result = ll_over_rho_bins_multinom(model_list, data_list)
@@ -157,7 +159,7 @@ def _object_func(params, data_list, model_func, rhos=[0],
                                                    os.linesep))
         moments.Misc.delayed_flush(delay=flush_delay)
 
-    return -result/ll_scale
+    return -result
 
 def _object_func_log(log_params, *args, **kwargs):
     """

@@ -4,6 +4,9 @@ from scipy.sparse import csc_matrix
 from scipy.sparse import identity
 from scipy.sparse.linalg import factorized
 
+# might want to save the projection caches - espeically for larger sample sizes, 
+# faster to load than recalculate each time
+
 index_cache = {}
 def index_n(n,i,j,k):
     """
