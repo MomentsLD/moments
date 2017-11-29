@@ -10,7 +10,7 @@ def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs,
     sts = moments.LinearSystem_1D.steady_state_1D(n1+n2+n3)
     fs = moments.Spectrum(sts)
     #integrate for time TAf (with constant population)
-    fs.integrate([nuAf], [n1+n2+n3], TAf, 0.05)
+    fs.integrate([nuAf], TAf, 0.05)
     
     #separate into two populations.
     fs = moments.Manips.split_1D_to_2D(fs, n1, n2+n3)
@@ -18,7 +18,7 @@ def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs,
     #integrate two populations
     # migration rates matrix
     mig1=numpy.array([[0, mAfB],[mAfB, 0]])
-    fs.integrate([nuAf, nuB], [n1, n2+n3], TB, 0.05, m=mig1)
+    fs.integrate([nuAf, nuB], TB, 0.05, m=mig1)
     
     #split into three pops
     fs = moments.Manips.split_2D_to_3D_2(fs, n2, n3)
@@ -30,7 +30,7 @@ def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs,
 
     # migration rates matrix
     mig2=numpy.array([[0, mAfEu, mAfAs],[mAfEu, 0, mEuAs],[mAfAs, mEuAs, 0]])
-    fs.integrate(nu2, [n1, n2, n3], TEuAs, 0.05, m=mig2)
+    fs.integrate(nu2, TEuAs, 0.05, m=mig2)
                                 
     return fs
 
