@@ -99,7 +99,18 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     nu - final size
     T - time in past size changes begin
     """
-    pass
+    nu,T = params
+    if rho == None:
+        print("Warning: no rho value set. Simulating with rho = 0.")
+        rho = 0.0
+    
+    if gamma==None:
+        gamma=0.0
+
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    nu_func = lambda t: np.exp(np.log(nu) * t/T)
+    F.integrate(nu_func, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    return F
 
 def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     """
@@ -109,5 +120,16 @@ def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=
     nu - final size
     T - time in past size changes begin
     """
-    pass
+    nuB,nuF,T = params
+    if rho == None:
+        print("Warning: no rho value set. Simulating with rho = 0.")
+        rho = 0.0
+    
+    if gamma==None:
+        gamma=0.0
+
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    nu_func = lambda t: nuB * np.exp(np.log(nuF/nuB) * t/T)
+    F.integrate(nu_func, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    return F
 
