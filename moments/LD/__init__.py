@@ -1,3 +1,4 @@
 import Numerics, Demographics, Inference, Matrices, Corrections
-#LDstats = LDstats_mod.LDstats
+import LDstats_mod
+LDstats = LDstats_mod.LDstats
 

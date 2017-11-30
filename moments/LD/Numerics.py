@@ -5,7 +5,7 @@ from scipy.sparse.linalg import factorized
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import inv as spinv
 
-import Matrices
+from moments.LD import Matrices
 
 import networkx as nx
 import pickle
@@ -16,7 +16,7 @@ import itertools
 # for a given order D^n
 names = {}
 lengths = {}
-def moment_names(n):
+def moment_names_onepop(n):
     n = int(n)
     try:
         moments = names[n]
@@ -65,6 +65,10 @@ def moment_names(n):
         lengths[len(moments)] = n
     return moments
 
+def moment_names_multipop():
+    pass
+
+### single population transition matrices
 def drift(n):
     order = int(n)
     row = []
@@ -107,7 +111,7 @@ def mutation(n, ism):
         return csc_matrix((data,(row,col)),shape=(corner,corner))
     elif ism == True:
         # ISM model only built for even orders
-        names = moment_names(n)
+        names = moment_names_onepop(n)
         size = len(names)
         M = np.zeros((size,size))
         # [pi s_{i}]_{t+1} = [pi s_{i}]_{t} + theta/2 [s_{i+1}]_{t}
@@ -121,7 +125,7 @@ def mutation(n, ism):
 def recombination(n):
     row = []
     data = []
-    moms = moment_names(n)
+    moms = moment_names_onepop(n)
     for ii,moment in zip(range(len(moms)),moms):
         if 'D' in moment:
             D_order = int(moment.split('_')[0].split('^')[1])
@@ -139,7 +143,7 @@ def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=Fal
         except KeyError:
             raise KeyError("specify order or get moment names")
     
-    moms = moment_names(order)
+    moms = moment_names_onepop(order)
     if len(y) != len(moms):
         raise ValueError("there is a vector size mismatch")
 

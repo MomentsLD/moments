@@ -1,5 +1,5 @@
 import numpy as np
-import Numerics
+from moments.LD import Numerics
 
 """
 contains correction factors for finite sample for either single or multiple population statistics

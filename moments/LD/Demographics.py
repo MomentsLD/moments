@@ -1,6 +1,6 @@
 import numpy as np
-import Numerics
-import Corrections
+from moments.LD import Numerics
+from moments.LD import Corrections
 
 def equilibrium(order, ns=200, rho=0, theta=0.0008, corrected=False, ism=False):
     y = Numerics.equilibrium(order=order, rho=rho, theta=theta, ism=ism)
