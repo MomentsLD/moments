@@ -52,7 +52,7 @@ numpy.distutils.core.setup(name='moments',
                            author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
                            author_email='simon.gravel@mcgill.ca',
                            url='http://simongravel.lab.mcgill.ca/Home.html',
-                           packages=['moments', 'moments.Triallele', 'moments.TwoLocus'],
+                           packages=['moments', 'moments.Triallele', 'moments.TwoLocus', 'moments.LD'],
                            package_data = {'tests':['IM.fs']},
                            license='BSD'
                            )
