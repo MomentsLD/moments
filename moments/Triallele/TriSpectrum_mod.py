@@ -3,7 +3,7 @@ Contains triallele spectrum object
 """
 import logging
 logging.basicConfig()
-logger = logging.getLogger('Spectrum_mod')
+logger = logging.getLogger('TriSpectrum_mod')
 
 import os
 import numpy, numpy as np

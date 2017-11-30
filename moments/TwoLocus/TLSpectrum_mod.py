@@ -3,7 +3,7 @@ Contains two locus spectrum object
 """
 import logging
 logging.basicConfig()
-logger = logging.getLogger('Spectrum_mod')
+logger = logging.getLogger('TLSpectrum_mod')
 
 import os
 import numpy, numpy as np
