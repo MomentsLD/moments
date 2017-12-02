@@ -83,7 +83,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
     all_args = [params_up] + list(func_args)
     ## first get ll of afs
     if use_afs == True:
-        model = theta*Leff * model_func[1](all_args[0],[ns])
+        model = Leff * model_func[1](all_args[0],[ns])
         ll_afs = moments.Inference.ll(fs,model)
     
     if multinom == True:
@@ -164,8 +164,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     else:
         fs = None
     
-    if theta == None and fixed_theta == True:
-        raise ValueError("if fixed_theta is True, need to specify theta")
+    if multinom == False and theta == None:
+        raise ValueError("if multinom is False, need to specify theta")
     
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)

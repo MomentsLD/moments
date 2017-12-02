@@ -200,7 +200,7 @@ def corrected_onepop(n, moments, order):
         return order6correction(n, moments)
 
 def order2correction(n, moments):
-    moment_names = Numerics.moment_names(2)
+    moment_names = Numerics.moment_names_onepop(2)
     return np.array([ adjust_D2(n, moment_names, moments),
                       adjust_Dz(n, moment_names, moments),
                       adjust_pi(n, moment_names, moments),
@@ -208,7 +208,7 @@ def order2correction(n, moments):
                       1])
 
 def order4correction(n, moments):
-    moment_names = Numerics.moment_names(4)
+    moment_names = Numerics.moment_names_onepop(4)
     return np.array([ adjust_D4(n, moment_names, moments),
                       adjust_D3z(n, moment_names, moments),
                       adjust_D2pi(n, moment_names, moments),
@@ -225,7 +225,7 @@ def order4correction(n, moments):
                       1])
 
 def order6correction(n, moments):
-    moment_names = Numerics.moment_names(6)
+    moment_names = Numerics.moment_names_onepop(6)
     return np.array([ adjust_D6(n, moment_names, moments),
                       adjust_D5z(n, moment_names, moments),
                       adjust_D4pi(n, moment_names, moments),
