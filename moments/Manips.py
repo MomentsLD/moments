@@ -269,33 +269,33 @@ def __drop_first_slice__(sfs, dimension):
     slicing = (slice(None),) * dimension  + (slice(1,None),) + (slice(None),) * (dim-1-dimension)
     return slicing
 
-def __migrate_1__(sfs, dimension1, dimension2):
-    """Takes SFS , pick one individual from population dimension1 and migrate it to 
-    population dimension2. If sfs has dimension (m,n), the new sfs will have dimension 
+def __migrate_1__(sfs, source_population_index, target_population_index):
+    """Takes SFS , pick one individual from population source_population_index and migrate it to 
+    population target_population_index. If sfs has dimension (m,n), the new sfs will have dimension 
     (m-1,n+1)"""
 
     ns = sfs.shape
     new_ns = list(ns)
-    M = ns[dimension1]-1
-    N = ns[dimension2]-1
+    M = ns[source_population_index]-1
+    N = ns[target_population_index]-1
     
-    new_ns[dimension1] -= 1
-    new_ns[dimension2] += 1
+    new_ns[source_population_index] -= 1
+    new_ns[target_population_index] += 1
     new_sfs = Spectrum_mod.Spectrum(np.zeros(new_ns))
     
     # We first suppose that we pick a reference allele. 
     
     # since we picked a reference allele, there can be no contribution from the
-    # sfs[:,:,ns[dimension1],:,:], which would have all alts
+    # sfs[:,:,ns[source_population_index],:,:], which would have all alts
         
-    new_sfs[__drop_last_slice__(new_sfs,dimension2)]\
-                = (sfs[__drop_last_slice__(sfs,dimension1)].swapaxes(dimension1,-1)\
-                    * (1 - np.arange(M)*1./M)).swapaxes(dimension1,-1)
+    new_sfs[__drop_last_slice__(new_sfs,target_population_index)]\
+                = (sfs[__drop_last_slice__(sfs,source_population_index)].swapaxes(source_population_index,-1)\
+                    * (1 - np.arange(M)*1./M)).swapaxes(source_population_index,-1)
                     
     
-    new_sfs[__drop_first_slice__(new_sfs,dimension2)]\
-                += (sfs[__drop_first_slice__(sfs,dimension1)].swapaxes(dimension1,-1)\
-                    * (np.arange(1,M+1)*1./M)).swapaxes(dimension1,-1)                 
+    new_sfs[__drop_first_slice__(new_sfs,target_population_index)]\
+                += (sfs[__drop_first_slice__(sfs,source_population_index)].swapaxes(source_population_index,-1)\
+                    * (np.arange(1,M+1)*1./M)).swapaxes(source_population_index,-1)                 
 
     return new_sfs
 
@@ -425,26 +425,29 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
 
 # Approximate admixture model
 
-def admix_inplace(sfs, dimension1, dimension2, keep_1, m1):
-    """admixes from population1 to population 2 in place, sending migrants one by one, 
+def admix_inplace(sfs, source_population_index, target_population_index, keep_1, m1):
+    """admixes from source population to target_population in place, sending migrants one by one, 
     and normalizing so that in the end we have approximately the correct distribution of 
     replaced lineages. 
     
-    dimension1: label of population 1
-    dimension2: label of population 2
-    m1 proportion of lineages in 2 drawn from pop 1
-    keep_1: number of lineages from population 1 that we want to keep.
+    source_population_index: integer index of source population
+    target_population_index: integer index of target population
+    m1 proportion of offspring in target population drawn from parents in source population
+        Note that the number of tracked lineages in the sample that have migrated is a 
+        random variable!
+    keep_1: number of lineages from the source population that we want to keep tracking 
+        after admixture.
     """
     dimensions = sfs.shape
-    M = dimensions[dimension1] - 1 # number of haploid samples is size of sfs - 1
-    N = dimensions[dimension2] - 1
+    M = dimensions[source_population_index] - 1 # number of haploid samples is size of sfs - 1
+    N = dimensions[target_population_index] - 1
     
     target_M = keep_1
     target_N = N
     
     target_dimensions = list(np.array(dimensions[:])-1)
-    target_dimensions[dimension1] = target_M
-    target_dimensions[dimension2] = target_N
+    target_dimensions[source_population_index] = target_M
+    target_dimensions[target_population_index] = target_N
     
     assert keep_1 <= M, "Cannot keep more lineages than we started with, keep_1=%d,\
     M=%d" % (n_lineages, keep_1, M)
@@ -469,12 +472,12 @@ def admix_inplace(sfs, dimension1, dimension2, keep_1, m1):
         # sample sizes (n1,n2,...)
         project_dimensions = [shape_elem-1 for shape_elem in current_sfs.shape] 
         
-        project_dimensions[dimension2] -= 1 #  since there is a migrant, 
+        project_dimensions[target_population_index] -= 1 #  since there is a migrant, 
                                             # only n2-1 lineages from 2 survive
         
         # first remove one sample from population 2, then migrate one from pop 1 to pop 2
         current_sfs = __migrate_1__(Spectrum_mod.Spectrum.project(current_sfs, project_dimensions),
-                                    dimension1, dimension2)
+                                    source_population_index, target_population_index)
         keeper_function = True #  Eventually we may want to only keep a subset -- 
                                #  but don't want to optimize too early. 
         if keeper_function:
@@ -503,5 +506,5 @@ def admix_inplace(sfs, dimension1, dimension2, keep_1, m1):
     for i in range(len(weights[0])):
         new_sfs+=list_sfs[i]*weights[0][i]
     
-    return list_sfs, target, weights, new_sfs
+    return new_sfs
 

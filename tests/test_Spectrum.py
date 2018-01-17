@@ -509,13 +509,12 @@ class SpectrumTestCase(unittest.TestCase):
          dimension1=0, dimension2=1, n_lineages = n2, m1=m_12)
         
         fs = fs.project(project_seq)
-        list_fs, target, weights, fs_sequential = moments.Manips.admix_inplace(fs, 
-                                        dimension1=0, dimension2=1, keep_1=target_n1, 
+        fs_sequential = moments.Manips.admix_inplace(fs, 
+                                        source_population_index=0, target_population_index=1, keep_1=target_n1, 
                                         m1=m_12)
                                                 
         # Also that we don't lose any data
         self.assertTrue(numpy.allclose(fs_1_into_2, fs_sequential.transpose((0,2,1))))   
-        
         
         
         
