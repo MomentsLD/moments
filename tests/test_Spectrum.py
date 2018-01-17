@@ -4,6 +4,7 @@ import unittest
 import numpy
 import scipy.special
 import moments
+import pickle
 
 class SpectrumTestCase(unittest.TestCase):
     def test_to_file(self):
@@ -74,6 +75,67 @@ class SpectrumTestCase(unittest.TestCase):
         self.assert_(numpy.allclose(fsout.data, fsin.data))
         self.assert_(numpy.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
+
+
+    def test_pickle(self):
+        """
+        Saving spectrum to file.
+        """
+        comments = ['comment 1', 'comment 2']
+        filename = 'test.p'
+        data = numpy.random.rand(3,3)
+
+        fs = moments.Spectrum(data)
+
+        pickle.dump(fs, open(filename, "wb" ))
+        os.remove(filename)
+
+    def test_unpickle(self):
+        """
+        Loading spectrum from file.
+        """
+        commentsin = ['comment 1', 'comment 2']
+        filename = 'test.p'
+        data = numpy.random.rand(3,3)
+
+        fsin = moments.Spectrum(data)
+        
+        pickle.dump(fsin, open(filename, "wb" ))
+
+        # Read the file.
+        fsout = pickle.load(open(filename, "rb" ))
+        os.remove(filename)
+        # Ensure that fs was read correctly.
+        self.assert_(numpy.allclose(fsout.data, fsin.data))
+        self.assert_(numpy.all(fsout.mask == fsin.mask))
+        self.assertEqual(fsout.folded, fsin.folded)
+
+
+
+        #
+        # Now test a file with folding and masking
+        #
+        fsin = moments.Spectrum(data).fold()
+        fsin.mask[0,1] = True
+
+        pickle.dump(fsin, open(filename, "wb" ))
+
+        # Read the file.
+        fsout = pickle.load(open(filename, "rb" ))
+        os.remove(filename)
+        # Ensure that fs was read correctly.
+        self.assert_(numpy.allclose(fsout.data, fsin.data))
+        self.assert_(numpy.all(fsout.mask == fsin.mask))
+        self.assertEqual(fsout.folded, fsin.folded)
+
+        
+        
+        
+        
+
+
+
+
 
     def test_folding(self):
         """

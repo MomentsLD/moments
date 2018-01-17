@@ -405,7 +405,7 @@ nu_func = lambda t: nu0 * (nuF/nu0)**(t/T)
 phi.integrate(nu = nu_func, T=T)
 \end{lstlisting}
 
-Numerous examples are provided in Listings~\ref{lst:bottleneck} through~\ref{lst:OOA}.
+Numerous examples are provided in Listings~\ref{lst:bottleneck} through~\ref{lst:fixed_theta}.
 
 \subsection{Units}
 The units \textit{Moments} uses are slightly different than those used by some other programs, \ms in particular.
@@ -424,7 +424,7 @@ So to get equivalent migration ($m_{ij}$) in \ms for a given rate in \textit{Mom
 \subsection{Fixed $\theta$}\label{sec:fixed_theta}
 
 If you wish to set a fixed value of $\theta = 4 N_0 \mu$ in your analysis, that information must be provided to the initial $\Phi$ creation function and the \py{Integration} functions.
-%For an example, see Listing~\ref{lst:fixed_theta}, which defines a demographic model in which $\theta$ is fixed to be 137 for derived population 1.
+For an example, see Listing~\ref{lst:fixed_theta}, which defines a demographic model in which $\theta$ is fixed to be 137 for derived population 1.
 Derived pop 1 is thus the reference population for specifying all population sizes, so its size is set to 1 in the call to \py{Integration.two_pops}.
 When fixing $\theta$, every \py{Integration} function must be told what the reference $\theta$ is, using the option \py{theta0}.
 In addition, the methods for creating an initial $\Phi$ distribution must be passed the appropriate value of $\theta$ using the \py{theta0} option.
@@ -511,6 +511,20 @@ def OutOfAfrica((nuAf, nuB, nuEu0, nuEu, nuAs0, nuAs,
     
     fs.integrate(nu2, TEuAs, 0.05, m=mig2)
                                 
+    return fs
+\end{lstlisting}
+
+\begin{lstlisting}[caption={\textbf{Fixed $\boldsymbol{\theta}$:} A split demographic model function with a fixed value of $\theta$=137 for derived population 1. The free parameters are the sizes of the ancestral pop, \py{nuA}, and derived pop 2, \py{nu2}, (relative to derived pop 1), along with the divergence time \py{T} between the two derived pops.}, label={lst:fixed_theta}, float]
+def fixed_theta((nuA, nu2, T), ns):
+    theta1 = 137
+    
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0]+ns[1],
+                                                  theta=theta1)
+    fs = moments.Spectrum(sts)
+    fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
+                                
+    fs.integrate(nu2, T, 0.05, theta=theta1)
+
     return fs
 \end{lstlisting}
 
