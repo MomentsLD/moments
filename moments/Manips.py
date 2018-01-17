@@ -387,15 +387,18 @@ def __Gamma__(n_draws,n_lineages):
 def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
     """
     creates n_lineages in a new dimension to the SFS by drawing each from
-    pops dimension1 (with probability m1) and dimension2 (with probability 1-m1).  
+    populations indexed by dimension1 (with probability m1) and dimension2 
+    (with probability 1-m1).  
     
     The resulting frequency spectrum has 
+    (dimension1 - n_lineages) lineages in dimension 1
+    (dimension2 - n_lineages) lineages in dimension 2
+    (n_lineages) lineages in new dimension
     
-    sfs a frequency spectrum
-    dimension1: label of population 1
-    dimension2: label of population 2
+    dimension1: integer index of population 1
+    dimension2: integer index of population 2
     m1 proportion of lineages drawn from pop 1
-    creates a lst dimension in which to insert the new population
+    creates a last dimension in which to insert the new population
     """
     dimensions = sfs.shape
     new_dimensions = list(dimensions)+[1] 
@@ -426,7 +429,7 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
 # Approximate admixture model
 
 def admix_inplace(sfs, source_population_index, target_population_index, keep_1, m1):
-    """admixes from source population to target_population in place, sending migrants one by one, 
+    """admixes from source_population to target_population in place, sending migrants one by one, 
     and normalizing so that in the end we have approximately the correct distribution of 
     replaced lineages. 
     
