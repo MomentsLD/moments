@@ -95,6 +95,12 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
     for rho in rhos:
         func_kwargs_list.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
     
+    sorted_rhos = np.sort(rhos)
+    mid_rhos = (rhos[1:]+rhos[:-1])/2.
+    func_kwargs_list_mids = []
+    for rho in mid_rhos:
+        func_kwargs_list_mids.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+    
     if use_afs == True: # we adjust varcovs and means to remove sigma statistics
         # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
         names = Numerics.moment_names_onepop(order)
@@ -108,16 +114,28 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         temp_stats = temp_stats[:-1] # last value is 1
         stats.append(np.delete(temp_stats,inds_to_remove))
     
-    # rhos are the bin edges, so we used trapezoid to approx stats for each bin
-    trap_stats = []
-    for ii in range(len(stats)-1):
-        trap_stats.append((stats[ii] + stats[ii+1])/2.)
+    stats_mid = []
+    for func_kwargs_rho in func_kwargs_list_mids:
+        temp_stats = model_func[0](order, *all_args, **func_kwargs_rho)
+        temp_stats = temp_stats[:-1] # last value is 1
+        stats_mid.append(np.delete(temp_stats,inds_to_remove))
     
+    ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
+    #trap_stats = []
+    #for ii in range(len(stats)-1):
+    #    trap_stats.append((stats[ii] + stats[ii+1])/2.)
+    
+    # turns out trapezoid isn't accurate enough - leads to bias in inference
+    # Simpson's rule should do much better
+    simp_stats = []
+    for ii in range(len(stats)-1):
+        simp_stats.append((stats[ii] + 4*stats_mid[ii] + stats[ii+1])/6.)
+
     ## result in ll from afs plus ll from rho bins
     if use_afs == True:
-        result = ll_afs + ll_over_bins(means, trap_stats, varcovs)
+        result = ll_afs + ll_over_bins(means, simp_stats, varcovs)
     else:
-        result = ll_over_bins(means, trap_stats, varcovs)
+        result = ll_over_bins(means, simp_stats, varcovs)
         
     # Bad result
     if np.isnan(result):
