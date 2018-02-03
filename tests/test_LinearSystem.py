@@ -68,6 +68,16 @@ class LinearSystemTestCase(unittest.TestCase):
 
         self.assertTrue(numpy.allclose(M.todense(), Mref))
 
+    def test_steady_state(self):
+        """test that integrating from steady_state doesn't make us leave steady state"""
+        for gamma in [-10,1,10]:
+            for h in [-.1,.2,1]:
+                n=100;
+                steady = moments.LinearSystem_1D.steady_state_1D(n,gamma = gamma,h=h)
+                after = moments.Integration_nomig.integrate_nomig(steady,Npop=[1],tf=1,gamma=gamma,h=h)
+        self.assertTrue(numpy.allclose(steady,after))
+        
+        
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LinearSystemTestCase)
 if __name__ == '__main__':
