@@ -143,7 +143,7 @@ def _object_func(params, data_list, model_func, rhos=[0],
     func_kwargs['rhos'] = rhos
     model_list = model_func(*all_args, **func_kwargs)
     rho_mids = (rhos[:-1]+rhos[1:])/2
-    func_kwargs['rhow'] = rho_mids
+    func_kwargs['rhos'] = rho_mids
     model_list_mids = model_func(*all_args, **func_kwargs) 
     
     # trap rule
