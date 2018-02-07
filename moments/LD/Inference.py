@@ -96,7 +96,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         func_kwargs_list.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
     
     sorted_rhos = np.sort(rhos)
-    mid_rhos = (rhos[1:]+rhos[:-1])/2.
+    mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
     func_kwargs_list_mids = []
     for rho in mid_rhos:
         func_kwargs_list_mids.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
@@ -125,12 +125,12 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
     #for ii in range(len(stats)-1):
     #    trap_stats.append((stats[ii] + stats[ii+1])/2.)
     
-    # turns out trapezoid isn't accurate enough - leads to bias in inference
-    # Simpson's rule should do much better
+    # turns out trapezoid isn't too accurate - leads to bias in inference
+    # Simpson's rule should perform much better
     simp_stats = []
     for ii in range(len(stats)-1):
         simp_stats.append((stats[ii] + 4*stats_mid[ii] + stats[ii+1])/6.)
-
+    
     ## result in ll from afs plus ll from rho bins
     if use_afs == True:
         result = ll_afs + ll_over_bins(means, simp_stats, varcovs)
