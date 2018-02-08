@@ -183,8 +183,9 @@ cpdef np.ndarray[np.float64_t] steady_state_1D(int n, float N=1.0, float gamma=0
     ljk2 = jk.calcJK23(int(d - 1))
     # matrix for selection
     S = s * h * calcS(d, ljk)
-    
-    S2 = s * (1-2.0*h) * calcS(d, ljk)
+
+    S2 = s * (1-2.0*h) * calcS2(d, ljk2)
+
     # matrix for migration
     Mat = D + S + S2
 
