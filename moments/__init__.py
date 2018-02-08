@@ -21,8 +21,6 @@ import Manips
 import Misc
 import Numerics
 
-import Demographics1D_FB
-
 # Protect import of Plotting in case matplotlib not installed.
 try:
     import Plotting
