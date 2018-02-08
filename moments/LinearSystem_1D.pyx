@@ -4,13 +4,18 @@ from scipy.sparse import linalg, coo_matrix
 
 import Jackknife as jk
 
+# needed for finite genome steady state spectrum calculation
+import scipy.special as scisp
+from mpmath import hyp1f1,mp
+mp.dps = 25; mp.pretty = True
+
 """
 Functions to build the matrices we need for the linear system
 The code below is written for 1D cases.
 """
 
 """
-Matrix for mutations (foreward and backward)
+Matrix for mutations (forward and backward)
 dims = n1+1
 """
 cpdef calcB_FB(int d, np.float64_t u, np.float64_t v):
@@ -194,3 +199,23 @@ cpdef np.ndarray[np.float64_t] steady_state_1D(int n, float N=1.0, float gamma=0
     sfs = np.insert(sfs, d - 1, 0.0)
 
     return sfs
+
+"""
+Steady state solution for 1D population with reversible mutation
+We require h=1/2
+These are found by integrating equations 5.70 and 5.72 in Ewens (2004)
+        against the binomial sampling function
+"""
+cpdef np.ndarray[np.float64_t] steady_state_1D_reversible(int n, float gamma=0.0,
+                                                          float theta_fd=0.0008, float theta_bd=0.0008):
+    fs = np.zeros(n+1)
+    if gamma == 0.0:
+        for i in range(n+1):
+            fs[i] = scisp.gammaln(n+1) - scisp.gammaln(n-i+1) - scisp.gammaln(i+1) + scisp.gammaln(i+theta_fd) + scisp.gammaln(n-i+theta_bd)
+        fs += scisp.gammaln(theta_fd+theta_bd) - scisp.gammaln(theta_fd) - scisp.gammaln(theta_bd) - scisp.gammaln(n+theta_fd+theta_bd)
+        fs = np.exp(fs)
+    else:
+        ## unstable for large n
+        for i in range(n+1):
+            fs[i] = np.exp(scisp.gammaln(n+1) - scisp.gammaln(n-i+1) - scisp.gammaln(i+1) + scisp.gammaln(i+theta_fd) + scisp.gammaln(n-i+theta_bd) - scisp.gammaln(n+theta_fd+theta_bd)) * hyp1f1(i+theta_fd,n+theta_fd+theta_bd,2*gamma)
+    return fs/np.sum(fs)
