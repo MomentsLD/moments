@@ -142,8 +142,7 @@ def _object_func(params, data_list, model_func, rhos=[0],
     func_kwargs = func_kwargs.copy()
     func_kwargs['rhos'] = rhos
     model_list = model_func(*all_args, **func_kwargs)
-    rhos_arr = np.array(rhos)
-    rho_mids = (rhos_arr[:-1]+rhos_arr[1:])/2 
+    rho_mids = (np.array(rhos)[:-1]+np.array(rhos)[1:])/2
     func_kwargs['rhos'] = rho_mids
     model_list_mids = model_func(*all_args, **func_kwargs) 
     
