@@ -2,8 +2,38 @@ import numpy as np
 from scipy.special import gammaln
 from scipy.sparse import csc_matrix
 from scipy.sparse import identity
+import scipy.sparse
 import moments.TwoLocus.Numerics
 from copy import copy
+import os, sys
+
+import cPickle as pickle
+
+def save_pickle(matrix, filename):
+    with open(filename, 'wb+') as outfile:
+        pickle.dump(matrix, outfile, pickle.HIGHEST_PROTOCOL)
+
+def load_pickle(filename):
+    with open(filename, 'rb') as infile:
+        matrix = pickle.load(infile)    
+    return matrix    
+
+
+# Cache jackknife matrices in ~/.moments/TwoLocus_cache by default
+def set_cache_path(path='~/.moments/TwoLocus_cache'):
+    """
+    Set directory in which demographic equilibrium phi spectra will be cached.
+
+    The collection of cached spectra can get large, so it may be helpful to
+    store them outside the user's home directory.
+    """
+    global cache_path
+    cache_path = os.path.expanduser(path)
+    if not os.path.isdir(cache_path):
+        os.makedirs(cache_path)
+
+cache_path=None
+set_cache_path()
 
 # Jackknife for interior points
 # grab closest 10 points that, for n->n+1
@@ -371,6 +401,10 @@ def calc_jk(n,jump):
     try:
         return jks[(n,jump)]
     except KeyError:
+        # check if it's saved in the cache, if it is, add to jks and return
+        if os.path.isfile(cache_path + 'jk_{0}_{1}.mtx'.format(n,jump)):
+            jks[(n,jump)] = load_pickle(cache_path + 'jk_{0}_{1}.mtx'.format(n,jump))
+            return jks[(n,jump)]
         row = []
         col = []
         data = []
@@ -491,6 +525,7 @@ def calc_jk(n,jump):
         size_from = (n+1)*(n+2)*(n+3)/6
         size_to = (n+1+jump)*(n+2+jump)*(n+3+jump)/6
         jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
+        save_pickle(jks[(n,jump)], cache_path + 'jk_{0}_{1}.mtx'.format(n,jump))
         return jks[(n,jump)]
 
 

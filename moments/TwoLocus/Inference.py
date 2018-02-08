@@ -142,14 +142,15 @@ def _object_func(params, data_list, model_func, rhos=[0],
     func_kwargs = func_kwargs.copy()
     func_kwargs['rhos'] = rhos
     model_list = model_func(*all_args, **func_kwargs)
-    rho_mids = (rhos[:-1]+rhos[1:])/2
+    rhos_arr = np.array(rhos)
+    rho_mids = (rhos_arr[:-1]+rhos_arr[1:])/2 
     func_kwargs['rhos'] = rho_mids
     model_list_mids = model_func(*all_args, **func_kwargs) 
     
     # trap rule
     #model_list = [(m1+m2)/2. for m1,m2 in zip(model_list[:-1],model_list[1:])]
     # simp rule
-    model_list = [(m1+m2+4*m3)/6. for m1,m2,m3 in zip(model_list:-1],model_list[1:],model_list_mids)]
+    model_list = [(m1+m2+4*m3)/6. for m1,m2,m3 in zip(model_list[:-1],model_list[1:],model_list_mids)]
     
     if multinom:
         result = ll_over_rho_bins_multinom(model_list, data_list)
