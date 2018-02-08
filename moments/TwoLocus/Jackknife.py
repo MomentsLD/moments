@@ -402,8 +402,9 @@ def calc_jk(n,jump):
         return jks[(n,jump)]
     except KeyError:
         # check if it's saved in the cache, if it is, add to jks and return
-        if os.path.isfile(cache_path + 'jk_{0}_{1}.mtx'.format(n,jump)):
-            jks[(n,jump)] = load_pickle(cache_path + 'jk_{0}_{1}.mtx'.format(n,jump))
+        jk_name = 'jk_{0}_{1}.mtx'.format(n,jump)
+        if os.path.isfile(os.path.join(cache_path, jk_name)):
+            jks[(n,jump)] = load_pickle(os.path.join(cache_path, jk_name))
             return jks[(n,jump)]
         row = []
         col = []
@@ -525,7 +526,7 @@ def calc_jk(n,jump):
         size_from = (n+1)*(n+2)*(n+3)/6
         size_to = (n+1+jump)*(n+2+jump)*(n+3+jump)/6
         jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
-        save_pickle(jks[(n,jump)], cache_path + 'jk_{0}_{1}.mtx'.format(n,jump))
+        save_pickle(jks[(n,jump)], os.path.join(cache_path, jk_name))
         return jks[(n,jump)]
 
 
