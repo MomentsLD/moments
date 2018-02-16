@@ -724,14 +724,12 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
             if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:
                 dt*=0.5
             sfs = sfs_old
-
+        
         else:
             neg = False
             Nold = N
             t += dt
         
-        Nold = N
-        t += dt
 
     if finite_genome == False:
         return Spectrum_mod.Spectrum(sfs)
