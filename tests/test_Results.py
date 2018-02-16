@@ -51,16 +51,15 @@ class ResultsTestCase(unittest.TestCase):
 
     def test_IM(self):
         params = (0.8, 2.0, 0.6, 0.45, 5.0, 0.3)
-        ns = (7,13)
+        ns = (20,13)
         theta = 1000.
         fs = theta*moments.Demographics2D.IM(params, ns)
 
-        msfs = moments.Spectrum.from_file('test_files/IM.fs')
+        dadi_fs = moments.Spectrum.from_file('test_files/IM.fs')
 
-        resid = moments.Inference.Anscombe_Poisson_residual(fs,msfs)
+        resid = moments.Inference.Anscombe_Poisson_residual(fs,dadi_fs)
 
-        #self.assert_(abs(resid).max() < 0.25)
-        self.assert_(abs(resid).max() < 0.3)
+        self.assert_(abs(resid).max() < 0.25)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
 
