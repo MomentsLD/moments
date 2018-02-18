@@ -96,7 +96,7 @@ def split_2D_to_3D_2(sp, n2new, n3):
             data_3D[:, i, j] = sp[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
                                / misc.comb(n2new + n3, i + j)
 
-    return Spectrum_mod.Spectrum(data_2D, mask_corners=masked_corners)
+    return Spectrum_mod.Spectrum(data_3D, mask_corners=masked_corners)
 
 def split_2D_to_3D_1(sp, n1new, n3):
     """
@@ -113,7 +113,7 @@ def split_2D_to_3D_1(sp, n1new, n3):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0] == True and sp.mask[-1,-1,-1] == True:
+    if sp.mask[0,0] == True and sp.mask[-1,-1] == True:
         masked_corners = True
     else:
         masked_corners = False
@@ -139,7 +139,7 @@ def split_2D_to_3D_1(sp, n1new, n3):
             data_3D[i, :, j] = sp[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
                                / misc.comb(n1new + n3, i + j)
 
-    return Spectrum_mod.Spectrum(data_2D, mask_corners=masked_corners)
+    return Spectrum_mod.Spectrum(data_3D, mask_corners=masked_corners)
 
 
 def split_3D_to_4D_3(sp, n3new, n4):
@@ -157,7 +157,7 @@ def split_3D_to_4D_3(sp, n3new, n4):
     """ 
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0,0] == True and sp.mask[-1,-1,-1,-1,-1] == True:
+    if sp.mask[0,0,0] == True and sp.mask[-1,-1,-1] == True:
         masked_corners = True
     else:
         masked_corners = False
@@ -184,7 +184,7 @@ def split_3D_to_4D_3(sp, n3new, n4):
             data_4D[:, :, i, j] = sp[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
                                   / misc.comb(n3new + n4, i + j)
 
-    return Spectrum_mod.Spectrum(data_2D, mask_corners=masked_corners)
+    return Spectrum_mod.Spectrum(data_4D, mask_corners=masked_corners)
 
 def split_4D_to_5D_4(sp, n4new, n5):
     """
@@ -201,7 +201,7 @@ def split_4D_to_5D_4(sp, n4new, n5):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0,0] == True and sp.mask[-1,-1,-1,-1,-1] == True:
+    if sp.mask[0,0,0,0] == True and sp.mask[-1,-1,-1,-1] == True:
         masked_corners = True
     else:
         masked_corners = False
@@ -229,7 +229,7 @@ def split_4D_to_5D_4(sp, n4new, n5):
             data_5D[:, :, :, i, j] = sp[:, :, :, i + j] * misc.comb(n4new, i)  \
                                      * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
 
-    return Spectrum_mod.Spectrum(data_2D, mask_corners=masked_corners)
+    return Spectrum_mod.Spectrum(data_5D, mask_corners=masked_corners)
 
 def split_4D_to_5D_3(sp, n3new, n4):
     """
@@ -244,6 +244,13 @@ def split_4D_to_5D_3(sp, n3new, n4):
     
     Returns a new 5D spectrum
     """
+    # Check if corners masked - if they are, keep split corners masked
+    # If they are unmasked, keep split spectrum corners unmasked
+    if sp.mask[0,0,0,0] == True and sp.mask[-1,-1,-1,-1] == True:
+        masked_corners = True
+    else:
+        masked_corners = False
+
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
@@ -266,12 +273,8 @@ def split_4D_to_5D_3(sp, n3new, n4):
         for j in range(n4 + 1):
             data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * misc.comb(n3new, i)  \
                                      * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
-    # if all entries unmasked, keep them all unmaksed in the split spectrum
-    # care about this for finite genome model
-    if np.any(sp.mask) == False:
-        return Spectrum_mod.Spectrum(data_5D, mask_corners=False)
-    else:
-        return Spectrum_mod.Spectrum(data_5D)
+
+    return Spectrum_mod.Spectrum(data_5D, mask_corners=masked_corners)
 
 
 # merge two populations into one population
@@ -283,6 +286,13 @@ def merge_2D_to_1D(sp):
     
     Returns a new 1D spectrum
     """
+    # Check if corners masked - if they are, keep split corners masked
+    # If they are unmasked, keep split spectrum corners unmasked
+    if sp.mask[0,0] == True and sp.mask[-1,-1] == True:
+        masked_corners = True
+    else:
+        masked_corners = False
+
     assert(len(sp.shape) == 2)
     sp.unmask_all()
     dim1, dim2 = sp.shape
@@ -290,13 +300,8 @@ def merge_2D_to_1D(sp):
     for k in range(dim1):
         for l in range(dim2):
             data[k + l] += sp[k, l]
-    # if all entries unmasked, keep them all unmaksed in the split spectrum
-    # care about this for finite genome model
-    if np.any(sp.mask) == False:
-        return Spectrum_mod.Spectrum(data, mask_corners=False)
-    else:
-        return Spectrum_mod.Spectrum(data)
 
+    return Spectrum_mod.Spectrum(data, mask_corners=masked_corners)
 
 #  Methods for admixture
 
