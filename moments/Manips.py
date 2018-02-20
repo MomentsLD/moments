@@ -7,6 +7,7 @@ from scipy.optimize import _nnls
 import scipy as sp
 from scipy import stats
 from numpy import asarray_chkfinite, zeros, double
+import copy
 
 """
 Usefull functions for Spectra manipulations:
@@ -29,31 +30,41 @@ def split_1D_to_2D(sp, n1, n2):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0] == True and sp.mask[-1] == True:
-        masked_corners = True
+    if sp.mask[0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
     
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(0, (0,1))
     
-    assert(len(sp.shape) == 1)
-    assert(len(sp) >= n1 + n2 + 1)
+    data_1D = copy.copy(sp) # copy to preserve masking of sp
+    assert(len(data_1D.shape) == 1)
+    assert(len(data_1D) >= n1 + n2 + 1)
     # if the sample size before split is too large, we project
-    if len(sp) > n1 + n2 + 1:
-        sp = sp.project([n1 + n2 + 1])
-    sp.unmask_all()
+    if len(data_1D) > n1 + n2 + 1:
+        data_1D = data_1D.project([n1 + n2 + 1])
+    data_1D.unmask_all()
     
     # then we compute the joint fs resulting from the split
     data_2D = np.zeros((n1 + 1, n2 + 1))
     for i in range(n1 + 1):
         for j in range(n2 + 1):
-            data_2D[i, j] = sp[i + j] * misc.comb(n1, i) * misc.comb(n2, j)  \
+            data_2D[i, j] = data_1D[i + j] * misc.comb(n1, i) * misc.comb(n2, j)  \
                             / misc.comb(n1 + n2, i + j)
 
-    return Spectrum_mod.Spectrum(data_2D, mask_corners=masked_corners)
+    data_2D = Spectrum_mod.Spectrum(data_2D, mask_corners=False)
+    if mask_lost == True:
+        data_2D.mask[0,0] = True
+    if mask_fixed == True:
+        data_2D.mask[-1,-1] = True
+    return data_2D
 
 def split_2D_to_3D_2(sp, n2new, n3):
     """
@@ -70,33 +81,43 @@ def split_2D_to_3D_2(sp, n2new, n3):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True and sp.mask[-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(1, (1,2))
     
-    assert(len(sp.shape) == 2)
-    n1 = sp.shape[0] - 1
-    n2 = sp.shape[1] - 1
+    data_2D = copy.copy(sp)
+    assert(len(data_2D.shape) == 2)
+    n1 = data_2D.shape[0] - 1
+    n2 = data_2D.shape[1] - 1
     assert(n2 >= n2new + n3)
     # if the sample size before split is too large, we project
     if n2 > n2new + n3:
-        sp = sp.project([n1, n2new + n3 + 1])
-    sp.unmask_all()
+        data_2D = data_2D.project([n1, n2new + n3 + 1])
+    data_2D.unmask_all()
     
     # then we compute the join fs resulting from the split
     data_3D = np.zeros((n1 + 1, n2new + 1, n3 + 1))
     for i in range(n2new + 1):
         for j in range(n3 + 1):
-            data_3D[:, i, j] = sp[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
+            data_3D[:, i, j] = data_2D[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
                                / misc.comb(n2new + n3, i + j)
 
-    return Spectrum_mod.Spectrum(data_3D, mask_corners=masked_corners)
+    data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
+    if mask_lost == True:
+        data_3D.mask[0,0,0] = True
+    if mask_fixed == True:
+        data_3D.mask[-1,-1,-1] = True
+    return data_3D
 
 def split_2D_to_3D_1(sp, n1new, n3):
     """
@@ -113,34 +134,43 @@ def split_2D_to_3D_1(sp, n1new, n3):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True and sp.mask[-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(0, (0,2))
   
-    assert(len(sp.shape) == 2)
-    n1 = sp.shape[0] - 1
-    n2 = sp.shape[1] - 1
+    data_2D = copy.copy(sp)
+    assert(len(data_2D.shape) == 2)
+    n1 = data_2D.shape[0] - 1
+    n2 = data_2D.shape[1] - 1
     assert(n1 >= n1new + n3)
     # if the sample size before split is too large, we project
     if n1 > n1new + n3:
-        sp = sp.project([n1new + n3 + 1, n2])
-    sp.unmask_all()
+        data_2D = data_2D.project([n1new + n3 + 1, n2])
+    data_2D.unmask_all()
     
     # then we compute the join fs resulting from the split
     data_3D = np.zeros((n1new + 1, n2 + 1, n3 + 1))
     for i in range(n1new + 1):
         for j in range(n3 + 1):
-            data_3D[i, :, j] = sp[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
+            data_3D[i, :, j] = data_2D[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
                                / misc.comb(n1new + n3, i + j)
 
-    return Spectrum_mod.Spectrum(data_3D, mask_corners=masked_corners)
-
+    data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
+    if mask_lost == True:
+        data_3D.mask[0,0,0] = True
+    if mask_fixed == True:
+        data_3D.mask[-1,-1,-1] = True
+    return data_3D
 
 def split_3D_to_4D_3(sp, n3new, n4):
     """
@@ -157,34 +187,44 @@ def split_3D_to_4D_3(sp, n3new, n4):
     """ 
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0] == True and sp.mask[-1,-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1,-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(2, (2,3))
-  
-    assert(len(sp.shape) == 3)
-    n1 = sp.shape[0] - 1
-    n2 = sp.shape[1] - 1
-    n3 = sp.shape[2] - 1
+    
+    data_3D = copy.copy(sp)
+    assert(len(data_3D.shape) == 3)
+    n1 = data_3D.shape[0] - 1
+    n2 = data_3D.shape[1] - 1
+    n3 = data_3D.shape[2] - 1
     assert(n3 >= n3new + n4)
     # if the sample size before split is too large, we project
     if n3 > n3new + n4:
-        sp = sp.project([n1, n2, n3new + n4 + 1])
-    sp.unmask_all()
+        data_3D = data_3D.project([n1, n2, n3new + n4 + 1])
+    data_3D.unmask_all()
     
     # then we compute the join fs resulting from the split
     data_4D = np.zeros((n1 + 1, n2 + 1, n3new + 1, n4 + 1))
     for i in range(n3new + 1):
         for j in range(n4 + 1):
-            data_4D[:, :, i, j] = sp[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
+            data_4D[:, :, i, j] = data_3D[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
                                   / misc.comb(n3new + n4, i + j)
 
-    return Spectrum_mod.Spectrum(data_4D, mask_corners=masked_corners)
+    data_4D = Spectrum_mod.Spectrum(data_4D, mask_corners=False)
+    if mask_lost == True:
+        data_4D.mask[0,0,0,0] = True
+    if mask_fixed == True:
+        data_4D.mask[-1,-1,-1,-1] = True
+    return data_4D
 
 def split_4D_to_5D_4(sp, n4new, n5):
     """
@@ -201,35 +241,45 @@ def split_4D_to_5D_4(sp, n4new, n5):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0] == True and sp.mask[-1,-1,-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0,0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1,-1,-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(3, (3,4))
     
-    assert(len(sp.shape) == 4)
-    n1 = sp.shape[0] - 1
-    n2 = sp.shape[1] - 1
-    n3 = sp.shape[2] - 1
-    n4 = sp.shape[3] - 1
+    data_4D = copy.copy(sp)
+    assert(len(data_4D.shape) == 4)
+    n1 = data_4D.shape[0] - 1
+    n2 = data_4D.shape[1] - 1
+    n3 = data_4D.shape[2] - 1
+    n4 = data_4D.shape[3] - 1
     assert(n4 >= n4new + n5)
     # if the sample size before split is too large, we project
     if n4 > n4new + n5:
-        sp = sp.project([n1, n2, n3, n4new + n5 + 1])
-    sp.unmask_all()
+        data_4D = data_4D.project([n1, n2, n3, n4new + n5 + 1])
+    data_4D.unmask_all()
     
     # then we compute the join fs resulting from the split
     data_5D = np.zeros((n1 + 1, n2 + 1, n3 + 1, n4new + 1, n5 + 1))
     for i in range(n4new + 1):
         for j in range(n5 + 1):
-            data_5D[:, :, :, i, j] = sp[:, :, :, i + j] * misc.comb(n4new, i)  \
+            data_5D[:, :, :, i, j] = data_4D[:, :, :, i + j] * misc.comb(n4new, i)  \
                                      * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
 
-    return Spectrum_mod.Spectrum(data_5D, mask_corners=masked_corners)
+    data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
+    if mask_lost == True:
+        data_5D.mask[0,0,0,0,0] = True
+    if mask_fixed == True:
+        data_5D.mask[-1,-1,-1,-1,-1] = True
+    return data_5D
 
 def split_4D_to_5D_3(sp, n3new, n4):
     """
@@ -246,35 +296,45 @@ def split_4D_to_5D_3(sp, n3new, n4):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0] == True and sp.mask[-1,-1,-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0,0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
+        mask_lost = False
+    if sp.mask[-1,-1,-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
         model.split(2, (2,3))
     
-    assert(len(sp.shape) == 4)
-    n1 = sp.shape[0] - 1
-    n2 = sp.shape[1] - 1
-    n3 = sp.shape[2] - 1
-    n5 = sp.shape[3] - 1
+    data_4D = copy.copy(sp)
+    assert(len(data_4D.shape) == 4)
+    n1 = data_4D.shape[0] - 1
+    n2 = data_4D.shape[1] - 1
+    n3 = data_4D.shape[2] - 1
+    n5 = data_4D.shape[3] - 1
     assert(n3 >= n3new + n4)
     # if the sample size before split is too large, we project
     if n3 > n3new + n4:
-        sp = sp.project([n1, n2, n3new + n4 + 1, n5])
-    sp.unmask_all()
+        data_4D = data_4D.project([n1, n2, n3new + n4 + 1, n5])
+    data_4D.unmask_all()
     
     # then we compute the join fs resulting from the split
     data_5D = np.zeros((n1 + 1, n2 + 1, n3new + 1, n4 + 1, n5 + 1))
     for i in range(n3new + 1):
         for j in range(n4 + 1):
-            data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * misc.comb(n3new, i)  \
+            data_5D[:, :, i, j, :] = data_4D[:, :, i + j, :] * misc.comb(n3new, i)  \
                                      * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
 
-    return Spectrum_mod.Spectrum(data_5D, mask_corners=masked_corners)
+    data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
+    if mask_lost == True:
+        data_5D.mask[0,0,0,0,0] = True
+    if mask_fixed == True:
+        data_5D.mask[-1,-1,-1,-1,-1] = True
+    return data_5D
 
 
 # merge two populations into one population
@@ -288,20 +348,30 @@ def merge_2D_to_1D(sp):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True and sp.mask[-1,-1] == True:
-        masked_corners = True
+    if sp.mask[0,0] == True:
+        mask_lost = True
     else:
-        masked_corners = False
-
-    assert(len(sp.shape) == 2)
-    sp.unmask_all()
-    dim1, dim2 = sp.shape
+        mask_lost = False
+    if sp.mask[-1,-1] == True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
+    
+    data_2D = copy.copy(sp)
+    assert(len(data_2D.shape) == 2)
+    data_2D.unmask_all()
+    dim1, dim2 = data_2D.shape
     data = np.zeros(dim1 + dim2 - 1)
     for k in range(dim1):
         for l in range(dim2):
-            data[k + l] += sp[k, l]
+            data[k + l] += data_2D[k, l]
 
-    return Spectrum_mod.Spectrum(data, mask_corners=masked_corners)
+    data = Spectrum_mod.Spectrum(data, mask_corners=False)
+    if mask_lost == True:
+        data.mask[0] = True
+    if mask_fixed == True:
+        data.mask[-1] = True
+    return data
 
 #  Methods for admixture
 
