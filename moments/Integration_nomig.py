@@ -29,36 +29,39 @@ from Integration import compute_dt
 
 # Mutations
 def _calcB(dims, u):
+    # u is a list of mutation rates in each population
+    # allows for different mutation rates in different pops
     B = np.zeros(dims)
     for k in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
         ind[k] = int(1)
         tp = tuple(ind)
-        B[tp] = dims[k] - 1
-    return u * B
+        B[tp] = (dims[k] - 1) * u[k]
+    return B
 
 import Reversible
 # Finite genome mutation model
-def _calcB_FB(dims, theta_fd, theta_bd):
+def _calcB_FB(dims, u, v):
     """
     dims : List containing the pop sizes
     
-    u: scalar forward mutation rate
+    u: vectors with the scalar forward mutation rates
     
-    v: scalar backward mutation rate
+    v: scalar backward mutation rates
     
     Returns mutation matrix for finite genome model
+    
     """
     if len(dims) == 1:
-        return ls1.calcB_FB(dims[0], theta_fd, theta_bd)
+        return ls1.calcB_FB(dims[0], u[0], v[0])
     elif len(dims) == 2: # return list of mutation matrices
-        return [ls2.calcB_FB1(dims, theta_fd, theta_bd), ls2.calcB_FB2(dims, theta_fd, theta_bd)]
+        return [ls2.calcB_FB1(dims, u[0], v[0]), ls2.calcB_FB2(dims, u[1], v[1])]
     elif len(dims) == 3:
-        return Reversible.calc_FB_3pop(dims, theta_fd, theta_bd)
+        return Reversible.calc_FB_3pop(dims, u, v)
     elif len(dims) == 4:
-        return Reversible.calc_FB_4pop(dims, theta_fd, theta_bd)
+        return Reversible.calc_FB_4pop(dims, u, v)
     elif len(dims) == 5:
-        return Reversible.calc_FB_5pop(dims, theta_fd, theta_bd)
+        return Reversible.calc_FB_5pop(dims, u, v)
 
 #----------------------------------
 # updates for the time integration-
@@ -372,40 +375,30 @@ def _update_step2_neutral(sfs, A, Di, C):
 
 
 def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, adapt_tstep=False,
-                    finite_genome=False, theta_fd=None, theta_bd=None):
-    """ Integration in time \n
-# 
-# tf : final simulation time (/2N1 generations)\n
-# gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
-# theta : mutation rate\n
-# h : allele dominance (vector h = (h1,...,hp))\n
-# m : migration rates matrix (2D array, m[i,j] is the migration rate \n
-#   from pop j to pop i, normalized by 1/4N1)\n
-
-# for a "lambda" definition of N - with backward Euler integration scheme\n
-# where t is the relative time in generations such as t = 0 initially\n
-# Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
-#   or directly the vector if N does not evolve in time\n
+                    finite_genome=False, theta_fd=None, theta_bd=None, frozen=[False]):
     """
-    
+    Integration in time
+    tf : final simulation time (/2N1 generations)
+    gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
+    theta : mutation rate
+    h : allele dominance (vector h = (h1,...,hp))
+    m : migration rates matrix (2D array, m[i,j] is the migration rate
+      from pop j to pop i, normalized by 1/4N1)
+
+    for a "lambda" definition of N - with backward Euler integration scheme
+    where t is the relative time in generations such as t = 0 initially
+    Npop is a lambda function of the time t returning the vector N = (N1,...,Np)
+      or directly the vector if N does not evolve in time\n
+    """
+    sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
+
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
     if h is None:
         h = 0.5 * np.ones(len(n))
     
-    sfs0 = np.array(sfs0)
-    n = np.array(sfs0.shape)-1
-    # parameters of the equation
-    if callable(Npop):
-        N = np.array(Npop(0))
-    else:
-        N = np.array(Npop)
-    
-    Nold = N.copy()
-    # effective pop size for the integration
-    Neff = N
-
     # we convert s and h into numpy arrays 
     if hasattr(gamma, "__len__"):
         s = np.array(gamma)
@@ -415,13 +408,61 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         h = np.array(h)
     else:
         h = np.array([h])
+    
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
-    u = theta / 4.0
+
     # dimensions of the sfs
     dims = np.array(n + np.ones(len(n)), dtype=int)
     d = int(np.prod(dims))
-
+    
+    # if theta is single value, mutation rate is same in each population
+    if finite_genome == False:
+        if hasattr(theta, "__len__"):
+            u = np.array(theta) / 4.0
+        else:
+            u = np.array([theta / 4.0] * len(dims))
+    else:
+        if hasattr(theta_fd, "__len__"):
+            u = np.array(theta_fd) / 4.0
+        else:
+            u = np.array([theta_fd/4.] * len(dims))
+        if hasattr(theta_bd, "__len__"):
+            v = np.array(theta_bd) / 4.0
+        else:
+            v = np.array([theta_bd/4.] * len(dims))
+    
+    # if any populations are frozen, we set their population extremely large,
+    # selection to zero, and mutations to zero in those pops
+    frozen = np.array(frozen)
+    if np.any(frozen):
+        frozen_pops = np.where(np.array(frozen)==True)[0]
+        # fix selection
+        for pop_num in frozen_pops:
+            s[pop_num] = 0.0
+        # fix population sizes
+        if callable(Npop):
+            Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
+        else:
+            for pop_num in frozen_pops:
+                Npop[pop_num] = 1e40
+        # fix mutation to zero in frozen populations
+        if finite_genome == False:
+            u *= (1-frozen)
+        else:
+            u *= (1-frozen)
+            v *= (1-frozen)
+            
+    # parameters of the equation
+    if callable(Npop):
+        N = np.array(Npop(0))
+    else:
+        N = np.array(Npop)
+    
+    Nold = N.copy()
+    # effective pop size for the integration
+    Neff = N
+    
     # we compute the matrices we will need
     ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(len(dims))]
     ljk2 = [jk.calcJK23(int(dims[i] - 1)) for i in range(len(dims))]
@@ -429,6 +470,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     # drift
     vd = [ls1.calcD(np.array(dims[i])) for i in range(len(dims))]
     D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
+    
     # selection part 1
     vs = [ls1.calcS(dims[i], ljk[i]) for i in range(len(n))]
     S1 = [s[i] * h[i] * vs[i] for i in range(len(n))]
@@ -436,13 +478,13 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     # selection part 2
     vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
     S2 = [s[i] * (1-2.0*h[i]) * vs2[i] for i in range(len(n))]
-
+    
     # mutations
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
-
+        B = _calcB_FB(dims, u, v)
+    
     # time loop:
     t = 0.0
     sfs = sfs0
@@ -520,7 +562,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 
 
 def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
-                      finite_genome = False, theta_fd=None, theta_bd=None):
+                      finite_genome = False, theta_fd=None, theta_bd=None, frozen=[False]):
     """ Integration in time \n
     # tf : final simulation time (/2N1 generations)\n
     # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
@@ -536,30 +578,67 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
     """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
+    
+    Tmax = tf * 2.0
+    dt = Tmax * dt_fac
+    # dimensions of the sfs
+    dims = np.array(n + np.ones(len(n)), dtype=int)
+    d = int(np.prod(dims))
+    
+    # if theta is single value, mutation rate is same in each population
+    if finite_genome == False:
+        if hasattr(theta, "__len__"):
+            u = np.array(theta) / 4.0
+        else:
+            u = np.array([theta / 4.0] * len(dims))
+    else:
+        if hasattr(theta_fd, "__len__"):
+            u = np.array(theta_fd) / 4.0
+        else:
+            u = np.array([theta_fd/4.] * len(dims))
+        if hasattr(theta_bd, "__len__"):
+            v = np.array(theta_bd) / 4.0
+        else:
+            v = np.array([theta_bd/4.] * len(dims))
+    
+    # if any populations are frozen, we set their population extremely large,
+    # and mutations to zero in those pops
+    frozen = np.array(frozen)
+    if np.any(frozen):
+        frozen_pops = np.where(frozen==True)[0]
+        # fix population sizes
+        if callable(Npop):
+            Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
+        else:
+            for pop_num in frozen_pops:
+                Npop[pop_num] = 1e40
+        # fix mutation to zero in frozen populations
+        if finite_genome == False:
+            u *= (1-frozen)
+        else:
+            u *= (1-frozen)
+            v *= (1-frozen)
+
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
     else:
         N = np.array(Npop)
+
     Nold = N.copy()
     Neff = N
-    Tmax = tf * 2.0
-    dt = Tmax * dt_fac
-    u = theta / 4.0
-    # dimensions of the sfs
-    dims = np.array(n + np.ones(len(n)), dtype=int)
-    d = int(np.prod(dims))
-    
+
     # drift
     vd = [ls1.calcD_dense(dims[i]) for i in range(len(n))]
     diags = [ts.mat_to_diag(x) for x in vd]
     D = [1.0 / 4 / N[i] * vd[i] for i in range(len(n))]
+
     # mutations
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
-
+        B = _calcB_FB(dims, u, v)
+    
     # time loop:
     t = 0.0
     sfs = sfs0
