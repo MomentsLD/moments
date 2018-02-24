@@ -25,27 +25,27 @@ def calc_FB_3pop(dims, u, v):
         index2 = i % (d2*d3) // d3
         index3 = i % (d2*d3) % d3
         if index1 > 0:
-            data1 += [u * (d1-index1), -v * index1]
+            data1 += [u[0] * (d1-index1), -v[0] * index1]
             row1 += 2 * [i]
             col1 += [i - d2*d3, i]
         if index1 < d1-1:
-            data1 += [-u * (d1-index1-1), v * (index1+1)]
+            data1 += [-u[0] * (d1-index1-1), v[0] * (index1+1)]
             row1 += 2 * [i]
             col1 += [i, i + d2*d3]
         if index2 > 0:
-            data2 += [u * (d2-index2), -v * index2]
+            data2 += [u[1] * (d2-index2), -v[1] * index2]
             row2 += 2 * [i]
             col2 += [i - d3, i]
         if index2 < d2-1:
-            data2 += [-u * (d2-index2-1), v * (index2+1)]
+            data2 += [-u[1] * (d2-index2-1), v[1] * (index2+1)]
             row2 += 2 * [i]
             col2 += [i, i+d3]
         if index3 > 0:
-            data3 += [u * (d3-index3), -v * index3]
+            data3 += [u[2] * (d3-index3), -v[2] * index3]
             row3 += 2 * [i]
             col3 += [i-1, i]
         if index3 < d3-1:
-            data3 += [-u * (d3-index3-1), v * (index3+1)]
+            data3 += [-u[2] * (d3-index3-1), v[2] * (index3+1)]
             row3 += 2 * [i]
             col3 += [i, i+1]
     return [coo_matrix((data1, (row1, col1)), shape=(d, d), dtype='float').tocsc(),
@@ -77,38 +77,38 @@ def calc_FB_4pop(dims, u, v):
         index3 = i % (d2*d3*d4) % (d3*d4) // d4
         index4 = i % (d2*d3*d4) % (d3*d4) % d4
         if index1 > 0:
-            data1 += [u * (d1-index1), -v * index1]
+            data1 += [u[0] * (d1-index1), -v[0] * index1]
             row1 += 2 * [i]
             col1 += [i - d2*d3*d4, i]
         if index1 < d1-1:
-            data1 += [-u * (d1-index1-1), v * (index1+1)]
+            data1 += [-u[0] * (d1-index1-1), v[0] * (index1+1)]
             row1 += 2 * [i]
             col1 += [i, i + d2*d3*d4]
         
         if index2 > 0:
-            data2 += [u * (d2-index2), -v * index2]
+            data2 += [u[1] * (d2-index2), -v[1] * index2]
             row2 += 2 * [i]
             col2 += [i - d3*d4, i]
         if index2 < d2-1:
-            data2 += [-u * (d2-index2-1), v * (index2+1)]
+            data2 += [-u[1] * (d2-index2-1), v[1] * (index2+1)]
             row2 += 2 * [i]
             col2 += [i, i + d3*d4]
         
         if index3 > 0:
-            data3 += [u * (d3-index3), -v * index3]
+            data3 += [u[2] * (d3-index3), -v[2] * index3]
             row3 += 2 * [i]
             col3 += [i - d4, i]
         if index3 < d3-1:
-            data3 += [-u * (d3-index3-1), v * (index3+1)]
+            data3 += [-u[2] * (d3-index3-1), v[2] * (index3+1)]
             row3 += 2 * [i]
             col3 += [i, i + d4]
         
         if index4 > 0:
-            data4 += [u * (d4-index4), -v * index4]
+            data4 += [u[3] * (d4-index4), -v[3] * index4]
             row4 += 2 * [i]
             col4 += [i - 1, i]
         if index4 < d4-1:
-            data4 += [-u * (d4-index4-1), v * (index4+1)]
+            data4 += [-u[3] * (d4-index4-1), v[3] * (index4+1)]
             row4 += 2 * [i]
             col4 += [i, i + 1]
     
@@ -145,47 +145,47 @@ def calc_FB_5pop(dims, u, v):
         index4 = i % (d2*d3*d4*d5) % (d3*d4*d5) % (d4*d5) // d5
         index5 = i % (d2*d3*d4*d5) % (d3*d4*d5) % (d4*d5) % d5
         if index1 > 0:
-            data1 += [u * (d1-index1), -v * index1]
+            data1 += [u[0] * (d1-index1), -v[0] * index1]
             row1 += 2 * [i]
             col1 += [i - d2*d3*d4*d5, i]
         if index1 < d1-1:
-            data1 += [-u * (d1-index1-1), v * (index1+1)]
+            data1 += [-u[0] * (d1-index1-1), v[0] * (index1+1)]
             row1 += 2 * [i]
             col1 += [i, i + d2*d3*d4*d5]
         
         if index2 > 0:
-            data2 += [u * (d2-index2), -v * index2]
+            data2 += [u[1] * (d2-index2), -v[1] * index2]
             row2 += 2 * [i]
             col2 += [i - d3*d4*d5, i]
         if index2 < d2-1:
-            data2 += [-u * (d2-index2-1), v * (index2+1)]
+            data2 += [-u[1] * (d2-index2-1), v[1] * (index2+1)]
             row2 += 2 * [i]
             col2 += [i, i + d3*d4*d5]
         
         if index3 > 0:
-            data3 += [u * (d3-index3), -v * index3]
+            data3 += [u[2] * (d3-index3), -v[2] * index3]
             row3 += 2 * [i]
             col3 += [i - d4*d5, i]
         if index3 < d3-1:
-            data3 += [-u * (d3-index3-1), v * (index3+1)]
+            data3 += [-u[2] * (d3-index3-1), v[2] * (index3+1)]
             row3 += 2 * [i]
             col3 += [i, i + d4*d5]
         
         if index4 > 0:
-            data4 += [u * (d4-index4), -v * index4]
+            data4 += [u[3] * (d4-index4), -v[3] * index4]
             row4 += 2 * [i]
             col4 += [i - d5, i]
         if index4 < d4-1:
-            data4 += [-u * (d4-index4-1), v * (index4+1)]
+            data4 += [-u[3] * (d4-index4-1), v[3] * (index4+1)]
             row4 += 2 * [i]
             col4 += [i, i + d5]
     
         if index5 > 0:
-            data5 += [u * (d5-index5), -v * index5]
+            data5 += [u[4] * (d5-index5), -v[4] * index5]
             row5 += 2 * [i]
             col5 += [i - 1, i]
         if index5 < d5-1:
-            data5 += [-u * (d5-index5-1), v * (index5+1)]
+            data5 += [-u[4] * (d5-index5-1), v[4] * (index5+1)]
             row5 += 2 * [i]
             col5 += [i, i + 1]
 

@@ -1525,7 +1525,7 @@ def %(method)s(self, other):
     # spectrum integration
     # We chose the most efficient solver for each case
     def integrate(self, Npop, tf, dt_fac=0.02, gamma=None, h=None, m=None, theta=1.0, 
-                    adapt_dt=False, finite_genome=False, theta_fd=None, theta_bd=None):
+                    adapt_dt=False, finite_genome=False, theta_fd=None, theta_bd=None, frozen=[False]):
         """
         Method to simulate the spectrum's evolution for a given set of demographic parameters.
         Npop: Populations effective sizes.
@@ -1537,12 +1537,20 @@ def %(method)s(self, other):
         m: migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1).
         theta: theta parameter.
         adapt_dt: flag to allow dt correction avoiding negative entries.
+        frozen: list of same length as number of pops, with True for frozen populations at the corresponding index.
         """
         n = numpy.array(self.shape)-1
+        
+        if m is not None:
+            m = numpy.array(m)
         
         if finite_genome == True and (theta_fd == None or theta_bd == None):
             raise ValueError('Forward and backward mutation rates must be '
                              'specified in the finite genome model.')
+        
+        if numpy.any(frozen) and len(Npop) != len(frozen):
+            raise ValueError('If one or more populations are frozen, length '
+                             'of frozen must match number of simulated pops.')
         
         model = moments.ModelPlot._get_model()
         if model is not None:
@@ -1559,11 +1567,13 @@ def %(method)s(self, other):
                 h = 0.5
             if gamma == 0:
                 self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
-                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
+                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
+                                        frozen=frozen)
             else:
                 #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
                 self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
-                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
+                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
+                                        frozen=frozen)
         else:
             if gamma is None:
                 gamma = numpy.zeros(len(n))
@@ -1575,13 +1585,16 @@ def %(method)s(self, other):
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n)<3:
                     self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
-                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
+                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
+                                        frozen=frozen)
                 else:
                     self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
-                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
+                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
+                                        frozen=frozen)
             else:
                 self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
-                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
+                                        finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
+                                        frozen=frozen)
         return self
 
 # Allow spectrum objects to be pickled.
