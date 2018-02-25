@@ -191,7 +191,9 @@ def adjust_moment(name, moment_names, moments, sample_sizes):
         return -1e6
 
 
-def corrected_onepop(n, moments, order):
+def corrected_onepop(moments, n=None, order=2):
+    if n == None:
+        return moments
     if order == 2:
         return order2correction(n, moments)
     if order == 4:
