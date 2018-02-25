@@ -331,7 +331,7 @@ def demography(demo, rho=0.0, theta=1e-4, dt=0.0001):
     y, ordered_pops = root_equilibrium(demo, rho, theta, dt)
     for period in zip(event_times[:-1],event_times[1:]):
         y, ordered_pops = seed_after_split(demo, period[0], y, ordered_pops)
-        y = integrate(demo, period[0], period[1], rho, theta, y, ordered_pops, dt)
+        y = integrate_multipop(demo, period[0], period[1], rho, theta, y, ordered_pops, dt)
     return y[:-1], ordered_pops
 
 """
@@ -551,7 +551,7 @@ def seed_after_split(demo, T, y_last, ordered_pops):
 Matrices for integration
 """
 
-def drift(nus,npops):
+def drift_multipop(nus,npops):
     if npops == 1:
         return Matrices.drift_one_pop(nus[0])
     elif npops == 2:
@@ -563,7 +563,7 @@ def drift(nus,npops):
     else:
         raise "haven't put together {0}-pop drift matrix yet...".format(len(nus))
 
-def migration(ms,npops):
+def migration_multipop(ms,npops):
     if npops == 2:
         return Matrices.migra_two_pop(ms)    
     elif npops == 3:
@@ -573,7 +573,7 @@ def migration(ms,npops):
     else:
         raise "haven't put together {0}-pop migration matrix yet...".format(len(nus))
 
-def recombination(rho,npops):
+def recombination_multipop(rho,npops):
     if npops == 1:
         return Matrices.recom_one_pop(rho)
     elif npops == 2:
@@ -585,7 +585,7 @@ def recombination(rho,npops):
     else:
         raise "haven't put together {0}-pop recomb matrix yet...".format(len(nus))
 
-def mutation(mu,npops):
+def mutation_multipop(mu,npops):
     if npops == 1:
         return Matrices.mutat_one_pop(mu)
     elif npops == 2:
@@ -601,7 +601,7 @@ def mutation(mu,npops):
 Integration routines
 """
     
-def integrate(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
+def integrate_multipop(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
     # total integration time
     T = Tbot-Ttop
     # pops and models in this period, order from seeding from last epoch
@@ -610,14 +610,14 @@ def integrate(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
     models = [demo.node[pop]['model'] for pop in pops]
     if npops > 1:
         ms = get_migration_rates(demo,T,ordered_pops)
-        M = migration(ms,npops)
+        M = migration_multipop(ms,npops)
     
-    R = recombination(rho,npops)
-    U = mutation(theta,npops)
+    R = recombination_multipop(rho,npops)
+    U = mutation_multipop(theta,npops)
 
     if models[0] == 'constant' and len(set(models)) == 1: # all constant sizes
         nus = [demo.node[pop]['nu'] for pop in pops]
-        D = drift(nus,npops)
+        D = drift_multipop(nus,npops)
         
         if npops > 1:
             Ab = D+M+R+U
@@ -647,7 +647,7 @@ def integrate(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
                 dt = Tbot-elapsed_T
             
             nus = get_pop_sizes(demo, elapsed_T+dt/2, ordered_pops)
-            D = drift(nus,npops)
+            D = drift_multipop(nus,npops)
             
             if npops > 1:
                 Ab = D+M+R+U
@@ -667,9 +667,9 @@ def root_equilibrium(demo, rho, theta, dt):
     #try:
         #y0 = root_cache[(rho,theta)]
     #except KeyError:
-    D = drift([1.],1)
-    R = recombination(rho,1)
-    U = mutation(theta,1)
+    D = drift_multipop([1.],1)
+    R = recombination_multipop(rho,1)
+    U = mutation_multipop(theta,1)
     
     Ab = D+R+U
         

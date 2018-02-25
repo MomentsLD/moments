@@ -198,6 +198,9 @@ def corrected_onepop(n, moments, order):
         return order4correction(n, moments)
     if order == 6:
         return order6correction(n, moments)
+    else:
+        print("Haven't implemented corrections for order {0}".format(order))
+        return moments
 
 def order2correction(n, moments):
     moment_names = Numerics.moment_names_onepop(2)
@@ -1169,4 +1172,37 @@ def adjust_s3(n, moment_names, moments):
     return [s3 * (-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5)/n**5 +
             s2 * (30 - 73*n + 63*n**2 - 23*n**3 + 3*n**4)/n**5 +
             s1 * (-1 + n)**3/n**5][0]
+
+"""
+Correction for genotypes (with and without sampling)
+"""
+
+def corrected_onepop_genotypes(moments, order=2, n=None):
+    """
+    correct the expectations for genotype data
+    if n is None, there is no sampling correction
+    otherwise n 
+    """
+    if order == 2:
+        return order2correction_genotypes(moments, n)
+    else:
+        print("Haven't implemented corrections for order {0}".format(order))
+        return moments
+        
+
+def order2correction_genotypes(moments, n):
+    if n is None:
+        # corrections for genotype without correcting for sampling bias
+        return np.array([ 1./4, 1./2, 1., 1., 1.]) * np.array(moments)
+    else:
+        # corrections for genotype data with sampling bias
+        moment_names = Numerics.moment_names_onepop(2)
+        return adjust_order2_sampling(n).dot(moments)
+
+def adjust_order2_sampling(n):
+    return np.array([[(-1 + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1 + n)**2/(8.*n**3), (-1 + n)/(4.*n**2), 0, 0],
+                     [(-1 + n)**2/n**3, (-1 + n)**3/(2.*n**3), 0, 0, 0],
+                     [(-1 + 2*n)/(4.*n**3), (1 - 2*n)**2/(8.*n**3), (1 - 2*n)**2/(4.*n**2), 0, 0],
+                     [0, 0, 0, 1 - 1/(2.*n), 0],
+                     [0, 0, 0, 0, 1]])
 

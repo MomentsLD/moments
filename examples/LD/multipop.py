@@ -47,7 +47,7 @@ def split_mig_2pop(params, rho=0, theta=1e-4, dt=0.01):
 T = 0.5
 nu1 = 1.0
 nu2 = 1.0
-m12 = m21 = 1.0
+m12 = m21 = 0.0
 
 edges = np.array([0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0])
 mids = (edges[:-1]+edges[1:])/2
@@ -75,10 +75,32 @@ stats = []
 for ii in range(len(mids)):
     stats.append(1./6*(stats_edges[ii]+stats_edges[ii+1]+4*stats_mids[ii]))
 
-print stats
-#import onepop
-#print onepop.two_epoch(2,(nu1,T),ns=1e40,rho=rho,theta=theta)
-#print onepop.two_epoch(2,(nu2,T),ns=1e40,rho=rho,theta=theta)
+
+stats_1D_ns1 = []
+stats_1D_ns2 = []
+
+stats_edges_ns1 = []
+stats_mids_ns1 = []
+stats_edges_ns2 = []
+stats_mids_ns2 = []
+
+for rho in edges:
+    y = moments.LD.Demographics.two_epoch(2,(nu1,T),rho=rho,theta=theta,corrected=True,ns=n1)
+    stats_edges_ns1.append(y[:-1])
+    y = moments.LD.Demographics.two_epoch(2,(nu1,T),rho=rho,theta=theta,corrected=True,ns=n2)
+    stats_edges_ns2.append(y[:-1])
+
+for rho in mids:
+    y = moments.LD.Demographics.two_epoch(2,(nu1,T),rho=rho,theta=theta,corrected=True,ns=n1)
+    stats_mids_ns1.append(y[:-1])
+    y = moments.LD.Demographics.two_epoch(2,(nu1,T),rho=rho,theta=theta,corrected=True,ns=n2)
+    stats_mids_ns2.append(y[:-1])
+
+for ii in range(len(mids)):
+    stats_1D_ns1.append(1./6*(stats_edges_ns1[ii]+stats_edges_ns1[ii+1]+4*stats_mids_ns1[ii]))
+    stats_1D_ns2.append(1./6*(stats_edges_ns2[ii]+stats_edges_ns2[ii+1]+4*stats_mids_ns2[ii]))
+
+
 #
 ## do these match when migration is set to zero? yes
 #
