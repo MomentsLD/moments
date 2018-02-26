@@ -29,7 +29,7 @@ class LDstats(numpy.ma.masked_array):
         num_pops: Number of populations. For one population, higher order statistics may be 
                   computed.
     """
-    def __new__(subtype, data, mask=numpy.ma.nomask, order=None, num_pops=None,
+    def __new__(subtype, data, mask=numpy.ma.nomask, order=2, num_pops=1,
                 dtype=float, copy=True, fill_value=numpy.nan, keep_mask=True,
                 shrink=True):
         if num_pops == None:
@@ -85,9 +85,9 @@ class LDstats(numpy.ma.masked_array):
     # masked_array has priority 15.
     __array_priority__ = 15
 
-#    def __repr__(self):
-#        return 'LDstats(%s, order=%s)'\
-#                % (str(self), str(self.order))
+    def __repr__(self):
+        return 'LDstats(%s, num_pops=%s, order=%s)'\
+                % (str(self), str(self.num_pops), str(self.order))
 
     def names(self):
         if self.order == None:
@@ -112,7 +112,6 @@ class LDstats(numpy.ma.masked_array):
     # Ensures that when arithmetic is done with LDstats objects,
     # attributes are preserved. For details, see similar code in
     # moments.Spectrum_mod
-    ### XXX I don't understand what's happening here. What needs to go in the """ """?
     for method in ['__add__','__radd__','__sub__','__rsub__','__mul__',
                    '__rmul__','__div__','__rdiv__','__truediv__','__rtruediv__',
                    '__floordiv__','__rfloordiv__','__rpow__','__pow__']:

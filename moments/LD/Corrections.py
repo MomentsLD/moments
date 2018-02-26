@@ -7,12 +7,16 @@ corrections are implemented for single pop models up to order D^6 (evens)
 and for multipopulation models for 2nd order statistics
 """
 
-def corrected_multipop(num_pops, sample_sizes, moments):
+def corrected_multipop(moments, ns=None, num_pops=2):
     """
     for num_pops number of populations (currently implemented up to 4 populations as of 10/17)
     sample_sizes = (n1,n2,...) in the correct order for the list moments
     moments start of with [D1**2, D1 D2, ..., D2**2, D2 D3, ..., etc]
     """
+    if ns == None:
+        return moments
+    
+    sample_sizes = ns
     if len(sample_sizes) != num_pops:
         raise ValueError("number of sample sizes must equal number of populations")
     
@@ -1184,6 +1188,8 @@ def corrected_onepop_genotypes(moments, order=2, n=None):
     correct the expectations for genotype data
     if n is None, there is no sampling correction
     otherwise n 
+    NOTE: unlike the correction for haploid sampling, where n is the number of chromosomes,
+          here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
     """
     if order == 2:
         return order2correction_genotypes(moments, n)
