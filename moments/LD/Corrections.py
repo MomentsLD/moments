@@ -1,5 +1,6 @@
 import numpy as np
 from moments.LD import Numerics
+from moments.LD.LDstats_mod import LDstats
 
 """
 contains correction factors for finite sample for either single or multiple population statistics
@@ -7,34 +8,34 @@ corrections are implemented for single pop models up to order D^6 (evens)
 and for multipopulation models for 2nd order statistics
 """
 
-def corrected_multipop(moments, ns=None, num_pops=2):
+def corrected_multipop(stats, ns=None, num_pops=2):
     """
     for num_pops number of populations (currently implemented up to 4 populations as of 10/17)
-    sample_sizes = (n1,n2,...) in the correct order for the list moments
-    moments start of with [D1**2, D1 D2, ..., D2**2, D2 D3, ..., etc]
+    sample_sizes = (n1,n2,...) in the correct order for the list stats
+    stats start of with [D1**2, D1 D2, ..., D2**2, D2 D3, ..., etc]
     """
     if ns == None:
-        return moments
+        return stats
     
     sample_sizes = ns
     if len(sample_sizes) != num_pops:
         raise ValueError("number of sample sizes must equal number of populations")
     
     # last moment might be 1 - if so, drop it
-    if moments[-1] == 1.0:
-        moments = moments[:-1]
+    if stats[-1] == 1.0:
+        stats = stats[:-1]
     
-    moment_names = Numerics.moment_list(num_pops)
-    if len(moment_names) != len(moments):
+    stat_names = Numerics.moment_list(num_pops)
+    if len(stat_names) != len(stats):
         raise ValueError("mismatch of input moments and number of populations")
     
-    corrected = np.empty(len(moments))
-    for ii,name in zip(range(len(moment_names)),moment_names):
-        corrected[ii] = adjust_moment(name, moment_names, moments, sample_sizes)
+    corrected = np.empty(len(stats))
+    for ii,name in zip(range(len(stat_names)),stat_names):
+        corrected[ii] = adjust_moment(name, stat_names, stats, sample_sizes)
     
     return corrected
 
-def adjust_moment(name, moment_names, moments, sample_sizes):
+def adjust_moment(name, stat_names, stats, sample_sizes):
     moment_type = name.split('_')[0]
     if moment_type == 'DD':
         popA = name.split('_')[1]
@@ -42,16 +43,16 @@ def adjust_moment(name, moment_names, moments, sample_sizes):
         if popA == popB:
             n1 = sample_sizes[int(popA)-1] # note that pop names are 1-indexed, not 0-indexed
             # need D_A^2, Dz_A, pi_A, which relies on (1-2p1)^2(1-2q1)^2, (1-2p1)^2, (1-2q1)^2, and 1
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{0}'.format(popA))[0]]
-            mom2 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{0}_{0}'.format(popA))[0]]
-            mom3 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{0}_{0}'.format(popA))[0]]
-            mom4 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{0}'.format(popA))[0]]
-            mom5 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{0}'.format(popA))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popA))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{0}'.format(popA))[0]]
+            mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popA))[0]]
+            mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popA))[0]]
+            mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popA))[0]]
             return mom1 * (-2 + 4*n1 - 3*n1**2 + n1**3)/n1**3 + mom2 * (-1 + n1)**2/n1**3 + mom3 * (-1 + n1)/(16.*n1**2) - mom4 * (-1 + n1)/(16.*n1**2) - mom5 * (-1 + n1)/(16.*n1**2) + 1. * (-1 + n1)/(16.*n1**2)
         else:
             n1 = sample_sizes[int(popA)-1]
             n2 = sample_sizes[int(popB)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{1}'.format(popA,popB))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popA,popB))[0]]
             return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2)
     elif moment_type == 'Dz':
         popD = name.split('_')[1]
@@ -59,25 +60,25 @@ def adjust_moment(name, moment_names, moments, sample_sizes):
         popq = name.split('_')[3]
         if popD == popp == popq:
             n1 = sample_sizes[int(popD)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
-            mom2 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{0}'.format(popD))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popD))[0]]
             return mom1 * ((-2 + n1)**2*(-1 + n1))/n1**3 + mom2 * (4*(2 - 3*n1 + n1**2))/n1**3
         elif popD == popp or popD == popq:
             n1 = sample_sizes[int(popD)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
             return mom1 * (2 - 3*n1 + n1**2)/n1**2
         elif popp == popq:
             n1 = sample_sizes[int(popD)-1]
             n2 = sample_sizes[int(popp)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
             try:
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{1}'.format(popD,popp))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popD,popp))[0]]
             except IndexError:
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{1}'.format(popp,popD))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp,popD))[0]]
             return mom1 * (-1 + n1)/n1 + mom2 * (4*(-1 + n1))/(n1*n2)
         else:
             n1 = sample_sizes[int(popD)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
             return mom1 * (-1 + n1)/n1
     elif moment_type == 'zz':
         popp1 = name.split('_')[1]
@@ -86,220 +87,220 @@ def adjust_moment(name, moment_names, moments, sample_sizes):
         popq2 = name.split('_')[4]
         if popp1 == popp2 == popq1 == popq2: # e.g. 1_1_1_1
             n1 = sample_sizes[int(popp1)-1]
-            mom1 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{0}'.format(popp1))[0]]
-            mom2 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{0}_{0}'.format(popp1))[0]]
-            mom3 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{0}_{0}'.format(popp1))[0]]
-            mom4 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{0}'.format(popp1))[0]]
-            mom5 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{0}'.format(popp1))[0]]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popp1))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{0}'.format(popp1))[0]]
+            mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popp1))[0]]
+            mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
+            mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popp1))[0]]
             return mom1 * (32*(-1 + n1))/n1**3 + mom2 * (16*(-1 + n1)**2)/n1**3 + mom3 * (-1 + n1)**2/n1**2 + mom4 * (-1 + n1)/n1**2 + mom5 * (-1 + n1)/n1**2 + 1. * n1**(-2)
         elif popp1 == popp2: 
             if popq1 == popp1: # e.g. 1_1_1_2
                 n1 = sample_sizes[int(popp1)-1]
                 n2 = sample_sizes[int(popq2)-1]
-                mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq2))[0]]
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{0}_{1}'.format(popp1,popq2))[0]]
-                mom3 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq2))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{1}'.format(popp1,popq2))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
                 return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
             elif popq2 == popp1: # e.g. 2_2_1_2
                 n1 = sample_sizes[int(popp1)-1]
                 n2 = sample_sizes[int(popq1)-1]
-                mom1 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq1))[0]]
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{1}_{0}'.format(popp1,popq1))[0]]
-                mom3 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq1))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{0}'.format(popp1,popq1))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
                 return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
             elif popq1 == popq2: # e.g. 1_1_2_2
                 n1 = sample_sizes[int(popp1)-1]
                 n2 = sample_sizes[int(popq1)-1]
-                mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{1}_{1}'.format(popp1,popq1))[0]]
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
-                mom3 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{1}'.format(popp1,popq1))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
                 return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2) + mom2 * (-1 + n1)/(n1*n2) + mom3 * (-1 + n2)/(n1*n2) + 1. * 1/(n1*n2)
             else: # e.g. 1_1_2_3
                 n1 = sample_sizes[int(popp1)-1]
-                mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{0}_{1}_{2}'.format(popp1,popq1,popq2))[0]]
-                mom2 = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{2}'.format(popp1,popq1,popq2))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
                 return mom1 * (-1 + n1)/n1 + mom2 * 1/n1
         else: # popp1 != popp2
             if popq1 == popq2:
                 if popp1 == popq1: # e.g. 1_2_1_1
                     n1 = sample_sizes[int(popp1)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{0}_{0}'.format(popp1,popp2))[0]]
-                    mom2 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{0}'.format(popp1,popp2))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{0}'.format(popp1,popp2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp1,popp2))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
                     return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
                 elif popp2 == popq1: # e.g. 1_2_2_2
                     n1 = sample_sizes[int(popp2)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{1}_{1}'.format(popp1,popp2))[0]]
-                    mom2 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{0}'.format(popp2,popp1))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{1}'.format(popp1,popp2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp2,popp1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
                     return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
                 else: # e.g. 1_2_3_3
                     n3 = sample_sizes[int(popq1)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{2}_{2}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{2}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
                     return mom1 * (-1 + n3)/n3 + mom2 * 1/n3
             else: # popq1 != popq2
                 if popp1 == popq1:
                     if popp2 == popq2: # e.g. 1_2_1_2
                         n1 = sample_sizes[int(popp1)-1]
                         n2 = sample_sizes[int(popp2)-1]
-                        mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{0}_{1}'.format(popp1,popp2))[0]]
-                        mom2 = moments[np.argwhere(np.array(moment_names) == 'DD_{0}_{1}'.format(popp1,popp2))[0]]
-                        mom3 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{1}'.format(popp1,popp2))[0]]
-                        mom4 = moments[np.argwhere(np.array(moment_names) == 'Dz_{1}_{0}_{0}'.format(popp1,popp2))[0]]
+                        mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{1}'.format(popp1,popp2))[0]]
+                        mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp1,popp2))[0]]
+                        mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{1}'.format(popp1,popp2))[0]]
+                        mom4 = stats[np.argwhere(np.array(stat_names) == 'Dz_{1}_{0}_{0}'.format(popp1,popp2))[0]]
                         return mom1 + mom2 * 16/(n1*n2) + mom3 * 4/n1 + mom4 * 4/n2
                     else: # e.g. 1_3_1_2 or 1_2_1_3
                         n1 = sample_sizes[int(popp1)-1]
-                        mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{0}_{2}'.format(popp1,popp2,popq2))[0]]
-                        mom3 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
+                        mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{2}'.format(popp1,popp2,popq2))[0]]
+                        mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
                         return mom1 + mom2 * 4/n1
                 elif popp1 == popq2: # e.g. 2_3_1_2
                     n2 = sample_sizes[int(popp1)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{2}_{0}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{0}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
                     return mom1 + mom2 * 4/n2
                 elif popp2 == popq2: # e.g. 1_3_2_3
                     n3 = sample_sizes[int(popp2)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{2}_{1}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{1}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
                     return mom1 + mom2 * 4/n3
                 elif popp2 == popq1: # e.g. 1_2_2_3
                     n2 = sample_sizes[int(popp2)-1]
-                    mom1 = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
-                    mom3 = moments[np.argwhere(np.array(moment_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
                     return mom1 + mom2 * 4/n2
                 else: # e.g. 1_2_3_4
-                    mom = moments[np.argwhere(np.array(moment_names) == 'zz_{0}_{1}_{2}_{3}'.format(popp1,popp2,popq1,popq2))[0]]
+                    mom = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{3}'.format(popp1,popp2,popq1,popq2))[0]]
                     return mom
     elif moment_type == 'zp':
         popp1 = name.split('_')[1]
         popp2 = name.split('_')[2]
         if popp1 == popp2:
             n1 = sample_sizes[int(popp1)-1]
-            mom = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{0}'.format(popp1))[0]]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
             return mom * (-1 + n1)/n1 + 1./n1
         else:
-            mom = moments[np.argwhere(np.array(moment_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
             return mom
     elif moment_type == 'zq':
         popq1 = name.split('_')[1]
         popq2 = name.split('_')[2]
         if popq1 == popq2:
             n1 = sample_sizes[int(popq1)-1]
-            mom = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{0}'.format(popq1))[0]]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popq1))[0]]
             return mom * (-1 + n1)/n1 + 1./n1
         else:
-            mom = moments[np.argwhere(np.array(moment_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
             return mom
     else:
         return -1e6
 
 
-def corrected_onepop(moments, n=None, order=2):
+def corrected_onepop(stats, n=None, order=2):
     if n == None:
-        return moments
+        return stats
     if order == 2:
-        return order2correction(n, moments)
+        return LDstats(order2correction(n, stats.data),order=order)
     if order == 4:
-        return order4correction(n, moments)
+        return LDstats(order4correction(n, stats.data),order=order)
     if order == 6:
-        return order6correction(n, moments)
+        return LDstats(order6correction(n, stats.data),order=order)
     else:
         print("Haven't implemented corrections for order {0}".format(order))
-        return moments
+        return stats
 
-def order2correction(n, moments):
-    moment_names = Numerics.moment_names_onepop(2)
-    return np.array([ adjust_D2(n, moment_names, moments),
-                      adjust_Dz(n, moment_names, moments),
-                      adjust_pi(n, moment_names, moments),
-                      adjust_s1(n, moment_names, moments),
+def order2correction(n, stats):
+    stat_names = Numerics.moment_names_onepop(2)
+    return np.array([ adjust_D2(n, stat_names, stats),
+                      adjust_Dz(n, stat_names, stats),
+                      adjust_pi(n, stat_names, stats),
+                      adjust_s1(n, stat_names, stats),
                       1])
 
-def order4correction(n, moments):
-    moment_names = Numerics.moment_names_onepop(4)
-    return np.array([ adjust_D4(n, moment_names, moments),
-                      adjust_D3z(n, moment_names, moments),
-                      adjust_D2pi(n, moment_names, moments),
-                      adjust_Dpiz(n, moment_names, moments),
-                      adjust_pi2(n, moment_names, moments),
-                      adjust_D2s1(n, moment_names, moments),
-                      adjust_Dzs1(n, moment_names, moments),
-                      adjust_pis1(n, moment_names, moments),
-                      adjust_s2(n, moment_names, moments),
-                      adjust_D2(n, moment_names, moments),
-                      adjust_Dz(n, moment_names, moments),
-                      adjust_pi(n, moment_names, moments),
-                      adjust_s1(n, moment_names, moments),
+def order4correction(n, stats):
+    stat_names = Numerics.moment_names_onepop(4)
+    return np.array([ adjust_D4(n, stat_names, stats),
+                      adjust_D3z(n, stat_names, stats),
+                      adjust_D2pi(n, stat_names, stats),
+                      adjust_Dpiz(n, stat_names, stats),
+                      adjust_pi2(n, stat_names, stats),
+                      adjust_D2s1(n, stat_names, stats),
+                      adjust_Dzs1(n, stat_names, stats),
+                      adjust_pis1(n, stat_names, stats),
+                      adjust_s2(n, stat_names, stats),
+                      adjust_D2(n, stat_names, stats),
+                      adjust_Dz(n, stat_names, stats),
+                      adjust_pi(n, stat_names, stats),
+                      adjust_s1(n, stat_names, stats),
                       1])
 
-def order6correction(n, moments):
-    moment_names = Numerics.moment_names_onepop(6)
-    return np.array([ adjust_D6(n, moment_names, moments),
-                      adjust_D5z(n, moment_names, moments),
-                      adjust_D4pi(n, moment_names, moments),
-                      adjust_D3piz(n, moment_names, moments),
-                      adjust_D2pi2(n, moment_names, moments),
-                      adjust_Dpi2z(n, moment_names, moments),
-                      adjust_pi3(n, moment_names, moments),
-                      adjust_D4s1(n, moment_names, moments),
-                      adjust_D3zs1(n, moment_names, moments),
-                      adjust_D2pis1(n, moment_names, moments),
-                      adjust_Dpizs1(n, moment_names, moments),
-                      adjust_pi2s1(n, moment_names, moments),
-                      adjust_D2s2(n, moment_names, moments),
-                      adjust_Dzs2(n, moment_names, moments),
-                      adjust_pis2(n, moment_names, moments),
-                      adjust_s3(n, moment_names, moments),
+def order6correction(n, stats):
+    stat_names = Numerics.moment_names_onepop(6)
+    return np.array([ adjust_D6(n, stat_names, stats),
+                      adjust_D5z(n, stat_names, stats),
+                      adjust_D4pi(n, stat_names, stats),
+                      adjust_D3piz(n, stat_names, stats),
+                      adjust_D2pi2(n, stat_names, stats),
+                      adjust_Dpi2z(n, stat_names, stats),
+                      adjust_pi3(n, stat_names, stats),
+                      adjust_D4s1(n, stat_names, stats),
+                      adjust_D3zs1(n, stat_names, stats),
+                      adjust_D2pis1(n, stat_names, stats),
+                      adjust_Dpizs1(n, stat_names, stats),
+                      adjust_pi2s1(n, stat_names, stats),
+                      adjust_D2s2(n, stat_names, stats),
+                      adjust_Dzs2(n, stat_names, stats),
+                      adjust_pis2(n, stat_names, stats),
+                      adjust_s3(n, stat_names, stats),
                       
-                      adjust_D4(n, moment_names, moments),
-                      adjust_D3z(n, moment_names, moments),
-                      adjust_D2pi(n, moment_names, moments),
-                      adjust_Dpiz(n, moment_names, moments),
-                      adjust_pi2(n, moment_names, moments),
-                      adjust_D2s1(n, moment_names, moments),
-                      adjust_Dzs1(n, moment_names, moments),
-                      adjust_pis1(n, moment_names, moments),
-                      adjust_s2(n, moment_names, moments),
-                      adjust_D2(n, moment_names, moments),
-                      adjust_Dz(n, moment_names, moments),
-                      adjust_pi(n, moment_names, moments),
-                      adjust_s1(n, moment_names, moments),
+                      adjust_D4(n, stat_names, stats),
+                      adjust_D3z(n, stat_names, stats),
+                      adjust_D2pi(n, stat_names, stats),
+                      adjust_Dpiz(n, stat_names, stats),
+                      adjust_pi2(n, stat_names, stats),
+                      adjust_D2s1(n, stat_names, stats),
+                      adjust_Dzs1(n, stat_names, stats),
+                      adjust_pis1(n, stat_names, stats),
+                      adjust_s2(n, stat_names, stats),
+                      adjust_D2(n, stat_names, stats),
+                      adjust_Dz(n, stat_names, stats),
+                      adjust_pi(n, stat_names, stats),
+                      adjust_s1(n, stat_names, stats),
                       1])
 
-def adjust_s1(n, moment_names, moments):
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_s1(n, stat_names, stats):
+    s1 = stats[stat_names.index('1_s1')]
     return (n-1.)/n * s1
 
-def adjust_D2(n, moment_names, moments):
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_D2(n, stat_names, stats):
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return D2 * (-2 + 4*n - 3*n**2. + n**3.)/n**3. + Dz * (1 - 2*n + n**2.)/n**3. + pi * (-n + n**2.)/n**3.
 
-def adjust_Dz(n, moment_names, moments):
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
+def adjust_Dz(n, stat_names, stats):
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
     return D2 * (8 - 12*n + 4*n**2.)/n**3. + Dz * (-4 + 8*n - 5*n**2. + n**3.)/n**3.
 
-def adjust_pi(n, moment_names, moments):
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_pi(n, stat_names, stats):
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return D2 * (-2 + 2*n)/n**3. + Dz * (1 - 2*n + n**2.)/n**3. + pi * (n - 2*n**2. + n**3.)/n**3.
 
-def adjust_s2(n, moment_names, moments):
-    s2 = moments[moment_names.index('1_s2')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_s2(n, stat_names, stats):
+    s2 = stats[stat_names.index('1_s2')]
+    s1 = stats[stat_names.index('1_s1')]
     return s2 * (-6 + 11*n - 6*n**2. + n**3.)/n**3. + s1 * (-1 + n)**2/n**3.
 
-def adjust_D2s1(n, moment_names, moments):
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs2 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_D2s1(n, stat_names, stats):
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs2 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D2s1 * (-72 + 168*n - 144*n**2. + 59*n**3. - 12*n**4. + n**5.)/n**5. +
             Dzs2 * ((-2 + n)**2*(3 - 4*n + n**2.))/n**5. +
             pis1 * (-6 + 11*n - 6*n**2. + n**3.)/n**4. +
@@ -307,23 +308,23 @@ def adjust_D2s1(n, moment_names, moments):
             Dz * (2*(-1 + n)**3)/n**5. +
             pi * (2*(-1 + n)**2)/n**4.][0]
 
-def adjust_Dzs1(n, moment_names, moments):
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs2 = moments[moment_names.index('D^1_z_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
+def adjust_Dzs1(n, stat_names, stats):
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs2 = stats[stat_names.index('D^1_z_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
     return [D2s1 * (12*(24 - 50*n + 35*n**2. - 10*n**3. + n**4.))/n**5. +
             Dzs2 * ((-2 + n)**2*(-12 + 19*n - 8*n**2. + n**3.))/n**5. +
             D2 * (-112 + 240*n - 172*n**2. + 48*n**3. - 4*n**4.)/n**5. +
             Dz * (8 - 24*n + 26*n**2. - 12*n**3. + 2*n**4.)/n**5.][0]
 
-def adjust_pis1(n, moment_names, moments):
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_pis1(n, stat_names, stats):
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D2s1 * (12*(-6 + 11*n - 6*n**2. + n**3.))/n**5. + 
             Dzs1 * (2*(-1 + n)**2*(6 - 5*n + n**2.))/n**5. + 
             pis1 * ((-1 + n)**2*(6 - 5*n + n**2.))/n**4. + 
@@ -331,18 +332,18 @@ def adjust_pis1(n, moment_names, moments):
             Dz * (2*(-1 + n)**3)/n**5. +
             pi * (2*(-1 + n)**3)/n**4.][0]
 
-def adjust_D4(n, moment_names, moments):
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_D4(n, stat_names, stats):
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D4 * (-144 + 408*n - 480*n**2. + 324*n**3. - 146*n**4. + 47*n**5. - 10*n**6. + n**7.)/n**7. + 
             D3z * (6*(-2 + n)**2*(18 - 33*n + 21*n**2. - 7*n**3. + n**4.))/n**7. + 
             D2pi * (6*(-432 + 1152*n - 1176*n**2. + 580*n**3. - 133*n**4. + 8*n**5. + n**6.))/n**7. + 
@@ -355,18 +356,18 @@ def adjust_D4(n, moment_names, moments):
             Dz * (-1 + n)**4/n**7. + 
             pi * (-3 + 6*n - 4*n**2. + n**3.)/n**6.][0]
 
-def adjust_D3z(n, moment_names, moments):
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_D3z(n, stat_names, stats):
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D4 * 1.*(4.*(144 - 372*n + 378*n**2. - 204*n**3. + 65*n**4. - 12*n**5. + n**6.))/n**7. + 
             D3z * 1.*(-1728 + 4608*n - 4836*n**2. + 2658*n**3. - 846*n**4. + 161*n**5. - 18*n**6. + n**7.)/n**7. + 
             D2pi * 1.*(12*(864 - 2304*n + 2394*n**2. - 1273*n**3. + 374*n**4. - 59*n**5. + 4*n**6.))/n**7. + 
@@ -379,18 +380,18 @@ def adjust_D3z(n, moment_names, moments):
             Dz * 1.*((-2 + n)**2*(-1 + n)**3)/n**7. + 
             pi * 1.*((-2 + n)**3*(-1 + n))/n**6.][0]
 
-def adjust_D2pi(n, moment_names, moments):
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_D2pi(n, stat_names, stats):
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D4 * (2*(-72 + 168*n - 144*n**2. + 59*n**3. - 12*n**4. + n**5.))/n**7. + 
             D3z * ((-3 + n)**2*(48 - 88*n + 50*n**2. - 11*n**3. + n**4.))/n**7. + 
             D2pi * (-2592 + 6912*n - 7212*n**2. + 3892*n**3. - 1191*n**4. + 211*n**5. - 21*n**6. + n**7.)/n**7. + 
@@ -403,18 +404,18 @@ def adjust_D2pi(n, moment_names, moments):
             Dz * (-1 + n)**4/n**7. + 
             pi * (-1 + n)**3/n**6.][0]
 
-def adjust_Dpiz(n, moment_names, moments):
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_Dpiz(n, stat_names, stats):
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D4 * (24*(24 - 50*n + 35*n**2. - 10*n**3. + n**4.))/n**7. + 
             D3z * (18*(-4 + n)**2*(-6 + 11*n - 6*n**2. + n**3.))/n**7. + 
             D2pi * (36*(12 - 7*n + n**2.)**2*(2 - 3*n + n**2.))/n**7. + 
@@ -424,18 +425,18 @@ def adjust_Dpiz(n, moment_names, moments):
             D2 * ((-7 + n)**2*(-2 + n)**3*(-1 + n))/n**7. + 
             Dz * ((-2 + n)**2*(-1 + n)**3)/n**7.][0]
 
-def adjust_pi2(n, moment_names, moments):
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_pi2(n, stat_names, stats):
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D4 * (24*(-6 + 11*n - 6*n**2. + n**3.))/n**7. + 
             D3z * (24*(-3 + n)**2*(2 - 3*n + n**2.))/n**7. + 
             D2pi * (72*(-1 + n)*(6 - 5*n + n**2.)**2)/n**7. + 
@@ -450,36 +451,36 @@ def adjust_pi2(n, moment_names, moments):
 
 ## order 6 adjustments
 
-def adjust_D6(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D6(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (-86400 + 283680*n - 402480*n**2 + 336240*n**3 - 189480*n**4 + 78060*n**5 - 24834*n**6 + 6334*n**7 - 1305*n**8 + 205*n**9 - 21*n**10 + n**11)/n**11 +
             D5z * (15*(43200 - 141840*n + 199800*n**2 - 163392*n**3 + 88032*n**4 - 33426*n**5 + 9259*n**6 - 1878*n**7 + 268*n**8 - 24*n**9 + n**10))/n**11 +
             D4pi * (15*(-864000 + 2793600*n - 3828240*n**2 + 2985816*n**3 - 1487400*n**4 + 497760*n**5 - 112826*n**6 + 16659*n**7 - 1415*n**8 + 45*n**9 + n**10))/n**11 +
@@ -510,36 +511,36 @@ def adjust_D6(n, moment_names, moments):
             pi * (-5 + 15*n - 20*n**2 + 15*n**3 - 6*n**4 + n**5)/n**10 +
             s1 * 0][0]
     
-def adjust_D5z(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D5z(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (4*(86400 - 269280*n + 355200*n**2 - 269160*n**3 + 133440*n**4 - 46480*n**5 + 11824*n**6 - 2215*n**7 + 295*n**8 - 25*n**9 + n**10))/n**11 +
             D5z * (-2592000 + 8164800*n - 10867680*n**2 + 8255280*n**3 - 4051320*n**4 + 1370760*n**5 - 330920*n**6 + 57694*n**7 - 7205*n**8 + 625*n**9 - 35*n**10 + n**11)/n**11 +
             D4pi * (40*(1296000 - 4082400*n + 5407920*n**2 - 4049736*n**3 + 1928916*n**4 - 618870*n**5 + 137131*n**6 - 20979*n**7 + 2149*n**8 - 135*n**9 + 4*n**10))/n**11 +
@@ -571,36 +572,36 @@ def adjust_D5z(n, moment_names, moments):
             s1 * 0][0]
     
 
-def adjust_D4pi(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D4pi(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (2*(-43200 + 127440*n - 155400*n**2 + 105768*n**3 - 45408*n**4 + 13054*n**5 - 2565*n**6 + 337*n**7 - 27*n**8 + n**9))/n**11 +
             D5z * (648000 - 1954800*n + 2449800*n**2 - 1717872*n**3 + 760104*n**4 - 225354*n**5 + 46039*n**6 - 6498*n**7 + 616*n**8 - 36*n**9 + n**10)/n**11 +
             D4pi * (-12960000 + 39744000*n - 50795280*n**2 + 36365736*n**3 - 16413792*n**4 + 4954128*n**5 - 1029806*n**6 + 148963*n**7 - 14918*n**8 + 1012*n**9 - 44*n**10 + n**11)/n**11 +
@@ -631,36 +632,36 @@ def adjust_D4pi(n, moment_names, moments):
             pi * ((-1 + n)**3*(3 - 3*n + n**2))/n**10 +
             s1 * 0][0]
 
-def adjust_D3piz(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D3piz(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (24*(14400 - 40080*n + 44880*n**2 - 27108*n**3 + 9874*n**4 - 2265*n**5 + 325*n**6 - 27*n**7 + n**8))/n**11 +
             D5z * (18*(-144000 + 415200*n - 487920*n**2 + 313528*n**3 - 123500*n**4 + 31394*n**5 - 5225*n**6 + 557*n**7 - 35*n**8 + n**9))/n**11 +
             D4pi * (36*(1440000 - 4296000*n + 5285760*n**2 - 3600112*n**3 + 1524296*n**4 - 424198*n**5 + 79509*n**6 - 10048*n**7 + 834*n**8 - 42*n**9 + n**10))/n**11 +
@@ -691,36 +692,36 @@ def adjust_D3piz(n, moment_names, moments):
             pi * (2 - 3*n + n**2)**3/n**10 +
             s1 * 0][0]
 
-def adjust_D2pi2(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D2pi2(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (24*(-3600 + 9420*n - 9610*n**2 + 5074*n**3 - 1525*n**4 + 265*n**5 - 25*n**6 + n**7))/n**11 +
             D5z * (24*(-5 + n)**2*(1080 - 2538*n + 2199*n**2 - 920*n**3 + 200*n**4 - 22*n**5 + n**6))/n**11 +
             D4pi * (24*(-540000 + 1566000*n - 1850370*n**2 + 1192159*n**3 - 467991*n**4 + 117382*n**5 - 19005*n**6 + 1936*n**7 - 114*n**8 + 3*n**9))/n**11 +
@@ -751,36 +752,36 @@ def adjust_D2pi2(n, moment_names, moments):
             pi * (-1 + n)**5/n**10 +
             s1 * 0][0]
 
-def adjust_Dpi2z(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_Dpi2z(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (480*(720 - 1764*n + 1624*n**2 - 735*n**3 + 175*n**4 - 21*n**5 + n**6))/n**11 +
             D5z * (600*(-6 + n)**2*(-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5))/n**11 +
             D4pi * (2400*(30 - 11*n + n**2)**2*(24 - 50*n + 35*n**2 - 10*n**3 + n**4))/n**11 +
@@ -811,36 +812,36 @@ def adjust_Dpi2z(n, moment_names, moments):
             pi * 0 +
             s1 * 0][0]
 
-def adjust_pi3(n, moment_names, moments):
-    D6 = moments[moment_names.index('D^6')]
-    D5z = moments[moment_names.index('D^5_z')]
-    D4pi = moments[moment_names.index('D^4_pi^1')]
-    D3piz = moments[moment_names.index('D^3_pi^1_z')]
-    D2pi2 = moments[moment_names.index('D^2_pi^2')]
-    Dpi2z = moments[moment_names.index('D^1_pi^2_z')]
-    pi3 = moments[moment_names.index('pi^3')]
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_pi3(n, stat_names, stats):
+    D6 = stats[stat_names.index('D^6')]
+    D5z = stats[stat_names.index('D^5_z')]
+    D4pi = stats[stat_names.index('D^4_pi^1')]
+    D3piz = stats[stat_names.index('D^3_pi^1_z')]
+    D2pi2 = stats[stat_names.index('D^2_pi^2')]
+    Dpi2z = stats[stat_names.index('D^1_pi^2_z')]
+    pi3 = stats[stat_names.index('pi^3')]
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D6 * (720*(-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5))/n**11 +
             D5z * (1080*(-5 + n)**2*(24 - 50*n + 35*n**2 - 10*n**3 + n**4))/n**11 +
             D4pi * (5400*(20 - 9*n + n**2)**2*(-6 + 11*n - 6*n**2 + n**3))/n**11 +
@@ -871,29 +872,29 @@ def adjust_pi3(n, moment_names, moments):
             pi * (-1 + n)**6/n**10 +
             s1 * 0][0]
 
-def adjust_D4s1(n, moment_names, moments):
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D4s1(n, stat_names, stats):
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D4s1 * (-43200 + 127440*n - 155400*n**2 + 105768*n**3 - 45408*n**4 + 13054*n**5 - 2565*n**6 + 337*n**7 - 27*n**8 + n**9)/n**9 +
             D3zs1 * (6*(7200 - 21240*n + 25660*n**2 - 16960*n**3 + 6824*n**4 - 1735*n**5 + 275*n**6 - 25*n**7 + n**8))/n**9 +
             D2pis1 * (6*(-21600 + 60120*n - 66360*n**2 + 38170*n**3 - 12326*n**4 + 2155*n**5 - 155*n**6 - 5*n**7 + n**8))/n**9 +
@@ -917,29 +918,29 @@ def adjust_D4s1(n, moment_names, moments):
             pi * (2*(-1 + n)**2*(3 - 3*n + n**2))/n**8 +
             s1 * 0][0]
 
-def adjust_D3zs1(n, moment_names, moments):
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D3zs1(n, stat_names, stats):
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D4s1 * (12*(14400 - 40080*n + 44880*n**2 - 27108*n**3 + 9874*n**4 - 2265*n**5 + 325*n**6 - 27*n**7 + n**8))/n**9 +
             D3zs1 * (-172800 + 495360*n - 575760*n**2 + 362880*n**3 - 138552*n**4 + 33664*n**5 - 5295*n**6 + 535*n**7 - 33*n**8 + n**9)/n**9 +
             D2pis1 * (12*(43200 - 123840*n + 143940*n**2 - 90660*n**3 + 34471*n**4 - 8235*n**5 + 1225*n**6 - 105*n**7 + 4*n**8))/n**9 +
@@ -963,29 +964,29 @@ def adjust_D3zs1(n, moment_names, moments):
             pi * (2*(-2 + n)**3*(-1 + n)**2)/n**8 +
             s1 * 0][0]
 
-def adjust_D2pis1(n, moment_names, moments):
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D2pis1(n, stat_names, stats):
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D4s1 * (12*(-3600 + 9420*n - 9610*n**2 + 5074*n**3 - 1525*n**4 + 265*n**5 - 25*n**6 + n**7))/n**9 +
             D3zs1 * (2*(21600 - 60120*n + 66960*n**2 - 39780*n**3 + 13999*n**4 - 3030*n**5 + 400*n**6 - 30*n**7 + n**8))/n**9 +
             D2pis1 * (-129600 + 382320*n - 461880*n**2 + 305400*n**3 - 123226*n**4 + 31729*n**5 - 5260*n**6 + 550*n**7 - 34*n**8 + n**9)/n**9 +
@@ -1009,29 +1010,29 @@ def adjust_D2pis1(n, moment_names, moments):
             pi * (2*(-1 + n)**4)/n**8 +
             s1 * 0][0]
 
-def adjust_Dpizs1(n, moment_names, moments):
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_Dpizs1(n, stat_names, stats):
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D4s1 * (240*(720 - 1764*n + 1624*n**2 - 735*n**3 + 175*n**4 - 21*n**5 + n**6))/n**9 +
             D3zs1 * (60*(-4 + n)**2*(-180 + 396*n - 307*n**2 + 107*n**3 - 17*n**4 + n**5))/n**9 +
             D2pis1 * (60*(12 - 7*n + n**2)**2*(60 - 112*n + 65*n**2 - 14*n**3 + n**4))/n**9 +
@@ -1055,29 +1056,29 @@ def adjust_Dpizs1(n, moment_names, moments):
             pi * 0 +
             s1 * 0][0]
 
-def adjust_pi2s1(n, moment_names, moments):
-    D4s1 = moments[moment_names.index('D^4_s1')]
-    D3zs1 = moments[moment_names.index('D^3_z_s1')]
-    D2pis1 = moments[moment_names.index('D^2_pi^1_s1')]
-    Dpizs1 = moments[moment_names.index('D^1_pi^1_z_s1')]
-    pi2s1 = moments[moment_names.index('pi^2_s1')]
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_pi2s1(n, stat_names, stats):
+    D4s1 = stats[stat_names.index('D^4_s1')]
+    D3zs1 = stats[stat_names.index('D^3_z_s1')]
+    D2pis1 = stats[stat_names.index('D^2_pi^1_s1')]
+    Dpizs1 = stats[stat_names.index('D^1_pi^1_z_s1')]
+    pi2s1 = stats[stat_names.index('pi^2_s1')]
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D4s1 * (360*(-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5))/n**9 +
             D3zs1 * (120*(-3 + n)**2*(40 - 78*n + 49*n**2 - 12*n**3 + n**4))/n**9 +
             D2pis1 * (180*(6 - 5*n + n**2)**2*(-20 + 29*n - 10*n**2 + n**3))/n**9 +
@@ -1101,24 +1102,24 @@ def adjust_pi2s1(n, moment_names, moments):
             pi * (2*(-1 + n)**5)/n**8 +
             s1 * 0][0]
 
-def adjust_D2s2(n, moment_names, moments):
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    s3 = moments[moment_names.index('1_s3')]
-    D4 = moments[moment_names.index('D^4')]
-    D3z = moments[moment_names.index('D^3_z')]
-    D2pi = moments[moment_names.index('D^2_pi^1')] 
-    Dpiz = moments[moment_names.index('D^1_pi^1_z')]
-    pi2 = moments[moment_names.index('pi^2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    s2 = moments[moment_names.index('1_s2')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_D2s2(n, stat_names, stats):
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    s3 = stats[stat_names.index('1_s3')]
+    D4 = stats[stat_names.index('D^4')]
+    D3z = stats[stat_names.index('D^3_z')]
+    D2pi = stats[stat_names.index('D^2_pi^1')] 
+    Dpiz = stats[stat_names.index('D^1_pi^1_z')]
+    pi2 = stats[stat_names.index('pi^2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    s2 = stats[stat_names.index('1_s2')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
+    s1 = stats[stat_names.index('1_s1')]
     return [D2s2 * (-3600 + 9420*n - 9610*n**2 + 5074*n**3 - 1525*n**4 + 265*n**5 - 25*n**6 + n**7)/n**7 +
             Dzs2 * ((-3 + n)**2*(40 - 78*n + 49*n**2 - 12*n**3 + n**4))/n**7 +
             pis2 * (-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5)/n**6 +
@@ -1137,13 +1138,13 @@ def adjust_D2s2(n, moment_names, moments):
             pi * (2*(-1 + n)**3)/n**6 +
             s1 * 0][0]
 
-def adjust_Dzs2(n, moment_names, moments):
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
+def adjust_Dzs2(n, stat_names, stats):
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
     return [D2s2 * (20*(720 - 1764*n + 1624*n**2 - 735*n**3 + 175*n**4 - 21*n**5 + n**6))/n**7 +
             Dzs2 * ((-2 + n)**2*(-360 + 702*n - 461*n**2 + 137*n**3 - 19*n**4 + n**5))/n**7 +
             D2s1 * (-4*(1080 - 2730*n + 2599*n**2 - 1200*n**3 + 280*n**4 - 30*n**5 + n**6))/n**7 +
@@ -1151,16 +1152,16 @@ def adjust_Dzs2(n, moment_names, moments):
             D2 * (-4*(-2 + n)**2*(-31 + 53*n - 25*n**2 + 3*n**3))/n**7 +
             Dz * (2*(-2 + n)**2*(-1 + n)**3)/n**7][0]
 
-def adjust_pis2(n, moment_names, moments):
-    D2s2 = moments[moment_names.index('D^2_s2')]
-    Dzs2 = moments[moment_names.index('D^1_z_s2')]
-    pis2 = moments[moment_names.index('pi^1_s2')]
-    D2s1 = moments[moment_names.index('D^2_s1')]
-    Dzs1 = moments[moment_names.index('D^1_z_s1')]
-    pis1 = moments[moment_names.index('pi^1_s1')]
-    D2 = moments[moment_names.index('D^2')]
-    Dz = moments[moment_names.index('D^1_z')]
-    pi = moments[moment_names.index('pi^1')]
+def adjust_pis2(n, stat_names, stats):
+    D2s2 = stats[stat_names.index('D^2_s2')]
+    Dzs2 = stats[stat_names.index('D^1_z_s2')]
+    pis2 = stats[stat_names.index('pi^1_s2')]
+    D2s1 = stats[stat_names.index('D^2_s1')]
+    Dzs1 = stats[stat_names.index('D^1_z_s1')]
+    pis1 = stats[stat_names.index('pi^1_s1')]
+    D2 = stats[stat_names.index('D^2')]
+    Dz = stats[stat_names.index('D^1_z')]
+    pi = stats[stat_names.index('pi^1')]
     return [D2s2 * (30*(-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5))/n**7 +
             Dzs2 * (3*(-1 + n)**2*(120 - 154*n + 71*n**2 - 14*n**3 + n**4))/n**7 +
             pis2 * ((-1 + n)**2*(120 - 154*n + 71*n**2 - 14*n**3 + n**4))/n**6 +
@@ -1171,10 +1172,10 @@ def adjust_pis2(n, moment_names, moments):
             Dz * (2*(-1 + n)**4)/n**7 +
             pi * (2*(-1 + n)**4)/n**6][0]
 
-def adjust_s3(n, moment_names, moments):
-    s3 = moments[moment_names.index('1_s3')]
-    s2 = moments[moment_names.index('1_s2')]
-    s1 = moments[moment_names.index('1_s1')]
+def adjust_s3(n, stat_names, stats):
+    s3 = stats[stat_names.index('1_s3')]
+    s2 = stats[stat_names.index('1_s2')]
+    s1 = stats[stat_names.index('1_s1')]
     return [s3 * (-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5)/n**5 +
             s2 * (30 - 73*n + 63*n**2 - 23*n**3 + 3*n**4)/n**5 +
             s1 * (-1 + n)**3/n**5][0]
@@ -1183,7 +1184,7 @@ def adjust_s3(n, moment_names, moments):
 Correction for genotypes (with and without sampling)
 """
 
-def corrected_onepop_genotypes(moments, order=2, n=None):
+def corrected_onepop_genotypes(stats, order=2, n=None):
     """
     correct the expectations for genotype data
     if n is None, there is no sampling correction
@@ -1192,20 +1193,20 @@ def corrected_onepop_genotypes(moments, order=2, n=None):
           here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
     """
     if order == 2:
-        return order2correction_genotypes(moments, n)
+        return LDstats(order2correction_genotypes(stats.data, n), order=order)
     else:
         print("Haven't implemented corrections for order {0}".format(order))
-        return moments
+        return stats
         
 
-def order2correction_genotypes(moments, n):
+def order2correction_genotypes(stats, n):
     if n is None:
         # corrections for genotype without correcting for sampling bias
-        return np.array([ 1./4, 1./2, 1., 1., 1.]) * np.array(moments)
+        return np.array([ 1./4, 1./2, 1., 1., 1.]) * np.array(stats)
     else:
         # corrections for genotype data with sampling bias
-        moment_names = Numerics.moment_names_onepop(2)
-        return adjust_order2_sampling(n).dot(moments)
+        stat_names = Numerics.moment_names_onepop(2)
+        return adjust_order2_sampling(n).dot(stats)
 
 def adjust_order2_sampling(n):
     return np.array([[(-1. + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1. + n)**2/(8.*n**3), (-1. + n)/(4.*n**2), 0, 0],
