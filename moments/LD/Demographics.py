@@ -22,7 +22,7 @@ def equilibrium(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False
     else:
         return LDstats(y, num_pops=1, order=order)
 
-def two_epoch(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, ism=False):
+def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False):
     """
     Two epoch model
     params:  = (nu,T), where nu is the new population size, integrated for time T
@@ -44,7 +44,7 @@ def two_epoch(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, ism=
     else:
         return LDstats(y, num_pops=1, order=order)
 
-def three_epoch(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, ism=False):
+def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False):
     """
     Three epoch model
     params:  = (nu1,nu2,T1,T2), where nus are the population size, integrated 
@@ -68,7 +68,7 @@ def three_epoch(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, is
     else:
         return LDstats(y, num_pops=1, order=order)
 
-def growth(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, ism=False):
+def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False):
     """
     Exponential growth (or decay) model
     params: = (nuF,T), nu F is the final population size after time T (starting from nu=1)
@@ -91,7 +91,7 @@ def growth(params, order=2, rho=0, theta=0.008, ns=200, corrected=False, ism=Fal
     else:
         return LDstats(y, num_pops=1, order=order)
 
-def bottlegrowth(params, ns=200, rho=0, theta=0.008, order=2, corrected=False, ism=False):    
+def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=False):    
     """
     Exponential growth (or decay) model after size change
     params: = (nuB,nuF,T), nu F is the final population size after time T, 

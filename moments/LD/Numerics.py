@@ -137,6 +137,9 @@ def recombination(n):
     return csc_matrix((data,(row,row)),shape=size)
 
 def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=False):
+    nu = np.float(nu)
+    theta = np.float(theta)
+    rho = np.float(rho)
     if order is None:
         try:
             order = lengths[len(y)]
