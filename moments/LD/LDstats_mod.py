@@ -44,7 +44,6 @@ class LDstats(numpy.ma.masked_array):
         
         if mask is numpy.ma.nomask:
             mask = numpy.ma.make_mask_none(data.shape)
-            mask[-1] = True
 
         subarr = numpy.ma.masked_array(data, mask=mask, dtype=dtype, copy=copy,
                                        fill_value=fill_value, keep_mask=keep_mask,
@@ -63,6 +62,14 @@ class LDstats(numpy.ma.masked_array):
         
         return subarr
 
+    # See http://www.scipy.org/Subclasses for information on the
+    # __array_finalize__ and __array_wrap__ methods. I had to do some debugging
+    # myself to discover that I also needed _update_from.
+    # Also, see http://docs.scipy.org/doc/numpy/reference/arrays.classes.html
+    # Also, see http://docs.scipy.org/doc/numpy/user/basics.subclassing.html
+    #
+    # We need these methods to ensure extra attributes get copied along when
+    # we do arithmetic on the FS.
     def __array_finalize__(self, obj):
         if obj is None: 
             return
@@ -83,7 +90,7 @@ class LDstats(numpy.ma.masked_array):
         if hasattr(obj, 'num_pops'):
             self.num_pops = obj.num_pops
     # masked_array has priority 15.
-    __array_priority__ = 15
+    __array_priority__ = 20
 
     def __repr__(self):
         return 'LDstats(%s, num_pops=%s, order=%s)'\

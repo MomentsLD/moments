@@ -58,10 +58,13 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
-                 fixed_params=None, multinom=False, use_afs=False,
+                 fixed_params=None, multinom=False, use_afs=False, genotypes=False,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
+    
+    # ns is [nsLD, nsFS]
+    nsLD, nsFS = ns
     
     # Deal with fixed parameters
     params_up = _project_params_up(params, fixed_params)
@@ -81,25 +84,37 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         theta = params_up[-1]
     
     all_args = [params_up] + list(func_args)
-    ## first get ll of afs
-    if use_afs == True:
-        model = Leff * model_func[1](all_args[0],[ns])
-        ll_afs = moments.Inference.ll(fs,model)
-    
+
     if multinom == True:
         all_args = [all_args[0][:-1]]
 
+    ## first get ll of afs
+    if use_afs == True:
+        model = Leff * theta * model_func[1](all_args[0],[nsFS])
+        if fs.folded:
+            model = model.fold()
+        if multinom == True:
+            ll_afs = moments.Inference.ll_multinom(fs,model)
+        else:
+            ll_afs = moments.Inference.ll(fs,model)
+    
     ## next get ll for LD stats
     # need func_kwargs for each rho in rhos
     func_kwargs_list = []
     for rho in rhos:
-        func_kwargs_list.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+        if genotypes == False:
+            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+        else:
+            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
     
     sorted_rhos = np.sort(rhos)
     mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
     func_kwargs_list_mids = []
     for rho in mid_rhos:
-        func_kwargs_list_mids.append( {'theta':theta, 'ns':ns, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+        if genotypes == False:
+            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+        else:
+            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
     
     if use_afs == True: # we adjust varcovs and means to remove sigma statistics
         # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
@@ -110,13 +125,13 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
 
     stats = []
     for func_kwargs_rho in func_kwargs_list:
-        temp_stats = model_func[0](order, *all_args, **func_kwargs_rho)
+        temp_stats = model_func[0](*all_args, **func_kwargs_rho)
         temp_stats = temp_stats[:-1] # last value is 1
         stats.append(np.delete(temp_stats,inds_to_remove))
     
     stats_mid = []
     for func_kwargs_rho in func_kwargs_list_mids:
-        temp_stats = model_func[0](order, *all_args, **func_kwargs_rho)
+        temp_stats = model_func[0](*all_args, **func_kwargs_rho)
         temp_stats = temp_stats[:-1] # last value is 1
         stats_mid.append(np.delete(temp_stats,inds_to_remove))
     
@@ -145,7 +160,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         param_str = 'array([%s])' % (', '.join(['%- 12g'%v for v in params_up]))
         output_stream.write('%-8i, %-12g, %s%s' % (_counter, result, param_str,
                                                    os.linesep))
-
+    
     return -result
 
 def _object_func_log(log_params, *args, **kwargs):
@@ -155,10 +170,11 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None, verbose=0,
                  func_args=[], func_kwargs={}, fixed_params=None, 
-                 multinom=False, use_afs=False):
+                 multinom=False, use_afs=False, genotypes=False):
     """
     p0 = initial guess
-    ns = sample size (number of haplotypes) - we need this to correct for sampling bias
+    ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
+         if different sample sizes were used for computing LD stats and the frequency spectrum
     data = [means, varcovs, fs (optional, use if use_afs=True)]
     means = list of mean statistics matching rhos in func_kwargs
     varcovs = list of varcov matrices matching means
@@ -167,10 +183,12 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
         If it's LD stats alone, it's just a single LD model (still as a list)
     order = the single-population order of D-statistics
     theta = NOTE!! this is population scaled per base mutation rate (4Ne*mu, not 4Ne*mu*L)
-    func_kwargs = need 'ns', 'rhos', and 'theta'
     """
     # update this to write to file, now just prints to stdout
     output_stream = sys.stdout
+    
+    if hasattr(ns, '__len__') == False:
+        ns = [ns,ns]
     
     means = data[0]
     varcovs = data[1]
@@ -202,7 +220,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             order, theta, Leff, ism, corrected,
             lower_bound, upper_bound, 
             verbose, func_args, func_kwargs,
-            fixed_params, multinom, use_afs,
+            fixed_params, multinom, use_afs, genotypes,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
