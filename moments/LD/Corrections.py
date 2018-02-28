@@ -1194,6 +1194,8 @@ def corrected_onepop_genotypes(stats, order=2, n=None):
     """
     if order == 2:
         return LDstats(order2correction_genotypes(stats.data, n), order=order)
+    elif order == 4:
+        return LDstats(order4correction_genotypes(stats.data, n), order=order)
     else:
         print("Haven't implemented corrections for order {0}".format(order))
         return stats
@@ -1207,6 +1209,14 @@ def order2correction_genotypes(stats, n):
         # corrections for genotype data with sampling bias
         return adjust_order2_sampling(n).dot(stats)
 
+def order4correction_genotypes(stats, n):
+    if n is None:
+        # corrections for genotype without correcting for sampling bias
+        return np.array([ 1./16, 1./8, 1./4, 1./2, 1., 1./4, 1./2, 1., 1., 1./4, 1./2, 1., 1., 1. ]) * np.array(stats)
+    else:
+        # corrections for genotype data with sampling bias
+        return adjust_order4_sampling(n).dot(stats)
+
 def adjust_order2_sampling(n):
     return np.array([[(-1. + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1. + n)**2/(8.*n**3), (-1. + n)/(4.*n**2), 0, 0],
                      [(-1. + n)**2/n**3, (-1. + n)**3/(2.*n**3), 0, 0, 0],
@@ -1215,11 +1225,11 @@ def adjust_order2_sampling(n):
                      [0, 0, 0, 0, 1]])
 
 def adjust_order4_sampling(n):
-    return np.array([[  ], ## D^4
-                     [  ], ## D^3z
-                     [  ], ## D^2pi
-                     [  ], ## Dpiz
-                     [  ], ## pi^2
+    return np.array([[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], ## D^4
+                     [ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], ## D^3z
+                     [ 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], ## D^2pi
+                     [ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], ## Dpiz
+                     [ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], ## pi^2
                      [ 0, 0, 0, 0, 0, (-18 + 48*n - 55*n**2 + 36*n**3 - 13*n**4 + 2*n**5)/(8.*n**5), (6 - 16*n + 17*n**2 - 9*n**3 + 2*n**4)/(16.*n**5), ((-1 + n)**2*(-3 + 2*n))/(8.*n**4), 0, ((-1 + n)**2*(7 - 6*n + 4*n**2))/(8.*n**5), ((-1 + n)**2*(-1 + 2*n))/(16.*n**5), (1 - 3*n + 2*n**2)/(8.*n**4), 0, 0 ], ## D^2s
                      [ 0, 0, 0, 0, 0, (3*(-1 + n)**2*(6 - 7*n + 2*n**2))/(2.*n**5), ((-1 + n)**3*(6 - 7*n + 2*n**2))/(4.*n**5), 0, 0, -((-1 + n)**3*(-7 + 2*n))/(2.*n**5), ((-1 + n)**3*(-1 + 2*n))/(4.*n**5), 0, 0, 0 ], ## Dzs
                      [ 0, 0, 0, 0, 0, (3*(-3 + 11*n - 12*n**2 + 4*n**3))/(4.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**4), 0, -((-7 + 26*n - 28*n**2 + 8*n**3))/(8.*n**5), (-1 + 2*n)**3/(16.*n**5), (-1 + 2*n)**3/(8.*n**4), 0, 0 ], ## pis
@@ -1228,4 +1238,4 @@ def adjust_order4_sampling(n):
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + n)**2/(1.*n**3), (-1 + n)**3/(2.*n**3), 0, 0, 0 ], ## Dz
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n)/(4.*n**3), (1 - 2*n)**2/(8.*n**3), (1 - 2*n)**2/(4.*n**2), 0, 0 ], ## pi
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 - 1/(2.*n), 0], ## s
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]] ## 1
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]]) ## 1
