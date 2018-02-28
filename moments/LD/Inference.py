@@ -58,7 +58,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
-                 fixed_params=None, multinom=False, use_afs=False, genotypes=False,
+                 fixed_params=None, multinom=False, use_afs=False, 
+                 genotypes=False,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -79,14 +80,10 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
             if bound is not None and pval > bound:
                 return -_out_of_bounds_val
     
-    ### how to multinom with afs + LD
-    if multinom == True:
-        theta = params_up[-1]
-    
-    all_args = [params_up] + list(func_args)
 
-    if multinom == True:
-        all_args = [all_args[0][:-1]]
+    theta = params_up[-1]
+    all_args = [params_up] + list(func_args)
+    all_args = [all_args[0][:-1]]
 
     ## first get ll of afs
     if use_afs == True:
@@ -103,18 +100,22 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
     func_kwargs_list = []
     for rho in rhos:
         if genotypes == False:
-            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                        'corrected':corrected, 'ism':ism} )
         else:
-            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
+            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                        'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
     
     sorted_rhos = np.sort(rhos)
     mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
     func_kwargs_list_mids = []
     for rho in mid_rhos:
         if genotypes == False:
-            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism} )
+            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                        'corrected':corrected, 'ism':ism} )
         else:
-            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
+            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                        'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
     
     if use_afs == True: # we adjust varcovs and means to remove sigma statistics
         # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
@@ -161,6 +162,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         output_stream.write('%-8i, %-12g, %s%s' % (_counter, result, param_str,
                                                    os.linesep))
     
+    
     return -result
 
 def _object_func_log(log_params, *args, **kwargs):
@@ -172,7 +174,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  multinom=False, use_afs=False, genotypes=False):
     """
-    p0 = initial guess
+    p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
          if different sample sizes were used for computing LD stats and the frequency spectrum
     data = [means, varcovs, fs (optional, use if use_afs=True)]
@@ -183,6 +185,11 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
         If it's LD stats alone, it's just a single LD model (still as a list)
     order = the single-population order of D-statistics
     theta = NOTE!! this is population scaled per base mutation rate (4Ne*mu, not 4Ne*mu*L)
+    
+    multinom: If True, we allow separate effective theta for the frequency spectrum and 
+                theta is only fit to the lD data. If False, the same that scales both LD
+                statistics and the fs
+    Leff: effective length of genome from which the fs was generated
     """
     # update this to write to file, now just prints to stdout
     output_stream = sys.stdout
