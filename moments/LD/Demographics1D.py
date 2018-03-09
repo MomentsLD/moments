@@ -24,7 +24,7 @@ def equilibrium(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False
         else:
             return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
     else:
-        return LDstats(y, num_pops=1, order=order)
+        return y
 
 def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genotypes=False):
     """
@@ -50,7 +50,7 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
         else:
             return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
     else:
-        return LDstats(y, num_pops=1, order=order)
+        return y
 
 def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genotypes=False):
     """
@@ -78,7 +78,7 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
         else:
             return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
     else:
-        return LDstats(y, num_pops=1, order=order)
+        return y
 
 def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False):
     """
@@ -105,7 +105,7 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
         else:
             return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
     else:
-        return LDstats(y, num_pops=1, order=order)
+        return y
 
 def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=False, genotypes=False):    
     """
@@ -133,5 +133,5 @@ def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, 
         else:
             return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
     else:
-        return LDstats(y, num_pops=1, order=order)
+        return y
 

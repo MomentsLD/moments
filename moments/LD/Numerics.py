@@ -1,9 +1,13 @@
 import numpy as np
 
+import copy
+
 from scipy.sparse import identity
 from scipy.sparse.linalg import factorized
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import inv as spinv
+
+### XXX want to silence sparseefficiencywarning - or even better, make it more efficient
 
 from moments.LD import Matrices
 
@@ -65,8 +69,8 @@ def moment_names_onepop(n):
         lengths[len(moments)] = n
     return moments
 
-def moment_names_multipop():
-    pass
+def moment_names_multipop(n):
+    return moment_list(n)
 
 ### single population transition matrices
 def drift(n):
@@ -137,7 +141,8 @@ def recombination(n):
     return csc_matrix((data,(row,row)),shape=size)
 
 def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=False):
-    nu = np.float(nu)
+    if callable(nu) == False:
+        nu = np.float(nu)
     theta = np.float(theta)
     rho = np.float(rho)
     if order is None:
@@ -170,7 +175,7 @@ def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=Fal
         
         # if nu is a function, set N to nu(t+dt/2)
         if callable(nu):
-            N = nu(elapsed_t + dt/2.)
+            N = np.float(nu(elapsed_t + dt/2.))
         else:
             N = nu
         
@@ -202,8 +207,11 @@ def equilibrium(order=2, rho=0.0, theta=0.0008, ism=False):
 ### multi pop numerics
 
 """
-These are for dealing with networkx defined demography trees
-To do: incorporate moments-style integration routine
+These are for dealing with networkx defined demography trees (see example)
+Initially I build models using networkx graphs and hacked together ways to deal
+with population splits and demography. Admittedly, it's not pretty and as
+usually, the comments are shit.
+Much farther below is integration in style of moments
 """
 
 def get_leaves(demo):
@@ -331,16 +339,15 @@ def get_pop_sizes(demo, T, pops):
 
 def demography(demo, rho=0.0, theta=1e-4, dt=0.0001):
     event_times = get_event_times(demo)
-    y, ordered_pops = root_equilibrium(demo, rho, theta, dt)
+    y, ordered_pops = root_equilibrium_nx(demo, rho, theta, dt)
     for period in zip(event_times[:-1],event_times[1:]):
         y, ordered_pops = seed_after_split(demo, period[0], y, ordered_pops)
-        y = integrate_multipop(demo, period[0], period[1], rho, theta, y, ordered_pops, dt)
+        y = integrate_multipop_nx(demo, period[0], period[1], rho, theta, y, ordered_pops, dt)
     return y[:-1], ordered_pops
 
 """
 Multipopulation moment names and seeding statistics after a population split
 """
-
 
 def moment_list(num_pops):
     """
@@ -390,7 +397,6 @@ def seed_after_split(demo, T, y_last, ordered_pops):
     ml = moment_list(len(new_ordered_pops))
     y = np.zeros(len(ml))
     
-    #### need XXX.index(parent1).... (this is a shitty comment 10/17)
     for i,moment in zip(range(len(ml)),ml):
         # get from parent
         if moment.split('_')[0] == 'DD':
@@ -551,7 +557,7 @@ def seed_after_split(demo, T, y_last, ordered_pops):
     return np.concatenate(( y, np.ones(1) )), new_ordered_pops
 
 """
-Matrices for integration
+Matrices for multipopulation integration
 """
 
 def drift_multipop(nus,npops):
@@ -604,7 +610,7 @@ def mutation_multipop(mu,npops):
 Integration routines
 """
     
-def integrate_multipop(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
+def integrate_multipop_nx(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
     # total integration time
     T = Tbot-Ttop
     # pops and models in this period, order from seeding from last epoch
@@ -666,7 +672,7 @@ def integrate_multipop(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
     return y
 
 #root_cache = {}
-def root_equilibrium(demo, rho, theta, dt):
+def root_equilibrium_nx(demo, rho, theta, dt):
     #try:
         #y0 = root_cache[(rho,theta)]
     #except KeyError:
@@ -685,3 +691,92 @@ def root_equilibrium(demo, rho, theta, dt):
         #root_cache[(rho,theta)] = y0
 
     return y0, [get_root(demo)]
+
+"""
+Integration for multiple populations in style of moments
+"""
+
+def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=None):
+    """
+    Integration function for multipopulation statistics
+    y: LDstats object with y.data, y.num_pops, y.order (=2 for multipop models)
+    nu: 
+    T: 
+    rho: 
+    theta: 
+    dt: 
+    m: migration matrix with [[0, m12, m13, ...],[m21, 0, m23, ...],...]
+    
+    Note that in the multipopulation basis, only the reversible mutation model is possible
+    """
+    moms = moment_names_multipop(num_pops)
+    if len(moms)+1 != len(y):
+        raise ValueError("num_pops must be set to correct number of populations")
+    
+    if num_pops > 1:
+        if m== None:
+            ms = num_pops*(num_pops-1)*[0]
+        else:
+            ms = []
+            for ii in range(num_pops):
+                for jj in range(ii+1,num_pops):
+                    ms.append(m[ii][jj])
+                    ms.append(m[jj][ii])
+            ### To do: check if m12 in Matrics means migration from 1 to 2 or from 2 to 1
+            M = migration_multipop(ms,num_pops)
+    
+    R = recombination_multipop(rho,num_pops)
+    U = mutation_multipop(theta,num_pops)
+    
+    if callable(nu):
+        nus = nu(0)
+    else:
+        nus = nu
+    
+    D = drift_multipop(nus,num_pops)
+    
+    dt_last = dt
+    nus_last = nus
+    elapsed_T = 0
+    # improve with t_elapsed, below checking if pop sizes changed
+    while elapsed_T < T:
+        
+        if elapsed_T + dt > T:
+            dt = T-elapsed_T
+        
+        if callable(nu):
+            nus = nu(elapsed_T+dt/2.)
+        
+        if dt != dt_last or nus != nus_last or elapsed_T == 0:
+            D = drift_multipop(nus,num_pops)
+            if num_pops > 1:
+                Ab = D+M+R+U
+            else:
+                Ab = D+R+U
+            Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
+            Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+        
+        y = Ab2(Ab1.dot(y))
+        elapsed_T += dt
+        dt_last = copy.copy(dt)
+        nus_last = copy.copy(nus)
+    
+    return y
+
+def root_equilibrium(rho, theta, dt=0.01):
+    D = drift_multipop([1.],1)
+    R = recombination_multipop(rho,1)
+    U = mutation_multipop(theta,1)
+    
+    Ab = D+R+U
+        
+    y0 = np.array([0,0,1,1,1,1])
+    Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
+    Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+    for timesteps in range(int(20.0/dt)):
+        y0 = Ab2(Ab1.dot(y0))
+    return y0
+
+
+
+    

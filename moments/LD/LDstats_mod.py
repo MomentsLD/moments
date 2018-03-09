@@ -103,10 +103,57 @@ class LDstats(numpy.ma.masked_array):
             raise ValueError('Number of populations must be specified (as stats.num_pops)')
         
         if self.num_pops == 1:
-            return Numerics.moment_names_onepop(self.order)
+            if len(self.data) == 5:
+                return Numerics.moment_names_onepop(self.order)
+            elif len(self.data) == 6:
+                return Numerics.moment_names_multipop(self.num_pops)
         else:
-            return
+            return Numerics.moment_names_multipop(self.num_pops)
     
+    
+    def split(self, num_pops, pop_to_split):
+        """
+        y: LDstats object for 
+        num_pops: current number of pops, will be split to num_pops+1 populations
+        pop_to_split: index of population to split
+        So split(y, 2, 1) would split 2 to 3 pops, splitting pop1
+        If the populations are labeled [pop1, pop2], with the new pop pop_new, the 
+        output statistics would have population order [pop1, pop2, pop_new]
+        New population always appended on end. 
+        """
+        mom_list_from = Numerics.moment_list(num_pops)
+        mom_list_to = Numerics.moment_list(num_pops+1)
+        y_from = self.data
+        y_new = np.ones(len(mom_list_to)+1)
+        # dictionary to point where moments in mom_list_to come from in mom_list_from
+        points = {}
+        for mom_to in mom_list_to:
+            if mom_to in mom_list_from:
+                points[mom_to] = mom_to
+            else:
+                mom_from_split = mom_to.split('_')
+                for ii in range(1,len(mom_from_split)):
+                    if int(mom_from_split[ii]) == num_pops+1:
+                        mom_from_split[ii] = str(pop_to_split)
+                mom_from = '_'.join(mom_from_split)
+                points[mom_to] = mom_from
+        for ii,mom_to in zip(range(len(mom_list_to)),mom_list_to):
+            y_new[ii] = self[mom_list_from.index(points[mom_to])]
+        return LDstats(y_new, num_pops=num_pops+1, order=self.order)
+    
+    def swap_pops():
+        """
+        like swapaxes for switching population ordering
+        """
+        pass
+
+
+    def merge():
+        pass
+
+    def admix():
+        pass
+
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
     def from_file(fid, return_comments=False):
@@ -149,7 +196,7 @@ def %(method)s(self, other):
 """ % {'method':method})
     
     
-    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.0008, ism=False):
+    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.0008, ism=False, m=None):
         """
         Integrates the LD statistics forward in time. The tricky part is combining
         single population and multi-population integration routines. 
@@ -162,6 +209,9 @@ def %(method)s(self, other):
         theta: per base population-scaled mutation rate (4N*mu)
         ism: if True, we use the infinite sites model, otherwise we use a reversible
              mutation model (equal forward and reverse mutation rates)
+             Note that the ism model is only implemented in the single population
+             model with basis that includes p(1-p)q(1-q) term. Not possible to 
+             include in the multipopulation model.
         """
         order = self.order
         num_pops = self.num_pops
@@ -170,12 +220,14 @@ def %(method)s(self, other):
             print('Please specify rho in the future. Rho set to 0.0!!')
             rho = 0.0
         
-        if num_pops == 1:
+        if num_pops == 1 and len(self.data) == 5:
+            # this is the system [D^2, Dz, pi2, pi, 1]
             self.data[:] = Numerics.integrate(self.data, tf, rho=rho, nu=nu, theta=theta,
-                                           order=order, dt=dt, ism=ism)
+                                            order=order, dt=dt, ism=ism)
         else:
-            print('we have not implemented multi-population integration here yet')
-            return
+            # this is the system [D^2, Dz, z^2, z_p, z^q, 1] and multipop with same basis
+            self.data[:] = Numerics.integrate_multipop(self.data, nu, tf, dt=dt,
+                                            rho=rho, theta=theta, m=m, num_pops=self.num_pops)
 
 
 # Allow LDstats objects to be pickled.
