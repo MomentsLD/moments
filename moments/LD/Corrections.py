@@ -8,33 +8,6 @@ corrections are implemented for single pop models up to order D^6 (evens)
 and for multipopulation models for 2nd order statistics
 """
 
-def corrected_multipop(stats, ns=None, num_pops=2):
-    """
-    for num_pops number of populations (currently implemented up to 4 populations as of 10/17)
-    sample_sizes = (n1,n2,...) in the correct order for the list stats
-    stats start of with [D1**2, D1 D2, ..., D2**2, D2 D3, ..., etc]
-    """
-    if ns == None:
-        return stats
-    
-    sample_sizes = ns
-    if len(sample_sizes) != num_pops:
-        raise ValueError("number of sample sizes must equal number of populations")
-    
-    # last moment might be 1 - if so, drop it
-    if stats[-1] == 1.0:
-        stats = stats[:-1]
-    
-    stat_names = Numerics.moment_list(num_pops)
-    if len(stat_names) != len(stats):
-        raise ValueError("mismatch of input moments and number of populations")
-    
-    corrected = np.empty(len(stats))
-    for ii,name in zip(range(len(stat_names)),stat_names):
-        corrected[ii] = adjust_moment(name, stat_names, stats, sample_sizes)
-    
-    return corrected
-
 def corrected_onepop(stats, n=None, order=2):
     if n == None:
         return stats
@@ -47,6 +20,65 @@ def corrected_onepop(stats, n=None, order=2):
     else:
         print("Haven't implemented corrections for order {0}".format(order))
         return stats
+
+def corrected_onepop_genotypes(stats, n=None, order=2):
+    """
+    correct the expectations for genotype data
+    if n is None, there is no sampling correction
+    otherwise n 
+    NOTE: unlike the correction for haploid sampling, where n is the number of chromosomes,
+          here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
+    """
+    if order == 2:
+        return LDstats(order2correction_genotypes(stats.data, n), order=order)
+    elif order == 4:
+        return LDstats(order4correction_genotypes(stats.data, n), order=order)
+    else:
+        print("Haven't implemented corrections for order {0}".format(order))
+        return stats
+
+def corrected_multipop(stats, ns=None, num_pops=2):
+    """
+    for num_pops number of populations (currently implemented up to 4 populations as of 10/17)
+    ns = (n1,n2,...) in the correct order for the list stats
+    stats start of with [D1**2, D1 D2, ..., D2**2, D2 D3, ..., etc]
+    """
+    if ns == None:
+        return stats
+    
+    if len(ns) != num_pops:
+        raise ValueError("number of sample sizes must equal number of populations")
+    
+    stat_names = Numerics.moment_list(num_pops)
+    if len(stat_names) != len(stats)-1:
+        raise ValueError("mismatch of input moments and number of populations")
+    
+    corrected = np.ones(len(stats))
+    for ii,name in zip(range(len(stat_names)),stat_names):
+        corrected[ii] = adjust_moment(name, stat_names, stats, ns)
+    
+    return LDstats(corrected, num_pops=num_pops, order=2)
+        
+def corrected_multipop_genotypes(stats, ns=None, num_pops=2):
+    """
+    """
+    if ns == None:
+        return stats
+    
+    if len(ns) != num_pops:
+        raise ValueError("length of ns must equal number of populations")
+    
+    stat_names = Numerics.moment_list(num_pops)
+    if len(stat_names) != len(stats)-1:
+        raise ValueError("mismatch of input moments and number of populations")
+
+    corrected = np.ones(len(stats))
+    for ii,name in zip(range(len(stat_names)),stat_names):
+        corrected[ii] = adjust_moment_genotype(name, stat_names, stats, ns)
+    
+    return LDstats(corrected, num_pops=num_pops, order=2)
+
+### below are all the sampling bias corrections for each statistic
 
 def adjust_moment(name, stat_names, stats, sample_sizes):
     moment_type = name.split('_')[0]
@@ -1184,23 +1216,6 @@ def adjust_s3(n, stat_names, stats):
 Correction for genotypes (with and without sampling)
 """
 
-def corrected_onepop_genotypes(stats, order=2, n=None):
-    """
-    correct the expectations for genotype data
-    if n is None, there is no sampling correction
-    otherwise n 
-    NOTE: unlike the correction for haploid sampling, where n is the number of chromosomes,
-          here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
-    """
-    if order == 2:
-        return LDstats(order2correction_genotypes(stats.data, n), order=order)
-    elif order == 4:
-        return LDstats(order4correction_genotypes(stats.data, n), order=order)
-    else:
-        print("Haven't implemented corrections for order {0}".format(order))
-        return stats
-        
-
 def order2correction_genotypes(stats, n):
     if n is None:
         # corrections for genotype without correcting for sampling bias
@@ -1241,33 +1256,13 @@ def adjust_order4_sampling(n):
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]]) ## 1
 
 
-def corrected_multipop_genotypes(stats, ns=None, num_pops=2):
-    """
-    """
-    if ns == None:
-        return stats
-    
-    if len(ns) != num_pops:
-        raise ValueError("length of ns must equal number of populations")
-    
-    if order != 2:
-        print("Haven't implemented corrections for order {0}".format(order))
-        return stats
-
-    stat_names = Numerics.moment_list(num_pops)
-    if len(stat_names) != len(stats):
-        raise ValueError("mismatch of input moments and number of populations")
-
-    corrected = np.ones(len(stats))
-    for ii,name in zip(range(len(stat_names)),stat_names):
-        corrected[ii] = adjust_moment_genotype(name, stat_names, stats, sample_sizes)
-    
-    return LDstats(corrected, num_pops=num_pops, order=2)
 
 
 def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
+    """
+    Found using Mathematica and moment generating function for hypergeometric sampling
+    """
     moment_type = name.split('_')[0]
-### this is how far I've gotten
     if moment_type == 'DD':
         popA = name.split('_')[1]
         popB = name.split('_')[2]
@@ -1279,12 +1274,12 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
             mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popA))[0]]
             mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popA))[0]]
             mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popA))[0]]
-            return mom1 * (-2 + 4*n1 - 3*n1**2 + n1**3)/n1**3 + mom2 * (-1 + n1)**2/n1**3 + mom3 * (-1 + n1)/(16.*n1**2) - mom4 * (-1 + n1)/(16.*n1**2) - mom5 * (-1 + n1)/(16.*n1**2) + 1. * (-1 + n1)/(16.*n1**2)
+            return mom1 * (-1 + 2*n1 - 2*n1**2 + n1**3)/(4.*n1**3) + mom2 * (-1 + n1)**2/(8.*n1**3) + mom3 * (-1 + n1)/(64.*n1**2) - mom4 * (-1 + n1)/(64.*n1**2) - mom5 * (-1 + n1)/(64.*n1**2) + 1. * (-1 + n1)/(64.*n1**2)
         else:
             n1 = sample_sizes[int(popA)-1]
             n2 = sample_sizes[int(popB)-1]
             mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popA,popB))[0]]
-            return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2)
+            return mom1 * ((-1 + n1)*(-1 + n2))/(4.*n1*n2)
     elif moment_type == 'Dz':
         popD = name.split('_')[1]
         popp = name.split('_')[2]
@@ -1293,11 +1288,11 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
             n1 = sample_sizes[int(popD)-1]
             mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
             mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popD))[0]]
-            return mom1 * ((-2 + n1)**2*(-1 + n1))/n1**3 + mom2 * (4*(2 - 3*n1 + n1**2))/n1**3
+            return mom1 * (-1 + n1)**3/(2.*n1**3) + mom2 * (-1 + n1)**2/n1**3
         elif popD == popp or popD == popq:
             n1 = sample_sizes[int(popD)-1]
             mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
-            return mom1 * (2 - 3*n1 + n1**2)/n1**2
+            return mom1 * (-1 + n1)**2/(2.*n1**2)
         elif popp == popq:
             n1 = sample_sizes[int(popD)-1]
             n2 = sample_sizes[int(popp)-1]
@@ -1306,11 +1301,11 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popD,popp))[0]]
             except IndexError:
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp,popD))[0]]
-            return mom1 * (-1 + n1)/n1 + mom2 * (4*(-1 + n1))/(n1*n2)
+            return mom1 * (-1 + n1)/(2.*n1) + mom2 * (-1 + n1)/(n1*n2)
         else:
             n1 = sample_sizes[int(popD)-1]
             mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
-            return mom1 * (-1 + n1)/n1
+            return mom1 * (-1 + n1)/(2.*n1)
     elif moment_type == 'zz':
         popp1 = name.split('_')[1]
         popp2 = name.split('_')[2]
@@ -1323,7 +1318,7 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
             mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popp1))[0]]
             mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
             mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popp1))[0]]
-            return mom1 * (32*(-1 + n1))/n1**3 + mom2 * (16*(-1 + n1)**2)/n1**3 + mom3 * (-1 + n1)**2/n1**2 + mom4 * (-1 + n1)/n1**2 + mom5 * (-1 + n1)/n1**2 + 1. * n1**(-2)
+            return mom1 * (-4 + 8*n1)/n1**3 + mom2 * (2*(1 - 2*n1)**2)/n1**3 + mom3 * (1 - 2*n1)**2/(4.*n1**2) + mom4 * (-1 + 2*n1)/(4.*n1**2) + mom5 * (-1 + 2*n1)/(4.*n1**2) + 1. * 1/(4.*n1**2)
         elif popp1 == popp2: 
             if popq1 == popp1: # e.g. 1_1_1_2
                 n1 = sample_sizes[int(popp1)-1]
@@ -1331,26 +1326,26 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                 mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq2))[0]]
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{1}'.format(popp1,popq2))[0]]
                 mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
-                return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
+                return mom1 * (-2 + 4*n1)/n1**2 + mom2 * (1 - 1/(2.*n1)) + mom3 * 1/(2.*n1)
             elif popq2 == popp1: # e.g. 2_2_1_2
                 n1 = sample_sizes[int(popp1)-1]
                 n2 = sample_sizes[int(popq1)-1]
                 mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq1))[0]]
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{0}'.format(popp1,popq1))[0]]
                 mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
-                return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
+                return mom1 * (-2 + 4*n1)/n1**2 + mom2 * (1 - 1/(2.*n1)) + mom3 * 1/(2.*n1)
             elif popq1 == popq2: # e.g. 1_1_2_2
                 n1 = sample_sizes[int(popp1)-1]
                 n2 = sample_sizes[int(popq1)-1]
                 mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{1}'.format(popp1,popq1))[0]]
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
                 mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
-                return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2) + mom2 * (-1 + n1)/(n1*n2) + mom3 * (-1 + n2)/(n1*n2) + 1. * 1/(n1*n2)
+                return mom1 * ((-1 + 2*n1)*(-1 + 2*n2))/(4.*n1*n2) + mom2 * (-1 + 2*n1)/(4.*n1*n2) + mom3 * (-1 + 2*n2)/(4.*n1*n2) + 1. * 1/(4.*n1*n2)
             else: # e.g. 1_1_2_3
                 n1 = sample_sizes[int(popp1)-1]
                 mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{2}'.format(popp1,popq1,popq2))[0]]
                 mom2 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
-                return mom1 * (-1 + n1)/n1 + mom2 * 1/n1
+                return mom1 * (1 - 1/(2.*n1)) + mom2 * 1/(2.*n1)
         else: # popp1 != popp2
             if popq1 == popq2:
                 if popp1 == popq1: # e.g. 1_2_1_1
@@ -1358,18 +1353,18 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{0}'.format(popp1,popp2))[0]]
                     mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp1,popp2))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
-                    return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
+                    return mom1 * (1 - 1/(2.*n1)) + mom2 * (-2 + 4*n1)/n1**2 + mom3 * 1/(2.*n1)
                 elif popp2 == popq1: # e.g. 1_2_2_2
                     n1 = sample_sizes[int(popp2)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{1}'.format(popp1,popp2))[0]]
                     mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp2,popp1))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
-                    return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
+                    return mom1 * (1 - 1/(2.*n1)) + mom2 * (-2 + 4*n1)/n1**2 + mom3 * 1/(2.*n1)
                 else: # e.g. 1_2_3_3
                     n3 = sample_sizes[int(popq1)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{2}'.format(popp1,popp2,popq1))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
-                    return mom1 * (-1 + n3)/n3 + mom2 * 1/n3
+                    return mom1 * (1 - 1/(2.*n3)) + mom2 * 1/(2.*n3)
             else: # popq1 != popq2
                 if popp1 == popq1:
                     if popp2 == popq2: # e.g. 1_2_1_2
@@ -1379,27 +1374,27 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                         mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp1,popp2))[0]]
                         mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{1}'.format(popp1,popp2))[0]]
                         mom4 = stats[np.argwhere(np.array(stat_names) == 'Dz_{1}_{0}_{0}'.format(popp1,popp2))[0]]
-                        return mom1 + mom2 * 16/(n1*n2) + mom3 * 4/n1 + mom4 * 4/n2
+                        return mom1 + mom2 * 4/(n1*n2) + mom3 * 2/n1 + mom4 * 2/n2
                     else: # e.g. 1_3_1_2 or 1_2_1_3
                         n1 = sample_sizes[int(popp1)-1]
                         mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{2}'.format(popp1,popp2,popq2))[0]]
                         mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
-                        return mom1 + mom2 * 4/n1
+                        return mom1 + mom2 * 2/n1
                 elif popp1 == popq2: # e.g. 2_3_1_2
                     n2 = sample_sizes[int(popp1)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{0}'.format(popp1,popp2,popq1))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
-                    return mom1 + mom2 * 4/n2
+                    return mom1 + mom2 * 2/n2
                 elif popp2 == popq2: # e.g. 1_3_2_3
                     n3 = sample_sizes[int(popp2)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{1}'.format(popp1,popp2,popq1))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
-                    return mom1 + mom2 * 4/n3
+                    return mom1 + mom2 * 2/n3
                 elif popp2 == popq1: # e.g. 1_2_2_3
                     n2 = sample_sizes[int(popp2)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
                     mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
-                    return mom1 + mom2 * 4/n2
+                    return mom1 + mom2 * 2/n2
                 else: # e.g. 1_2_3_4
                     mom = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{3}'.format(popp1,popp2,popq1,popq2))[0]]
                     return mom
@@ -1409,7 +1404,7 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
         if popp1 == popp2:
             n1 = sample_sizes[int(popp1)-1]
             mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
-            return mom * (-1 + n1)/n1 + 1./n1
+            return mom * (1 - 1/(2.*n1)) + 1/(2.*n1)
         else:
             mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
             return mom
@@ -1419,7 +1414,7 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
         if popq1 == popq2:
             n1 = sample_sizes[int(popq1)-1]
             mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popq1))[0]]
-            return mom * (-1 + n1)/n1 + 1./n1
+            return mom * (1 - 1/(2.*n1)) + 1/(2.*n1)
         else:
             mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
             return mom

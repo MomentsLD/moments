@@ -17,6 +17,8 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     if order != 2:
         raise ValueError("We can only run multipopulation demographies for order 2 statistics.")
     
+    n1,n2 = ns
+    
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
@@ -24,9 +26,9 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_multipop(y, ns=ns, num_pops=2)
+            return Corrections.corrected_multipop(y, ns=(n1,n2), num_pops=2)
         else:
-            return Corrections.corrected_multipop_genotypes(y, ns=ns/2, num_pops=2)
+            return Corrections.corrected_multipop_genotypes(y, ns=(n1/2,n2/2), num_pops=2)
     else:
         return y
 
@@ -47,6 +49,8 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     
     nu1, nu2, T, m = params
     
+    n1,n2 = ns
+    
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
@@ -55,9 +59,9 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_multipop(y, ns=ns, num_pops=2)
+            return Corrections.corrected_multipop(y, ns=(n1,n2), num_pops=2)
         else:
-            return Corrections.corrected_multipop_genotypes(y, ns=ns/2, num_pops=2)
+            return Corrections.corrected_multipop_genotypes(y, ns=(n1/2,n2/2), num_pops=2)
     else:
         return y
 
@@ -78,6 +82,8 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     
     s, nu1, nu2, T, m12, m21 = params
     
+    n1,n2 = ns
+    
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
@@ -91,9 +97,9 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_multipop(y, ns=ns, num_pops=2)
+            return Corrections.corrected_multipop(y, ns=(n1,n2), num_pops=2)
         else:
-            return Corrections.corrected_multipop_genotypes(y, ns=ns/2, num_pops=2)
+            return Corrections.corrected_multipop_genotypes(y, ns=(n1/2,n2/2), num_pops=2)
     else:
         return y
 
@@ -118,6 +124,8 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     
     nuPre, TPre, s, nu1, nu2, T, m12, m21 = params
     
+    n1,n2 = ns
+    
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
@@ -135,8 +143,8 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_multipop(y, ns=ns, num_pops=2)
+            return Corrections.corrected_multipop(y, ns=(n1,n2), num_pops=2)
         else:
-            return Corrections.corrected_multipop_genotypes(y, ns=ns/2, num_pops=2)
+            return Corrections.corrected_multipop_genotypes(y, ns=(n1/2,n2/2), num_pops=2)
     else:
         return y
