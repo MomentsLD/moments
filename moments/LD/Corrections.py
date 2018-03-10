@@ -35,6 +35,19 @@ def corrected_multipop(stats, ns=None, num_pops=2):
     
     return corrected
 
+def corrected_onepop(stats, n=None, order=2):
+    if n == None:
+        return stats
+    if order == 2:
+        return LDstats(order2correction(n, stats.data),order=order)
+    if order == 4:
+        return LDstats(order4correction(n, stats.data),order=order)
+    if order == 6:
+        return LDstats(order6correction(n, stats.data),order=order)
+    else:
+        print("Haven't implemented corrections for order {0}".format(order))
+        return stats
+
 def adjust_moment(name, stat_names, stats, sample_sizes):
     moment_type = name.split('_')[0]
     if moment_type == 'DD':
@@ -195,19 +208,6 @@ def adjust_moment(name, stat_names, stats, sample_sizes):
     else:
         return -1e6
 
-
-def corrected_onepop(stats, n=None, order=2):
-    if n == None:
-        return stats
-    if order == 2:
-        return LDstats(order2correction(n, stats.data),order=order)
-    if order == 4:
-        return LDstats(order4correction(n, stats.data),order=order)
-    if order == 6:
-        return LDstats(order6correction(n, stats.data),order=order)
-    else:
-        print("Haven't implemented corrections for order {0}".format(order))
-        return stats
 
 def order2correction(n, stats):
     stat_names = Numerics.moment_names_onepop(2)
@@ -1239,3 +1239,189 @@ def adjust_order4_sampling(n):
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n)/(4.*n**3), (1 - 2*n)**2/(8.*n**3), (1 - 2*n)**2/(4.*n**2), 0, 0 ], ## pi
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 - 1/(2.*n), 0], ## s
                      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]]) ## 1
+
+
+def corrected_multipop_genotypes(stats, ns=None, num_pops=2):
+    """
+    """
+    if ns == None:
+        return stats
+    
+    if len(ns) != num_pops:
+        raise ValueError("length of ns must equal number of populations")
+    
+    if order != 2:
+        print("Haven't implemented corrections for order {0}".format(order))
+        return stats
+
+    stat_names = Numerics.moment_list(num_pops)
+    if len(stat_names) != len(stats):
+        raise ValueError("mismatch of input moments and number of populations")
+
+    corrected = np.ones(len(stats))
+    for ii,name in zip(range(len(stat_names)),stat_names):
+        corrected[ii] = adjust_moment_genotype(name, stat_names, stats, sample_sizes)
+    
+    return LDstats(corrected, num_pops=num_pops, order=2)
+
+
+def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
+    moment_type = name.split('_')[0]
+### this is how far I've gotten
+    if moment_type == 'DD':
+        popA = name.split('_')[1]
+        popB = name.split('_')[2]
+        if popA == popB:
+            n1 = sample_sizes[int(popA)-1] # note that pop names are 1-indexed, not 0-indexed
+            # need D_A^2, Dz_A, pi_A, which relies on (1-2p1)^2(1-2q1)^2, (1-2p1)^2, (1-2q1)^2, and 1
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popA))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{0}'.format(popA))[0]]
+            mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popA))[0]]
+            mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popA))[0]]
+            mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popA))[0]]
+            return mom1 * (-2 + 4*n1 - 3*n1**2 + n1**3)/n1**3 + mom2 * (-1 + n1)**2/n1**3 + mom3 * (-1 + n1)/(16.*n1**2) - mom4 * (-1 + n1)/(16.*n1**2) - mom5 * (-1 + n1)/(16.*n1**2) + 1. * (-1 + n1)/(16.*n1**2)
+        else:
+            n1 = sample_sizes[int(popA)-1]
+            n2 = sample_sizes[int(popB)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popA,popB))[0]]
+            return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2)
+    elif moment_type == 'Dz':
+        popD = name.split('_')[1]
+        popp = name.split('_')[2]
+        popq = name.split('_')[3]
+        if popD == popp == popq:
+            n1 = sample_sizes[int(popD)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popD))[0]]
+            return mom1 * ((-2 + n1)**2*(-1 + n1))/n1**3 + mom2 * (4*(2 - 3*n1 + n1**2))/n1**3
+        elif popD == popp or popD == popq:
+            n1 = sample_sizes[int(popD)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            return mom1 * (2 - 3*n1 + n1**2)/n1**2
+        elif popp == popq:
+            n1 = sample_sizes[int(popD)-1]
+            n2 = sample_sizes[int(popp)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            try:
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popD,popp))[0]]
+            except IndexError:
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp,popD))[0]]
+            return mom1 * (-1 + n1)/n1 + mom2 * (4*(-1 + n1))/(n1*n2)
+        else:
+            n1 = sample_sizes[int(popD)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popD,popp,popq))[0]]
+            return mom1 * (-1 + n1)/n1
+    elif moment_type == 'zz':
+        popp1 = name.split('_')[1]
+        popp2 = name.split('_')[2]
+        popq1 = name.split('_')[3]
+        popq2 = name.split('_')[4]
+        if popp1 == popp2 == popq1 == popq2: # e.g. 1_1_1_1
+            n1 = sample_sizes[int(popp1)-1]
+            mom1 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{0}'.format(popp1))[0]]
+            mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{0}'.format(popp1))[0]]
+            mom3 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{0}'.format(popp1))[0]]
+            mom4 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
+            mom5 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popp1))[0]]
+            return mom1 * (32*(-1 + n1))/n1**3 + mom2 * (16*(-1 + n1)**2)/n1**3 + mom3 * (-1 + n1)**2/n1**2 + mom4 * (-1 + n1)/n1**2 + mom5 * (-1 + n1)/n1**2 + 1. * n1**(-2)
+        elif popp1 == popp2: 
+            if popq1 == popp1: # e.g. 1_1_1_2
+                n1 = sample_sizes[int(popp1)-1]
+                n2 = sample_sizes[int(popq2)-1]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq2))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{0}_{1}'.format(popp1,popq2))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
+            elif popq2 == popp1: # e.g. 2_2_1_2
+                n1 = sample_sizes[int(popp1)-1]
+                n2 = sample_sizes[int(popq1)-1]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{0}_{1}'.format(popp1,popq1))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{0}'.format(popp1,popq1))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                return mom1 * (8*(-1 + n1))/n1**2 + mom2 * (-1 + n1)/n1 + mom3 * 1/n1
+            elif popq1 == popq2: # e.g. 1_1_2_2
+                n1 = sample_sizes[int(popp1)-1]
+                n2 = sample_sizes[int(popq1)-1]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{1}'.format(popp1,popq1))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                mom3 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                return mom1 * ((-1 + n1)*(-1 + n2))/(n1*n2) + mom2 * (-1 + n1)/(n1*n2) + mom3 * (-1 + n2)/(n1*n2) + 1. * 1/(n1*n2)
+            else: # e.g. 1_1_2_3
+                n1 = sample_sizes[int(popp1)-1]
+                mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{0}_{1}_{2}'.format(popp1,popq1,popq2))[0]]
+                mom2 = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+                return mom1 * (-1 + n1)/n1 + mom2 * 1/n1
+        else: # popp1 != popp2
+            if popq1 == popq2:
+                if popp1 == popq1: # e.g. 1_2_1_1
+                    n1 = sample_sizes[int(popp1)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{0}'.format(popp1,popp2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp1,popp2))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
+                elif popp2 == popq1: # e.g. 1_2_2_2
+                    n1 = sample_sizes[int(popp2)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{1}'.format(popp1,popp2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{0}'.format(popp2,popp1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    return mom1 * (-1 + n1)/n1 + mom2 * (8*(-1 + n1))/n1**2 + mom3 * 1/n1
+                else: # e.g. 1_2_3_3
+                    n3 = sample_sizes[int(popq1)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{2}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    return mom1 * (-1 + n3)/n3 + mom2 * 1/n3
+            else: # popq1 != popq2
+                if popp1 == popq1:
+                    if popp2 == popq2: # e.g. 1_2_1_2
+                        n1 = sample_sizes[int(popp1)-1]
+                        n2 = sample_sizes[int(popp2)-1]
+                        mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{1}'.format(popp1,popp2))[0]]
+                        mom2 = stats[np.argwhere(np.array(stat_names) == 'DD_{0}_{1}'.format(popp1,popp2))[0]]
+                        mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{1}'.format(popp1,popp2))[0]]
+                        mom4 = stats[np.argwhere(np.array(stat_names) == 'Dz_{1}_{0}_{0}'.format(popp1,popp2))[0]]
+                        return mom1 + mom2 * 16/(n1*n2) + mom3 * 4/n1 + mom4 * 4/n2
+                    else: # e.g. 1_3_1_2 or 1_2_1_3
+                        n1 = sample_sizes[int(popp1)-1]
+                        mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{2}'.format(popp1,popp2,popq2))[0]]
+                        mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
+                        return mom1 + mom2 * 4/n1
+                elif popp1 == popq2: # e.g. 2_3_1_2
+                    n2 = sample_sizes[int(popp1)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{0}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
+                    return mom1 + mom2 * 4/n2
+                elif popp2 == popq2: # e.g. 1_3_2_3
+                    n3 = sample_sizes[int(popp2)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{1}'.format(popp1,popp2,popq1))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
+                    return mom1 + mom2 * 4/n3
+                elif popp2 == popq1: # e.g. 1_2_2_3
+                    n2 = sample_sizes[int(popp2)-1]
+                    mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
+                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
+                    return mom1 + mom2 * 4/n2
+                else: # e.g. 1_2_3_4
+                    mom = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{3}'.format(popp1,popp2,popq1,popq2))[0]]
+                    return mom
+    elif moment_type == 'zp':
+        popp1 = name.split('_')[1]
+        popp2 = name.split('_')[2]
+        if popp1 == popp2:
+            n1 = sample_sizes[int(popp1)-1]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{0}'.format(popp1))[0]]
+            return mom * (-1 + n1)/n1 + 1./n1
+        else:
+            mom = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+            return mom
+    elif moment_type == 'zq':
+        popq1 = name.split('_')[1]
+        popq2 = name.split('_')[2]
+        if popq1 == popq2:
+            n1 = sample_sizes[int(popq1)-1]
+            mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{0}'.format(popq1))[0]]
+            return mom * (-1 + n1)/n1 + 1./n1
+        else:
+            mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
+            return mom
+    else:
+        return -1e6
