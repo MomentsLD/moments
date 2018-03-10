@@ -22,7 +22,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
-    y = y.split(1, 1)
+    y = y.split(1)
     
     if corrected == True:
         if genotypes == False:
@@ -54,7 +54,7 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
-    y = y.split(1,1)
+    y = y.split(1)
     y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]])
     
     if corrected == True:
@@ -87,7 +87,7 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     y = Numerics.root_equilibrium(rho, theta)
     y = LDstats(y, num_pops=1, order=order)
     
-    y = y.split(1,1)
+    y = y.split(1)
     
     nu1_func = lambda t: s * (nu1/s)**(t/T)
     nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
@@ -131,7 +131,7 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     
     y.integrate([nuPre], TPre, rho=rho, theta=theta)
     
-    y = y.split(1,1)
+    y = y.split(1)
     
     nu1_0 = nuPre * s
     nu2_0 = nuPre * (1-s)

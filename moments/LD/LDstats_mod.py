@@ -111,18 +111,17 @@ class LDstats(numpy.ma.masked_array):
             return Numerics.moment_names_multipop(self.num_pops)
     
     
-    def split(self, num_pops, pop_to_split):
+    def split(self, pop_to_split):
         """
         y: LDstats object for 
-        num_pops: current number of pops, will be split to num_pops+1 populations
         pop_to_split: index of population to split
         So split(y, 2, 1) would split 2 to 3 pops, splitting pop1
         If the populations are labeled [pop1, pop2], with the new pop pop_new, the 
         output statistics would have population order [pop1, pop2, pop_new]
         New population always appended on end. 
         """
-        mom_list_from = Numerics.moment_list(num_pops)
-        mom_list_to = Numerics.moment_list(num_pops+1)
+        mom_list_from = Numerics.moment_list(self.num_pops)
+        mom_list_to = Numerics.moment_list(self.num_pops+1)
         y_from = self.data
         y_new = np.ones(len(mom_list_to)+1)
         # dictionary to point where moments in mom_list_to come from in mom_list_from
@@ -133,13 +132,13 @@ class LDstats(numpy.ma.masked_array):
             else:
                 mom_from_split = mom_to.split('_')
                 for ii in range(1,len(mom_from_split)):
-                    if int(mom_from_split[ii]) == num_pops+1:
+                    if int(mom_from_split[ii]) == self.num_pops+1:
                         mom_from_split[ii] = str(pop_to_split)
                 mom_from = '_'.join(mom_from_split)
                 points[mom_to] = mom_from
         for ii,mom_to in zip(range(len(mom_list_to)),mom_list_to):
             y_new[ii] = self[mom_list_from.index(points[mom_to])]
-        return LDstats(y_new, num_pops=num_pops+1, order=self.order)
+        return LDstats(y_new, num_pops=self.num_pops+1, order=self.order)
     
     def swap_pops():
         """
@@ -216,8 +215,11 @@ def %(method)s(self, other):
         order = self.order
         num_pops = self.num_pops
         
+        if tf == 0.0:
+            return
+        
         if rho == None:
-            print('Please specify rho in the future. Rho set to 0.0!!')
+            print('Please specify rho in the future. Rho set to 0.0')
             rho = 0.0
         
         if num_pops == 1 and len(self.data) == 5:
