@@ -181,9 +181,9 @@ def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=Fal
         
         if elapsed_t == 0 or dt != dt_old or N != N_old:
             A = D/N + M*theta + R*rho
-#            Afd = identity(A.shape[0]) + dt/2.*A
+#            Afd = identity(A.shape[0], format='csc') + dt/2.*A
             Afd = EYE + dt/2.*A
-#            Abd = factorized(identity(A.shape[0]) - dt/2.*A)
+#            Abd = factorized(identity(A.shape[0], format='csc') - dt/2.*A)
             Abd = np.linalg.inv(EYE - dt/2.*A)
         
 #        y = Abd(Afd.dot(y))
@@ -633,16 +633,16 @@ def integrate_multipop_nx(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
         else:
             Ab = D+R+U
         
-        Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-        Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+        Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+        Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
         
         elapsed_T = Ttop
         # improve with t_elapsed, below checking if pop sizes changed
         while elapsed_T < Tbot:
             if elapsed_T + dt > Tbot:
                 dt = Tbot-elapsed_T
-                Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-                Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+                Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+                Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
             
             y = Ab2(Ab1.dot(y))
             elapsed_T += dt
@@ -663,8 +663,8 @@ def integrate_multipop_nx(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
             else:
                 Ab = D+R+U
             
-            Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-            Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+            Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+            Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
             
             y = Ab2(Ab1.dot(y))
             elapsed_T += dt
@@ -683,8 +683,8 @@ def root_equilibrium_nx(demo, rho, theta, dt):
     Ab = D+R+U
         
     y0 = np.array([0,0,1,1,1,1])
-    Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-    Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+    Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+    Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
     for timesteps in range(int(20.0/dt)):
         y0 = Ab2(Ab1.dot(y0))
         
@@ -753,8 +753,8 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
                 Ab = D+M+R+U
             else:
                 Ab = D+R+U
-            Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-            Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+            Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+            Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
         
         y = Ab2(Ab1.dot(y))
         elapsed_T += dt
@@ -771,8 +771,8 @@ def root_equilibrium(rho, theta, dt=0.01):
     Ab = D+R+U
         
     y0 = np.array([0,0,1,1,1,1])
-    Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-    Ab2 = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+    Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
+    Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
     for timesteps in range(int(20.0/dt)):
         y0 = Ab2(Ab1.dot(y0))
     return y0
