@@ -720,9 +720,9 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
             ms = []
             for ii in range(num_pops):
                 for jj in range(ii+1,num_pops):
-                    ms.append(m[ii][jj])
+                    # note that in Matrices, we've reversed the meaning of m_ij (easier to fix here)
                     ms.append(m[jj][ii])
-            ### To do: check if m12 in Matrics means migration from 1 to 2 or from 2 to 1
+                    ms.append(m[ii][jj])
             M = migration_multipop(ms,num_pops)
     
     R = recombination_multipop(rho,num_pops)

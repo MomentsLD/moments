@@ -12,9 +12,11 @@ import scipy.optimize
 
 """
 Adapted from moments/dadi to infer input parameters of demographic model
-Usage is the same as moments.Inference, but inference using LD statistics requires a bit more for inputs
+Usage is the same as moments.Inference, but inference using LD statistics 
+requires a bit more for inputs
 There are two options: run inference with LD stats alone, or LD+AFS
-If we are using LD stats alone, data = [means, varcovs], a list of statistics means and the bootstrapped variance-covariance matrix
+If we are using LD stats alone, data = [means, varcovs], a list of statistics 
+means and the bootstrapped variance-covariance matrix
 If we use LD+AFS, data = [means, varcovs, fs]
 To use the frequency spectrum in the inference, we set the flag use_afs=True
 
@@ -25,8 +27,8 @@ _counter = 0
 def multivariate_normal_pdf(x,mu,Sigma):
     p = len(x)
     return np.sqrt(np.linalg.det(Sigma)/(2*math.pi)**p) * np.exp( -1./2 * 
-                        np.dot( np.dot( (x-mu).transpose() , np.linalg.inv(Sigma) ) , x-mu )
-                        )
+                        np.dot( np.dot( (x-mu).transpose() , 
+                                np.linalg.inv(Sigma) ) , x-mu ) )
 
 def ll(x,mu,Sigma):
     """
@@ -34,7 +36,9 @@ def ll(x,mu,Sigma):
     mu = model function output
     Sigma = variance-covariance matrix
     """
-    return -1./2 * np.dot( np.dot( (x-mu).transpose() , np.linalg.inv(Sigma) ) , x-mu ) #- len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma)) 
+    return -1./2 * np.dot( np.dot( (x-mu).transpose() , 
+                            np.linalg.inv(Sigma) ) , x-mu ) 
+                            #- len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma)) 
 
 def ll_over_bins(xs,mus,Sigmas):
     """
@@ -42,7 +46,8 @@ def ll_over_bins(xs,mus,Sigmas):
     mus = list of model function output arrays
     Sigmas = list of var-cov matrices
     Lists must be in the same order
-    Each bin is assumed to be independent, so we call ll(x,mu,Sigma) for each bin
+    Each bin is assumed to be independent, so we call ll(x,mu,Sigma) 
+      for each bin
     """
     it = iter([xs,mus,Sigmas])
     the_len = len(next(it))
@@ -190,8 +195,9 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                 theta is only fit to the lD data. If False, the same that scales both LD
                 statistics and the fs
     Leff: effective length of genome from which the fs was generated
+    
+    To Do: make this flexible to be able to handle multipopulation inference
     """
-    # update this to write to file, now just prints to stdout
     output_stream = sys.stdout
     
     if hasattr(ns, '__len__') == False:
