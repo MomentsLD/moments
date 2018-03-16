@@ -64,7 +64,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
                  fixed_params=None, multinom=False, use_afs=False, 
-                 genotypes=False,
+                 genotypes=False, inds_to_remove=[],
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -121,13 +121,14 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         else:
             func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
                                         'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
-    
-    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
-        # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
-        names = Numerics.moment_names_onepop(order)
-        inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
-    else:
-        inds_to_remove = []
+
+#    # we do this previously and pass inds_to_remove now 
+#    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
+#        # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
+#        names = Numerics.moment_names_onepop(order)
+#        inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
+#    else:
+#        inds_to_remove = []
 
     stats = []
     for func_kwargs_rho in func_kwargs_list:
@@ -177,7 +178,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None, verbose=0,
                  func_args=[], func_kwargs={}, fixed_params=None, 
-                 multinom=False, use_afs=False, genotypes=False):
+                 multinom=False, use_afs=False, genotypes=False,
+                 num_pops=1, multipop=False):
     """
     p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
@@ -220,20 +222,35 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     vcs = copy.copy(varcovs)
     
     if use_afs == True: # we adjust varcovs and means to remove sigma statistics
-        # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
-        names = Numerics.moment_names_onepop(order)
-        inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
-        for ii in range(len(vcs)):
-            vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-            vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-        for ii in range(len(ms)):
-            ms[ii] = np.delete(ms[ii], inds_to_remove)
+        # we don't want the sigma/one locus statistics, since they are just summaries of the frequency spectrum
+        if multipop=False:
+            names = Numerics.moment_names_onepop(order)
+            inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
+            for ii in range(len(vcs)):
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+            for ii in range(len(ms)):
+                ms[ii] = np.delete(ms[ii], inds_to_remove)
+        else:
+            names = Numerics.moments_names_multipop(num_pops)
+            inds_to_remove = []
+            for name in names:
+                if name.split('_')[0] in ['zp','zq']:
+                    inds_to_remove.append(names.index(name)]
+            for ii in range(len(vcs)):
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+            for ii in range(len(ms)):
+                ms[ii] = np.delete(ms[ii], inds_to_remove)
+    else:
+        inds_to_remove = []
     
     args = (ns, model_func, ms, vcs, fs, rhos,
             order, theta, Leff, ism, corrected,
             lower_bound, upper_bound, 
             verbose, func_args, func_kwargs,
-            fixed_params, multinom, use_afs, genotypes,
+            fixed_params, multinom, use_afs, 
+            genotypes, inds_to_remove,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
