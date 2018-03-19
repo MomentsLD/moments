@@ -223,7 +223,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     
     if use_afs == True: # we adjust varcovs and means to remove sigma statistics
         # we don't want the sigma/one locus statistics, since they are just summaries of the frequency spectrum
-        if multipop=False:
+        if multipop == False:
             names = Numerics.moment_names_onepop(order)
             inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
             for ii in range(len(vcs)):
@@ -236,7 +236,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             inds_to_remove = []
             for name in names:
                 if name.split('_')[0] in ['zp','zq']:
-                    inds_to_remove.append(names.index(name)]
+                    inds_to_remove.append(names.index(name))
             for ii in range(len(vcs)):
                 vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
                 vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)

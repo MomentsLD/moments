@@ -152,11 +152,19 @@ class LDstats(numpy.ma.masked_array):
         pass
 
 
-    def merge():
-        pass
+    def merge(self, f):
+        if self.num_pops == 2:
+            y_new = Numerics.merge_2pop(self.data,f)
+            return LDstats(y_new, num_pops=1, order=self.order)
+        else:
+            raise ValueError("merge function is 2->1 pop.")
 
-    def admix():
-        pass
+    def admix(self, f):
+        if self.num_pops == 2:
+            y_new = Numerics.admix_2pop(self.data,f)
+            return LDstats(y_new, num_pops=3, order=self.order)
+        else:
+            raise ValueError("admix function is 2->3 pops.")
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
