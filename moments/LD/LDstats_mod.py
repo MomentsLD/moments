@@ -165,6 +165,28 @@ class LDstats(numpy.ma.masked_array):
             return LDstats(y_new, num_pops=3, order=self.order)
         else:
             raise ValueError("admix function is 2->3 pops.")
+    
+    
+    def switch_basis(self):
+        if len(self.data) == 5: # we're in pi basis
+            pi2 = self.data[2]
+            sig1 = self.data[3]
+            zz = 1-4*sig1+16*pi2
+            zp = 1-4*sig1/2
+            zq = 1-4*sig1/2
+            y_new = [self.data[0], self.data[1], zz, zp, zq, 1.]
+            return LDstats(y_new, num_pops=1, order=2)
+        elif len(self.data) == 6: # we're in the z basis
+            zz = self.data[2]
+            zp = self.data[3]
+            zq = self.data[4]
+            pi2 = 1./16*(zz-zp-zq+1)
+            sig1 = 1./4*(1-zp) + 1./4*(1-zq)
+            y_new = [self.data[0], self.data[1], pi2, sig1, 1.]
+            return LDstats(y_new, num_pops=1, order=2)
+        else:
+            print("can't switch basis of this object")
+            return self
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
