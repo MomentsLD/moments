@@ -70,7 +70,7 @@ def moment_names_onepop(n):
     return moments
 
 def moment_names_multipop(n):
-    return moment_list(n)
+    return moment_list(n)+['1']
 
 ### single population transition matrices
 def drift(n):
@@ -710,7 +710,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
     Note that in the multipopulation basis, only the reversible mutation model is possible
     """
     moms = moment_names_multipop(num_pops)
-    if len(moms)+1 != len(y):
+    if len(moms) != len(y):
         raise ValueError("num_pops must be set to correct number of populations")
     
     if num_pops > 1:
