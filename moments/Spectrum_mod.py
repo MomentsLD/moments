@@ -1552,9 +1552,6 @@ def %(method)s(self, other):
             raise ValueError('If one or more populations are frozen, length '
                              'of frozen must match number of simulated pops.')
         
-        model = moments.ModelPlot._get_model()
-        if model is not None:
-            model.evolve(tf, Npop, m)
         if plotting:
             model = moments.ModelPlot._get_model()
             if model is not None:
