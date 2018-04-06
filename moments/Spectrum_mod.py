@@ -1544,9 +1544,6 @@ def %(method)s(self, other):
             raise ValueError('Forward and backward mutation rates must be '
                              'specified in the finite genome model.')
         
-        model = moments.ModelPlot._get_model()
-        if model is not None:
-            model.evolve(tf, Npop, m)
         if plotting:
             model = moments.ModelPlot._get_model()
             if model is not None:
