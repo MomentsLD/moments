@@ -357,6 +357,11 @@ def merge_2D_to_1D(sp):
     else:
         mask_fixed = False
     
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.merge((0,1),0)
+    
     data_2D = copy.copy(sp)
     assert(len(data_2D.shape) == 2)
     data_2D.unmask_all()
@@ -509,7 +514,7 @@ def __Gamma__(n_draws,n_lineages):
 
 # Admixture of population 1 and 2 into a new population [-1], using the exact dp approach 
 
-def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
+def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=None):
     """
     creates n_lineages in a new dimension to the SFS by drawing each from
     populations indexed by dimension1 (with probability m1) and dimension2 
@@ -524,6 +529,12 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
     dimension2: integer index of population 2
     m1 proportion of lineages drawn from pop 1
     creates a last dimension in which to insert the new population
+    
+    by default, the new population is assigned the last dimension
+    we may wish to place the new population between the two admixed groups, and can 
+    specify the new dimension to place the admixed population
+    note that this doesn't matter for integration, but to more naturally plot the
+    model using ModelPlot
     """
     dimensions = sfs.shape
     new_dimensions = list(dimensions)+[1] 
@@ -535,7 +546,13 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
                                                                      % (n_lineages, M, N)
     project_dimensions = [n-1 for n in new_dimensions] # projection use number of lineages
     
-   
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        if new_dimension == None:
+            model.admix_new((dimension1,dimension2), len(new_dimensions)-1, m1)
+        else:
+            model.admix_new((dimension1,dimension2), new_dimension, m1)
     
     for _i in range(n_lineages):
         project_dimensions[-1] += 1
@@ -548,7 +565,13 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
                                             project_dimensions)\
                 +Spectrum_mod.Spectrum.project((1-m1) * __migrate_1__(new_sfs, dimension2,-1),
                                          project_dimensions)
-    return np.squeeze(new_sfs) # Remove empty dimensions
+    new_sfs = np.squeeze(new_sfs) # Remove empty dimensions
+    
+    if new_dimension is not None:
+        # we need to place the new (last) dimension at given dimension, swapping population indices
+        new_sfs = np.moveaxis(new_sfs, -1, new_dimension)
+    
+    return new_sfs
 
 
 # Approximate admixture model
@@ -580,6 +603,14 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     assert keep_1 <= M, "Cannot keep more lineages than we started with, keep_1=%d,\
     M=%d" % (n_lineages, keep_1, M)
    
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        if new_dimension == None:
+            model.admix_inpace(source_population_index, target_population_index, m1)
+        else:
+            model.admix_inpace(source_population_index, target_population_index, m1)
+
     ############################
     # We first compute the sequence of SFSs we would obtain by migrating individuals
     # sequentially. This will give us a range of distributions, which we will use to 

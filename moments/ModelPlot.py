@@ -415,7 +415,41 @@ class _ModelInfo():
                 tp.descendants[i] = split_pops
                 break
             count += 1
-
+    
+    def merge(self, source_pops, new_pop):
+        """
+        Merges two populations to one - this is always a 2 to 1 population function
+        
+        source_pops : tuple of populations that merge (always 0,1)
+        
+        new_pop: index of new population (always 0)
+        """
+        pass
+    
+    def admix_new(self, source_pops, new_pop, f):
+        """
+        Creates a new population through admixture, with fraction f from first source pop
+        
+        source_pops : tuple of parental populations
+        
+        new_pop : index of new admixed population (if not in last position, shifts the rest)
+        
+        f : admixture fraction from first source population
+        """
+        pass
+    
+    def admix_inplace(self, source_pop, target_pop, f):
+        """
+        New admixed population replaces second source population, with fraction f from first source pop
+        
+        source_pop : non-replaced source population
+        
+        new_pop : replaced source population
+        
+        f : admixture fraction from non-replaced source population
+        """
+        pass
+    
     def evolve(self, time, popsizes, migrations):
         """
         Begins a new time period if necessary. Evolves current populations 
