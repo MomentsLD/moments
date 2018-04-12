@@ -416,3 +416,33 @@ def project(F_from, proj_to):
             proj_weights = cached_projection(proj_to,proj_from,hits)
             F_proj += proj_weights * F_from[0,0,X3]
         return F_proj
+
+def mutations_reversible(n, u, v):
+    """
+    Assuming equal forward and backward mutation rates, but allowing different rates
+    at left (u) and right (v) loci
+    """
+    Msize = (n+1)*(n+2)*(n+3)/6
+    
+    M = np.zeros((Msize,Msize))
+    for i in range(n+1):
+        for j in range(n+1-i):
+            for k in range(n+1-i-j):
+                this_ind = index_n(n,i,j,k)
+                if i > 0:
+                    M[this_ind, index_n(n,i-1,j,k+1)] += u*(k+1)
+                    M[this_ind, index_n(n,i-1,j+1,k)] += v*(j+1)
+                if j > 0:
+                    M[this_ind, index_n(n,i,j-1,k)] += u*(n-i-j-k+1)
+                    M[this_ind, index_n(n,i+1,j-1,k)] += v*(i+1)
+                if k > 0:
+                    M[this_ind, index_n(n,i+1,j,k-1)] += u*(i+1)
+                    M[this_ind, index_n(n,i,j,k-1)] += v*(n-i-j-k+1)
+                if n-i-j-k > 0:
+                    M[this_ind, index_n(n,i,j+1,k)] += u*(j+1)
+                    M[this_ind, index_n(n,i,j,k+1)] += v*(k+1)
+                
+                M[this_ind, this_ind] -= (u+v)*n
+    
+    return csc_matrix(M)
+    

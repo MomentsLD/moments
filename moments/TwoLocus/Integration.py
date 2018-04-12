@@ -9,7 +9,10 @@ import moments.TwoLocus.Numerics
 import warnings
 warnings.filterwarnings("ignore")
 
-def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_params=None):
+### XXX 4/11/18 - for finite genome model, need to make sure density is conserved, track density moving to fixed states, etc, check along surface, and so on
+
+def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_params=None,
+              finite_genome=False, u=None, v=None):
     """
     There are two selection options:
     1) set gamma and h, which is for selection at the left locus, linked to a neutral locus
@@ -30,7 +33,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
     N_old = 1.0
     
     D = moments.TwoLocus.Numerics.drift(n)
-    M_0to1, M_1to2 = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+    if finite_genome is False:
+        M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+    elif finite_genome is True:
+        if u is None or v is None:
+            raise ValueError("if finite genome, must specify u and v")
+        M = moments.TwoLocus.Numerics.mutations_reversible(n, u, v)
     
     Phi = moments.TwoLocus.Numerics.array_to_Phi(F)
     
@@ -50,11 +58,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N = nu(t_elapsed + dt/2.)
                 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
-                    Ab = M_1to2/2. + S.dot(J1) + D/(2.*N)
+                    Ab = M/2. + S.dot(J1) + D/(2.*N)
                     Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                     slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                 
-                Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                if finite_genome is False:
+                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 
                 N_old = N
                 t_elapsed += dt
@@ -68,11 +77,14 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N = nu(t_elapsed + dt/2.)
                 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
-                    Ab = M_1to2/2. + D/(2.*N)
+                    Ab = M/2. + D/(2.*N)
                     Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                     slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                 
-                Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                if finite_genome is False:
+                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                else:
+                    Phi = slv(Ab1.dot(Phi))
                 
                 N_old = N
                 t_elapsed += dt
@@ -89,11 +101,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         N = nu(t_elapsed + dt/2.)
                     
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
-                        Ab = M_1to2/2. + Sa.dot(J1) + D/(2.*N)
+                        Ab = M/2. + Sa.dot(J1) + D/(2.*N)
                         Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                         slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                     
-                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    if finite_genome is False:
+                        Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     
                     N_old = N
                     t_elapsed += dt
@@ -109,11 +122,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         N = nu(t_elapsed + dt/2.)
                     
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
-                        Ab = M_1to2/2. + Sa.dot(J1) + Sd.dot(J2) + D/(2.*N)
+                        Ab = M/2. + Sa.dot(J1) + Sd.dot(J2) + D/(2.*N)
                         Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                         slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                     
-                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    if finite_genome is False:
+                        Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     
                     N_old = N
                     t_elapsed += dt
@@ -131,11 +145,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N = nu(t_elapsed + dt/2.)
                 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
-                    Ab = M_1to2/2. + R.dot(J1) + S.dot(J1) + D/(2.*N)
+                    Ab = M/2. + R.dot(J1) + S.dot(J1) + D/(2.*N)
                     Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                     slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                 
-                Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                if finite_genome is False:
+                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 
                 N_old = N
                 t_elapsed += dt
@@ -150,11 +165,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N = nu(t_elapsed + dt/2.)
                 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
-                    Ab = D/(2.*N) + R.dot(J1) + M_1to2/2.
+                    Ab = D/(2.*N) + R.dot(J1) + M/2.
                     Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                     slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                 
-                Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                if finite_genome is False:
+                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 
                 N_old = N
                 t_elapsed += dt
@@ -170,11 +186,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         N = nu(t_elapsed + dt/2.)
                     
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
-                        Ab = D/(2.*N) + R.dot(J1) + Sa.dot(J1) + M_1to2/2.
+                        Ab = D/(2.*N) + R.dot(J1) + Sa.dot(J1) + M/2.
                         Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                         slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                     
-                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    if finite_genome is False:
+                        Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     
                     N_old = N
                     t_elapsed += dt
@@ -190,11 +207,12 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         N = nu(t_elapsed + dt/2.)
                     
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
-                        Ab = D/(2.*N) + R.dot(J1) + Sa.dot(J1) + Sd.dot(J2) + M_1to2/2.
+                        Ab = D/(2.*N) + R.dot(J1) + Sa.dot(J1) + Sd.dot(J2) + M/2.
                         Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                         slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
                     
-                    Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    if finite_genome is False:
+                        Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     
                     N_old = N
                     t_elapsed += dt
