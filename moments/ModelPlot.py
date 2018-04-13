@@ -62,14 +62,16 @@ def generate_model(model_func, params, ns, precision=100):
         vstart += tp1.framesizes[pop_index]
     return model
 
-def plot_model(model, save_file=None, fig_title="Demographic Model", 
+def plot_model(model, save_file=None, ax=None, show=False,
+               fig_title="Demographic Model", 
                pop_labels=None, nref=None, draw_ancestors=True,
                draw_migrations=True, draw_scale=True, arrow_size=0.01,
                transition_size=0.05, gen_time=0, gen_time_units="Years",
                reverse_timeline=False, fig_bg_color='#ffffff', 
                plot_bg_color='#ffffff', text_color='#002b36', 
                gridline_color='#586e75', pop_color='#268bd2', 
-               arrow_color='#073642'):         
+               arrow_color='#073642',
+               label_size=16, tick_size=12, grid=True):         
     """
     Plots a demographic model based on information contained within a _ModelInfo
     object. See the matplotlib docs for valid entries for the color parameters.
@@ -128,8 +130,9 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
     # Set up the plot with a title and axis labels
     fig_kwargs = {'figsize': (9.6,5.4), 'dpi':200, 'facecolor':fig_bg_color,
                   'edgecolor': fig_bg_color}
-    fig = plt.figure(**fig_kwargs)
-    ax = fig.add_subplot(111)
+    if ax == None:
+        fig = plt.figure(**fig_kwargs)
+        ax = fig.add_subplot(111)
     ax.set_axis_bgcolor(plot_bg_color)
     ax.set_title(fig_title, color=text_color,fontsize=24)
     xlabel = "Time Ago" if reverse_timeline else "Time"
@@ -142,12 +145,14 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
     else:
         xlabel += " (Genetic Units)"
         ylabel = "Relative Population Sizes"
-    ax.set_xlabel(xlabel, color=text_color, fontsize=16)
-    ax.set_ylabel(ylabel, color=text_color, fontsize=16)
+    ax.set_xlabel(xlabel, color=text_color, fontsize=label_size)
+    ax.set_ylabel(ylabel, color=text_color, fontsize=label_size)
 
     # Determine various maximum values for proper scaling within the plot
     xmax = model.tp_list[-1].time[-1]
     ymax = sum(model.tp_list[0].framesizes)
+    ax.set_xlim([-1*xmax*0.1,xmax])
+    ax.set_ylim([0,ymax])
     mig_max = 0
     for tp in model.tp_list:
         if tp.migrations is None:
@@ -167,7 +172,7 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
     ax.xaxis.set_major_locator(mticker.FixedLocator(xticks))
     ax.xaxis.set_minor_locator(mticker.NullLocator())
     ax.tick_params(which='both', axis='x', labelcolor=text_color,
-                   labelsize=12, top=False)
+                   labelsize=tick_size, top=False)
     # Choose correct time labels based on nref, gen_time, and reverse_timeline
     if reverse_timeline:
         xticks = [xmax - x for x in xticks]
@@ -181,10 +186,13 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
         ax.set_xticklabels(['{:.2f}'.format(x) for x in xticks])
 
     # Gridlines along y-axis (population size) spaced by nref size
-    ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
-    ax.yaxis.set_minor_locator(mticker.NullLocator())
-    ax.grid(b=True, which='major', axis='y', color=gridline_color)
-    ax.tick_params(which='both', axis='y', colors='none')
+    if grid:
+        ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
+        ax.yaxis.set_minor_locator(mticker.NullLocator())
+        ax.grid(b=True, which='major', axis='y', color=gridline_color)
+        ax.tick_params(which='both', axis='y', colors='none', labelsize=tick_size)
+    else:
+        ax.set_yticks([])
 
     # Add scale in top-left corner displaying ancestral population size (Nref)
     if draw_scale:
@@ -327,7 +335,7 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
         ax2.yaxis.set_major_locator(mticker.FixedLocator(yticks))
         ax2.set_yticklabels(pop_labels)
         ax2.tick_params(which='both', color='none', labelcolor=text_color,
-                        labelsize=16, left=False, top=False, right=False)
+                        labelsize=label_size, left=False, top=False, right=False)
         ax2.spines['top'].set_color(text_color)
         ax2.spines['left'].set_color(text_color)
         ax2.spines['right'].set_color(text_color)
@@ -337,8 +345,10 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
     if save_file:
         plt.savefig(save_file, **fig_kwargs)
     else:
-        plt.show()
-    plt.close(fig)
+        if show == True:
+            plt.show()
+    if ax == None:
+        plt.close(fig)
 
 ## IMPLEMENTATION FUNCTIONS ##
 _current_model = None
@@ -418,29 +428,50 @@ class _ModelInfo():
     
     def merge(self, source_pops, new_pop):
         """
-        Merges two populations to one - this is always a 2 to 1 population function
+        Merges two populations to one - this is always a 2 to 1 population 
+        function
         
-        source_pops : tuple of populations that merge (always 0,1)
+        source_pops : tuple of populations that merge (always 0,1) - these go 
+                      extinct, and we have a new population left over
         
         new_pop: index of new population (always 0)
+        
+        To implements, we'll first use admix_new with a time period of zero,
+        and then have the first two populations go extinct, leaving behind the
+        merged population
         """
         pass
     
     def admix_new(self, source_pops, new_pop, f):
         """
-        Creates a new population through admixture, with fraction f from first source pop
+        Creates a new population through admixture, with fraction f from first 
+        source pop
         
         source_pops : tuple of parental populations
         
-        new_pop : index of new admixed population (if not in last position, shifts the rest)
+        new_pop : index of new admixed population (if not in last position, 
+            shifts the rest)
         
         f : admixture fraction from first source population
+        
+        Assume that source population indices are adjacent, place new pop 
+        between them
         """
-        pass
+        tp = self.tp_list[-1]
+        tp.admixture_new = []
+        for i in range(len(tp.descendants)):
+            if i in source_pops:
+                if i == source_pops[0]:
+                    tp.admixture_new.append(f)
+                else:
+                    tp.admixture_new.append(1-f)
+            else:
+                tp.admixture_new.append(0)
     
     def admix_inplace(self, source_pop, target_pop, f):
         """
-        New admixed population replaces second source population, with fraction f from first source pop
+        New admixed population replaces second source population, with fraction 
+        f from first source pop
         
         source_pop : non-replaced source population
         
@@ -472,6 +503,8 @@ class _ModelInfo():
                 npops += 2
             elif desc != -1:
                 npops += 1
+        if tp.admixture_new is not None:
+            npops += 1
         new_tp = self.TimePeriod(self.current_time, npops, self.precision)
         self.tp_list.append(new_tp)
         tp = new_tp
@@ -524,10 +557,23 @@ class _ModelInfo():
             tp = self.tp_list[tpindex]
             # Begin by assigning size to be largest size from this time period
             tp.framesizes = [max(size) for size in tp.popsizes]
+                
             # Done if there are no descendants to consider
             if tp.descendants is None:
                 continue
+                
             tpnext = self.tp_list[tpindex+1]
+            # if a population contributes to an admixture, add that amount 
+            # to frame size
+            if tp.admixture_new is not None:
+                first = 1 
+                for i,f in enumerate(tp.admixture_new):
+                    if f > 0:
+                        if first == 1:
+                            tp.framesizes[i] += f*tpnext.framesizes[i+1]
+                            first = 0
+                        else:
+                            tp.framesizes[i] += f*tpnext.framesizes[i]
             # Add information from descendant populations
             for i, desc in enumerate(tp.descendants):
                 # If a population splits, add information from both descendants
@@ -646,6 +692,8 @@ class _ModelInfo():
             self.framesizes = None
             self.direcs = None
             self.origins = None
+            
+            self.admixture_new = None
 
 
 

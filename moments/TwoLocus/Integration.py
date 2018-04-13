@@ -32,14 +32,15 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
     
     N_old = 1.0
     
-    D = moments.TwoLocus.Numerics.drift(n)
     if finite_genome is False:
         M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+        D = moments.TwoLocus.Numerics.drift(n)
     elif finite_genome is True:
         if u is None or v is None:
             raise ValueError("if finite genome, must specify u and v")
         M = moments.TwoLocus.Numerics.mutations_reversible(n, u, v)
-    
+        D = moments.TwoLocus.Numerics.drift_reversible(n)
+
     Phi = moments.TwoLocus.Numerics.array_to_Phi(F)
     
     t_elapsed = 0
@@ -64,6 +65,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                else:
+                    Phi = slv(Ab1.dot(Phi))
                 
                 N_old = N
                 t_elapsed += dt
@@ -107,6 +110,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    else:
+                        Phi = slv(Ab1.dot(Phi))
                     
                     N_old = N
                     t_elapsed += dt
@@ -128,12 +133,17 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    else:
+                        Phi = slv(Ab1.dot(Phi))
                     
                     N_old = N
                     t_elapsed += dt
     elif rho > 0:
         J1 = moments.TwoLocus.Jackknife.calc_jk(n,1)
-        R = moments.TwoLocus.Numerics.recombination(n,rho)
+        if finite_genome is False:
+            R = moments.TwoLocus.Numerics.recombination(n,rho)
+        else:
+            R = moments.TwoLocus.Numerics.recombination_reversible(n,rho)
         if sel_params is not None:
             S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
             while t_elapsed < tf:
@@ -151,6 +161,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                else:
+                    Phi = slv(Ab1.dot(Phi))
                 
                 N_old = N
                 t_elapsed += dt
@@ -171,6 +183,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                else:
+                    Phi = slv(Ab1.dot(Phi))
                 
                 N_old = N
                 t_elapsed += dt
@@ -192,6 +206,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    else:
+                        Phi = slv(Ab1.dot(Phi))
                     
                     N_old = N
                     t_elapsed += dt
@@ -213,6 +229,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
+                    else:
+                        Phi = slv(Ab1.dot(Phi))
                     
                     N_old = N
                     t_elapsed += dt
