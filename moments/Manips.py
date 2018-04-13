@@ -7,6 +7,7 @@ from scipy.optimize import _nnls
 import scipy as sp
 from scipy import stats
 from numpy import asarray_chkfinite, zeros, double
+import copy
 from scipy.special import gammaln
 
 """
