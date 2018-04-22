@@ -461,10 +461,10 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1):
     populations indexed by dimension1 (with probability m1) and dimension2 
     (with probability 1-m1).  
     
-    The resulting frequency spectrum has 
-    (dimension1 - n_lineages) lineages in dimension 1
-    (dimension2 - n_lineages) lineages in dimension 2
-    (n_lineages) lineages in new dimension
+    The resulting frequency spectrum has shape
+    (sfs.shape[dimension1] - n_lineages) lineages in dimension 1
+    (sfs.shape[dimension2] - n_lineages) lineages in dimension 2
+    (n_lineages + 1 ) in new dimension
     
     dimension1: integer index of population 1
     dimension2: integer index of population 2
