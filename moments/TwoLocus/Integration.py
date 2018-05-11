@@ -9,8 +9,6 @@ import moments.TwoLocus.Numerics
 import warnings
 warnings.filterwarnings("ignore")
 
-### XXX 4/11/18 - for finite genome model, need to make sure density is conserved, track density moving to fixed states, etc, check along surface, and so on
-
 def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_params=None,
               finite_genome=False, u=None, v=None):
     """
@@ -92,7 +90,10 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                 N_old = N
                 t_elapsed += dt
         elif gamma != 0:
-            Sa = 2*gamma*h * moments.TwoLocus.Numerics.selection_additive_component(n)
+            if finite_genome == False:
+                Sa = 2*gamma*h * moments.TwoLocus.Numerics.selection_additive_component(n)
+            else:
+                Sa = gamma * moments.TwoLocus.Numerics.selection_reversible_additive(n)
             J1 = moments.TwoLocus.Jackknife.calc_jk(n,1)
             if h == 0.5:
                 while t_elapsed < tf:
@@ -116,6 +117,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N_old = N
                     t_elapsed += dt
             else:
+                if finite_genome == True:
+                    raise ValueError("finite genome model with selection is only additive at the moment")
                 Sd = 2*gamma*(1-2*h) * moments.TwoLocus.Numerics.selection_dominance_component(n)
                 J2 = moments.TwoLocus.Jackknife.calc_jk(n,2)
                 while t_elapsed < tf:

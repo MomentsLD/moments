@@ -89,23 +89,13 @@ class TLSpectrum(numpy.ma.masked_array):
         Mask any infeasible entries.
         """
         ns = len(self)-1
-        # mask fixed entries
-        self.mask[0,0,0] = True
-        self.mask[0,0,-1] = True
-        self.mask[0,-1,0] = True
-        self.mask[-1,0,0] = True
         # mask entries with i+j+k > ns
         for ii in range(len(self)):
             for jj in range(len(self)):
                 for kk in range(len(self)):
                     if ii+jj+kk > ns:
                         self.mask[ii,jj,kk] = True
-        
-        # mask fA = 0 and fB = 0
-        for ii in range(len(self)):
-            self.mask[ii,ns-ii,0] = True
-            self.mask[ii,0,ns-ii] = True
-        
+                
         return self
     
     def mask_fixed(self):
@@ -145,7 +135,32 @@ class TLSpectrum(numpy.ma.masked_array):
         return np.asarray(self.shape)[0] - 1
     sample_size = property(_get_sample_size)
     
-    # Make from_file a static method, so we can use it without an instance.
+    def left(self):
+        """
+        The marginal allele frequency spectrum at the left locus
+        index in new AFS is ii+jj
+        """
+        n = len(self)-1
+        fl = np.zeros(n+1)
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    fl[ii+jj] += self[ii,jj,kk]
+        return fl
+    
+    def right(self):
+        """
+        The marginal AFS at the right locus
+        """
+        n = len(self)-1
+        fr = np.zeros(n+1)
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    fr[ii+kk] += self[ii,jj,kk]
+        return fr
+
+# Make from_file a static method, so we can use it without an instance.
     @staticmethod
     def from_file(fid, mask_infeasible=True, return_comments=False):
         """
@@ -346,7 +361,7 @@ def %(method)s(self, other):
             raise ValueError('Cannot operate with a folded Spectrum and an '
                              'unfolded one.')
     
-    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, sel_params=None, theta=1.0):
+    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, sel_params=None, theta=1.0, finite_genome=False, u=None, v=None):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
@@ -366,7 +381,8 @@ def %(method)s(self, other):
             print('Warning: rho was not specified. Simulating with rho = 0.')
         
         self.data[:] = integrate(self.data, nu, tf, rho=rho, dt=dt, theta=theta,
-                                    gamma=gamma, h=h, sel_params=sel_params)
+                                    gamma=gamma, h=h, sel_params=sel_params,
+                                    finite_genome=finite_genome, u=u, v=v)
         
         return self
 

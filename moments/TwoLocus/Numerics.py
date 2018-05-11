@@ -583,3 +583,36 @@ def recombination_reversible(n, rho):
 
     return csc_matrix((data,(row,col)),shape=(Rsize0,Rsize1))
 
+def selection_reversible_additive(n):
+    """
+    selection at just the left locus, accounting for selection at fixed entries as well
+    for now, just additive (n->n+1)
+    """
+    Ssize0 = (n+1)*(n+2)*(n+3)/6
+    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    S = np.zeros((Ssize0,Ssize1))
+    for ii in range(n+1):
+        for jj in range(n+1-ii):
+            for kk in range(n+1-ii-jj):
+                this_ind = index_n(n,ii,jj,kk)
+                if ii > 0:
+                    S[this_ind,index_n(n+1,ii,jj+1,kk)] += ii * (jj+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj+1,kk),index_n(n+1,ii,jj+1,kk)] -= ii * (jj+1.) / (n+1.)
+                    
+                    S[this_ind,index_n(n+1,ii,jj,kk+1)] += ii * (kk+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj,kk+1),index_n(n+1,ii,jj,kk+1)] -= ii * (kk+1.) / (n+1.)
+
+                    S[this_ind,index_n(n+1,ii,jj,kk)] += ii * (n-ii-jj-kk+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj,kk),index_n(n+1,ii,jj,kk)] -= ii * (n-ii-jj-kk+1.) / (n+1.)
+                if jj > 0:
+                    S[this_ind,index_n(n+1,ii+1,jj,kk)] += jj * (ii+1.) / (n+1.)
+                    S[index_n(n,ii+1,jj-1,kk),index_n(n+1,ii+1,jj,kk)] -= jj * (ii+1.) / (n+1.)
+                    
+                    S[this_ind,index_n(n+1,ii,jj,kk+1)] += jj * (kk+1.) / (n+1.)
+                    S[index_n(n,ii,jj-1,kk+1),index_n(n+1,ii,jj,kk+1)] -= jj * (kk+1.) / (n+1.)
+
+                    S[this_ind,index_n(n+1,ii,jj,kk)] += jj * (n-ii-jj-kk+1.) / (n+1.)
+                    S[index_n(n,ii,jj-1,kk),index_n(n+1,ii,jj,kk)] -= jj * (n-ii-jj-kk+1.) / (n+1.)
+
+    return csc_matrix(S)
+    
