@@ -37,13 +37,13 @@ def admix(params, order=2, rho=0, theta=0.0008, ns=[20,20,20],
     
     n1,n2,n3 = ns
     
-    y = Numerics.root_equilibrium(rho, theta)
+    y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     
     y = y.split(1)
-    y.integrate([nu1,nu2], T1, rho=rho, theta=theta)
+    y.integrate([nu1,nu2], T1, rho=rho, theta=theta, ism=ism)
     y = y.admix(f)
-    y.integrate([nu1,nu2,nu3], T2, rho=rho, theta=theta)
+    y.integrate([nu1,nu2,nu3], T2, rho=rho, theta=theta, ism=ism)
     
     if corrected == True:
         if genotypes == False:

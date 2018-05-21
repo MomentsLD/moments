@@ -19,7 +19,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     
     n1,n2 = ns
     
-    y = Numerics.root_equilibrium(rho, theta)
+    y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     
     y = y.split(1)
@@ -51,11 +51,11 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     
     n1,n2 = ns
     
-    y = Numerics.root_equilibrium(rho, theta)
+    y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     
     y = y.split(1)
-    y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]])
+    y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]], ism=ism)
     
     if corrected == True:
         if genotypes == False:
@@ -84,7 +84,7 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     
     n1,n2 = ns
     
-    y = Numerics.root_equilibrium(rho, theta)
+    y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     
     y = y.split(1)
@@ -93,7 +93,7 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
-    y.integrate(nu_func, T, rho=rho, theta=theta, m=[[0,m12],[m21,0]])
+    y.integrate(nu_func, T, rho=rho, theta=theta, m=[[0,m12],[m21,0]], ism=ism)
     
     if corrected == True:
         if genotypes == False:
@@ -126,10 +126,10 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     
     n1,n2 = ns
     
-    y = Numerics.root_equilibrium(rho, theta)
+    y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     
-    y.integrate([nuPre], TPre, rho=rho, theta=theta)
+    y.integrate([nuPre], TPre, rho=rho, theta=theta, ism=ism)
     
     y = y.split(1)
     
@@ -139,7 +139,7 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     nu2_func = lambda t: nu2_0 * (nu2/nu2_0)**(t/T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
-    y.integrate(nu_func, T, rho=rho, theta=theta, m=[[0,m12],[m21,0]])
+    y.integrate(nu_func, T, rho=rho, theta=theta, m=[[0,m12],[m21,0]], ism=ism)
     
     if corrected == True:
         if genotypes == False:

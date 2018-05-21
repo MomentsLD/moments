@@ -359,9 +359,7 @@ def %(method)s(self, other):
         theta: per base population-scaled mutation rate (4N*mu)
         ism: if True, we use the infinite sites model, otherwise we use a 
              reversible mutation model (equal forward and reverse mutation 
-             rates) Note that the ism model is only implemented in the single 
-             population model with basis that includes p(1-p)q(1-q) term. Not 
-             possible to include in the multipopulation model.
+             rates)
         """
         order = self.order
         num_pops = self.num_pops
@@ -370,7 +368,7 @@ def %(method)s(self, other):
             return
         
         if rho == None:
-            print('Please specify rho in the future. Rho set to 0.0')
+            print('Remember to specify rho. Default rho set to 0.0')
             rho = 0.0
         
         if num_pops == 1 and len(self.data) == 5:
@@ -382,7 +380,7 @@ def %(method)s(self, other):
             # and multipop with same basis
             self.data[:] = Numerics.integrate_multipop(self.data, nu, tf, dt=dt,
                                     rho=rho, theta=theta, m=m, 
-                                    num_pops=self.num_pops)
+                                    num_pops=self.num_pops, ism=ism)
 
 
 # Allow LDstats objects to be pickled.

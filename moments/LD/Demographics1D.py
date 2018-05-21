@@ -16,7 +16,7 @@ def equilibrium(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False
          if False (default), we assume a reversible mutation model with equal forward
             and back mutation rates theta
     """
-    y = Numerics.equilibrium(order=order, rho=rho, theta=theta, ism=ism)
+    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
     y = LDstats(y, num_pops=1, order=order)
     if corrected == True:
         if genotypes == False:
@@ -41,7 +41,7 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
             and back mutation rates theta
     """
     nu,T = params
-    y = equilibrium(order, rho=rho, theta=theta, ism=ism)
+    y = equilibrium(rho, theta, ism=ism, order=order)
     y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
     if corrected == True:
@@ -68,7 +68,7 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
             and back mutation rates theta
     """
     nu1,nu2,T1,T2 = params
-    y = equilibrium(order, rho=rho, theta=theta, ism=ism)
+    y = equilibrium(rho, theta, ism=ism, order=order)
     y = Numerics.integrate(y, T1, rho=rho, theta=theta, nu=nu1, order=order, dt=0.001, ism=ism)
     y = Numerics.integrate(y, T2, rho=rho, theta=theta, nu=nu2, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
@@ -95,7 +95,7 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
             and back mutation rates theta
     """
     nuF,T = params
-    y = equilibrium(order, rho=rho, theta=theta, ism=ism)
+    y = equilibrium(rho, theta, ism=ism, order=order)
     nu_func = lambda t: np.exp( np.log(nuF) *t/T)
     y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu_func, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
@@ -123,7 +123,7 @@ def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, 
             and back mutation rates theta
     """
     nuB,nuF,T = params
-    y = equilibrium(order, rho=rho, theta=theta, ism=ism)
+    y = equilibrium(rho, theta, ism=ism, order=order)
     nu_func = lambda t: nuB * np.exp( np.log(nuF/nuB) *t/T)
     y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu_func, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
