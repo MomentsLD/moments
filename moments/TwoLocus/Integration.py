@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_params=None,
-              finite_genome=False, u=None, v=None):
+              finite_genome=False, u=None, v=None, alternate_fg=False):
     """
     There are two selection options:
     1) set gamma and h, which is for selection at the left locus, linked to a neutral locus
@@ -36,7 +36,10 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
     elif finite_genome is True:
         if u is None or v is None:
             raise ValueError("if finite genome, must specify u and v")
-        M = moments.TwoLocus.Numerics.mutations_reversible(n, u, v)
+        if alternate_fg == True:
+            M,M2 = moments.TwoLocus.Numerics.mutations_reversible_2(n, u, v)
+        else:
+            M = moments.TwoLocus.Numerics.mutations_reversible(n, u, v)
         D = moments.TwoLocus.Numerics.drift_reversible(n)
 
     Phi = moments.TwoLocus.Numerics.array_to_Phi(F)
@@ -65,6 +68,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 else:
                     Phi = slv(Ab1.dot(Phi))
+                    if alternate_fg == True:
+                        Phi = Phi + M2.dot(Phi)
                 
                 N_old = N
                 t_elapsed += dt
@@ -86,6 +91,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 else:
                     Phi = slv(Ab1.dot(Phi))
+                    if alternate_fg == True:
+                        Phi = Phi + M2.dot(Phi)
                 
                 N_old = N
                 t_elapsed += dt
@@ -113,6 +120,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     else:
                         Phi = slv(Ab1.dot(Phi))
+                        if alternate_fg == True:
+                            Phi = Phi + M2.dot(Phi)
                     
                     N_old = N
                     t_elapsed += dt
@@ -138,6 +147,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     else:
                         Phi = slv(Ab1.dot(Phi))
+                        if alternate_fg == True:
+                            Phi = Phi + M2.dot(Phi)
                     
                     N_old = N
                     t_elapsed += dt
@@ -166,6 +177,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 else:
                     Phi = slv(Ab1.dot(Phi))
+                    if alternate_fg == True:
+                        Phi = Phi + M2.dot(Phi)
                 
                 N_old = N
                 t_elapsed += dt
@@ -188,6 +201,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                 else:
                     Phi = slv(Ab1.dot(Phi))
+                    if alternate_fg == True:
+                        Phi = Phi + M2.dot(Phi)
                 
                 N_old = N
                 t_elapsed += dt
@@ -211,6 +226,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     else:
                         Phi = slv(Ab1.dot(Phi))
+                        if alternate_fg == True:
+                            Phi = Phi + M2.dot(Phi)
                     
                     N_old = N
                     t_elapsed += dt
@@ -234,6 +251,8 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                         Phi = slv(Ab1.dot(Phi) + dt*M_0to1)
                     else:
                         Phi = slv(Ab1.dot(Phi))
+                        if alternate_fg == True:
+                            Phi = Phi + M2.dot(Phi)
                     
                     N_old = N
                     t_elapsed += dt

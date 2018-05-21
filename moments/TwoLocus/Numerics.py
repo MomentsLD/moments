@@ -448,6 +448,49 @@ def mutations_reversible(n, u, v):
     
     return csc_matrix(M)
 
+def mutations_reversible_2(n, u, v):
+    """
+    we allow only mutations if the frequency is zero
+    if a mutation fixes, put that density back at sero
+    """
+    Msize = (n+1)*(n+2)*(n+3)/6
+    
+    M = np.zeros((Msize,Msize))
+
+    #fA = i+j
+    i = 0
+    j = 0
+    # mutations introduce new A mutation along aB/ab axis 
+    # B/b -> AB and Ab
+    for k in range(0,n-1):
+        M[index_n(n,1,0,k),index_n(n,0,0,k+1)] += (k+1)*u/2.
+        M[index_n(n,0,0,k+1),index_n(n,0,0,k+1)] -= (k+1)*u/2.
+    for k in range(0,n-1):
+        M[index_n(n,0,1,k),index_n(n,0,0,k)] += (n-k)*u/2.
+        M[index_n(n,0,0,k),index_n(n,0,0,k)] -= (n-k)*u/2.
+
+    # fB = i+k
+    i = 0
+    k = 0
+    # mutations introduce new A mutation along Ab/ab
+    # A/a -> AB and aB
+    for j in range(0,n-1):
+        M[index_n(n,1,j,0),index_n(n,0,j+1,0)] += (j+1)*v/2.
+        M[index_n(n,0,j+1,0),index_n(n,0,j+1,0)] -= (j+1)*v/2.
+    for j in range(0,n-1):
+        M[index_n(n,0,j,1),index_n(n,0,j,0)] += (n-j)*v/2.
+        M[index_n(n,0,j,0),index_n(n,0,j,0)] -= (n-j)*v/2.
+    
+    # return fixed density to origin
+    M2 = np.zeros((Msize,Msize))
+    M2[index_n(n,0,0,0), index_n(n,n,0,0)] += 1
+    M2[index_n(n,n,0,0), index_n(n,n,0,0)] -= 1
+    M2[index_n(n,0,0,0), index_n(n,0,n,0)] += 1
+    M2[index_n(n,0,n,0), index_n(n,0,n,0)] -= 1
+    M2[index_n(n,0,0,0), index_n(n,0,0,n)] += 1
+    M2[index_n(n,0,0,n), index_n(n,0,0,n)] -= 1
+    return csc_matrix(M), M2
+    
 def drift_reversible(n):
     Dsize = (n+1)*(n+2)*(n+3)/6
     row = []
