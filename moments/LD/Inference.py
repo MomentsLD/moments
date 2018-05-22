@@ -63,8 +63,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
-                 fixed_params=None, multinom=False, use_afs=False, 
-                 genotypes=False, inds_to_remove=[],
+                 fixed_params=None, multinom=False, fixed_theta=False, 
+                 use_afs=False, genotypes=False, inds_to_remove=[],
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -85,10 +85,12 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
             if bound is not None and pval > bound:
                 return -_out_of_bounds_val
     
-
-    theta = params_up[-1]
-    all_args = [params_up] + list(func_args)
-    all_args = [all_args[0][:-1]]
+    if fixed_theta == False:
+        theta = params_up[-1]
+        all_args = [params_up] + list(func_args)
+        all_args = [all_args[0][:-1]]
+    else:
+        all_args = [params_up] + list(func_args)
 
     ## first get ll of afs
     if use_afs == True:
@@ -178,8 +180,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None, verbose=0,
                  func_args=[], func_kwargs={}, fixed_params=None, 
-                 multinom=False, use_afs=False, genotypes=False,
-                 num_pops=1, multipop=False):
+                 multinom=False, fixed_theta=False, use_afs=False, 
+                 genotypes=False, num_pops=1, multipop=False):
     """
     p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
@@ -196,6 +198,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     multinom: If True, we allow separate effective theta for the frequency spectrum and 
                 theta is only fit to the lD data. If False, the same that scales both LD
                 statistics and the fs
+    fixed_theta: If True, theta is fixed to input theta. Otherwise a guess is passed  (as in multinom in moments inference) (I know this is bad)
     Leff: effective length of genome from which the fs was generated
     
     To Do: make this flexible to be able to handle multipopulation inference
@@ -219,7 +222,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     if num_pops != 1:
         ism = False
     
-    if multinom == False and theta == None:
+    if fixed_theta == True and theta == None:
         raise ValueError("if multinom is False, need to specify theta")
     
     ms = copy.copy(means)
@@ -253,8 +256,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             order, theta, Leff, ism, corrected,
             lower_bound, upper_bound, 
             verbose, func_args, func_kwargs,
-            fixed_params, multinom, use_afs, 
-            genotypes, inds_to_remove,
+            fixed_params, multinom, fixed_theta, 
+            use_afs, genotypes, inds_to_remove,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
