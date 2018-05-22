@@ -42,8 +42,8 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
     """
     nu,T = params
     y = equilibrium(rho, theta, ism=ism, order=order)
-    y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
+    y.integrate([nu], T, rho=rho, theta=theta, order=order, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
             return Corrections.corrected_onepop(y, n=ns, order=order)
@@ -69,9 +69,9 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
     """
     nu1,nu2,T1,T2 = params
     y = equilibrium(rho, theta, ism=ism, order=order)
-    y = Numerics.integrate(y, T1, rho=rho, theta=theta, nu=nu1, order=order, dt=0.001, ism=ism)
-    y = Numerics.integrate(y, T2, rho=rho, theta=theta, nu=nu2, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
+    y.integrate([nu1], T1, rho=rho, theta=theta, order=order, dt=0.001, ism=ism)
+    y.integrate([nu2], T2, rho=rho, theta=theta, order=order, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
             return Corrections.corrected_onepop(y, n=ns, order=order)
@@ -96,9 +96,9 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
     """
     nuF,T = params
     y = equilibrium(rho, theta, ism=ism, order=order)
-    nu_func = lambda t: np.exp( np.log(nuF) *t/T)
-    y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu_func, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
+    nu_func = lambda t: [np.exp( np.log(nuF) *t/T)]
+    y.integrate(nu_func, T, rho=rho, theta=theta, order=order, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
             return Corrections.corrected_onepop(y, n=ns, order=order)
@@ -124,9 +124,9 @@ def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, 
     """
     nuB,nuF,T = params
     y = equilibrium(rho, theta, ism=ism, order=order)
-    nu_func = lambda t: nuB * np.exp( np.log(nuF/nuB) *t/T)
-    y = Numerics.integrate(y, T, rho=rho, theta=theta, nu=nu_func, order=order, dt=0.001, ism=ism)
     y = LDstats(y, num_pops=1, order=order)
+    nu_func = lambda t: [nuB * np.exp( np.log(nuF/nuB) *t/T)]
+    y.integrate(nu_func, T, rho=rho, theta=theta, order=order, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
             return Corrections.corrected_onepop(y, n=ns, order=order)

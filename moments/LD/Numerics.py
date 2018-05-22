@@ -167,9 +167,9 @@ def recombination(n):
     size = (len(moms),len(moms))
     return csc_matrix((data,(row,row)),shape=size)
 
-def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=False):
+def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=False):
     if callable(nu) == False:
-        nu = np.float(nu)
+        nu = np.float(nu[0])
     theta = np.float(theta)
     rho = np.float(rho)
     if order is None:
@@ -202,7 +202,7 @@ def integrate(y, T, rho=0.0, nu=1.0, theta=0.0008, order=None, dt=0.001, ism=Fal
         
         # if nu is a function, set N to nu(t+dt/2)
         if callable(nu):
-            N = np.float(nu(elapsed_t + dt/2.))
+            N = np.float(nu(elapsed_t + dt/2.)[0])
         else:
             N = nu
         

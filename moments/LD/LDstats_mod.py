@@ -351,7 +351,7 @@ def %(method)s(self, other):
         Integrates the LD statistics forward in time. The tricky part is 
         combining single population and multi-population integration routines. 
         11/30: For now, this is just single population
-        nu: relative population size, may be a function of time
+        nu: relative population size, may be a function of time, given as a list [nu1, nu2, ...]
         tf: total time to integrate
         dt: integration timestep
         rho: can be a single recombination rate or list of recombination rates 
@@ -371,9 +371,9 @@ def %(method)s(self, other):
             print('Remember to specify rho. Default rho set to 0.0')
             rho = 0.0
         
-        if num_pops == 1 and len(self.data) == 5:
+        if num_pops == 1 and ((order == 2 and len(self.data) == 5) or order != 2):
             # this is the system [D^2, Dz, pi2, pi, 1]
-            self.data[:] = Numerics.integrate(self.data, tf, rho=rho, nu=nu, 
+            self.data[:] = Numerics.integrate(self.data, nu, tf, rho=rho, 
                                     theta=theta, order=order, dt=dt, ism=ism)
         else:
             # this is the system [D^2, Dz, z^2, z_p, z^q, 1] 
