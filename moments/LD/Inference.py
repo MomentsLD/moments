@@ -266,7 +266,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     xopt, fopt, iter, funcalls, warnflag = outputs
     xopt = _project_params_up(np.exp(xopt), fixed_params)
     
-    return xopt
+    return xopt, fopt
 
 ### inference functions for data with recombination map in raw r values
     args = (ns, model_func, ms, vcs, fs, rs,
