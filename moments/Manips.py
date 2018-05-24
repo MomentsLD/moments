@@ -19,12 +19,12 @@ Usefull functions for Spectra manipulations:
 def _log_comb(n, k):
     return gammaln(n+1) - gammaln(n-k+1) - gammaln(k+1)
 
-def split_1D_to_2D(sp, n1, n2):
+def split_1D_to_2D(sfs, n1, n2):
     """
     One-to-two population split for the spectrum,
     needs that n >= n1+n2.
 
-    sp : 1D spectrum
+    sfs : 1D spectrum
     
     n1 : sample size for resulting pop 1
     
@@ -34,11 +34,11 @@ def split_1D_to_2D(sp, n1, n2):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0] == True:
+    if sfs.mask[0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1] == True:
+    if sfs.mask[-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -48,7 +48,7 @@ def split_1D_to_2D(sp, n1, n2):
     if model is not None:
         model.split(0, (0,1))
     
-    data_1D = copy.copy(sp) # copy to preserve masking of sp
+    data_1D = copy.copy(sfs) # copy to preserve masking of sp
     assert(len(data_1D.shape) == 1)
     assert(len(data_1D) >= n1 + n2 + 1)
     # if the sample size before split is too large, we project
@@ -61,7 +61,7 @@ def split_1D_to_2D(sp, n1, n2):
     for i in range(n1 + 1):
         for j in range(n2 + 1):
             log_entry = _log_comb(n1, i) + _log_comb(n2, j) - _log_comb(n1 + n2, i + j)
-            data_2D[i, j] = sp[i+j] * np.exp(log_entry)
+            data_2D[i, j] = sfs[i+j] * np.exp(log_entry)
             #data_2D[i, j] = sp[i + j] * misc.comb(n1, i) * misc.comb(n2, j)  \
             #                / misc.comb(n1 + n2, i + j)
 
@@ -72,12 +72,12 @@ def split_1D_to_2D(sp, n1, n2):
         data_2D.mask[-1,-1] = True
     return data_2D
 
-def split_2D_to_3D_2(sp, n2new, n3):
+def split_2D_to_3D_2(sfs, n2new, n3):
     """
     Two-to-three population split for the spectrum, 
     needs that n2 >= n2new+n3.
 
-    sp : 2D spectrum
+    sfs : 2D spectrum
 
     n2new : sample size for resulting pop 2
 
@@ -87,11 +87,11 @@ def split_2D_to_3D_2(sp, n2new, n3):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True:
+    if sfs.mask[0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1] == True:
+    if sfs.mask[-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -101,7 +101,7 @@ def split_2D_to_3D_2(sp, n2new, n3):
     if model is not None:
         model.split(1, (1,2))
     
-    data_2D = copy.copy(sp)
+    data_2D = copy.copy(sfs)
     assert(len(data_2D.shape) == 2)
     n1 = data_2D.shape[0] - 1
     n2 = data_2D.shape[1] - 1
@@ -116,8 +116,8 @@ def split_2D_to_3D_2(sp, n2new, n3):
     for i in range(n2new + 1):
         for j in range(n3 + 1):
             log_entry_weight = _log_comb(n2new, i) + _log_comb(n3, j) - _log_comb(n2new + n3, i + j)
-            data_3D[:, i, j] = sp[:, i + j] * np.exp(log_entry_weight)
-            #data_3D[:, i, j] = sp[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
+            data_3D[:, i, j] = sfs[:, i + j] * np.exp(log_entry_weight)
+            #data_3D[:, i, j] = sfs[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
             #                   / misc.comb(n2new + n3, i + j)
 
     data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
@@ -127,12 +127,12 @@ def split_2D_to_3D_2(sp, n2new, n3):
         data_3D.mask[-1,-1,-1] = True
     return data_3D
 
-def split_2D_to_3D_1(sp, n1new, n3):
+def split_2D_to_3D_1(sfs, n1new, n3):
     """
     Two-to-three population split for the spectrum, 
     needs that n2 >= n2new+n3.
 
-    sp : 2D spectrum
+    sfs : 2D spectrum
     
     n1new : sample size for resulting pop 1
 
@@ -142,11 +142,11 @@ def split_2D_to_3D_1(sp, n1new, n3):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True:
+    if sfs.mask[0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1] == True:
+    if sfs.mask[-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -156,7 +156,7 @@ def split_2D_to_3D_1(sp, n1new, n3):
     if model is not None:
         model.split(0, (0,2))
   
-    data_2D = copy.copy(sp)
+    data_2D = copy.copy(sfs)
     assert(len(data_2D.shape) == 2)
     n1 = data_2D.shape[0] - 1
     n2 = data_2D.shape[1] - 1
@@ -171,8 +171,8 @@ def split_2D_to_3D_1(sp, n1new, n3):
     for i in range(n1new + 1):
         for j in range(n3 + 1):
             log_entry_weight = _log_comb(n1new, i) + _log_comb(n3, j) - _log_comb(n1new + n3, i + j)
-            data_3D[i, :, j] = sp[i + j, :] * np.exp(log_entry_weight)
-            #data_3D[i, :, j] = sp[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
+            data_3D[i, :, j] = sfs[i + j, :] * np.exp(log_entry_weight)
+            #data_3D[i, :, j] = sfs[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
             #                   / misc.comb(n1new + n3, i + j)
 
     data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
@@ -182,12 +182,12 @@ def split_2D_to_3D_1(sp, n1new, n3):
         data_3D.mask[-1,-1,-1] = True
     return data_3D
 
-def split_3D_to_4D_3(sp, n3new, n4):
+def split_3D_to_4D_3(sfs, n3new, n4):
     """
     Three-to-four population split for the spectrum,
     needs that n3 >= n3new+n4.
 
-    sp : 3D spectrum
+    sfs : 3D spectrum
 
     n3new : sample size for resulting pop 3
 
@@ -197,11 +197,11 @@ def split_3D_to_4D_3(sp, n3new, n4):
     """ 
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0] == True:
+    if sfs.mask[0,0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1,-1] == True:
+    if sfs.mask[-1,-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -211,7 +211,7 @@ def split_3D_to_4D_3(sp, n3new, n4):
     if model is not None:
         model.split(2, (2,3))
     
-    data_3D = copy.copy(sp)
+    data_3D = copy.copy(sfs)
     assert(len(data_3D.shape) == 3)
     n1 = data_3D.shape[0] - 1
     n2 = data_3D.shape[1] - 1
@@ -227,8 +227,8 @@ def split_3D_to_4D_3(sp, n3new, n4):
     for i in range(n3new + 1):
         for j in range(n4 + 1):
             log_entry_weight = _log_comb(n3new, i) + _log_comb(n4, j) - _log_comb(n3new + n4, i + j)
-            data_4D[:, :, i, j] = sp[:, :, i + j] * np.exp(log_entry_weight)
-            #data_4D[:, :, i, j] = sp[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
+            data_4D[:, :, i, j] = sfs[:, :, i + j] * np.exp(log_entry_weight)
+            #data_4D[:, :, i, j] = sfs[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
             #                      / misc.comb(n3new + n4, i + j)
 
     data_4D = Spectrum_mod.Spectrum(data_4D, mask_corners=False)
@@ -238,12 +238,12 @@ def split_3D_to_4D_3(sp, n3new, n4):
         data_4D.mask[-1,-1,-1,-1] = True
     return data_4D
 
-def split_4D_to_5D_4(sp, n4new, n5):
+def split_4D_to_5D_4(sfs, n4new, n5):
     """
     Four-to-five population split for the spectrum,
     n4 >= n4new+n5.
 
-    sp : 4D spectrum
+    sfs : 4D spectrum
     
     n4new : sample size for resulting pop 4
 
@@ -253,11 +253,11 @@ def split_4D_to_5D_4(sp, n4new, n5):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0] == True:
+    if sfs.mask[0,0,0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1,-1,-1] == True:
+    if sfs.mask[-1,-1,-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -267,7 +267,7 @@ def split_4D_to_5D_4(sp, n4new, n5):
     if model is not None:
         model.split(3, (3,4))
     
-    data_4D = copy.copy(sp)
+    data_4D = copy.copy(sfs)
     assert(len(data_4D.shape) == 4)
     n1 = data_4D.shape[0] - 1
     n2 = data_4D.shape[1] - 1
@@ -284,8 +284,8 @@ def split_4D_to_5D_4(sp, n4new, n5):
     for i in range(n4new + 1):
         for j in range(n5 + 1):
             log_entry_weight = _log_comb(n4new, i) + _log_comb(n5, j) - _log_comb(n4new + n5, i + j)
-            data_5D[:, :, :, i, j] = sp[:, :, :, i + j] * np.exp(log_entry_weight)
-            #data_5D[:, :, :, i, j] = sp[:, :, :, i + j] * misc.comb(n4new, i)  \
+            data_5D[:, :, :, i, j] = sfs[:, :, :, i + j] * np.exp(log_entry_weight)
+            #data_5D[:, :, :, i, j] = sfs[:, :, :, i + j] * misc.comb(n4new, i)  \
             #                         * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
 
     data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
@@ -295,12 +295,12 @@ def split_4D_to_5D_4(sp, n4new, n5):
         data_5D.mask[-1,-1,-1,-1,-1] = True
     return data_5D
 
-def split_4D_to_5D_3(sp, n3new, n4):
+def split_4D_to_5D_3(sfs, n3new, n4):
     """
     Four-to-five population split for the spectrum,
     n3 >= n3new+n4.
 
-    sp : 4D spectrum
+    sfs : 4D spectrum
     
     n3new : sample size for resulting pop 3
 
@@ -310,11 +310,11 @@ def split_4D_to_5D_3(sp, n3new, n4):
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0,0,0] == True:
+    if sfs.mask[0,0,0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1,-1,-1] == True:
+    if sfs.mask[-1,-1,-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
@@ -324,7 +324,7 @@ def split_4D_to_5D_3(sp, n3new, n4):
     if model is not None:
         model.split(2, (2,3))
     
-    data_4D = copy.copy(sp)
+    data_4D = copy.copy(sfs)
     assert(len(data_4D.shape) == 4)
     n1 = data_4D.shape[0] - 1
     n2 = data_4D.shape[1] - 1
@@ -341,8 +341,8 @@ def split_4D_to_5D_3(sp, n3new, n4):
     for i in range(n3new + 1):
         for j in range(n4 + 1):
             log_entry_weight = _log_comb(n3new, i) + _log_comb(n4, j) - _log_comb(n3new + n4, i + j)
-            data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * np.exp(log_entry_weight)
-            #data_5D[:, :, i, j, :] = sp[:, :, i + j, :] * misc.comb(n3new, i)  \
+            data_5D[:, :, i, j, :] = sfs[:, :, i + j, :] * np.exp(log_entry_weight)
+            #data_5D[:, :, i, j, :] = sfs[:, :, i + j, :] * misc.comb(n3new, i)  \
             #                         * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
 
     data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
@@ -354,26 +354,26 @@ def split_4D_to_5D_3(sp, n3new, n4):
 
 
 # merge two populations into one population
-def merge_2D_to_1D(sp):
+def merge_2D_to_1D(sfs):
     """
     Two-to-one populations fusion
     
-    sp : 2D spectrum
+    sfs : 2D spectrum
     
     Returns a new 1D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
     # If they are unmasked, keep split spectrum corners unmasked
-    if sp.mask[0,0] == True:
+    if sfs.mask[0,0] == True:
         mask_lost = True
     else:
         mask_lost = False
-    if sp.mask[-1,-1] == True:
+    if sfs.mask[-1,-1] == True:
         mask_fixed = True
     else:
         mask_fixed = False
     
-    data_2D = copy.copy(sp)
+    data_2D = copy.copy(sfs)
     assert(len(data_2D.shape) == 2)
     data_2D.unmask_all()
     dim1, dim2 = data_2D.shape
