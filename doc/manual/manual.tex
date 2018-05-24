@@ -388,7 +388,7 @@ This method takes three crucial parameters, \py{nu}, \py{ns} and \py{T}.
 \py{T} specifies the time of this integration and \py{nu} specifies the size of this(ese) population(s) relative to the reference during this time period and \py{ns} gives the size of the sample. If we consider several populations, \py{nu} and \py{ns} must be arrays of numpy arrays of the form \py{nu = [nu1, nu2, nu3]} where \py{nui} is the relative population size of population i.
 
 The migration rates are gathered in matrix \py{m}, \py{m[i, j]} being the rate of migration \emph{from pop 2 into pop 1}. 
-It is equal to the fraction of individuals each generation in pop 1 that are new migrants from pop 2, times the 2\Nref. Moreover, selection and dominance coefficients \py{s} and \py{h} are scalars if we are simulating a single population and arrays for multiple populations cases. 
+It is equal to the fraction of individuals each generation in pop 1 that are new migrants from pop 2, times 2\Nref. Moreover, selection and dominance coefficients \py{s} and \py{h} are scalars if we are simulating a single population and arrays for multiple populations cases. 
 
 Note that for all these methods, the integration time \py{T} must be positive.
 To ensure this, it is best to define your time parameters as the \emph{interval between} events rather than the absolute time of those events.

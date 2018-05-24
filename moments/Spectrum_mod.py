@@ -1592,7 +1592,6 @@ def %(method)s(self, other):
                 self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
-        return self
 
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm
