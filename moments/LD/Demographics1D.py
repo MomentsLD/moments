@@ -16,7 +16,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genoty
          if False (default), we assume a reversible mutation model with equal forward
             and back mutation rates theta
     """
-    y = Numerics.Numerics.equilibrium(rho, theta, ism=ism, order=order)
+    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
     y = LDstats(y, num_pops=1, order=order)
     if corrected == True:
         if genotypes == False:
