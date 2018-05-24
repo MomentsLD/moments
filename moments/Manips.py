@@ -61,9 +61,7 @@ def split_1D_to_2D(sfs, n1, n2):
     for i in range(n1 + 1):
         for j in range(n2 + 1):
             log_entry = _log_comb(n1, i) + _log_comb(n2, j) - _log_comb(n1 + n2, i + j)
-            data_2D[i, j] = sfs[i+j] * np.exp(log_entry)
-            #data_2D[i, j] = sp[i + j] * misc.comb(n1, i) * misc.comb(n2, j)  \
-            #                / misc.comb(n1 + n2, i + j)
+            data_2D[i, j] = data_1D[i+j] * np.exp(log_entry)
 
     data_2D = Spectrum_mod.Spectrum(data_2D, mask_corners=False)
     if mask_lost == True:
@@ -116,9 +114,7 @@ def split_2D_to_3D_2(sfs, n2new, n3):
     for i in range(n2new + 1):
         for j in range(n3 + 1):
             log_entry_weight = _log_comb(n2new, i) + _log_comb(n3, j) - _log_comb(n2new + n3, i + j)
-            data_3D[:, i, j] = sfs[:, i + j] * np.exp(log_entry_weight)
-            #data_3D[:, i, j] = sfs[:, i + j] * misc.comb(n2new, i) * misc.comb(n3, j)  \
-            #                   / misc.comb(n2new + n3, i + j)
+            data_3D[:, i, j] = data_2D[:, i + j] * np.exp(log_entry_weight)
 
     data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
     if mask_lost == True:
@@ -171,9 +167,7 @@ def split_2D_to_3D_1(sfs, n1new, n3):
     for i in range(n1new + 1):
         for j in range(n3 + 1):
             log_entry_weight = _log_comb(n1new, i) + _log_comb(n3, j) - _log_comb(n1new + n3, i + j)
-            data_3D[i, :, j] = sfs[i + j, :] * np.exp(log_entry_weight)
-            #data_3D[i, :, j] = sfs[i + j, :] * misc.comb(n1new, i) * misc.comb(n3, j)  \
-            #                   / misc.comb(n1new + n3, i + j)
+            data_3D[i, :, j] = data_2D[i + j, :] * np.exp(log_entry_weight)
 
     data_3D = Spectrum_mod.Spectrum(data_3D, mask_corners=False)
     if mask_lost == True:
@@ -227,9 +221,7 @@ def split_3D_to_4D_3(sfs, n3new, n4):
     for i in range(n3new + 1):
         for j in range(n4 + 1):
             log_entry_weight = _log_comb(n3new, i) + _log_comb(n4, j) - _log_comb(n3new + n4, i + j)
-            data_4D[:, :, i, j] = sfs[:, :, i + j] * np.exp(log_entry_weight)
-            #data_4D[:, :, i, j] = sfs[:, :, i + j] * misc.comb(n3new, i) * misc.comb(n4, j)  \
-            #                      / misc.comb(n3new + n4, i + j)
+            data_4D[:, :, i, j] = data_3D[:, :, i + j] * np.exp(log_entry_weight)
 
     data_4D = Spectrum_mod.Spectrum(data_4D, mask_corners=False)
     if mask_lost == True:
@@ -284,9 +276,7 @@ def split_4D_to_5D_4(sfs, n4new, n5):
     for i in range(n4new + 1):
         for j in range(n5 + 1):
             log_entry_weight = _log_comb(n4new, i) + _log_comb(n5, j) - _log_comb(n4new + n5, i + j)
-            data_5D[:, :, :, i, j] = sfs[:, :, :, i + j] * np.exp(log_entry_weight)
-            #data_5D[:, :, :, i, j] = sfs[:, :, :, i + j] * misc.comb(n4new, i)  \
-            #                         * misc.comb(n5, j) / misc.comb(n4new + n5, i + j)
+            data_5D[:, :, :, i, j] = data_4D[:, :, :, i + j] * np.exp(log_entry_weight)
 
     data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
     if mask_lost == True:
@@ -341,9 +331,7 @@ def split_4D_to_5D_3(sfs, n3new, n4):
     for i in range(n3new + 1):
         for j in range(n4 + 1):
             log_entry_weight = _log_comb(n3new, i) + _log_comb(n4, j) - _log_comb(n3new + n4, i + j)
-            data_5D[:, :, i, j, :] = sfs[:, :, i + j, :] * np.exp(log_entry_weight)
-            #data_5D[:, :, i, j, :] = sfs[:, :, i + j, :] * misc.comb(n3new, i)  \
-            #                         * misc.comb(n4, j) / misc.comb(n3new + n4, i + j)
+            data_5D[:, :, i, j, :] = data_4D[:, :, i + j, :] * np.exp(log_entry_weight)
 
     data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
     if mask_lost == True:
