@@ -64,7 +64,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
                  fixed_params=None, multinom=False, fixed_theta=False, 
-                 use_afs=False, genotypes=False, inds_to_remove=[],
+                 use_afs=False, genotypes=False, inds_to_remove=[], multipop_stats,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -98,39 +98,56 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         if fs.folded:
             model = model.fold()
         if multinom == True:
-            ll_afs = moments.Inference.ll_multinom(fs,model)
+            ll_afs = moments.Inference.ll_multinom(model,fs)
         else:
-            ll_afs = moments.Inference.ll(fs,model)
+            ll_afs = moments.Inference.ll(model,fs)
     
     ## next get ll for LD stats
     # need func_kwargs for each rho in rhos
-    func_kwargs_list = []
-    for rho in rhos:
-        if genotypes == False:
-            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
-                                        'corrected':corrected, 'ism':ism} )
-        else:
-            func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
-                                        'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
-    
-    sorted_rhos = np.sort(rhos)
-    mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
-    func_kwargs_list_mids = []
-    for rho in mid_rhos:
-        if genotypes == False:
-            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
-                                        'corrected':corrected, 'ism':ism} )
-        else:
-            func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
-                                        'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
-
-#    # we do this previously and pass inds_to_remove now 
-#    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
-#        # we don't want the sigma statistics, since they are just summaries of the frequency spectrum
-#        names = Numerics.moment_names_onepop(order)
-#        inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
-#    else:
-#        inds_to_remove = []
+    if multipop == False:
+        func_kwargs_list = []
+        for rho in rhos:
+            if genotypes == False:
+                func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism} )
+            else:
+                func_kwargs_list.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
+        
+        sorted_rhos = np.sort(rhos)
+        mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
+        func_kwargs_list_mids = []
+        for rho in mid_rhos:
+            if genotypes == False:
+                func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism} )
+            else:
+                func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
+    else:
+        func_kwargs_list = []
+        for rho in rhos:
+            if genotypes == False:
+                func_kwargs_list.append( {'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 
+                                            'stats_to_compute':multipop_stats} )
+            else:
+                func_kwargs_list.append( {'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 'genotypes':genotypes, 
+                                            'stats_to_compute':multipop_stats} )
+        
+        sorted_rhos = np.sort(rhos)
+        mid_rhos = (sorted_rhos[1:]+sorted_rhos[:-1])/2.
+        func_kwargs_list_mids = []
+        for rho in mid_rhos:
+            if genotypes == False:
+                func_kwargs_list_mids.append( {'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 
+                                            'stats_to_compute':multipop_stats} )
+            else:
+                func_kwargs_list_mids.append( {'theta':theta, 'ns':nsLD, 'rho':rho, 
+                                            'corrected':corrected, 'ism':ism, 'genotypes':genotypes, 
+                                            'stats_to_compute':multipop_stats} )
 
     stats = []
     for func_kwargs_rho in func_kwargs_list:
@@ -270,7 +287,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             lower_bound, upper_bound, 
             verbose, func_args, func_kwargs,
             fixed_params, multinom, fixed_theta, 
-            use_afs, genotypes, inds_to_remove,
+            use_afs, genotypes, inds_to_remove, 
+            multipop_stats,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
@@ -280,6 +298,9 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     xopt = _project_params_up(np.exp(xopt), fixed_params)
     
     return xopt, fopt
+
+
+
 
 ### inference functions for data with recombination map in raw r values
     args = (ns, model_func, ms, vcs, fs, rs,
