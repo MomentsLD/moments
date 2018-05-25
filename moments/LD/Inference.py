@@ -64,7 +64,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
                  fixed_params=None, multinom=False, fixed_theta=False, 
-                 use_afs=False, genotypes=False, inds_to_remove=[], multipop_stats=None,
+                 use_afs=False, genotypes=False, inds_to_remove=[], 
+                 multipop=False, multipop_stats=None,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -124,7 +125,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
             else:
                 func_kwargs_list_mids.append( {'order':order, 'theta':theta, 'ns':nsLD, 'rho':rho, 
                                             'corrected':corrected, 'ism':ism, 'genotypes':genotypes} )
-    else:
+    elif multipop == True:
         func_kwargs_list = []
         for rho in rhos:
             if genotypes == False:
@@ -256,7 +257,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                 vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
             for ii in range(len(ms)):
                 ms[ii] = np.delete(ms[ii], inds_to_remove)
-        else:
+        elif multipop == True:
             if multipop_stats == None:
                 names = Numerics.moments_names_multipop(num_pops)
                 inds_to_remove = []
@@ -288,7 +289,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             verbose, func_args, func_kwargs,
             fixed_params, multinom, fixed_theta, 
             use_afs, genotypes, inds_to_remove, 
-            multipop_stats,
+            multipop, multipop_stats,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
