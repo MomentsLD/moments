@@ -94,7 +94,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
 
     ## first get ll of afs
     if use_afs == True:
-        model = Leff * theta * model_func[1](all_args[0],[nsFS])
+        model = Leff * theta * model_func[1](all_args[0],nsFS)
         if fs.folded:
             model = model.fold()
         if multinom == True:
@@ -206,8 +206,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     """
     output_stream = sys.stdout
     
-    if hasattr(ns, '__len__') == False:
-        ns = [ns,ns]
+    if hasattr(ns, '__len__') == False: # this works for single populations
+        ns = [[ns],[ns]]
     
     means = data[0]
     varcovs = data[1]
