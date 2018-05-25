@@ -181,7 +181,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  lower_bound=None, upper_bound=None, verbose=0,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  multinom=False, fixed_theta=False, use_afs=False, 
-                 genotypes=False, num_pops=1, multipop=False):
+                 genotypes=False, num_pops=1, 
+                 multipop=False, multipop_stats=None):
     """
     p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
@@ -239,16 +240,28 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
             for ii in range(len(ms)):
                 ms[ii] = np.delete(ms[ii], inds_to_remove)
         else:
-            names = Numerics.moments_names_multipop(num_pops)
-            inds_to_remove = []
-            for name in names:
-                if name.split('_')[0] in ['zp','zq']:
-                    inds_to_remove.append(names.index(name))
-            for ii in range(len(vcs)):
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-            for ii in range(len(ms)):
-                ms[ii] = np.delete(ms[ii], inds_to_remove)
+            if multipop_stats == None:
+                names = Numerics.moments_names_multipop(num_pops)
+                inds_to_remove = []
+                for name in names:
+                    if name.split('_')[0] in ['zp','zq']:
+                        inds_to_remove.append(names.index(name))
+                for ii in range(len(vcs)):
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+                for ii in range(len(ms)):
+                    ms[ii] = np.delete(ms[ii], inds_to_remove)
+            else: # we remove stats of the form sig_ and f2 (set up so far for two populations)
+                names = multipop_stats
+                inds_to_remove = []
+                for name in names:
+                    if name.split('_')[0] in ['sig','f2']:
+                        inds_to_remove.append(names.index(name))
+                for ii in range(len(vcs)):
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+                for ii in range(len(ms)):
+                    ms[ii] = np.delete(ms[ii], inds_to_remove)
     else:
         inds_to_remove = []
     
