@@ -64,7 +64,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  lower_bound=None, upper_bound=None,
                  verbose=0, func_args=[], func_kwargs={},
                  fixed_params=None, multinom=False, fixed_theta=False, 
-                 use_afs=False, genotypes=False, inds_to_remove=[], multipop_stats,
+                 use_afs=False, genotypes=False, inds_to_remove=[], multipop_stats=None,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
