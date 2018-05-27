@@ -11,12 +11,16 @@ and for multipopulation models for 2nd order statistics
 def corrected_onepop(stats, n=None, order=2):
     if n == None:
         return stats
+    
+    if hasattr(n, '__len__'):
+        n0 = n[0]
+    
     if order == 2:
-        return LDstats(order2correction(n, stats.data),order=order)
-    if order == 4:
-        return LDstats(order4correction(n, stats.data),order=order)
-    if order == 6:
-        return LDstats(order6correction(n, stats.data),order=order)
+        return LDstats(order2correction(n0, stats.data),order=order)
+    elif order == 4:
+        return LDstats(order4correction(n0, stats.data),order=order)
+    elif order == 6:
+        return LDstats(order6correction(n0, stats.data),order=order)
     else:
         print("Haven't implemented corrections for order {0}".format(order))
         return stats
@@ -29,10 +33,16 @@ def corrected_onepop_genotypes(stats, n=None, order=2):
     NOTE: unlike the correction for haploid sampling, where n is the number of chromosomes,
           here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
     """
+    if n == None:
+        return stats
+    
+    if hasattr(n, '__len__'):
+        n0 = n[0]
+    
     if order == 2:
-        return LDstats(order2correction_genotypes(stats.data, n), order=order)
+        return LDstats(order2correction_genotypes(stats.data, n0), order=order)
     elif order == 4:
-        return LDstats(order4correction_genotypes(stats.data, n), order=order)
+        return LDstats(order4correction_genotypes(stats.data, n0), order=order)
     else:
         print("Haven't implemented corrections for order {0}".format(order))
         return stats
