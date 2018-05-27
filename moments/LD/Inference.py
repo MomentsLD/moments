@@ -62,7 +62,7 @@ _out_of_bounds_val = -1e12
 def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None,
-                 verbose=0, func_args=[], func_kwargs={},
+                 verbose=0, flush_delay=0, func_args=[], func_kwargs={},
                  fixed_params=None, multinom=False, fixed_theta=False, 
                  use_afs=False, genotypes=False, inds_to_remove=[], 
                  multipop=False, multipop_stats=None,
@@ -189,7 +189,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
         param_str = 'array([%s])' % (', '.join(['%- 12g'%v for v in params_up]))
         output_stream.write('%-8i, %-12g, %s%s' % (_counter, result, param_str,
                                                    os.linesep))
-    
+        moments.Misc.delayed_flush(delay=flush_delay)
     
     return -result
 
@@ -198,7 +198,8 @@ def _object_func_log(log_params, *args, **kwargs):
 
 def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
                  order=2, theta=None, Leff=None, ism=True, corrected=True,
-                 lower_bound=None, upper_bound=None, verbose=0,
+                 lower_bound=None, upper_bound=None, 
+                 verbose=0, flush_delay=0.5,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  multinom=False, fixed_theta=False, use_afs=False, 
                  genotypes=False, num_pops=1, 
@@ -288,7 +289,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0],
     args = (ns, model_func, ms, vcs, fs, rhos,
             order, theta, Leff, ism, corrected,
             lower_bound, upper_bound, 
-            verbose, func_args, func_kwargs,
+            verbose, flush_delay, func_args, func_kwargs,
             fixed_params, multinom, fixed_theta, 
             use_afs, genotypes, inds_to_remove, 
             multipop, multipop_stats,
