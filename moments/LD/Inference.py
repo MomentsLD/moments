@@ -153,13 +153,15 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None, rhos=[0],
     stats = []
     for func_kwargs_rho in func_kwargs_list:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
-        temp_stats = temp_stats[:-1] # last value is 1
+        if multipop_stats == None:
+            temp_stats = temp_stats[:-1] # last value is 1
         stats.append(np.delete(temp_stats,inds_to_remove))
     
     stats_mid = []
     for func_kwargs_rho in func_kwargs_list_mids:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
-        temp_stats = temp_stats[:-1] # last value is 1
+        if multipop_stats == None:
+            temp_stats = temp_stats[:-1] # last value is 1
         stats_mid.append(np.delete(temp_stats,inds_to_remove))
     
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
