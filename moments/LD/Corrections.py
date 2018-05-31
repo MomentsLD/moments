@@ -38,6 +38,8 @@ def corrected_onepop_genotypes(stats, n=None, order=2):
     
     if hasattr(n, '__len__'):
         n0 = n[0]
+    else:
+        n0 = n
     
     if order == 2:
         return LDstats(order2correction_genotypes(stats.data, n0), order=order)

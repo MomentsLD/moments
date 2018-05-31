@@ -145,12 +145,35 @@ class LDstats(numpy.ma.masked_array):
             y_new[ii] = self[mom_list_from.index(points[mom_to])]
         return LDstats(y_new, num_pops=self.num_pops+1, order=self.order)
     
-    def swap_pops():
+    def swap_pops(self,pop1,pop2):
         """
         like swapaxes for switching population ordering
         """
         pass
-
+    
+    def marginalize(self,pops):
+        """
+        Marginalize over the LDstats, removing moments for given pops
+        pops could be a single population or a list of pops
+        assume that we have 
+        """
+        if self.num_pops == 1:
+            print("You're trying to marginalize a single population model.")
+            return self
+        if hasattr(pops,"__len__") == False:
+            pops = [pops]
+        
+        # multiple pop indices to marginalize over
+        names_from = Numerics.moment_names_multipop(self.num_pops)
+        names_to = Numerics.moment_names_multipop(self.num_pops - len(pops))
+        y = np.zeros(len(names_to))
+        count = 0
+        for mom in names_from:
+            mom_pops = [int(p) for p in mom.split('_')[1:]]
+            if len(np.intersect1d(pops, mom_pops)) == 0:
+                y[count] = self[names_from.index(mom)]
+                count += 1
+        return LDstats(y, num_pops=self.num_pops-len(pops), order=self.order)
 
     def merge(self, f):
         if self.num_pops == 2:
@@ -166,6 +189,13 @@ class LDstats(numpy.ma.masked_array):
         else:
             raise ValueError("admix function is 2->3 pops.")
     
+    def pulse_migrate(self, pop_from, pop_to, f):
+        """
+        Pulse migration event, from pop_from to pop_to.
+        After pulse migration event, pop_to is composed of (1-f) from pop_to and
+        f from pop_from.
+        """
+        pass
     
     def switch_basis(self):
         if len(self.data) == 5: # we're in pi basis
