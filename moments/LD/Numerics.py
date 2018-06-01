@@ -1,7 +1,7 @@
 import numpy as np
 
 import copy
-
+import itertools
 from scipy.sparse import identity
 from scipy.sparse.linalg import factorized
 from scipy.sparse import csc_matrix
@@ -99,7 +99,10 @@ def moment_list(num_pops):
 def moment_names_multipop(n):
     return moment_list(n)+['1']
 
-### single population transition matrices
+"""
+Transition matrices for single population integration
+"""
+
 def drift(n):
     order = int(n)
     row = []
@@ -142,14 +145,14 @@ def mutation(n, ism):
         return csc_matrix((data,(row,col)),shape=(corner,corner))
     elif ism == True:
         # ISM model only built for even orders
-        names = moment_names_onepop(n)
-        size = len(names)
+        mom_list = moment_names_onepop(n)
+        size = len(mom_list)
         M = np.zeros((size,size))
         # [pi s_{i}]_{t+1} = [pi s_{i}]_{t} + theta/2 [s_{i+1}]_{t}
-        M[names.index('1_s1'), names.index('1')] = 1.0
-        M[names.index('pi^1'), names.index('1_s1')] = 1./2
+        M[mom_list.index('1_s1'), mom_list.index('1')] = 1.0
+        M[mom_list.index('pi^1'), mom_list.index('1_s1')] = 1./2
         for ii in range(1,n/2):
-            M[names.index('pi^1_s{0}'.format(ii)), names.index('1_s{0}'.format(ii+1))] = 1./2
+            M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_s{0}'.format(ii+1))] = 1./2
         
         return csc_matrix(M)
 
@@ -166,6 +169,10 @@ def recombination(n):
             continue
     size = (len(moms),len(moms))
     return csc_matrix((data,(row,row)),shape=size)
+
+"""
+Integration routine for single population dynamics
+"""
 
 def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=False):
     if callable(nu) == False:
@@ -232,330 +239,11 @@ def equilibrium(rho, theta, ism=False, order=2):
     return np.concatenate(( y0, [1] ))
 
 
-### multi pop numerics
-
-#"""
-#These are for dealing with networkx defined demography trees (see example)
-#Initially I build models using networkx graphs and hacked together ways to deal
-#with population splits and demography. Admittedly, it's not pretty and as
-#usually, the comments are shit.
-#Much farther below is integration in style of moments
-#"""
-#
-#def get_leaves(demo):
-#    """
-#    get the leaves (contemporary populations) from the networkx tree
-#    """
-#    leaves = []
-#    for node in demo.nodes():
-#        if demo.successors(node) == []:
-#            leaves.append(node)
-#    return sorted(leaves)
-#
-#def get_interiors(demo):
-#    """
-#    get the interior (ancestral) populations
-#    """
-#    node_list = demo.nodes()
-#    leaves = get_leaves(demo)
-#    for leaf in leaves:
-#        node_list.remove(leaf)
-#    return sorted(node_list)
-#
-#def get_root(demo):
-#    """
-#    get the common ancestor population from the networkx tree
-#    """
-#    leaves = get_leaves(demo)
-#    possible_roots = []
-#    for set in itertools.permutations(leaves, len(leaves)):
-#        possible_roots.append('-'.join(set))
-#    for pr in possible_roots:
-#        if pr in demo.node.keys():
-#            root = pr
-#    return root
-#    
-#def add_times(demo, tree_times):
-#    """
-#    demo: the population tree with nodes (populations) and edges (pop relations)
-#    tree_times: dictionary with {internal_node_name: time_of_split}, where
-#                times are measured from the beginning of the simulation (from equilibrium
-#                of the root node)
-#                also contains {'F': T}, the time to end the simulation (present time)
-#    this adds the times to the demo object, which is needed to integrate moments
-#        along the tree
-#    """
-#    leaves = get_leaves(demo)
-#    interiors = get_interiors(demo)
-#    for node in interiors:
-#        if node == get_root(demo):
-#            demo.node[node]['Ttop'] = 0.0
-#            demo.node[node]['Tbot'] = tree_times[node]
-#        else:
-#            parent = demo.predecessors(node)[0]
-#            demo.node[node]['Ttop'] = tree_times[parent]
-#            demo.node[node]['Tbot'] = tree_times[node]
-#    for node in leaves:
-#        parent = demo.predecessors(node)[0]
-#        demo.node[node]['Ttop'] = tree_times[parent]
-#        demo.node[node]['Tbot'] = tree_times['F']
-#    return demo
-#
-#def get_event_times(demo):
-#    """
-#    returns sorted list of split/epoch times
-#    """
-#    times = [0.0]
-#    leaves = get_leaves(demo)
-#    interiors = get_interiors(demo)
-#    # add split times
-#    for node in interiors:
-#        times.append(demo.node[node]['Tbot'])
-#    # add final time
-#    times.append(demo.node[leaves[0]]['Tbot'])
-#    times = list(set(times))
-#    times = sorted(times)
-#    return times
-#
-#
-#def get_current_pops(demo, T):
-#    """
-#    given demography demo with tree_times already added, returns which populations
-#    are present at time T
-#    """
-#    if T == demo.node[get_leaves(demo)[0]]['Tbot']:
-#        return get_leaves(demo)
-#    else:
-#        pops = []
-#        for node in get_interiors(demo):
-#            if T >= demo.node[node]['Ttop'] and T < demo.node[node]['Tbot']:
-#                pops.append(node)
-#        for node in get_leaves(demo):
-#            if T >= demo.node[node]['Ttop'] and T < demo.node[node]['Tbot']:
-#                pops.append(node)
-#        return pops
-#
-#def get_migration_rates(demo,T,ordered_pops):
-#    npops = len(ordered_pops)
-#    ms = np.zeros((npops)*(npops-1))
-#    m_count = 0
-#    for i in range(npops):
-#        pop1 = ordered_pops[i]
-#        for j in range(i+1,npops):
-#            pop2 = ordered_pops[j]
-#            if pop2 in demo.node[pop1]['mig'].keys():
-#                ms[m_count] = demo.node[pop1]['mig'][pop2]
-#            m_count +=1 
-#            if pop1 in demo.node[pop2]['mig'].keys():
-#                ms[m_count] = demo.node[pop2]['mig'][pop1]
-#            m_count += 1
-#    return ms
-#
-#def pop_size_from_exp(T,Ttop,Tbot,Ntop,Nbot):
-#    return Ntop * np.exp(np.log(float(Nbot)/float(Ntop)) * (T-Ttop)/(Tbot-Ttop))
-#
-#def get_pop_sizes(demo, T, pops):
-#    nus = []
-#    for pop in pops:
-#        if demo.node[pop]['model'] == 'constant':
-#            nus.append(demo.node[pop]['nu'])
-#        elif demo.node[pop]['model'] == 'exponential':
-#            nus.append(pop_size_from_exp(T,demo.node[pop]['Ttop'],demo.node[pop]['Tbot'],demo.node[pop]['nu_top'],demo.node[pop]['nu_bot']))
-#        else:
-#            raise "haven't implemented non-constant/exponential demography"
-#    return nus
-#
-#def demography(demo, rho=0.0, theta=1e-4, dt=0.0001):
-#    event_times = get_event_times(demo)
-#    y, ordered_pops = root_equilibrium_nx(demo, rho, theta, dt)
-#    for period in zip(event_times[:-1],event_times[1:]):
-#        y, ordered_pops = seed_after_split(demo, period[0], y, ordered_pops)
-#        y = integrate_multipop_nx(demo, period[0], period[1], rho, theta, y, ordered_pops, dt)
-#    return y[:-1], ordered_pops
-#
-#def seed_after_split(demo, T, y_last, ordered_pops):
-#    # y_last: vector of computed moments before split
-#    # ordered_pops_last: list of ordered pops from previous demo
-#    new_ordered_pops = []
-#    current_pops = get_current_pops(demo,T)
-#    for prev_pop in ordered_pops:
-#        if prev_pop in current_pops:
-#            new_ordered_pops.append(prev_pop)
-#        else:
-#            # previous pop split, e.g. 'A-B-C-D-E-F-G' -> 'A-B','C-D-E-F-G'
-#            num_dashes = prev_pop.count('-')
-#            splits = prev_pop.split('-')
-#            possible_splits = [('-'.join(splits[:i]),'-'.join(splits[i:])) for i in range(1,num_dashes+1)]
-#            for pos_split in possible_splits:
-#                if pos_split[0] in current_pops and pos_split[1] in current_pops:
-#                    new_ordered_pops.append(pos_split[0])
-#                    new_ordered_pops.append(pos_split[1])
-#    
-#    ml_last = moment_list(len(ordered_pops))
-#    ml = moment_list(len(new_ordered_pops))
-#    y = np.zeros(len(ml))
-#    
-#    for i,moment in zip(range(len(ml)),ml):
-#        # get from parent
-#        if moment.split('_')[0] == 'DD':
-#            pop1 = new_ordered_pops[int(moment.split('_')[1])-1]
-#            pop2 = new_ordered_pops[int(moment.split('_')[2])-1]
-#            if pop1 not in ordered_pops:
-#                parent1 = demo.predecessors(pop1)[0]
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('DD_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('DD_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1))]                        
-#            else:
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('DD_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('DD_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1))]                        
-#        
-#        elif moment.split('_')[0] == 'Dz':
-#            pop1 = new_ordered_pops[int(moment.split('_')[1])-1]
-#            pop2 = new_ordered_pops[int(moment.split('_')[2])-1]
-#            pop3 = new_ordered_pops[int(moment.split('_')[3])-1]
-#            if pop1 not in ordered_pops:
-#                parent1 = demo.predecessors(pop1)[0]
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1))]
-#                    else:
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1))]
-#                else:
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1))]
-#                    else:
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1))]
-#            else:
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1))]
-#                    else:
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1))]
-#                else:
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1))]
-#                    else:
-#                        y[i] = y_last[ml_last.index('Dz_{0}_{1}_{2}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(pop3)+1))]
-#            
-#        elif moment.split('_')[0] == 'zz':
-#            pop1 = new_ordered_pops[int(moment.split('_')[1])-1]
-#            pop2 = new_ordered_pops[int(moment.split('_')[2])-1]
-#            pop3 = new_ordered_pops[int(moment.split('_')[3])-1]
-#            pop4 = new_ordered_pops[int(moment.split('_')[4])-1]
-#            if pop1 not in ordered_pops:
-#                parent1 = demo.predecessors(pop1)[0]
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(pop4)+1))]
-#                    else:
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(pop4)+1))]
-#                else:
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(pop4)+1))]
-#                    else:
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(pop4)+1))]
-#            else:
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(pop4)+1))]
-#                    else:
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(pop4)+1))]
-#                else:
-#                    if pop3 not in ordered_pops:
-#                        parent3 = demo.predecessors(pop3)[0]
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(parent3)+1,ordered_pops.index(pop4)+1))]
-#                    else:
-#                        if pop4 not in ordered_pops:
-#                            parent4 = demo.predecessors(pop4)[0]
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(parent4)+1))]
-#                        else:
-#                            y[i] = y_last[ml_last.index('zz_{0}_{1}_{2}_{3}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1,ordered_pops.index(pop3)+1,ordered_pops.index(pop4)+1))]
-#
-#        elif moment.split('_')[0] == 'zp':
-#            pop1 = new_ordered_pops[int(moment.split('_')[1])-1]
-#            pop2 = new_ordered_pops[int(moment.split('_')[2])-1]
-#            if pop1 not in ordered_pops:
-#                parent1 = demo.predecessors(pop1)[0]
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('zp_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('zp_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1))]
-#            else:
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('zp_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('zp_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1))]
-#        
-#        elif moment.split('_')[0] == 'zq':
-#            pop1 = new_ordered_pops[int(moment.split('_')[1])-1]
-#            pop2 = new_ordered_pops[int(moment.split('_')[2])-1]
-#            if pop1 not in ordered_pops:
-#                parent1 = demo.predecessors(pop1)[0]
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('zq_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('zq_{0}_{1}'.format(ordered_pops.index(parent1)+1,ordered_pops.index(pop2)+1))]
-#            else:
-#                if pop2 not in ordered_pops:
-#                    parent2 = demo.predecessors(pop2)[0]
-#                    y[i] = y_last[ml_last.index('zq_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(parent2)+1))]
-#                else:
-#                    y[i] = y_last[ml_last.index('zq_{0}_{1}'.format(ordered_pops.index(pop1)+1,ordered_pops.index(pop2)+1))]
-#        
-#        else:
-#            print "what the fuck did i do wrong..."
-#    
-#    return np.concatenate(( y, np.ones(1) )), new_ordered_pops
 
 """
 Matrices for multipopulation integration
+For numbers of populations 1-4 we have cached the csc matrices to build quickly
+For larger number of pops (>4) we build them here
 """
 
 def drift_multipop(nus,npops):
@@ -568,7 +256,19 @@ def drift_multipop(nus,npops):
     elif npops == 4:
         return Matrices.drift_four_pop(nus)
     else:
-        raise "haven't put together {0}-pop drift matrix yet...".format(len(nus))
+        mom_list = moment_names_multipop(npops)
+        row = []
+        col = []
+        data = []
+        
+        for mom in mom_list:
+            this_ind = mom_list.index(mom)
+            mom2s, vals = Matrices.drift_multipop_terms(mom,nus)
+            for mom2,val in zip(mom2s,vals):
+                row.append(this_ind)
+                col.append(mom_list.index(mom2))
+                data.append(val)
+        return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
 def migration_multipop(ms,npops):
     if npops == 2:
@@ -578,7 +278,7 @@ def migration_multipop(ms,npops):
     elif npops == 4:
         return Matrices.migra_four_pop(ms)
     else:
-        raise "haven't put together {0}-pop migration matrix yet...".format(len(nus))
+        raise "haven't put together {0}-pop migration matrix yet...".format(npops)
 
 def recombination_multipop(rho,npops):
     if npops == 1:
@@ -590,7 +290,20 @@ def recombination_multipop(rho,npops):
     elif npops == 4:
         return Matrices.recom_four_pop(rho)
     else:
-        raise "haven't put together {0}-pop recomb matrix yet...".format(len(nus))
+        mom_list = moment_names_multipop(npops)
+        row = []
+        col = []
+        data = []
+        for ii,mom in enumerate(mom_list):
+            if mom.split('_')[0] == 'DD':
+                row.append(ii)
+                col.append(ii)
+                data.append(-rho)
+            elif mom.split('_')[0] == 'Dz':
+                row.append(ii)
+                col.append(ii)
+                data.append(-rho/2.)
+        return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
 def mutation_multipop(mu,npops,ism=False):
     if ism == False:
@@ -603,105 +316,44 @@ def mutation_multipop(mu,npops,ism=False):
         elif npops == 4:
             return Matrices.mutat_four_pop(mu)
         else:
-            raise "haven't put together {0}-pop mutation matrix yet...".format(len(nus))
+            mom_list = moment_names_multipop(npops)
+            row = []
+            col = []
+            data = []
+            for ii,mom in enumerate(mom_list):
+                if mom.split('_')[0] in ['DD','Dz','zz']:
+                    row.append(ii)
+                    col.append(ii)
+                    data.append(-4.*mu)
+                elif mom.split('_')[0] in ['zp','zq']:
+                    row.append(ii)
+                    col.append(ii)
+                    data.append(-2.*mu)
+            return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
     elif ism == True:
         mom_list = moment_names_multipop(npops)
-        M = np.zeros((len(mom_list), len(mom_list)))
+        #M = np.zeros((len(mom_list), len(mom_list)))
+        row = []
+        col = []
+        data = []
         for mom in mom_list:
             if mom.split('_')[0] in ['zp','zq']:
-                M[mom_list.index(mom), -1] = -2.
+                #M[mom_list.index(mom), -1] = -2.
+                row.append(mom_list.index(mom))
+                col.append(mom_list.index('1'))
+                data.append(-2.)
             elif mom.split('_')[0] == 'zz':
                 mom1 = 'zp_'+ mom.split('_')[1] +'_' + mom.split('_')[2]
                 mom2 = 'zq_'+ mom.split('_')[3] +'_' + mom.split('_')[4]
-                M[mom_list.index(mom), mom_list.index(mom1)] = -2.
-                M[mom_list.index(mom), mom_list.index(mom2)] = -2.
-        return csc_matrix(mu*M)
-    
-"""
-Integration routines
-"""
-    
-#def integrate_multipop_nx(demo, Ttop, Tbot, rho, theta, y, ordered_pops, dt):
-#    # total integration time
-#    T = Tbot-Ttop
-#    # pops and models in this period, order from seeding from last epoch
-#    pops = ordered_pops
-#    npops = len(pops)
-#    models = [demo.node[pop]['model'] for pop in pops]
-#    if npops > 1:
-#        ms = get_migration_rates(demo,T,ordered_pops)
-#        M = migration_multipop(ms,npops)
-#    
-#    R = recombination_multipop(rho,npops)
-#    U = mutation_multipop(theta,npops)
-#
-#    if models[0] == 'constant' and len(set(models)) == 1: # all constant sizes
-#        nus = [demo.node[pop]['nu'] for pop in pops]
-#        D = drift_multipop(nus,npops)
-#        
-#        if npops > 1:
-#            Ab = D+M+R+U
-#        else:
-#            Ab = D+R+U
-#        
-#        Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
-#        Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
-#        
-#        elapsed_T = Ttop
-#        # improve with t_elapsed, below checking if pop sizes changed
-#        while elapsed_T < Tbot:
-#            if elapsed_T + dt > Tbot:
-#                dt = Tbot-elapsed_T
-#                Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
-#                Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
-#            
-#            y = Ab2(Ab1.dot(y))
-#            elapsed_T += dt
-#    
-#    else:
-#        # nonconstant demography requires us to recompute the transition at each time step
-#        elapsed_T = Ttop
-#        
-#        while elapsed_T < Tbot:
-#            if elapsed_T + dt > Tbot:
-#                dt = Tbot-elapsed_T
-#            
-#            nus = get_pop_sizes(demo, elapsed_T+dt/2, ordered_pops)
-#            D = drift_multipop(nus,npops)
-#            
-#            if npops > 1:
-#                Ab = D+M+R+U
-#            else:
-#                Ab = D+R+U
-#            
-#            Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
-#            Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
-#            
-#            y = Ab2(Ab1.dot(y))
-#            elapsed_T += dt
-#    
-#    return y
-#
-##root_cache = {}
-#def root_equilibrium_nx(demo, rho, theta, dt):
-#    #try:
-#        #y0 = root_cache[(rho,theta)]
-#    #except KeyError:
-#    D = drift_multipop([1.],1)
-#    R = recombination_multipop(rho,1)
-#    U = mutation_multipop(theta,1)
-#    
-#    Ab = D+R+U
-#        
-#    y0 = np.array([0,0,1,1,1,1])
-#    Ab1 = identity(Ab.shape[0], format='csc') + dt/2.*Ab
-#    Ab2 = factorized(identity(Ab.shape[0], format='csc') - dt/2.*Ab)
-#    for timesteps in range(int(20.0/dt)):
-#        y0 = Ab2(Ab1.dot(y0))
-#        
-#        #root_cache[(rho,theta)] = y0
-#
-#    return y0, [get_root(demo)]
+                #M[mom_list.index(mom), mom_list.index(mom1)] = -2.
+                row.append(mom_list.index(mom))
+                col.append(mom_list.index(mom1))
+                data.append(-2.)
+                #M[mom_list.index(mom), mom_list.index(mom2)] = -2.
+                row.append(mom_list.index(mom))
+                col.append(mom_list.index(mom2))
+                data.append(-2.)
+        return mu*csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
 """
 Integration for multiple populations in style of moments
@@ -711,11 +363,11 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
     """
     Integration function for multipopulation statistics
     y: LDstats object with y.data, y.num_pops, y.order (=2 for multipop models)
-    nu: 
-    T: 
-    rho: 
-    theta: 
-    dt: 
+    nu: list of relative population sizes, with length equal to y.num_pops, can be function in time
+    T: time to integrate
+    rho: scale recombination rate 4Nr
+    theta: scale mutation rate 4Nmu
+    dt: time step to use
     m: migration matrix with [[0, m12, m13, ...],[m21, 0, m23, ...],...]
     
     Note that in the multipopulation basis, only the reversible mutation model is possible
@@ -724,7 +376,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
     if len(moms) != len(y):
         raise ValueError("num_pops must be set to correct number of populations")
     
-    if num_pops > 1:
+    if num_pops > 1 and m is not None:
         if m== None:
             ms = num_pops*(num_pops-1)*[0]
         else:
@@ -760,7 +412,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
         
         if dt != dt_last or nus != nus_last or elapsed_T == 0:
             D = drift_multipop(nus,num_pops)
-            if num_pops > 1:
+            if num_pops > 1 and m is not None:
                 Ab = D+M+R+U
             else:
                 Ab = D+R+U

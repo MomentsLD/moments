@@ -140,7 +140,209 @@ def migra_four_pop(params):
     return csc_matrix((data,(row,col)),shape=(195,195))
 
 
+### arbitrary number of populations drift terms
 
+def drift_multipop_terms(mom,nus):
+    """
+    mom: DD_i_j, Dz_i_j_k, zz_i_j_k_l, zp_i_j, zq_i_j, 1
+    nus: list of relative size for all populations (i,j,k,l refer to indices in this list (off by one)) 
+    return mom2s, vals
+    """
+    if mom == '1':
+        return [],[]
+    elif mom.split('_')[0] == 'DD':
+        pop1 = int(mom.split('_')[1])
+        pop2 = int(mom.split('_')[2])
+        if pop1 == pop2: # D_i^2
+            nu1 = nus[pop1-1]
+            mom2s = ['DD_{0}_{0}'.format(pop1),
+                     'Dz_{0}_{0}_{0}'.format(pop1),
+                     'zz_{0}_{0}_{0}_{0}'.format(pop1),
+                     'zp_{0}_{0}'.format(pop1),
+                     'zq_{0}_{0}'.format(pop1),
+                     '1']
+            vals = [-3./nu1, 1./nu1, 1./(16*nu1), -1./(16*nu1), -1./(16*nu1), 1./(16*nu1)]
+            return mom2s, vals
+        else: # D_i D_j
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['DD_{0}_{1}'.format(pop1,pop2)]
+            vals = [-(nu1+nu2)/(nu1*nu2)]
+            return mom2s, vals
+    elif mom.split('_')[0] == 'Dz':
+        pop1 = int(mom.split('_')[1])
+        pop2 = int(mom.split('_')[2])
+        pop3 = int(mom.split('_')[3])
+        if pop1 == pop2 and pop1 == pop3: # D_i(1-2p_i)(1-2q_i)
+            nu1 = nus[pop1-1]
+            mom2s = ['DD_{0}_{0}'.format(pop1), 'Dz_{0}_{0}_{0}'.format(pop1)]
+            vals = [4./nu1, -5./nu1]
+            return mom2s, vals
+        elif pop2 == pop3: # D_i(1-2p_j)(1-2q_j)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['DD_{0}_{1}'.format(sorted([pop1,pop2])[0], sorted([pop1,pop2])[1]), 'Dz_{0}_{1}_{1}'.format(pop1,pop2)]
+            vals = [4./nu2, -1./nu1]
+            return mom2s, vals
+        elif pop1 == pop2: # D_i(1-2p_i)(1-2q_j)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop3-1]
+            mom2s = ['Dz_{0}_{0}_{1}'.format(pop1,pop3)]
+            vals = [-3./nu1]
+            return mom2s, vals
+        elif pop1 == pop3: # D_i(1-2p_j)(1-2q_i)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['Dz_{0}_{1}_{0}'.format(pop1,pop2)]
+            vals = [-3./nu1]
+            return mom2s, vals
+        else: # D_i(1-2p_j)(1-2q_k)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            mom2s = ['Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)]
+            vals = [-1./nu1]
+            return mom2s, vals
+    elif mom.split('_')[0] == 'zz':
+        pop1 = int(mom.split('_')[1])
+        pop2 = int(mom.split('_')[2])
+        pop3 = int(mom.split('_')[3])
+        pop4 = int(mom.split('_')[4])
+        if pop1 == pop2 and pop1 == pop3 and pop1 == pop4: # (1-2p_1)(1-2p_1)(1-2q_1)(1-2q_1)
+            nu1 = nus[pop1-1]
+            mom2s = ['Dz_{0}_{0}_{0}'.format(pop1), 
+                     'zz_{0}_{0}_{0}_{0}'.format(pop1), 
+                     'zp_{0}_{0}'.format(pop1), 
+                     'zq_{0}_{0}'.format(pop1)]
+            vals = [16./nu1, -2./nu1, 1./nu1, 1./nu1]
+            return mom2s, vals
+        elif pop1 == pop2 and pop1 == pop3 and pop1 != pop4: # (1-2p_1)(1-2p_1)(1-2q_1)(1-2q_2)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop4-1]
+            mom2s = ['Dz_{0}_{0}_{1}'.format(pop1, pop4),
+                     'zz_{0}_{0}_{0}_{1}'.format(pop1, pop4),
+                     'zq_{0}_{1}'.format(pop1, pop4)]
+            vals = [8./nu1, -1./nu1, 1./nu1]
+            return mom2s, vals
+        elif pop1 == pop2 and pop1 != pop3 and pop1 == pop4: # (1-2p_1)(1-2p_1)(1-2q_2)(1-2q_1)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop3-1]
+            mom2s = ['Dz_{0}_{0}_{1}'.format(pop1, pop3),
+                     'zz_{0}_{0}_{1}_{0}'.format(pop1, pop3),
+                     'zq_{1}_{0}'.format(pop1, pop3)]
+            vals = [8./nu1, -1./nu1, 1./nu1]
+            return mom2s, vals
+        elif pop1 == pop2 and pop1 != pop3 and pop3 == pop4: # (1-2p_1)(1-2p_1)(1-2q_2)(1-2q_2)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop3-1]
+            mom2s = ['zz_{0}_{0}_{1}_{1}'.format(pop1, pop3),
+                     'zp_{0}_{0}'.format(pop1),
+                     'zq_{0}_{0}'.format(pop3)]
+            vals = [-(nu1+nu2)/(nu1*nu2), 1./nu2, 1./nu1]
+            return mom2s, vals
+        elif pop1 == pop2 and pop1 != pop3 and pop1 != pop4 and pop3 != pop4: # (1-2p_1)(1-2p_1)(1-2q_2)(1-2q_3)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            mom2s = ['zz_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4), 'zq_{0}_{1}'.format(pop3,pop4)]
+            vals = [-1./nu1, 1./nu1]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 == pop3 and pop1 == pop4: # (1-2p_1)(1-2p_2)(1-2q_1)(1-2q_1)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['Dz_{0}_{1}_{0}'.format(pop1, pop2),
+                     'zz_{0}_{1}_{0}_{0}'.format(pop1, pop2),
+                     'zp_{0}_{1}'.format(pop1, pop2)]
+            vals = [8./nu1, -1./nu1, 1./nu1]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 == pop3 and pop2 == pop4: # (1-2p_1)(1-2p_2)(1-2q_1)(1-2q_2)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['Dz_{0}_{1}_{1}'.format(pop1, pop2), 'Dz_{0}_{1}_{1}'.format(pop2, pop1)]
+            vals = [4./nu1, 4./nu2]
+            return mom2s, vals
+        elif pop1 != pop2 and pop2 == pop3 and pop2 == pop4: # (1-2p_1)(1-2p_2)(1-2q_2)(1-2q_2)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = ['Dz_{0}_{1}_{0}'.format(pop2, pop1), 
+                     'zz_{0}_{1}_{1}_{1}'.format(pop1, pop2), 
+                     'zp_{0}_{1}'.format(pop1, pop2)]
+            vals = [8./nu2, -1./nu2, 1./nu2]
+            return mom2s, vals
+        elif pop1 != pop2 and pop2 == pop3 and pop1 != pop4 and pop2 != pop4: # (1-2p_1)(1-2p_2)(1-2q_2)(1-2q_3)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop4-1]
+            mom2s = ['Dz_{0}_{1}_{2}'.format(pop2, pop1, pop4)]
+            vals = [4./nu2]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 == pop3 and pop1 != pop4 and pop2 != pop4: # (1-2p_1)(1-2p_2)(1-2q_1)(1-2q_3)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop4-1]
+            mom2s = ['Dz_{0}_{1}_{2}'.format(pop1, pop2, pop4)]
+            vals = [4./nu1]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 != pop3 and pop2 != pop3 and pop1 == pop4: # (1-2p_1)(1-2p_2)(1-2q_3)(1-2q_1)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            mom2s = ['Dz_{0}_{1}_{2}'.format(pop1, pop2, pop3)]
+            vals = [4./nu1]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 != pop3 and pop2 != pop3 and pop2 == pop4: # (1-2p_1)(1-2p_2)(1-2q_3)(1-2q_2)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            mom2s = ['Dz_{0}_{1}_{2}'.format(pop2, pop1, pop3)]
+            vals = [4./nu2]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 != pop3 and pop2 != pop3 and pop3 == pop4: # (1-2p_1)(1-2p_2)(1-2q_3)(1-2q_3)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            mom2s = ['zz_{0}_{1}_{2}_{2}'.format(pop1, pop2, pop3), 'zp_{0}_{1}'.format(pop1, pop2)]
+            vals = [-1./nu3, 1./nu3]
+            return mom2s, vals
+        elif pop1 != pop2 and pop1 != pop3 and pop1 != pop4 and pop2 != pop3 and pop2 != pop4 and pop3 != pop4: # (1-2p_1)(1-2p_2)(1-2q_3)(1-2q_4)
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            nu3 = nus[pop3-1]
+            nu4 = nus[pop4-1]
+            mom2s = []
+            vals = []
+            return mom2s, vals
+
+    elif mom.split('_')[0] == 'zp':
+        pop1 = int(mom.split('_')[1])
+        pop2 = int(mom.split('_')[2])
+        if pop1 == pop2:
+            nu1 = nus[pop1-1]
+            mom2s = ['zp_{0}_{0}'.format(pop1), '1']
+            vals = [-1./nu1, 1./nu1]
+            return mom2s, vals
+        else:
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = []
+            vals = []
+            return mom2s, vals
+    elif mom.split('_')[0] == 'zq':
+        pop1 = int(mom.split('_')[1])
+        pop2 = int(mom.split('_')[2])
+        if pop1 == pop2:
+            nu1 = nus[pop1-1]
+            mom2s = ['zq_{0}_{0}'.format(pop1), '1']
+            vals = [-1./nu1, 1./nu1]
+            return mom2s, vals
+        else:
+            nu1 = nus[pop1-1]
+            nu2 = nus[pop2-1]
+            mom2s = []
+            vals = []
+            return mom2s, vals
+    else:
+        print("oh no: what about this one? {0}".format(mom))
 ### on pop transitions
 
 # based on the order of moments in numerics_onepop.moment_names(n)

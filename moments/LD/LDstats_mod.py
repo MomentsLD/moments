@@ -139,6 +139,15 @@ class LDstats(numpy.ma.masked_array):
                 for ii in range(1,len(mom_from_split)):
                     if int(mom_from_split[ii]) == self.num_pops+1:
                         mom_from_split[ii] = str(pop_to_split)
+                    if mom_from_split[0] == 'DD':
+                        mom_from_split[1:] = [str(s) for s in sorted([int(x) for x in mom_from_split[1:]])]
+                    if mom_from_split[0] == 'zz':
+                        mom_from_split[1:3] = [str(s) for s in sorted([int(x) for x in mom_from_split[1:3]])]
+                        mom_from_split[3:] = [str(s) for s in sorted([int(x) for x in mom_from_split[3:]])]
+                    if mom_from_split[0] == 'zp':
+                        mom_from_split[1:] = [str(s) for s in sorted([int(x) for x in mom_from_split[1:]])]
+                    if mom_from_split[0] == 'zq':
+                        mom_from_split[1:] = [str(s) for s in sorted([int(x) for x in mom_from_split[1:]])]
                 mom_from = '_'.join(mom_from_split)
                 points[mom_to] = mom_from
         for ii,mom_to in zip(range(len(mom_list_to)),mom_list_to):
