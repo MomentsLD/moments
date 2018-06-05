@@ -270,7 +270,24 @@ def drift_multipop(nus,npops):
                 data.append(val)
         return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
+mom_map = {}
+def map_moment(mom):
+    try:
+        return mom_map[mom]
+    except KeyError:
+        if mom.split('_')[0] == 'DD':
+            pass
+            #mom2 = ...
+        elif mom.split('_')[0] == 'zz':
+            pass
+            #mom2 = ...
+        mom_map[mom] = mom2
+        return mom_map[mom] 
+
 def migration_multipop(ms,npops):
+    """
+    ms has form [m12, m21, m13, m31, m14, m41, ..., m23, m32, m24, m42, ...]
+    """
     if npops == 2:
         return Matrices.migra_two_pop(ms)    
     elif npops == 3:
@@ -278,7 +295,19 @@ def migration_multipop(ms,npops):
     elif npops == 4:
         return Matrices.migra_four_pop(ms)
     else:
-        raise "haven't put together {0}-pop migration matrix yet...".format(npops)
+        if npops*(npops-1) != len(ms):
+            raise ValueError("mismatch between number of populations and input number of migration rates")
+        mom_list = moment_names_multipop(npops)
+        M = np.zeros((len(mom_list),len(mom_list)))
+        
+        for mom in mom_list:
+            this_ind = mom_list.index(mom)
+            mom2s, vals = Matrics.mutation_multipop_terms(mom, ms, npops)
+            # mom2s are not in the format of mom_list, so we map them to the correct moment name
+            
+        return csc_matrix(M)
+        
+        
 
 def recombination_multipop(rho,npops):
     if npops == 1:

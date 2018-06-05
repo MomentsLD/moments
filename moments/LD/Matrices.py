@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse import csc_matrix
+import itertools
 
 ### multi-population model, one-pop higher order matrices below
 
@@ -12,8 +13,6 @@ from scipy.sparse import csc_matrix
 #                   1
 
 # return csc matrices for each of these
-
-# August 2017: currently allows for up to for populations. More are possible, but require extraction from Mathematica
 
 def drift_one_pop(nu):
     A =  np.array([[ -3./nu , 1./nu , 1./16/nu , -1./16/nu , -1./16/nu , 1./16/nu ], [ 4./nu , -5./nu , 0 , 0 , 0 , 0 ], [ 0 , 16./nu , -2./nu , 1./nu , 1./nu , 0 ], [ 0 , 0 , 0 , -1./nu , 0 , 1./nu ], [ 0 , 0 , 0 , 0 , -1./nu , 1./nu ], [ 0 , 0 , 0 , 0 , 0 , 0 ]])
@@ -343,7 +342,18 @@ def drift_multipop_terms(mom,nus):
             return mom2s, vals
     else:
         print("oh no: what about this one? {0}".format(mom))
-### on pop transitions
+
+def mutation_multipop_terms(mom, ms, npops):
+    mdict = {}
+    mijs = []
+    for pair in itertools.combinations(range(1,npops+1), 2):
+        mijs.append((pair[0],pair[1]))
+        mijs.append((pair[1],pair[0]))
+    for ii,m in enumerate(ms):
+        mij = 'm' + str(mijs[ii][0]) + str(mijs[ii][1])
+        mdict[mij] = m
+        #exec(mij + " = m")
+    
 
 # based on the order of moments in numerics_onepop.moment_names(n)
 # order n moments only rely on order n and order n-2, so we will build our csc_matrices recursively
