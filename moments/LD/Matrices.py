@@ -346,14 +346,481 @@ def drift_multipop_terms(mom,nus):
 def mutation_multipop_terms(mom, ms, npops):
     mdict = {}
     mijs = []
-    for pair in itertools.combinations(range(1,npops+1), 2):
+    all_pops = range(1,npops+1)
+    
+    for pair in itertools.combinations(all_pops, 2):
         mijs.append((pair[0],pair[1]))
         mijs.append((pair[1],pair[0]))
     for ii,m in enumerate(ms):
-        mij = 'm' + str(mijs[ii][0]) + str(mijs[ii][1])
-        mdict[mij] = m
-        #exec(mij + " = m")
+        mdict[mijs[ii]] = m
     
+    for ii in all_pops:
+        mdict[(ii,ii)] = 0.0
+    
+    mom2s, vals = ([], [])
+    
+    if mom.split('_')[0] == 'DD':
+        pops = mom.split('_')[1:]
+        pop1 = int(pops[0])
+        pop2 = int(pops[1])
+        if pop1 == pop2:
+            i = pop1
+            mom2s.append('DD_{0}_{0}'.format(i))
+            vals.append( -2.*np.sum( [mdict[(j,i)] for j in all_pops] ) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('DD_{0}_{1}'.format(i, j))
+                    vals.append( 2.*mdict[(j,i)])
+            mom2s.append('Dz_{0}_{0}_{0}'.format(i))
+            vals.append( 1./2 * np.sum( [mdict[(j,i)] for j in all_pops] ) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('Dz_{0}_{1}_{1}'.format(i, j))
+                    vals.append( 1./2.*mdict[(j,i)])
+                    mom2s.append('Dz_{0}_{0}_{1}'.format(i, j))
+                    vals.append( -1./2.*mdict[(j,i)])
+                    mom2s.append('Dz_{0}_{1}_{0}'.format(i, j))
+                    vals.append( -1./2.*mdict[(j,i)])
+        else:
+            i = pop1
+            j = pop2
+            mom2s.append('DD_{0}_{1}'.format(i, j))
+            vals.append( - np.sum([mdict[(k,i)] for k in all_pops]) - np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('DD_{0}_{1}'.format(i, k))
+                    vals.append(mdict[(k,j)])
+                if k != i:
+                    mom2s.append('DD_{0}_{1}'.format(j, k))
+                    vals.append(mdict[(k,i)])
+            mom2s.append('Dz_{0}_{1}_{1}'.format(i, j))
+            vals.append( 1./4 * np.sum( [mdict[(k,j)] for k in all_pops] ) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('Dz_{0}_{1}_{1}'.format(i, k))
+                    vals.append( 1./4*mdict[(k,j)] )
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i, j, k))
+                    vals.append( -1./4*mdict[(k,j)] )
+                    mom2s.append('Dz_{0}_{2}_{1}'.format(i, j, k))
+                    vals.append( -1./4*mdict[(k,j)] )
+            mom2s.append('Dz_{0}_{1}_{1}'.format(j, i))
+            vals.append(1./4 * np.sum( [mdict[(k,i)] for k in all_pops] ) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('Dz_{0}_{1}_{1}'.format(j, k))
+                    vals.append( 1./4*mdict[(k,i)] )
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(j, k, i))
+                    vals.append( -1./4*mdict[(k,i)] )
+                    mom2s.append('Dz_{0}_{2}_{1}'.format(j, i, k))
+                    vals.append( -1./4*mdict[(k,i)] )
+            
+    elif mom.split('_')[0] == 'Dz':
+        pops = mom.split('_')[1:]
+        pop1 = int(pops[0])
+        pop2 = int(pops[1])
+        pop3 = int(pops[2])
+        if pop1 == pop2 == pop3:
+            i = pop1
+            mom2s.append('Dz_{0}_{0}_{0}'.format(i))
+            vals.append( -3.*np.sum(mdict[(j,i)] for j in all_pops) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('Dz_{0}_{0}_{1}'.format(i,j))
+                    vals.append( mdict[(j,i)] )
+                    mom2s.append('Dz_{0}_{1}_{0}'.format(i,j))
+                    vals.append( mdict[(j,i)] )
+                    mom2s.append('Dz_{1}_{0}_{1}'.format(i,j))
+                    vals.append( mdict[(j,i)] )
+            mom2s.append('zz_{0}_{0}_{0}_{0}'.format(i))
+            vals.append( 1./4 * np.sum( [mdict[(j,i)] for j in all_pops] ) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('zz_{0}_{1}_{0}_{1}'.format(i,j))
+                    vals.append( 1./4 * mdict[(j,i)])
+                    mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,j))
+                    vals.append( -1./4 * mdict[(j,i)])
+                    mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,j))
+                    vals.append( -1./4 * mdict[(j,i)])
+        elif pop1 == pop2:
+            i = pop1
+            j = pop3
+            mom2s.append('Dz_{0}_{0}_{1}'.format(i,j))
+            vals.append( -2.*np.sum([mdict[(k,i)] for k in all_pops]) - np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('Dz_{0}_{0}_{1}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,k,j))
+                    vals.append( mdict[(k,i)] )
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(k,i,j))
+                    vals.append( mdict[(k,i)] )
+            mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,j))
+            vals.append( 1./4 * np.sum( [mdict[(k,i)] for k in all_pops] ) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{2}_{1}_{2}'.format(i,j,k))
+                    vals.append( 1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+                    
+        elif pop1 == pop3:
+            i = pop1
+            j = pop2
+            mom2s.append('Dz_{0}_{1}_{0}'.format(i,j))
+            vals.append(-2.*np.sum([mdict[(k,i)] for k in all_pops]) - np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('Dz_{0}_{1}_{0}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(k,j,i))
+                    vals.append( mdict[(k,i)] )
+            mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,j))
+            vals.append( 1./4 * np.sum( [mdict[(k,i)] for k in all_pops] ) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{2}_{1}_{2}'.format(j,i,k))
+                    vals.append( 1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{1}_{2}_{0}_{0}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+
+        elif pop2 == pop3:
+            i = pop1
+            j = pop2
+            mom2s.append('Dz_{0}_{1}_{1}'.format(i,j))
+            vals.append( -np.sum([mdict[(k,i)] for k in all_pops]) -2.*np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,j)] )
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,k,j))
+                    vals.append( mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('Dz_{0}_{1}_{1}'.format(k,j))
+                    vals.append( mdict[(k,i)] )
+            mom2s.append('zz_{0}_{1}_{0}_{1}'.format(i,j))
+            vals.append( 1./4 * np.sum( [mdict[(k,i)] for k in all_pops] ) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{1}_{0}_{1}'.format(j,k))
+                    vals.append( 1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{1}_{1}_{2}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+                    mom2s.append('zz_{1}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( -1./4 * mdict[(k,i)] )
+        else:
+            i = pop1
+            j = pop2
+            k = pop3
+            mom2s.append('Dz_{0}_{1}_{2}'.format(i,j,k))
+            vals.append( -np.sum([mdict[(l,i)] for l in all_pops]) - np.sum([mdict[(l,j)] for l in all_pops]) - np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != k:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+                if l != j:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(i,l,k))
+                    vals.append( mdict[(l,j)] )
+                if l != i:
+                    mom2s.append('Dz_{0}_{1}_{2}'.format(l,j,k))
+                    vals.append( mdict[(l,i)] )
+            mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+            vals.append( 1./4 * np.sum( [mdict[(l,i)] for l in all_pops] ) )
+            for l in all_pops:
+                if l != i:
+                    mom2s.append('zz_{0}_{2}_{1}_{2}'.format(j,k,l))
+                    vals.append( 1./4 * mdict[(l,i)] )
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( -1./4 * mdict[(l,i)] )
+                    mom2s.append('zz_{1}_{3}_{0}_{2}'.format(i,j,k,l))
+                    vals.append( -1./4 * mdict[(l,i)] )
+    elif mom.split('_')[0] == 'zz':
+        pops = mom.split('_')[1:]
+        pop1 = int(pops[0])
+        pop2 = int(pops[1])
+        pop3 = int(pops[2])
+        pop4 = int(pops[3])
+        if pop1 == pop2 == pop3 == pop4:
+            i = pop1
+            mom2s.append('zz_{0}_{0}_{0}_{0}'.format(i))
+            vals.append( -4.*np.sum([mdict[(j,i)] for j in all_pops]) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,j))
+                    vals.append( 2.*mdict[(j,i)] )
+                    mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,j))
+                    vals.append( 2.*mdict[(j,i)] )
+        elif pop1 == pop2 == pop3:
+            i = pop1
+            j = pop4
+            mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,j))
+            vals.append( -3.*np.sum([mdict[(k,i)] for k in all_pops]) -np.sum([mdict[(k,j)] for k in all_pops]))
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( 2*mdict[(k,i)] )
+        elif pop1 == pop2 == pop4:
+            i = pop1
+            j = pop3
+            mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,j))
+            vals.append( -3.*np.sum([mdict[(k,i)] for k in all_pops]) -np.sum([mdict[(k,j)] for k in all_pops]))
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('zz_{0}_{0}_{0}_{1}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( 2*mdict[(k,i)] )
+
+        elif pop1 == pop2 and pop3 == pop4:
+            i = pop1
+            j = pop3
+            mom2s.append('zz_{0}_{0}_{1}_{1}'.format(i,j))
+            vals.append( -2.*np.sum([mdict[(k,i)] for k in all_pops]) -2.*np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != j:
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,k))
+                    vals.append( 2.*mdict[(k,j)] )
+                if k != i:
+                    mom2s.append('zz_{0}_{2}_{1}_{1}'.format(i,j,k))
+                    vals.append( 2.*mdict[(k,i)] )
+        elif pop1 == pop2:
+            i = pop1
+            j = pop3
+            k = pop4
+            mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,k))
+            vals.append( -2.*np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != k:
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{0}_{1}_{2}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != i:
+                    mom2s.append('zz_{0}_{3}_{1}_{2}'.format(i,j,k,l))
+                    vals.append( 2.*mdict[(l,i)] )
+        elif pop1 == pop3 == pop4:
+            i = pop1
+            j = pop2
+            mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,j))
+            vals.append( -3.*np.sum([mdict[(k,i)] for k in all_pops]) -np.sum(mdict[(k,j)] for k in all_pops) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+                    vals.append( 2.*mdict[(k,i)] )
+                    mom2s.append('zz_{1}_{2}_{0}_{0}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                if k != j:
+                    mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+        elif pop2 == pop3 == pop4:
+            i = pop2
+            j = pop1
+            mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,j))
+            vals.append( -3.*np.sum([mdict[(k,i)] for k in all_pops]) -np.sum(mdict[(k,j)] for k in all_pops) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+                    vals.append( 2.*mdict[(k,i)] )
+                    mom2s.append('zz_{1}_{2}_{0}_{0}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                if k != j:
+                    mom2s.append('zz_{0}_{1}_{0}_{0}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+        elif pop1 == pop3 and pop2 == pop4:
+            i = pop1
+            j = pop2
+            mom2s.append('zz_{0}_{1}_{0}_{1}'.format(i,j))
+            vals.append( -2.*np.sum([mdict[(k,i)] for k in all_pops]) -2.*np.sum(mdict[(k,j)] for k in all_pops) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zz_{0}_{1}_{1}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                    mom2s.append('zz_{1}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( mdict[(k,i)] )
+                if k != j:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+                    vals.append( mdict[(k,j)] )
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,j,k))
+                    vals.append( mdict[(k,j)] )
+        elif pop1 == pop3:
+            i = pop1
+            j = pop2
+            k = pop4
+            mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+            vals.append( -2.*np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != i:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                    mom2s.append('zz_{1}_{3}_{0}_{2}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != k:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+        elif pop1 == pop4:
+            i = pop1
+            j = pop2
+            k = pop3
+            mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+            vals.append( -2.*np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != i:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                    mom2s.append('zz_{1}_{3}_{0}_{2}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != k:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+        elif pop2 == pop3:
+            i = pop2
+            j = pop1
+            k = pop4
+            mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+            vals.append( -2.*np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != i:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                    mom2s.append('zz_{1}_{3}_{0}_{2}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != k:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+        elif pop2 == pop4:
+            i = pop2
+            j = pop1
+            k = pop3
+            mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,k))
+            vals.append( -2.*np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != i:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                    mom2s.append('zz_{1}_{3}_{0}_{2}'.format(i,j,k,l))
+                    vals.append( mdict[(l,i)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{2}_{0}_{1}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != k:
+                    mom2s.append('zz_{0}_{1}_{0}_{2}'.format(i,j,l))
+                    vals.append( mdict[(l,k)] )
+        elif pop3 == pop4:
+            i = pop1
+            j = pop2
+            k = pop3
+            mom2s.append('zz_{0}_{1}_{2}_{2}'.format(i,j,k))
+            vals.append( -np.sum([mdict[(l,i)] for l in all_pops]) -np.sum([mdict[(l,j)] for l in all_pops]) -2.*np.sum([mdict[(l,k)] for l in all_pops]) )
+            for l in all_pops:
+                if l != k:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+                    vals.append( 2*mdict[(l,k)] )
+                if l != j:
+                    mom2s.append('zz_{0}_{2}_{1}_{1}'.format(i,k,l))
+                    vals.append( mdict[(l,j)] )
+                if l != i:
+                    mom2s.append('zz_{0}_{2}_{1}_{1}'.format(j,k,l))
+                    vals.append( mdict[(l,i)] )
+        else:
+            if len(set([pop1,pop2,pop3,pop4])) != 4:
+                print mom
+            i = pop1
+            j = pop2
+            k = pop3
+            l = pop4
+            mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,l))
+            vals.append( - np.sum([mdict[(r,i)] for r in all_pops])
+                         - np.sum([mdict[(r,j)] for r in all_pops])
+                         - np.sum([mdict[(r,k)] for r in all_pops])
+                         - np.sum([mdict[(r,l)] for r in all_pops]) )
+            for r in all_pops:
+                if r != i:
+                    mom2s.append('zz_{0}_{3}_{1}_{2}'.format(j,k,l,r))
+                    vals.append(mdict[(r,i)])
+                if r != j:
+                    mom2s.append('zz_{0}_{3}_{1}_{2}'.format(i,k,l,r))
+                    vals.append(mdict[(r,j)])
+                if r != k:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,l,r))
+                    vals.append(mdict[(r,k)])
+                if r != l:
+                    mom2s.append('zz_{0}_{1}_{2}_{3}'.format(i,j,k,r))
+                    vals.append(mdict[(r,l)])
+    elif mom.split('_')[0] == 'zp':
+        pops = mom.split('_')[1:]
+        pop1 = int(pops[0])
+        pop2 = int(pops[1])
+        if pop1 == pop2:
+            i = pop1
+            mom2s.append('zp_{0}_{0}'.format(i))
+            vals.append( -2.*np.sum([mdict[(j,i)] for j in all_pops]) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('zp_{0}_{1}'.format(i,j))
+                    vals.append( 2.*mdict[(j,i)] )
+        else:
+            i = pop1
+            j = pop2
+            mom2s.append('zp_{0}_{1}'.format(i,j))
+            vals.append( -np.sum([mdict[(k,i)] for k in all_pops]) -np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zp_{0}_{1}'.format(j,k))
+                    vals.append( mdict[(k,i)] )
+                if k != j:
+                    mom2s.append('zp_{0}_{1}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+    elif mom.split('_')[0] == 'zq':
+        pops = mom.split('_')[1:]
+        pop1 = int(pops[0])
+        pop2 = int(pops[1])
+        if pop1 == pop2:
+            i = pop1
+            mom2s.append('zq_{0}_{0}'.format(i))
+            vals.append( -2.*np.sum([mdict[(j,i)] for j in all_pops]) )
+            for j in all_pops:
+                if j != i:
+                    mom2s.append('zq_{0}_{1}'.format(i,j))
+                    vals.append( 2.*mdict[(j,i)] )
+        else:
+            i = pop1
+            j = pop2
+            mom2s.append('zq_{0}_{1}'.format(i,j))
+            vals.append( -np.sum([mdict[(k,i)] for k in all_pops]) -np.sum([mdict[(k,j)] for k in all_pops]) )
+            for k in all_pops:
+                if k != i:
+                    mom2s.append('zq_{0}_{1}'.format(j,k))
+                    vals.append( mdict[(k,i)] )
+                if k != j:
+                    mom2s.append('zq_{0}_{1}'.format(i,k))
+                    vals.append( mdict[(k,j)] )
+    
+    return mom2s, vals
 
 # based on the order of moments in numerics_onepop.moment_names(n)
 # order n moments only rely on order n and order n-2, so we will build our csc_matrices recursively

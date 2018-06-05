@@ -276,12 +276,25 @@ def map_moment(mom):
         return mom_map[mom]
     except KeyError:
         if mom.split('_')[0] == 'DD':
-            pass
-            #mom2 = ...
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'DD_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
         elif mom.split('_')[0] == 'zz':
-            pass
-            #mom2 = ...
-        mom_map[mom] = mom2
+            popsp = sorted([int(p) for p in mom.split('_')[1:3]])
+            popsq = sorted([int(p) for p in mom.split('_')[3:]])
+            mom_out = 'zz_'+'_'.join([str(p) for p in popsp])+'_'+'_'.join([str(p) for p in popsq])
+            mom_map[mom] = mom_out
+        elif mom.split('_')[0] == 'zp':
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'zp_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
+        elif mom.split('_')[0] == 'zq':
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'zq_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
+        else:
+            mom_out = mom
+        mom_map[mom] = mom_out
         return mom_map[mom] 
 
 def migration_multipop(ms,npops):
@@ -302,12 +315,11 @@ def migration_multipop(ms,npops):
         
         for mom in mom_list:
             this_ind = mom_list.index(mom)
-            mom2s, vals = Matrics.mutation_multipop_terms(mom, ms, npops)
-            # mom2s are not in the format of mom_list, so we map them to the correct moment name
-            
+            mom2s, vals = Matrices.mutation_multipop_terms(mom, ms, npops)
+            # mom2s are not always in the format of mom_list, so we map them to the correct moment name
+            for mom2,val in zip(mom2s,vals):
+                M[this_ind, mom_list.index(map_moment(mom2))] = val
         return csc_matrix(M)
-        
-        
 
 def recombination_multipop(rho,npops):
     if npops == 1:
