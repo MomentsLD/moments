@@ -385,7 +385,7 @@ def %(method)s(self, other):
     
     
     def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.0008, ism=False, 
-                  m=None):
+                  m=[]):
         """
         Integrates the LD statistics forward in time. The tricky part is 
         combining single population and multi-population integration routines. 
@@ -399,6 +399,8 @@ def %(method)s(self, other):
         ism: if True, we use the infinite sites model, otherwise we use a 
              reversible mutation model (equal forward and reverse mutation 
              rates)
+        m: migration matrix (num_pops x num_pops, storing m_ij migration rate
+           from i to j
         """
         order = self.order
         num_pops = self.num_pops

@@ -400,7 +400,7 @@ def mutation_multipop(mu,npops,ism=False):
 Integration for multiple populations in style of moments
 """
 
-def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=None, ism=False):
+def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=[], ism=False):
     """
     Integration function for multipopulation statistics
     y: LDstats object with y.data, y.num_pops, y.order (=2 for multipop models)
@@ -418,7 +418,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
         raise ValueError("num_pops must be set to correct number of populations")
     
     if num_pops > 1 and m is not None:
-        if m== None:
+        if m == []:
             ms = num_pops*(num_pops-1)*[0]
         else:
             ms = []
