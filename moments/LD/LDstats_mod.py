@@ -158,8 +158,28 @@ class LDstats(numpy.ma.masked_array):
         """
         like swapaxes for switching population ordering
         """
-        pass
-    
+        if pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
+            raise ValueError("Invalid population number specified.")
+        if pop1 == pop2:
+            return self
+        else:
+            mom_list = Numerics.moment_names_multipop(self.num_pops)
+            y_new = np.zeros(len(mom_list))
+            pops_old = range(1,self.num_pops+1)
+            pops_new = range(1,self.num_pops+1)
+            pops_new[pop1-1] = pop2
+            pops_new[pop2-1] = pop1
+            d = dict(zip(pops_old, pops_new))
+            for ii,mom in enumerate(mom_list):
+                if mom == '1':
+                    y_new[ii] = 1.
+                    continue
+                pops_mom = [int(p) for p in mom.split('_')[1:]]
+                pops_mom_new = [d.get(p) for p in pops_mom]
+                mom_new = mom.split('_')[0] + '_' + '_'.join([str(p) for p in pops_mom_new])
+                y_new[ii] = self.data[mom_list.index(Numerics.map_moment(mom_new))]
+            return LDstats(y_new, num_pops=self.num_pops, order=self.order)
+
     def marginalize(self,pops):
         """
         Marginalize over the LDstats, removing moments for given pops
