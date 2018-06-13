@@ -427,6 +427,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
                     # note that in Matrices, we've reversed the meaning of m_ij (easier to fix here)
                     ms.append(m[jj][ii])
                     ms.append(m[ii][jj])
+        ms = [float(mval) for mval in ms]
         M = migration_multipop(ms,num_pops)
     
     R = recombination_multipop(rho,num_pops)

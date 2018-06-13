@@ -8,12 +8,14 @@ corrections are implemented for single pop models up to order D^6 (evens)
 and for multipopulation models for 2nd order statistics
 """
 
-def corrected_onepop(stats, n=None, order=2):
+def corrected_onepop(stats, ns=None, order=2):
     if n == None:
         return stats
     
     if hasattr(n, '__len__'):
-        n0 = n[0]
+        n0 = ns[0]
+    else:
+        n0 = ns
     
     if order == 2:
         return LDstats(order2correction(n0, stats.data),order=order)
@@ -25,7 +27,7 @@ def corrected_onepop(stats, n=None, order=2):
         print("Haven't implemented corrections for order {0}".format(order))
         return stats
 
-def corrected_onepop_genotypes(stats, n=None, order=2):
+def corrected_onepop_genotypes(stats, ns=None, order=2):
     """
     correct the expectations for genotype data
     if n is None, there is no sampling correction
@@ -37,9 +39,9 @@ def corrected_onepop_genotypes(stats, n=None, order=2):
         return stats
     
     if hasattr(n, '__len__'):
-        n0 = n[0]
+        n0 = ns[0]
     else:
-        n0 = n
+        n0 = ns
     
     if order == 2:
         return LDstats(order2correction_genotypes(stats.data, n0), order=order)
