@@ -8,6 +8,12 @@ corrections are implemented for single pop models up to order D^6 (evens)
 and for multipopulation models for 2nd order statistics
 """
 
+def corrected(y, genotypes=False, ns=None):
+    ## want an attribute for basis type, which will help with integrating multipop stats correctly, and removes user specification of which correction factors to use
+    pass
+    #if y.num_pops == 1:
+        
+
 def corrected_onepop(stats, ns=None, order=2):
     if n == None:
         return stats
@@ -1377,7 +1383,7 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                 else: # e.g. 1_2_3_3
                     n3 = sample_sizes[int(popq1)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{2}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'zp_{0}_{1}'.format(popp1,popp2))[0]]
                     return mom1 * (1 - 1/(2.*n3)) + mom2 * 1/(2.*n3)
             else: # popq1 != popq2
                 if popp1 == popq1:
@@ -1392,22 +1398,22 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
                     else: # e.g. 1_3_1_2 or 1_2_1_3
                         n1 = sample_sizes[int(popp1)-1]
                         mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{0}_{2}'.format(popp1,popp2,popq2))[0]]
-                        mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
+                        mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
                         return mom1 + mom2 * 2/n1
                 elif popp1 == popq2: # e.g. 2_3_1_2
                     n2 = sample_sizes[int(popp1)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{0}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp1,popp2,popq1))[0]]
                     return mom1 + mom2 * 2/n2
                 elif popp2 == popq2: # e.g. 1_3_2_3
                     n3 = sample_sizes[int(popp2)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{1}'.format(popp1,popp2,popq1))[0]]
-                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq1))[0]]
                     return mom1 + mom2 * 2/n3
                 elif popp2 == popq1: # e.g. 1_2_2_3
                     n2 = sample_sizes[int(popp2)-1]
                     mom1 = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{1}_{2}'.format(popp1,popp2,popq2))[0]]
-                    mom3 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
+                    mom2 = stats[np.argwhere(np.array(stat_names) == 'Dz_{0}_{1}_{2}'.format(popp2,popp1,popq2))[0]]
                     return mom1 + mom2 * 2/n2
                 else: # e.g. 1_2_3_4
                     mom = stats[np.argwhere(np.array(stat_names) == 'zz_{0}_{1}_{2}_{3}'.format(popp1,popp2,popq1,popq2))[0]]
