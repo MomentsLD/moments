@@ -294,6 +294,111 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
     
     return xopt, fopt
 
+def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
+                 order=2, theta=None, u=None, Ne=None,
+                 Leff=None, ism=True, corrected=True,
+                 lower_bound=None, upper_bound=None, 
+                 verbose=0, flush_delay=0.5,
+                 func_args=[], func_kwargs={}, fixed_params=None, 
+                 multinom=False, fixed_theta=False, use_afs=False, 
+                 genotypes=False, num_pops=1, 
+                 multipop=False, multipop_stats=None, 
+                 fixed_rho=True, fixed_u=True):
+    """
+    p0 = initial guess (demography parameters + theta)
+    ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
+         if different sample sizes were used for computing LD stats and the frequency spectrum
+    data = [means, varcovs, fs (optional, use if use_afs=True)]
+    means = list of mean statistics matching rhos in func_kwargs
+    varcovs = list of varcov matrices matching means
+    model_func = demographic model to compute statistics for a given rho
+        If we are using AFS, it's a list of the two models [LD, AFS]
+        If it's LD stats alone, it's just a single LD model (still as a list)
+    order = the single-population order of D-statistics
+    theta = this is population scaled per base mutation rate (4Ne*mu, not 4Ne*mu*L)
+    
+    multinom: If True, we allow separate effective theta for the frequency spectrum and 
+                theta is only fit to the lD data. If False, the same that scales both LD
+                statistics and the fs
+    fixed_theta: If True, theta is fixed to input theta. Otherwise a guess is passed  (as in multinom in moments inference) (I know this is bad)
+    Leff: effective length of genome from which the fs was generated
+    
+    To Do: make this flexible to be able to handle multipopulation inference
+    """
+    output_stream = sys.stdout
+    
+    if hasattr(ns, '__len__') == False: # this works for single populations
+        ns = [[ns],[ns]]
+    
+    means = data[0]
+    varcovs = data[1]
+    if use_afs == True:
+        try:
+            fs = data[2]
+        except IndexError:
+            raise ValueError("if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]")
+    else:
+        fs = None
+        
+    if fixed_theta == True and theta == None:
+        raise ValueError("if multinom is False, need to specify theta")
+    
+    ms = copy.copy(means)
+    vcs = copy.copy(varcovs)
+    
+    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
+        # we don't want the sigma/one locus statistics, since they are just summaries of the frequency spectrum
+        if multipop == False:
+            names = Numerics.moment_names_onepop(order)
+            inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
+            for ii in range(len(vcs)):
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+            for ii in range(len(ms)):
+                ms[ii] = np.delete(ms[ii], inds_to_remove)
+        elif multipop == True:
+            if multipop_stats == None:
+                names = Numerics.moments_names_multipop(num_pops)
+                inds_to_remove = []
+                for name in names:
+                    if name.split('_')[0] in ['zp','zq']:
+                        inds_to_remove.append(names.index(name))
+                for ii in range(len(vcs)):
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+                for ii in range(len(ms)):
+                    ms[ii] = np.delete(ms[ii], inds_to_remove)
+            else: # we remove stats of the form sig_ and f2 (set up so far for two populations)
+                names = multipop_stats
+                inds_to_remove = []
+                for name in names:
+                    if name.split('_')[0] in ['sig','f2']:
+                        inds_to_remove.append(names.index(name))
+                for ii in range(len(vcs)):
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
+                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
+                for ii in range(len(ms)):
+                    ms[ii] = np.delete(ms[ii], inds_to_remove)
+    else:
+        inds_to_remove = []
+    
+    args = (ns, model_func, ms, vcs, fs, rhos, rs,
+            order, theta, u, Ne, Leff, ism, corrected,
+            lower_bound, upper_bound, 
+            verbose, flush_delay, func_args, func_kwargs,
+            fixed_params, multinom, fixed_theta, 
+            use_afs, genotypes, inds_to_remove, 
+            multipop, multipop_stats, fixed_rho, fixed_u,
+            output_stream)
+    
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin_powell(_object_func_log, np.log(p0), args=args, full_output=True, disp=False)
+    
+    xopt, fopt, direc, iter, funcalls, warnflag = outputs
+    xopt = _project_params_up(numpy.exp(xopt), fixed_params)
+    
+    return xopt, fopt
+
 
 def _project_params_down(pin, fixed_params):
     """
