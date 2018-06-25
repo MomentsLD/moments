@@ -15,10 +15,10 @@ def corrected(y, genotypes=False, ns=None):
         
 
 def corrected_onepop(stats, ns=None, order=2):
-    if n == None:
+    if ns == None:
         return stats
     
-    if hasattr(n, '__len__'):
+    if hasattr(ns, '__len__'):
         n0 = ns[0]
     else:
         n0 = ns
@@ -41,10 +41,10 @@ def corrected_onepop_genotypes(stats, ns=None, order=2):
     NOTE: unlike the correction for haploid sampling, where n is the number of chromosomes,
           here n is the diploid sample size, so we'd equilivalently have 2n haploid samples
     """
-    if n == None:
+    if ns == None:
         return stats
     
-    if hasattr(n, '__len__'):
+    if hasattr(ns, '__len__'):
         n0 = ns[0]
     else:
         n0 = ns
