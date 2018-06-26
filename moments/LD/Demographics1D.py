@@ -20,9 +20,9 @@ def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genoty
     y = LDstats(y, num_pops=1, order=order)
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_onepop(y, n=ns, order=order)
+            return Corrections.corrected_onepop(y, ns=ns, order=order)
         else:
-            return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
+            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
     else:
         return y
 
@@ -46,9 +46,9 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
     y.integrate([nu], T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_onepop(y, n=ns, order=order)
+            return Corrections.corrected_onepop(y, ns=ns, order=order)
         else:
-            return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
+            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
     else:
         return y
 
@@ -74,9 +74,9 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
     y.integrate([nu2], T2, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_onepop(y, n=ns, order=order)
+            return Corrections.corrected_onepop(y, ns=ns, order=order)
         else:
-            return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
+            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
     else:
         return y
 
@@ -101,9 +101,9 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
     y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_onepop(y, n=ns, order=order)
+            return Corrections.corrected_onepop(y, ns=ns, order=order)
         else:
-            return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
+            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
     else:
         return y
 
@@ -129,9 +129,9 @@ def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, 
     y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
-            return Corrections.corrected_onepop(y, n=ns, order=order)
+            return Corrections.corrected_onepop(y, ns=ns, order=order)
         else:
-            return Corrections.corrected_onepop_genotypes(y, n=ns/2, order=order)
+            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
     else:
         return y
 
