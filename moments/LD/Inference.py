@@ -53,9 +53,10 @@ def ll_over_bins(xs,mus,Sigmas):
     the_len = len(next(it))
     if not all(len(l) == the_len for l in it):
         raise ValueError('Lists of data, means, and varcov matrices must be the same length')
-    ll_val = 0
+    ll_vals = []
     for ii in range(len(xs)):
-        ll_val += ll(xs[ii],mus[ii],Sigmas[ii])
+        ll_vals.append(ll(xs[ii],mus[ii],Sigmas[ii]))
+    ll_val = np.sum(ll_vals)
     return ll_val
 
 _out_of_bounds_val = -1e12
@@ -153,6 +154,14 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
             stats_mid.append(temp_stats[0])
     
     one_locus_stats = temp_stats[1]
+    # remove the f3 statistics, since they are just combinations of f2 statistics and cause Sigma to be ill-conditioned
+    stats1_to_delete = []
+    for ii,stat in enumerate(multipop_stats[1]):
+        ps = [int(p) for p in stat.split('_')[1:]]
+        if stat.split('_')[0] == 'f2' and (ps[0] != ps[2] or ps[1] != ps[3]):
+            stats1_to_delete.append(ii)
+    
+    one_locus_stats = np.delete(one_locus_stats, stats1_to_delete)
     
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
     #trap_stats = []
@@ -177,7 +186,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     # Bad result
     if np.isnan(result):
         result = _out_of_bounds_val
-    
+        
     if (verbose > 0) and (_counter % verbose == 0):
         param_str = 'array([%s])' % (', '.join(['%- 12g'%v for v in params_up]))
         output_stream.write('%-8i, %-12g, %s%s' % (_counter, result, param_str,
