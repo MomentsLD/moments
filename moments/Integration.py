@@ -7,7 +7,7 @@ import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
-
+from checkUtils import check_nD_jk1, check_jk2, check_jk1, check_nD_jk2
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -704,6 +704,9 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                 sfs = slv[0](sfs + dt*B)
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
+
+            check_jk1(Spectrum_mod.Spectrum(sfs))
+            check_jk2(Spectrum_mod.Spectrum(sfs))
         elif len(n) > 1:
             if finite_genome == False:
                 for i in range(int(split_dt)):
@@ -718,7 +721,10 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                         sfs = sfs + (dt/split_dt*B[j]).dot(sfs.flatten()).reshape(n+1)
                     sfs = _update_step2(sfs, slv, dims, order)
                     order = _permute(order)
-        
+
+            check_nD_jk1(sfs)
+            check_nD_jk2(sfs)
+
         if (sfs<0).any() and adapt_dt:
             neg = True
             if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:
