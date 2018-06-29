@@ -388,7 +388,8 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
 #   or directly the vector if N does not evolve in time\n
     """
-    
+    n = np.array(sfs0.shape) - 1
+
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -396,7 +397,6 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         h = 0.5 * np.ones(len(n))
     
     sfs0 = np.array(sfs0)
-    n = np.array(sfs0.shape)-1
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))

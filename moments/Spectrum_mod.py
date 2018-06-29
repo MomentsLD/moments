@@ -7,7 +7,7 @@ logger = logging.getLogger('Spectrum_mod')
 
 import operator
 import os
-
+import sys
 import numpy
 from numpy import newaxis as nuax
 import scipy.misc as misc

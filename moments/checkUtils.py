@@ -51,6 +51,7 @@ def check_relative_error(orig, approx, prev_error, threshold=0.00001):
     if max_err > prev_error:
         print "Warning: relative error is increasing!"
 
+
 def check_jk1(phi, prev_error=100):
     """
     Given a 1D AFS phi, project it to sample n-1 and approximate it use Jackknife.
