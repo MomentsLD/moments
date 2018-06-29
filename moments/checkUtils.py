@@ -1,6 +1,6 @@
 import numpy as np
 import Jackknife as JK
-from moments import Demographics1D
+import Spectrum_mod
 
 
 def get_error_threshold(n):
@@ -96,5 +96,88 @@ def check_jk2(phi, prev_error=100):
     return approx
 
 
+def check_nD_jk1(sfs):
+    """
+    Given any dimensional AFS, check whether step 1 Jackknife causes error.
+    :param sfs:
+    :return:
+    """
+    shape = sfs.shape
+    dim = len(shape)
+
+    # Fix other dimension to check 1D AFS in dimension i
+    for i in range(dim):
+        shape_cpy = list(shape[:])
+        shape_cpy.pop(i)
+
+        # Create all possible combinations of other dimensions
+        # e.g. check sfs[:, a, b] for possible combinations of a and b.
+        grid_cmd = "np.meshgrid("
+        for j in range(len(shape_cpy)):
+            grid_cmd += "np.arange(shape_cpy[{}]), ".format(j)
+
+        grid_cmd = grid_cmd[:-2] + ")"
+        # print "Command to create grid: " + str(grid_cmd)
+        grid = eval(grid_cmd)
+
+        # Convert the grid to tuple
+        # e.g. To check sfs[:, 10, 9, 2], generate tuple (10, 9, 2) in this step.
+        positions = np.vstack(map(np.ravel, grid))
+        for j in range(positions.shape[1]):
+            index = list(positions[:,  j])
+            index.insert(i, 99)
+            slice_cmd = "sfs["
+            for k in range(len(index)):
+                if k == i:
+                    slice_cmd += ":, "
+                else:
+                    slice_cmd += "{}, ".format(index[k])
+            slice_cmd = slice_cmd[:-2] + "]"
+
+            # Slice the sfs to generate a 1D AFS, which can checked by check_jk1.
+            phi = eval(slice_cmd)
+            check_jk1(Spectrum_mod.Spectrum(phi))
 
 
+def check_nD_jk2(sfs):
+    """
+    Given any dimensional AFS, check whether step 2 Jackknife causes error.
+
+    :param sfs:
+    :return:
+    """
+    shape = sfs.shape
+    dim = len(shape)
+
+    # Fix other dimension to check 1D AFS in dimension i
+    for i in range(dim):
+        shape_cpy = list(shape[:])
+        shape_cpy.pop(i)
+
+        # Create all possible combinations of other dimensions
+        # e.g. check sfs[:, a, b] for possible combinations of a and b.
+        grid_cmd = "np.meshgrid("
+        for j in range(len(shape_cpy)):
+            grid_cmd += "np.arange(shape_cpy[{}]), ".format(j)
+
+        grid_cmd = grid_cmd[:-2] + ")"
+        # print "Command to create grid: " + str(grid_cmd)
+        grid = eval(grid_cmd)
+
+        # Convert the grid to tuple
+        # e.g. To check sfs[:, 10, 9, 2], generate tuple (10, 9, 2) in this step.
+        positions = np.vstack(map(np.ravel, grid))
+        for j in range(positions.shape[1]):
+            index = list(positions[:,  j])
+            index.insert(i, 99)
+            slice_cmd = "sfs["
+            for k in range(len(index)):
+                if k == i:
+                    slice_cmd += ":, "
+                else:
+                    slice_cmd += "{}, ".format(index[k])
+            slice_cmd = slice_cmd[:-2] + "]"
+
+            # Slice the sfs to generate a 1D AFS, which can checked by check_jk1.
+            phi = eval(slice_cmd)
+            check_jk2(Spectrum_mod.Spectrum(phi))
