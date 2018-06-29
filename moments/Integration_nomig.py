@@ -616,8 +616,8 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
             else:
                 sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*B).dot(sfs))
 
-            check_jk1(sfs, prev_error)
-            check_jk2(sfs, prev_error)
+            check_jk1(Spectrum_mod.Spectrum(sfs), prev_error)
+            check_jk2(Spectrum_mod.Spectrum(sfs), prev_error)
         else:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:

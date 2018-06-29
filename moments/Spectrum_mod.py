@@ -1591,7 +1591,3 @@ def Spectrum_pickler(fs):
     return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
 copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
 
-
-sfs = Spectrum([1,2,4,56,8,9])
-print sfs
-sfs.integrate([5], 1)
