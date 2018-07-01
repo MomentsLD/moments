@@ -9,7 +9,7 @@ import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from Integration import compute_dt
-from checkUtils import check_jk1, check_jk2, check_nD_jk1, check_nD_jk2, check_1D_jk
+from checkUtils import check_nD_jk, check_1D_jk
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -513,7 +513,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2(sfs, slv)
 
-            check_nD_jk1(sfs)
+            check_nD_jk(sfs)
         Nold = N
         t += dt
 
@@ -625,8 +625,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2_neutral(sfs, A, Di, C)
 
-            check_nD_jk1(sfs)
-            check_nD_jk2(sfs)
+            check_nD_jk(sfs)
         Nold = N
         t += dt
 
