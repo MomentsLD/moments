@@ -579,6 +579,9 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
+
+    dim_prod = np.product(np.array(np.array(sfs0).shape))
+    check_flag = True
     
     # neutral case if the parameters are not provided
     if gamma is None: gamma = np.zeros(len(n))
@@ -644,7 +647,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     # time loop:
     t = 0.0
     sfs = sfs0
-    
+
     while t < Tmax:
         dt_old = dt
         sfs_old = sfs
@@ -705,7 +708,12 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
 
-            check_1D_jk(Spectrum_mod.Spectrum(sfs))
+            if dim_prod < 2500:
+                check_1D_jk(sfs)
+            elif check_flag:
+                check_1D_jk(sfs)
+                check_flag = False
+
         elif len(n) > 1:
             if finite_genome == False:
                 for i in range(int(split_dt)):
@@ -721,7 +729,11 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                     sfs = _update_step2(sfs, slv, dims, order)
                     order = _permute(order)
 
-            check_nD_jk(sfs)
+            if dim_prod < 2500:
+                check_nD_jk(sfs)
+            elif check_flag:
+                check_nD_jk(sfs)
+                check_flag = False
 
         if (sfs<0).any() and adapt_dt:
             neg = True

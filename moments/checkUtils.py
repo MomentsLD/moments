@@ -12,8 +12,8 @@ def get_error_threshold(n):
     Error threshold should be 1e-2, 1e-2 for jk1, jk2.
     """
 
-    jk1_lookup = {1: 0.5, 2: 0.15, 3: 0.004, 4: 6e-5}
-    jk2_lookup = {1: 4.5, 2: 0.35, 3: 0.012, 4: 0.00016}
+    jk1_lookup = {1: 0.5, 2: 0.18, 3: 0.015, 4: 6e-5}
+    jk2_lookup = {1: 4.5, 2: 0.39, 3: 0.016, 4: 0.00019}
 
     if n in jk1_lookup:
         return jk1_lookup[n], jk2_lookup[n]
@@ -212,10 +212,8 @@ def check_1D_jk(phi):
     :param phi: a Spectrum object
     :return: approximated AFS, of type Spectrum
     """
-    print "I am new. 1D"
     n = len(phi) - 1
-    threshold_jk13 = get_error_threshold(len(str(n)))[0]
-    threshold_jk23 = get_error_threshold(len(str(n)))[1]
+    threshold_jk13, threshold_jk23 = get_error_threshold(len(str(n) if n < 50 else str(n - 50)))
 
     # step 1 Jackknife
     projected = phi.project([n - 1])
@@ -238,9 +236,9 @@ def check_1D_jk(phi):
         print "Warning: encounter negative elements when integrating!"
 
     if max_err_jk13 > threshold_jk13:
-        print "Warning: max relative error {} is above threshold {}!".format(str(max_err_jk13), str(threshold_jk13))
+        print "Warning: max relative error {} is above threshold {} for 1 step Jackknife!".format(str(max_err_jk13), str(threshold_jk13))
     elif max_err_jk23 > threshold_jk23:
-        print "Warning: max relative error {} is above threshold {}!".format(str(max_err_jk23), str(threshold_jk23))
+        print "Warning: max relative error {} is above threshold {} for 2 step Jackknife!".format(str(max_err_jk23), str(threshold_jk23))
 
 
 def check_nD_jk(sfs):
@@ -250,7 +248,6 @@ def check_nD_jk(sfs):
     :param phi:
     :return:
     """
-    print "I am new. ND"
     shape = sfs.shape
     dim = len(shape)
 
