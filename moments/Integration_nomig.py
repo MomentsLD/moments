@@ -9,7 +9,7 @@ import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from Integration import compute_dt
-from checkUtils import check_jk1, check_jk2, check_nD_jk1, check_nD_jk2
+from checkUtils import check_jk1, check_jk2, check_nD_jk1, check_nD_jk2, check_1D_jk
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -446,7 +446,6 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 
     # time loop:
     t = 0.0
-    prev_error = 1000
     sfs = sfs0
     while t < Tmax:
         dt_old = dt
@@ -504,8 +503,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
                 sfs = slv[0](sfs + dt*B)
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
-            check_jk1(sfs, prev_error)
-            check_jk2(sfs, prev_error)
+            check_1D_jk(Spectrum_mod.Spectrum(sfs))
         elif len(n) > 1:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:
@@ -516,7 +514,6 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
             sfs = _update_step2(sfs, slv)
 
             check_nD_jk1(sfs)
-            check_nD_jk2(sfs)
         Nold = N
         t += dt
 
@@ -568,7 +565,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
         B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
 
 
-    prev_error = 1000
     # time loop:
     t = 0.0
     sfs = sfs0
@@ -619,8 +615,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
             else:
                 sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*B).dot(sfs))
 
-            check_jk1(Spectrum_mod.Spectrum(sfs), prev_error)
-            check_jk2(Spectrum_mod.Spectrum(sfs), prev_error)
+            check_1D_jk(Spectrum_mod.Spectrum(sfs))
         else:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:
