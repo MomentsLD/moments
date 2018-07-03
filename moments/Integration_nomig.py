@@ -388,14 +388,19 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 #   or directly the vector if N does not evolve in time\n
     """
     
+    assert (not finite_genome) or (theta_fd is not None and theta_bd is not None), \
+    "forward and backward mutation rate must be defined if finite genome is true " 
+    sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
+    
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
     if h is None:
         h = 0.5 * np.ones(len(n))
     
-    sfs0 = np.array(sfs0)
-    n = np.array(sfs0.shape)-1
+    
+    
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
