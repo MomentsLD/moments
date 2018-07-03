@@ -184,7 +184,7 @@ def plot_model(model, save_file=None, fig_title="Demographic Model",
     ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
     ax.yaxis.set_minor_locator(mticker.NullLocator())
     ax.grid(b=True, which='major', axis='y', color=gridline_color)
-    ax.tick_params(which='both', axis='y', colors='none')
+    ax.tick_params(labelleft = False)
 
     # Add scale in top-left corner displaying ancestral population size (Nref)
     if draw_scale:
