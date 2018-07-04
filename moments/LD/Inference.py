@@ -182,7 +182,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
         result = ll_afs + ll_over_bins(means, simp_stats, varcovs)
     else:
         result = ll_over_bins(means, simp_stats, varcovs)
-        
+    
     # Bad result
     if np.isnan(result):
         result = _out_of_bounds_val
