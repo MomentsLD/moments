@@ -241,16 +241,18 @@ def check_1D_jk(phi):
         print "Warning: max relative error {} is above threshold {} for 2 step Jackknife!".format(str(max_err_jk23), str(threshold_jk23))
 
 
-def check_nD_jk(sfs):
+def check_nD_jk(sfs, max_iter=100):
     """
     Given any dimensional AFS, check whether step 2 Jackknife causes error.
 
     :param phi:
+    :param max_iter: max number of AFS to check in each dimension
     :return:
     """
     shape = sfs.shape
     dim = len(shape)
 
+    iter_count = 0
     # Fix other dimension to check 1D AFS in dimension i
     for i in range(dim):
         shape_cpy = list(shape[:])
@@ -267,7 +269,7 @@ def check_nD_jk(sfs):
         grid = eval(grid_cmd)
 
         # Convert the grid to tuple
-        # e.g. To check sfs[:, 10, 9, 2], generate tuple (10, 9, 2) in this step.
+        # e.g. To check sfs[:, 10, 9, 2], generate a tuple (10, 9, 2) in this step.
         positions = np.vstack(map(np.ravel, grid))
         for j in range(positions.shape[1]):
             index = list(positions[:, j])
@@ -283,5 +285,11 @@ def check_nD_jk(sfs):
             # Slice the sfs to generate a 1D AFS, which can checked by check_jk1.
             phi = eval(slice_cmd)
             check_1D_jk(Spectrum_mod.Spectrum(phi))
+
+            iter_count += 1
+            if iter_count > max_iter:
+                iter_count = 0
+                break
+
 
 
