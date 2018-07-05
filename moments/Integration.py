@@ -582,11 +582,19 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
 
     dim_prod = np.product(np.array(np.array(sfs0).shape))
     check_flag = True
+    selection_mig_flag = False
     
     # neutral case if the parameters are not provided
-    if gamma is None: gamma = np.zeros(len(n))
+    if gamma is None:
+        gamma = np.zeros(len(n))
+    else:
+        selection_mig_flag = True
+
     if h is None: h = 0.5 * np.ones(len(n))
-    if m is None: m = np.zeros([len(n), len(n)])
+    if m is None:
+        m = np.zeros([len(n), len(n)])
+    else:
+        selection_mig_flag = True
     
     # parameters of the equation
     if callable(Npop): 
@@ -708,11 +716,12 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
 
-            if dim_prod < 2500:
-                check_1D_jk(sfs)
-            elif check_flag:
-                check_1D_jk(sfs)
-                check_flag = False
+            if selection_mig_flag:
+                if dim_prod < 2500:
+                    check_1D_jk(sfs)
+                elif check_flag:
+                    check_1D_jk(sfs)
+                    check_flag = False
 
         elif len(n) > 1:
             if finite_genome == False:
@@ -729,11 +738,12 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                     sfs = _update_step2(sfs, slv, dims, order)
                     order = _permute(order)
 
-            if dim_prod < 2500:
-                check_nD_jk(sfs)
-            elif check_flag:
-                check_nD_jk(sfs)
-                check_flag = False
+            if selection_mig_flag:
+                if dim_prod < 2500:
+                    check_nD_jk(sfs)
+                elif check_flag:
+                    check_nD_jk(sfs)
+                    check_flag = False
 
         if (sfs<0).any() and adapt_dt:
             neg = True

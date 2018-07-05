@@ -392,10 +392,13 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 
     dim_prod = np.product(np.array(np.array(sfs0).shape))
     check_flag = True
+    selection_flag = False
 
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
+    else:
+        selection_flag = True
     if h is None:
         h = 0.5 * np.ones(len(n))
     
@@ -507,11 +510,12 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
 
-            if dim_prod <= 2500:
-                check_1D_jk(Spectrum_mod.Spectrum(sfs))
-            elif check_flag:
-                check_1D_jk(Spectrum_mod.Spectrum(sfs))
-                check_flag = False
+            if selection_flag:
+                if dim_prod <= 2500:
+                    check_1D_jk(Spectrum_mod.Spectrum(sfs))
+                elif check_flag:
+                    check_1D_jk(Spectrum_mod.Spectrum(sfs))
+                    check_flag = False
 
         elif len(n) > 1:
             sfs = _update_step1(sfs, Q)
@@ -522,11 +526,12 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2(sfs, slv)
 
-            if dim_prod <= 2500:
-                check_nD_jk(sfs)
-            elif check_flag:
-                check_nD_jk(sfs)
-                check_flag = False
+            if selection_flag:
+                if dim_prod <= 2500:
+                    check_nD_jk(sfs)
+                elif check_flag:
+                    check_nD_jk(sfs)
+                    check_flag = False
         Nold = N
         t += dt
 
@@ -554,8 +559,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
 
-    dim_prod = np.product(np.array(np.array(sfs0).shape))
-    check_flag = True
 
     # parameters of the equation
     if callable(Npop):
@@ -632,11 +635,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
             else:
                 sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*B).dot(sfs))
 
-            if dim_prod <= 2500:
-                check_1D_jk(Spectrum_mod.Spectrum(sfs))
-            elif check_flag:
-                check_1D_jk(Spectrum_mod.Spectrum(sfs))
-                check_flag = False
         else:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:
@@ -646,11 +644,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2_neutral(sfs, A, Di, C)
 
-            if dim_prod <= 2500:
-                check_nD_jk(sfs)
-            elif check_flag:
-                check_nD_jk(sfs)
-                check_flag = False
         Nold = N
         t += dt
 
