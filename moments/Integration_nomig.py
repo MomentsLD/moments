@@ -397,8 +397,10 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
-    else:
+
+    if gamma.any():
         selection_flag = True
+
     if h is None:
         h = 0.5 * np.ones(len(n))
     

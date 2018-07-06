@@ -587,13 +587,14 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
-    else:
+
+    if gamma.any():
         selection_mig_flag = True
 
     if h is None: h = 0.5 * np.ones(len(n))
     if m is None:
         m = np.zeros([len(n), len(n)])
-    else:
+    if m.any():
         selection_mig_flag = True
     
     # parameters of the equation
