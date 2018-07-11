@@ -404,7 +404,7 @@ def %(method)s(self, other):
 """ % {'method':method})
     
     
-    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.0008, ism=False, 
+    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.0008, ism=True, 
                   m=[]):
         """
         Integrates the LD statistics forward in time. The tricky part is 
@@ -416,6 +416,8 @@ def %(method)s(self, other):
         rho: can be a single recombination rate or list of recombination rates 
              (in which case we are integrating a list of LD stats for each rate)
         theta: per base population-scaled mutation rate (4N*mu)
+               if we pass [theta1, theta2], differing mutation rates at left and right 
+               locus, implemented in the ISM=True model
         ism: if True, we use the infinite sites model, otherwise we use a 
              reversible mutation model (equal forward and reverse mutation 
              rates)
