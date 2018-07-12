@@ -4,7 +4,7 @@ from moments.LD import Corrections
 from moments.LD.LDstats_mod import LDstats
 
 def admix(params, order=2, rho=0, theta=0.0008, ns=[20,20,20], 
-          corrected=False, genotypes=False):
+          ism=True, corrected=False, genotypes=False):
     """
     Admixture model:
         |
@@ -38,7 +38,7 @@ def admix(params, order=2, rho=0, theta=0.0008, ns=[20,20,20],
     n1,n2,n3 = ns
     
     y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='z')
     
     y = y.split(1)
     y.integrate([nu1,nu2], T1, rho=rho, theta=theta, ism=ism)

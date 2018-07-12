@@ -22,29 +22,42 @@ import itertools
 names = {}
 lengths = {}
 def moment_names_onepop(n):
+    """
+    n : order for which we want the moment name list
+    """
     n = int(n)
     try:
-        moments = names[n]
+        all_moments = names[n]
     except KeyError:
-        moments = []
+        all_moments = []
         if n%2: # odd
             order = 1
             last_moments = ['D^1','z']
-            moments = last_moments + moments
+            all_moments = last_moments + all_moments
         else: # even
             order = 0
             last_moments = ['1']
-            moments = last_moments + moments
+            all_moments = last_moments + all_moments
         while order < n:
             order += 2
             last_sigma = []
             for mom in last_moments:
                 if '_s' not in mom:
-                    new_mom = mom+'_s1'
+                    if mom == '1':
+                        new_mom = ['1_sp1','1_sq1']
+                        last_sigma.append(new_mom[0])
+                        last_sigma.append(new_mom[1])
+                    else:
+                        new_mom = mom+'_s1'
+                        last_sigma.append(new_mom)
+                elif mom[:3] == '1_s':
+                    s_order = int(mom[-1])
+                    new_mom = mom[:-1] + '{0}'.format(s_order+1)
+                    last_sigma.append(new_mom)
                 else:
                     s_order = int(mom.split('_s')[1])
                     new_mom = mom.split('_s')[0]+'_s{0}'.format(s_order+1)
-                last_sigma.append(new_mom)
+                    last_sigma.append(new_mom)
             new_moments = []
             for ii in range(order+1):
                 pi_order = ii/2
@@ -64,13 +77,13 @@ def moment_names_onepop(n):
                 else:
                     new_mom = appendage[1:]
                 new_moments.append(new_mom)
-            moments = new_moments + last_sigma + moments
+            all_moments = new_moments + last_sigma + all_moments
             last_moments = new_moments + last_sigma
-        names[n] = moments
-        lengths[len(moments)] = n
-    return moments
+        names[n] = all_moments
+        lengths[len(all_moments)] = n
+    return all_moments
 
-def moment_list(num_pops):
+def moment_names_multipop(num_pops):
     """
     returns a list of moment names when there are num_pops number of populations present
     """
@@ -93,18 +106,14 @@ def moment_list(num_pops):
     for i in range(1,num_pops+1):
         for j in range(i,num_pops+1):
             ll.append('zq_{0}_{1}'.format(i,j))
-    return ll
+    return ll+['1']
 
-
-def moment_names_multipop(n):
-    return moment_list(n)+['1']
 
 """
 Transition matrices for single population integration
 """
 
-def drift(n):
-    order = int(n)
+def drift(order):
     row = []
     col = []
     data = []
@@ -123,13 +132,17 @@ def drift(n):
         order -= 2
     return csc_matrix((data,(row,col)),shape=(corner,corner))
 
-def mutation(n, ism):
-    order = int(n)
-    row = []
-    col = []
-    data = []
+def mutation(order, theta, ism):
+    """
+    theta : list of two mutation rates [theta_left, theta_right]
+    ism : True or False (ism=False for reversible mutation model)
+    """
     if ism == False:
+        theta = theta[0]
         corner = 0
+        row = []
+        col = []
+        data = []
         while order >= 0:
             row_current = Matrices.mut_dict[order]['row']
             new_row = [x+corner for x in row_current]
@@ -142,17 +155,21 @@ def mutation(n, ism):
             data.extend(data_current)
             corner += size[0]
             order -= 2
-        return csc_matrix((data,(row,col)),shape=(corner,corner))
+        return theta * csc_matrix((data,(row,col)),shape=(corner,corner))
     elif ism == True:
+        theta1,theta2 = theta
         # ISM model only built for even orders
-        mom_list = moment_names_onepop(n)
+        mom_list = moment_names_onepop(order)
         size = len(mom_list)
         M = np.zeros((size,size))
         # [pi s_{i}]_{t+1} = [pi s_{i}]_{t} + theta/2 [s_{i+1}]_{t}
-        M[mom_list.index('1_s1'), mom_list.index('1')] = 1.0
-        M[mom_list.index('pi^1'), mom_list.index('1_s1')] = 1./2
-        for ii in range(1,n/2):
-            M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_s{0}'.format(ii+1))] = 1./2
+        M[mom_list.index('1_sp1'), mom_list.index('1')] = 1./2 * theta1
+        M[mom_list.index('1_sq1'), mom_list.index('1')] = 1./2 * theta2
+        M[mom_list.index('pi^1'), mom_list.index('1_sp1')] = 1./2 * theta2
+        M[mom_list.index('pi^1'), mom_list.index('1_sq1')] = 1./2 * theta1
+        for ii in range(1,order/2):
+            M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_sp{0}'.format(ii+1))] = 1./2 * theta2
+            M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_sq{0}'.format(ii+1))] = 1./2 * theta1
         
         return csc_matrix(M)
 
@@ -174,11 +191,18 @@ def recombination(n):
 Integration routine for single population dynamics
 """
 
-def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=False):
+def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=True):
+    """
+    
+    """
     if callable(nu) == False:
         nu = np.float(nu[0])
-    theta = np.float(theta)
+    
+    if hasattr(theta, '__len__') == False:
+        theta = [np.float(theta), np.float(theta)]
+    
     rho = np.float(rho)
+    
     if order is None:
         try:
             order = lengths[len(y)]
@@ -188,14 +212,14 @@ def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=False):
     moms = moment_names_onepop(order)
     if len(y) != len(moms):
         raise ValueError("there is a vector size mismatch")
-
+    
     # found that using numpy linalg was faster than scipy sparse solver for this size system
 #    D = drift(order)
 #    M = mutation(order, ism)
 #    R = recombination(order)
-        
+    
     D = drift(order).toarray()
-    M = mutation(order, ism).toarray()
+    M = mutation(order, theta, ism).toarray()
     R = recombination(order).toarray()
     EYE = np.eye(D.shape[0])
     
@@ -214,25 +238,28 @@ def integrate(y, nu, T, rho=0.0, theta=0.0008, order=None, dt=0.001, ism=False):
             N = nu
         
         if elapsed_t == 0 or dt != dt_old or N != N_old:
-            A = D/N + M*theta + R*rho
-#            Afd = identity(A.shape[0], format='csc') + dt/2.*A
+            A = D/N + M + R*rho
             Afd = EYE + dt/2.*A
-#            Abd = factorized(identity(A.shape[0], format='csc') - dt/2.*A)
             Abd = np.linalg.inv(EYE - dt/2.*A)
+#            Afd = identity(A.shape[0], format='csc') + dt/2.*A
+#            Abd = factorized(identity(A.shape[0], format='csc') - dt/2.*A)
         
-#        y = Abd(Afd.dot(y))
         y = Abd.dot(Afd.dot(y))
+#        y = Abd(Afd.dot(y))
         elapsed_t += dt
         dt_old = dt
         N_old = N
     
     return y
 
-def equilibrium(rho, theta, ism=False, order=2):
+def equilibrium(rho, theta, ism=True, order=2):
+    rho = np.float(rho)
+    if hasattr(theta, '__len__') == False:
+        theta = [np.float(theta), np.float(theta)]
     D = drift(order)
     R = recombination(order)
-    M = mutation(order, ism)
-    A = (D + M*theta + R*rho).toarray()
+    M = mutation(order, theta, ism)
+    A = (D + M + R*rho).toarray()
     B = A[:-1,-1]
     A = A[:-1,:-1]
     y0 = np.linalg.inv(A).dot(-B)
@@ -315,7 +342,7 @@ def migration_multipop(ms,npops):
         
         for mom in mom_list:
             this_ind = mom_list.index(mom)
-            mom2s, vals = Matrices.mutation_multipop_terms(mom, ms, npops)
+            mom2s, vals = Matrices.migration_multipop_terms(mom, ms, npops)
             # mom2s are not always in the format of mom_list, so we map them to the correct moment name
             for mom2,val in zip(mom2s,vals):
                 M[this_ind, mom_list.index(map_moment(mom2))] = val
@@ -346,8 +373,9 @@ def recombination_multipop(rho,npops):
                 data.append(-rho/2.)
         return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
-def mutation_multipop(mu,npops,ism=False):
+def mutation_multipop(mu,npops,ism=True):
     if ism == False:
+        mu = mu[0] # mu is a list of length two for theta_left and theta_right, but we have equal mutation rates in the reversible model
         if npops == 1:
             return Matrices.mutat_one_pop(mu)
         elif npops == 2:
@@ -372,35 +400,37 @@ def mutation_multipop(mu,npops,ism=False):
                     data.append(-2.*mu)
             return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
     elif ism == True:
+        mu1,mu2 = mu
         mom_list = moment_names_multipop(npops)
         #M = np.zeros((len(mom_list), len(mom_list)))
         row = []
         col = []
         data = []
         for mom in mom_list:
-            if mom.split('_')[0] in ['zp','zq']:
-                #M[mom_list.index(mom), -1] = -2.
+            if mom.split('_')[0] == 'zp':
                 row.append(mom_list.index(mom))
                 col.append(mom_list.index('1'))
-                data.append(-2.)
+                data.append(-2.*mu1)
+            elif mom.split('_')[0] == 'zq':
+                row.append(mom_list.index(mom))
+                col.append(mom_list.index('1'))
+                data.append(-2.*mu2)
             elif mom.split('_')[0] == 'zz':
                 mom1 = 'zp_'+ mom.split('_')[1] +'_' + mom.split('_')[2]
                 mom2 = 'zq_'+ mom.split('_')[3] +'_' + mom.split('_')[4]
-                #M[mom_list.index(mom), mom_list.index(mom1)] = -2.
                 row.append(mom_list.index(mom))
                 col.append(mom_list.index(mom1))
-                data.append(-2.)
-                #M[mom_list.index(mom), mom_list.index(mom2)] = -2.
+                data.append(-2.*mu2)
                 row.append(mom_list.index(mom))
                 col.append(mom_list.index(mom2))
-                data.append(-2.)
-        return mu*csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
+                data.append(-2.*mu1)
+        return csc_matrix((data,(row,col)),shape=((len(mom_list),len(mom_list))))
 
 """
 Integration for multiple populations in style of moments
 """
 
-def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=[], ism=False):
+def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=[], ism=True):
     """
     Integration function for multipopulation statistics
     y: LDstats object with y.data, y.num_pops, y.order (=2 for multipop models)
@@ -431,6 +461,10 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
         M = migration_multipop(ms,num_pops)
     
     R = recombination_multipop(rho,num_pops)
+    
+    if hasattr(theta, '__len__') == False:
+        theta = [np.float(theta), np.float(theta)]
+    
     U = mutation_multipop(theta,num_pops,ism=ism)
     
     if callable(nu):
@@ -468,7 +502,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
     
     return y
 
-def equilibrium_multipop(rho, theta, dt=0.01, ism=False):
+def equilibrium_multipop(rho, theta, dt=0.01, ism=True):
     D = drift_multipop([1.],1)
     R = recombination_multipop(rho,1)
     U = mutation_multipop(theta,1,ism=ism)

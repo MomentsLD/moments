@@ -3,7 +3,7 @@ from moments.LD import Numerics
 from moments.LD import Corrections
 from moments.LD.LDstats_mod import LDstats
 
-def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=False):
+def snm(order=2, rho=0, theta=0.0008, ns=[200,200], ism=True, corrected=False, genotypes=False):
     """
     Equilibrium neutral model
     order: order of D statistics (e.g. order=2 gives the D^2 system)
@@ -20,7 +20,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     n1,n2 = ns
     
     y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='z')
     
     y = y.split(1)
     
@@ -32,7 +32,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=F
     else:
         return y
 
-def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=False):
+def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], ism=True, corrected=False, genotypes=False):
     """
     params: (nu1, nu2, T, m)
     
@@ -52,7 +52,7 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     n1,n2 = ns
     
     y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='z')
     
     y = y.split(1)
     y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]], ism=ism)
@@ -65,7 +65,7 @@ def split_mig(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=Fals
     else:
         return y
 
-def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=False):
+def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], ism=True, corrected=False, genotypes=False):
     """
     params: (s, nu1, nu2, T, m12, m21)
     Isolation-with-migration model with exponential pop growth.
@@ -85,7 +85,7 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     n1,n2 = ns
     
     y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='z')
     
     y = y.split(1)
     
@@ -103,7 +103,7 @@ def IM(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, geno
     else:
         return y
 
-def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, genotypes=False):
+def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], ism=True, corrected=False, genotypes=False):
     """
     params = (nuPre, TPre, s, nu1, nu2, T, m12, m21)
 
@@ -127,7 +127,7 @@ def IM_pre(params, order=2, rho=0, theta=0.0008, ns=[200,200], corrected=False, 
     n1,n2 = ns
     
     y = Numerics.equilibrium_multipop(rho, theta, ism=ism)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='z')
     
     y.integrate([nuPre], TPre, rho=rho, theta=theta, ism=ism)
     

@@ -3,7 +3,7 @@ from moments.LD import Numerics
 from moments.LD import Corrections
 from moments.LD.LDstats_mod import LDstats
 
-def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genotypes=False):
+def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
     """
     Equilibrium neutral model
     order: order of D statistics (e.g. order=2 gives the D^2 system)
@@ -17,7 +17,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genoty
             and back mutation rates theta
     """
     y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='pi')
     if corrected == True:
         if genotypes == False:
             return Corrections.corrected_onepop(y, ns=ns, order=order)
@@ -26,7 +26,7 @@ def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genoty
     else:
         return y
 
-def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genotypes=False):
+def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
     """
     Two epoch model
     params:  = (nu,T), where nu is the new population size, integrated for time T
@@ -42,7 +42,7 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
     """
     nu,T = params
     y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='pi')
     y.integrate([nu], T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
         if genotypes == False:
@@ -52,7 +52,7 @@ def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism
     else:
         return y
 
-def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False, genotypes=False):
+def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
     """
     Three epoch model
     params:  = (nu1,nu2,T1,T2), where nus are the population size, integrated 
@@ -69,7 +69,7 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
     """
     nu1,nu2,T1,T2 = params
     y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='pi')
     y.integrate([nu1], T1, rho=rho, theta=theta, dt=0.001, ism=ism)
     y.integrate([nu2], T2, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
@@ -80,7 +80,7 @@ def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, i
     else:
         return y
 
-def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=False):
+def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True):
     """
     Exponential growth (or decay) model
     params: = (nuF,T), nu F is the final population size after time T (starting from nu=1)
@@ -96,7 +96,7 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
     """
     nuF,T = params
     y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='pi')
     nu_func = lambda t: [np.exp( np.log(nuF) *t/T)]
     y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:
@@ -107,7 +107,7 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Fa
     else:
         return y
 
-def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=False, genotypes=False):    
+def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=True, genotypes=False):    
     """
     Exponential growth (or decay) model after size change
     params: = (nuB,nuF,T), nu F is the final population size after time T, 
@@ -124,7 +124,7 @@ def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, 
     """
     nuB,nuF,T = params
     y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order)
+    y = LDstats(y, num_pops=1, order=order, basis='pi')
     nu_func = lambda t: [nuB * np.exp( np.log(nuF/nuB) *t/T)]
     y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
     if corrected == True:

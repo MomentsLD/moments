@@ -32,7 +32,7 @@ class LDstats(numpy.ma.masked_array):
     """
     def __new__(subtype, data, mask=numpy.ma.nomask, order=2, num_pops=1,
                 dtype=float, copy=True, fill_value=numpy.nan, keep_mask=True,
-                shrink=True, pop_ids=None):
+                shrink=True, pop_ids=None, basis=None):
         if num_pops == None:
             raise ValueError('Specify number of populations as num_pops=.')
         
@@ -65,6 +65,11 @@ class LDstats(numpy.ma.masked_array):
             subarr.pop_ids = data.pop_ids
         else:
             subarr.pop_ids = pop_ids
+        
+        if hasattr(data, 'basis'):
+            subarr.basis = data.basis
+        else:
+            subarr.basis = basis
         return subarr
 
     # See http://www.scipy.org/Subclasses for information on the
@@ -81,12 +86,16 @@ class LDstats(numpy.ma.masked_array):
         np.ma.masked_array.__array_finalize__(self, obj)
         self.order = getattr(obj, 'order', 'unspecified')
         self.num_pops = getattr(obj, 'num_pops', 'unspecified')
+        self.pop_ids = getattr(obj, 'pop_ids', 'unspecified')
+        self.basis = getattr(obj, 'basis', 'unspecified')
     def __array_wrap__(self, obj, context=None):
         result = obj.view(type(self))
         result = np.ma.masked_array.__array_wrap__(self, obj, 
                                                       context=context)
         result.order = self.order
         result.num_pops = self.num_pops
+        result.pop_ids = self.pop_ids
+        result.basis = self.basis
         return result
     def _update_from(self, obj):
         np.ma.masked_array._update_from(self, obj)
@@ -94,12 +103,16 @@ class LDstats(numpy.ma.masked_array):
             self.order = obj.order
         if hasattr(obj, 'num_pops'):
             self.num_pops = obj.num_pops
+        if hasattr(obj, 'pop_ids'):
+            self.pop_ids = obj.pop_ids
+        if hasattr(obj, 'basis'):
+            self.basis = obj.basis
     # masked_array has priority 15.
     __array_priority__ = 20
 
     def __repr__(self):
-        return 'LDstats(%s, num_pops=%s, order=%s)'\
-                % (str(self), str(self.num_pops), str(self.order))
+        return 'LDstats(%s, num_pops=%s, order=%s, basis=%s)'\
+                % (str(self), str(self.num_pops), str(self.order), self.basis)
 
     def names(self):
         if self.order == None:
@@ -108,9 +121,9 @@ class LDstats(numpy.ma.masked_array):
             raise ValueError('Number of populations must be specified (as stats.num_pops)')
         
         if self.num_pops == 1:
-            if len(self.data) == 5:
+            if self.basis == 'pi':
                 return Numerics.moment_names_onepop(self.order)
-            elif len(self.data) == 6:
+            elif self.basis == 'z':
                 return Numerics.moment_names_multipop(self.num_pops)
         else:
             return Numerics.moment_names_multipop(self.num_pops)
@@ -125,10 +138,12 @@ class LDstats(numpy.ma.masked_array):
         the output statistics would have population order [pop1, pop2, pop_new]
         New population always appended on end. 
         """
-        mom_list_from = Numerics.moment_list(self.num_pops)
-        mom_list_to = Numerics.moment_list(self.num_pops+1)
+        if self.basis != 'z':
+            raise ValueError("We need to be in the z-basis to split.")
+        mom_list_from = Numerics.moment_names_multipop(self.num_pops)
+        mom_list_to = Numerics.moment_names_multipop(self.num_pops+1)
         y_from = self.data
-        y_new = np.ones(len(mom_list_to)+1)
+        y_new = np.ones(len(mom_list_to))
         # dictionary point where stats in mom_list_to come from in mom_list_from
         points = {}
         for mom_to in mom_list_to:
@@ -152,7 +167,7 @@ class LDstats(numpy.ma.masked_array):
                 points[mom_to] = mom_from
         for ii,mom_to in zip(range(len(mom_list_to)),mom_list_to):
             y_new[ii] = self[mom_list_from.index(points[mom_to])]
-        return LDstats(y_new, num_pops=self.num_pops+1, order=self.order)
+        return LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
     
     def swap_pops(self,pop1,pop2):
         """
@@ -178,7 +193,7 @@ class LDstats(numpy.ma.masked_array):
                 pops_mom_new = [d.get(p) for p in pops_mom]
                 mom_new = mom.split('_')[0] + '_' + '_'.join([str(p) for p in pops_mom_new])
                 y_new[ii] = self.data[mom_list.index(Numerics.map_moment(mom_new))]
-            return LDstats(y_new, num_pops=self.num_pops, order=self.order)
+            return LDstats(y_new, num_pops=self.num_pops, order=self.order, basis=self.basis)
 
     def marginalize(self,pops):
         """
@@ -202,19 +217,19 @@ class LDstats(numpy.ma.masked_array):
             if len(np.intersect1d(pops, mom_pops)) == 0:
                 y[count] = self[names_from.index(mom)]
                 count += 1
-        return LDstats(y, num_pops=self.num_pops-len(pops), order=self.order)
+        return LDstats(y, num_pops=self.num_pops-len(pops), order=self.order, basis=self.basis)
 
     def merge(self, f):
         if self.num_pops == 2:
             y_new = Numerics.merge_2pop(self.data,f)
-            return LDstats(y_new, num_pops=1, order=self.order)
+            return LDstats(y_new, num_pops=1, order=self.order, basis=self.basis)
         else:
             raise ValueError("merge function is 2->1 pop.")
 
     def admix(self, f):
         if self.num_pops == 2:
             y_new = Numerics.admix_2pop(self.data,f)
-            return LDstats(y_new, num_pops=3, order=self.order)
+            return LDstats(y_new, num_pops=3, order=self.order, basis=self.basis)
         else:
             raise ValueError("admix function is 2->3 pops.")
     
@@ -226,26 +241,28 @@ class LDstats(numpy.ma.masked_array):
         """
         pass
     
+    ### This will be 
     def switch_basis(self):
-        if len(self.data) == 5: # we're in pi basis
+        if self.basis == 'pi':
             pi2 = self.data[2]
-            sig1 = self.data[3]
-            zz = 1-4*sig1+16*pi2
-            zp = 1-4*sig1/2
-            zq = 1-4*sig1/2
+            sigp = self.data[3]
+            sigq = self.data[4]
+            zz = 1-4*sigp-4*sigq+16*pi2
+            zp = 1-4*sigp
+            zq = 1-4*sigq
             y_new = [self.data[0], self.data[1], zz, zp, zq, 1.]
-            return LDstats(y_new, num_pops=1, order=2)
-        elif len(self.data) == 6: # we're in the z basis
+            return LDstats(y_new, num_pops=1, order=2, basis='z')
+        elif self.basis == 'z':
             zz = self.data[2]
             zp = self.data[3]
             zq = self.data[4]
             pi2 = 1./16*(zz-zp-zq+1)
-            sig1 = 1./4*(1-zp) + 1./4*(1-zq)
-            y_new = [self.data[0], self.data[1], pi2, sig1, 1.]
-            return LDstats(y_new, num_pops=1, order=2)
+            sigp = 1./4*(1-zp)
+            sigq = 1./4*(1-zq)
+            y_new = [self.data[0], self.data[1], pi2, sigp, sigq, 1.]
+            return LDstats(y_new, num_pops=1, order=2, basis='pi')
         else:
-            print("can't switch basis of this object")
-            return self
+            raise ValueError("basis is not defined on this LD object")
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
@@ -434,17 +451,22 @@ def %(method)s(self, other):
             print('Remember to specify rho. Default rho set to 0.0')
             rho = 0.0
         
-        if num_pops == 1 and ((order == 2 and len(self.data) == 5) or order != 2):
-            # this is the system [D^2, Dz, pi2, pi, 1]
+        if hasattr(theta, '__len__') and ism == False:
+            raise ValueError("We can only integrate with differing mutation rates at the two loci in the infinite sites model (set ism=True).")
+        
+        if self.basis == 'pi' and num_pops != 1:
+            raise ValueError("Careful: for num_pops > 1, basis must be z. Try swapping basis before splitting.")
+        
+        if self.basis == 'pi':
             self.data[:] = Numerics.integrate(self.data, nu, tf, rho=rho, 
                                     theta=theta, order=order, dt=dt, ism=ism)
-        else:
-            # this is the system [D^2, Dz, z^2, z_p, z^q, 1] 
+        elif self.basis == 'z':
             # and multipop with same basis
             self.data[:] = Numerics.integrate_multipop(self.data, nu, tf, dt=dt,
                                     rho=rho, theta=theta, m=m, 
                                     num_pops=self.num_pops, ism=ism)
-
+        else:
+            raise ValueError("basis is not defined on this LD object")
 
 # Allow LDstats objects to be pickled.
 import copy_reg
