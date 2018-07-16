@@ -186,12 +186,6 @@ def plot_model(model, save_file=None, ax=None, show=False,
         ax.set_xticklabels(['{:.2f}'.format(x) for x in xticks])
 
     # Gridlines along y-axis (population size) spaced by nref size
-<<<<<<< HEAD
-    ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
-    ax.yaxis.set_minor_locator(mticker.NullLocator())
-    ax.grid(b=True, which='major', axis='y', color=gridline_color)
-    ax.tick_params(labelleft = False)
-=======
     if grid:
         ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
         ax.yaxis.set_minor_locator(mticker.NullLocator())
@@ -199,7 +193,6 @@ def plot_model(model, save_file=None, ax=None, show=False,
         ax.tick_params(which='both', axis='y', colors='none', labelsize=tick_size)
     else:
         ax.set_yticks([])
->>>>>>> devel
 
     # Add scale in top-left corner displaying ancestral population size (Nref)
     if draw_scale:
