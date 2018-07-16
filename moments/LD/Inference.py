@@ -70,6 +70,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
                  use_afs=False, genotypes=False, inds_to_remove=[], 
                  multipop=False, multipop_stats=None,
                  fixed_rho=True, fixed_u=True,
+                 corr_mu=False,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -90,26 +91,40 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
             if bound is not None and pval > bound:
                 return -_out_of_bounds_val
     
-    if fixed_rho == False:
-        ## rhos are r-values from recomb map
-        if fixed_u == False:
-            Ne, u = params_up[-2:]
-            theta = 4*Ne*u
-            all_args = [params_up] + list(func_args)
-            all_args = [all_args[0][:-2]]
-        else:
-            Ne = params_up[-1]
-            theta = 4*Ne*u
-            all_args = [params_up] + list(func_args)
-            all_args = [all_args[0][:-1]]
+    if corr_mu == True:
+        mus = params_up[-2:]
+        Ne = params_up[-3]
+        p = params_up[-4]
+        lam = params_up[-5]
+        F0 = params_up[-6]
+        mu_low = mus[0]
+        mu_high = mus[1]
+        mu_ave = mu_low * p + mu_high * (1-p)
+        theta = 4*Ne*mu_ave
+        all_args = [params_up] + list(func_args)
+        all_args = [all_args[0][:-6]]
         rhos = [4*Ne*r for r in rs]
     else:
-        if fixed_theta == False:
-            theta = params_up[-1]
-            all_args = [params_up] + list(func_args)
-            all_args = [all_args[0][:-1]]
+        if fixed_rho == False:
+            ## rhos are r-values from recomb map
+            if fixed_u == False:
+                Ne, u = params_up[-2:]
+                theta = 4*Ne*u
+                all_args = [params_up] + list(func_args)
+                all_args = [all_args[0][:-2]]
+            else:
+                Ne = params_up[-1]
+                theta = 4*Ne*u
+                all_args = [params_up] + list(func_args)
+                all_args = [all_args[0][:-1]]
+            rhos = [4*Ne*r for r in rs]
         else:
-            all_args = [params_up] + list(func_args)
+            if fixed_theta == False:
+                theta = params_up[-1]
+                all_args = [params_up] + list(func_args)
+                all_args = [all_args[0][:-1]]
+            else:
+                all_args = [params_up] + list(func_args)
 
     ## first get ll of afs
     if use_afs == True:
@@ -138,20 +153,30 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     stats = []
     for func_kwargs_rho in func_kwargs_list:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
+        rho = func_kwargs_rho['rho']
+        F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
             temp_stats = temp_stats[:-1] # last value is 1
             stats.append(np.delete(temp_stats,inds_to_remove))
         else:
-            stats.append(temp_stats[0])
+            if corr_mu == False:
+                stats.append(temp_stats[0])
+            if corr_mu == True:
+                stats.append( (mu_low/mu_ave)**2 * F * p * temp_stats[0] + (mu_high/mu_ave)**2 * F * (1-p) * temp_stats[0] + (1-F) * temp_stats[0] )
     
     stats_mid = []
     for func_kwargs_rho in func_kwargs_list_mids:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
+        rho = func_kwargs_rho['rho']
+        F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
             temp_stats = temp_stats[:-1] # last value is 1
             stats_mid.append(np.delete(temp_stats,inds_to_remove))
         else:
-            stats_mid.append(temp_stats[0])
+            if corr_mu == False:
+                stats_mid.append(temp_stats[0])
+            if corr_mu == True:
+                stats_mid.append( (mu_low/mu_ave)**2 * F * p * temp_stats[0] + (mu_high/mu_ave)**2 * F * (1-p) * temp_stats[0] + (1-F) * temp_stats[0] )
     
     one_locus_stats = temp_stats[1]
     # remove the f3 statistics, since they are just combinations of f2 statistics and cause Sigma to be ill-conditioned
@@ -207,7 +232,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
                  multinom=False, fixed_theta=False, use_afs=False, 
                  genotypes=False, num_pops=1, 
                  multipop=False, multipop_stats=None, 
-                 fixed_rho=True, fixed_u=True):
+                 fixed_rho=True, fixed_u=True,
+                 corr_mu=False):
     """
     p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
@@ -293,6 +319,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
             fixed_params, multinom, fixed_theta, 
             use_afs, genotypes, inds_to_remove, 
             multipop, multipop_stats, fixed_rho, fixed_u,
+            corr_mu,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
@@ -312,7 +339,8 @@ def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
                  multinom=False, fixed_theta=False, use_afs=False, 
                  genotypes=False, num_pops=1, 
                  multipop=False, multipop_stats=None, 
-                 fixed_rho=True, fixed_u=True):
+                 fixed_rho=True, fixed_u=True,
+                 corr_mu=False):
     """
     p0 = initial guess (demography parameters + theta)
     ns = sample size (number of haplotypes) can be passed as single value or [nsLD,nsFS]
@@ -398,6 +426,7 @@ def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
             fixed_params, multinom, fixed_theta, 
             use_afs, genotypes, inds_to_remove, 
             multipop, multipop_stats, fixed_rho, fixed_u,
+            corr_mu,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)

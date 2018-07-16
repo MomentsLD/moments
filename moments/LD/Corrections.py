@@ -69,8 +69,8 @@ def corrected_multipop(stats, ns=None, num_pops=2):
     if len(ns) != num_pops:
         raise ValueError("number of sample sizes must equal number of populations")
     
-    stat_names = Numerics.moment_list(num_pops)
-    if len(stat_names) != len(stats)-1:
+    stat_names = Numerics.moment_names_multipop(num_pops)
+    if len(stat_names) != len(stats):
         raise ValueError("mismatch of input moments and number of populations")
     
     corrected = np.ones(len(stats))
@@ -88,8 +88,8 @@ def corrected_multipop_genotypes(stats, ns=None, num_pops=2):
     if len(ns) != num_pops:
         raise ValueError("length of ns must equal number of populations")
     
-    stat_names = Numerics.moment_list(num_pops)
-    if len(stat_names) != len(stats)-1:
+    stat_names = Numerics.moment_names_multipop(num_pops)
+    if len(stat_names) != len(stats):
         raise ValueError("mismatch of input moments and number of populations")
 
     corrected = np.ones(len(stats))
@@ -258,7 +258,7 @@ def adjust_moment(name, stat_names, stats, sample_sizes):
             mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
             return mom
     else:
-        return -1e6
+        return 1.0
 
 
 def order2correction(n, stats):
@@ -266,7 +266,8 @@ def order2correction(n, stats):
     return np.array([ adjust_D2(n, stat_names, stats),
                       adjust_Dz(n, stat_names, stats),
                       adjust_pi(n, stat_names, stats),
-                      adjust_s1(n, stat_names, stats),
+                      adjust_sp1(n, stat_names, stats),
+                      adjust_sq1(n, stat_names, stats),
                       1])
 
 def order4correction(n, stats):
@@ -279,11 +280,13 @@ def order4correction(n, stats):
                       adjust_D2s1(n, stat_names, stats),
                       adjust_Dzs1(n, stat_names, stats),
                       adjust_pis1(n, stat_names, stats),
-                      adjust_s2(n, stat_names, stats),
+                      adjust_sp2(n, stat_names, stats),
+                      adjust_sq2(n, stat_names, stats),
                       adjust_D2(n, stat_names, stats),
                       adjust_Dz(n, stat_names, stats),
                       adjust_pi(n, stat_names, stats),
-                      adjust_s1(n, stat_names, stats),
+                      adjust_sp1(n, stat_names, stats),
+                      adjust_sq1(n, stat_names, stats),
                       1])
 
 def order6correction(n, stats):
@@ -303,7 +306,8 @@ def order6correction(n, stats):
                       adjust_D2s2(n, stat_names, stats),
                       adjust_Dzs2(n, stat_names, stats),
                       adjust_pis2(n, stat_names, stats),
-                      adjust_s3(n, stat_names, stats),
+                      adjust_sp3(n, stat_names, stats),
+                      adjust_sq3(n, stat_names, stats),
                       
                       adjust_D4(n, stat_names, stats),
                       adjust_D3z(n, stat_names, stats),
@@ -313,16 +317,26 @@ def order6correction(n, stats):
                       adjust_D2s1(n, stat_names, stats),
                       adjust_Dzs1(n, stat_names, stats),
                       adjust_pis1(n, stat_names, stats),
-                      adjust_s2(n, stat_names, stats),
+                      adjust_sp2(n, stat_names, stats),
+                      adjust_sq2(n, stat_names, stats),
                       adjust_D2(n, stat_names, stats),
                       adjust_Dz(n, stat_names, stats),
                       adjust_pi(n, stat_names, stats),
-                      adjust_s1(n, stat_names, stats),
+                      adjust_sp1(n, stat_names, stats),
+                      adjust_sq1(n, stat_names, stats),
                       1])
 
 def adjust_s1(n, stat_names, stats):
     s1 = stats[stat_names.index('1_s1')]
     return (n-1.)/n * s1
+
+def adjust_sp1(n, stat_names, stats):
+    sp1 = stats[stat_names.index('1_sp1')]
+    return (n-1.)/n * sp1
+
+def adjust_sq1(n, stat_names, stats):
+    sq1 = stats[stat_names.index('1_sq1')]
+    return (n-1.)/n * sq1
 
 def adjust_D2(n, stat_names, stats):
     D2 = stats[stat_names.index('D^2')]
@@ -345,6 +359,16 @@ def adjust_s2(n, stat_names, stats):
     s2 = stats[stat_names.index('1_s2')]
     s1 = stats[stat_names.index('1_s1')]
     return s2 * (-6 + 11*n - 6*n**2. + n**3.)/n**3. + s1 * (-1 + n)**2/n**3.
+
+def adjust_sp2(n, stat_names, stats):
+    sp2 = stats[stat_names.index('1_sp2')]
+    sp1 = stats[stat_names.index('1_sp1')]
+    return sp2 * (-6 + 11*n - 6*n**2. + n**3.)/n**3. + sp1 * (-1 + n)**2/n**3.
+
+def adjust_sq2(n, stat_names, stats):
+    sq2 = stats[stat_names.index('1_sq2')]
+    sq1 = stats[stat_names.index('1_sq1')]
+    return sq2 * (-6 + 11*n - 6*n**2. + n**3.)/n**3. + sq1 * (-1 + n)**2/n**3.
 
 def adjust_D2s1(n, stat_names, stats):
     D2s1 = stats[stat_names.index('D^2_s1')]
@@ -1232,6 +1256,22 @@ def adjust_s3(n, stat_names, stats):
             s2 * (30 - 73*n + 63*n**2 - 23*n**3 + 3*n**4)/n**5 +
             s1 * (-1 + n)**3/n**5][0]
 
+def adjust_sp3(n, stat_names, stats):
+    sp3 = stats[stat_names.index('1_sp3')]
+    sp2 = stats[stat_names.index('1_sp2')]
+    sp1 = stats[stat_names.index('1_sp1')]
+    return [sp3 * (-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5)/n**5 +
+            sp2 * (30 - 73*n + 63*n**2 - 23*n**3 + 3*n**4)/n**5 +
+            sp1 * (-1 + n)**3/n**5][0]
+
+def adjust_sq3(n, stat_names, stats):
+    sq3 = stats[stat_names.index('1_sq3')]
+    sq2 = stats[stat_names.index('1_sq2')]
+    sq1 = stats[stat_names.index('1_sq1')]
+    return [sq3 * (-120 + 274*n - 225*n**2 + 85*n**3 - 15*n**4 + n**5)/n**5 +
+            sq2 * (30 - 73*n + 63*n**2 - 23*n**3 + 3*n**4)/n**5 +
+            sq1 * (-1 + n)**3/n**5][0]
+
 """
 Correction for genotypes (with and without sampling)
 """
@@ -1239,7 +1279,7 @@ Correction for genotypes (with and without sampling)
 def order2correction_genotypes(stats, n):
     if n is None:
         # corrections for genotype without correcting for sampling bias
-        return np.array([ 1./4, 1./2, 1., 1., 1.]) * np.array(stats)
+        return np.array([ 1./4, 1./2, 1., 1., 1., 1.]) * np.array(stats)
     else:
         # corrections for genotype data with sampling bias
         return adjust_order2_sampling(n).dot(stats)
@@ -1253,27 +1293,30 @@ def order4correction_genotypes(stats, n):
         return adjust_order4_sampling(n).dot(stats)
 
 def adjust_order2_sampling(n):
-    return np.array([[(-1. + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1. + n)**2/(8.*n**3), (-1. + n)/(4.*n**2), 0, 0],
-                     [(-1. + n)**2/n**3, (-1. + n)**3/(2.*n**3), 0, 0, 0],
-                     [(-1. + 2*n)/(4.*n**3), (1. - 2*n)**2/(8.*n**3), (1. - 2*n)**2/(4.*n**2), 0, 0],
-                     [0, 0, 0, 1 - 1./(2.*n), 0],
-                     [0, 0, 0, 0, 1]])
+    return np.array([[(-1. + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1. + n)**2/(8.*n**3), (-1. + n)/(4.*n**2), 0, 0, 0],
+                     [(-1. + n)**2/n**3, (-1. + n)**3/(2.*n**3), 0, 0, 0, 0],
+                     [(-1. + 2*n)/(4.*n**3), (1. - 2*n)**2/(8.*n**3), (1. - 2*n)**2/(4.*n**2), 0, 0, 0],
+                     [0, 0, 0, 1 - 1./(2.*n), 0, 0],
+                     [0, 0, 0, 0, 1 - 1./(2.*n), 0],
+                     [0, 0, 0, 0, 0, 1]])
 
 def adjust_order4_sampling(n):
-    return np.array([[ (-18 + 30*n - 18*n**2 + 12*n**3 - 11*n**4 + 8*n**5 - 4*n**6 + n**7)/(16.*n**7), (3*(18 - 30*n + 14*n**2 - 5*n**3 + 6*n**4 - 4*n**5 + n**6))/(16.*n**7), (3*(-54 + 72*n + 8*n**2 - 39*n**3 + 15*n**4 - 3*n**5 + n**6))/(8.*n**7), (18 + 12*n - 76*n**2 + 67*n**3 - 26*n**4 + 5*n**5)/(16.*n**7), (3*(-9 + 12*n - n**2 - 3*n**3 + n**4))/(16.*n**6), (-3*(-21 + 35*n - 9*n**2 - 7*n**3 + n**4 + n**5))/(16.*n**7), ((-1 + n)**2*(-3 - n + 2*n**2))/(32.*n**7), (3*(3 - 5*n + 2*n**2))/(32.*n**6), 0, ((-49 + 98*n - 52*n**2 + 6*n**3 - 10*n**4 + 7*n**5))/(64.*n**7), (-1 + n)**4/(128.*n**7), (-3 + 6*n - 4*n**2 + n**3)/(64.*n**6), 0, 0 ], ## D^4
-                     [ (18 - 39*n + 39*n**2 - 30*n**3 + 17*n**4 - 6*n**5 + n**6)/(4.*n**7), (-108 + 252*n - 261*n**2 + 195*n**3 - 111*n**4 + 41*n**5 - 9*n**6 + n**7)/(8.*n**7), (3*(108 - 252*n + 241*n**2 - 153*n**3 + 79*n**4 - 27*n**5 + 4*n**6))/(4.*n**7), (-36 + 48*n + 29*n**2 - 84*n**3 + 61*n**4 - 21*n**5 + 3*n**6)/(8.*n**7), ((3 - 2*n)**2*(2 - 3*n + n**2))/(4.*n**6), (-3*(42 - 109*n + 118*n**2 - 81*n**3 + 42*n**4 - 14*n**5 + 2*n**6))/(8.*n**7), ((-1 + n)**2*(6 - 7*n + 2*n**2))/(16.*n**7), -((-1 + n)**2*(6 - 7*n + 2*n**2))/(8.*n**6), 0, ((49 - 140*n + 168*n**2 - 123*n**3 + 64*n**4 - 21*n**5 + 3*n**6))/(16.*n**7), (-1 + n)**5/(32.*n**7), ((-2 + n)*(-1 + n)**3)/(16.*n**6), 0, 0 ], ## D^3z
-                     [ (-18 + 48*n - 55*n**2 + 36*n**3 - 13*n**4 + 2*n**5)/(16.*n**7), (108 - 324*n + 422*n**2 - 317*n**3 + 143*n**4 - 36*n**5 + 4*n**6)/(32.*n**7), (-324 + 1080*n - 1570*n**2 + 1329*n**3 - 708*n**4 + 233*n**5 - 44*n**6 + 4*n**7)/(16.*n**7), ((3 - 2*n)**2*(4 - 8*n + 6*n**2 - 3*n**3 + n**4))/(32.*n**7), ((3 - 2*n)**2*(-1 + n)**3)/(16.*n**6), (126 - 444*n + 661*n**2 - 547*n**3 + 268*n**4 - 72*n**5 + 8*n**6)/(32.*n**7), (-6 + 28*n - 49*n**2 + 43*n**3 - 20*n**4 + 4*n**5)/(64.*n**7), ((-1 + n)**2*(3 - 8*n + 4*n**2))/(32.*n**6), 0, ((-49 + 182*n - 278*n**2 + 225*n**3 - 100*n**4 + 20*n**5))/(64.*n**7), (1 - 3*n + 2*n**2)**2/(128.*n**7), ((1 - 2*n)**2*(-1 + n))/(64.*n**6), 0, 0 ], ## D^2pi
-                     [ (3*(-1 + n)**2*(6 - 7*n + 2*n**2))/(4.*n**7), (9*(-3 + 2*n)*(2 - 3*n + n**2)**2)/(8.*n**7), (9*(6 - 13*n + 9*n**2 - 2*n**3)**2)/(4.*n**7), ((-1 + n)**3*(6 - 7*n + 2*n**2)**2)/(8.*n**7), 0, (-3*(-1 + n)**3*(-42 + 61*n - 28*n**2 + 4*n**3))/(8.*n**7), ((-1 + n)**3*(-6 + 19*n - 16*n**2 + 4*n**3))/(16.*n**7), 0, 0, ((7 - 2*n)**2*(-1 + n)**4)/(16.*n**7), ((1 - 2*n)**2*(-1 + n)**3)/(32.*n**7), 0, 0, 0 ], ## Dpiz
-                     [ (3*(-3 + 11*n - 12*n**2 + 4*n**3))/(8.*n**7), (3*(3 - 2*n)**2*(1 - 3*n + 2*n**2))/(8.*n**7), (9*(-1 + 2*n)*(3 - 5*n + 2*n**2)**2)/(4.*n**7), (3 - 11*n + 12*n**2 - 4*n**3)**2/(8.*n**7), (3 - 11*n + 12*n**2 - 4*n**3)**2/(16.*n**6), (63 - 339*n + 684*n**2 - 648*n**3 + 288*n**4 - 48*n**5)/(16.*n**7), ((-1 + 2*n)**3*(3 - 5*n + 2*n**2))/(32.*n**7), ((-1 + 2*n)**3*(3 - 5*n + 2*n**2))/(32.*n**6), 0, ((-1 + 2*n)*(7 - 12*n + 4*n**2)**2)/(64.*n**7), (1 - 2*n)**4/(128.*n**7), (1 - 2*n)**4/(64.*n**6), 0, 0 ], ## pi^2
-                     [ 0, 0, 0, 0, 0, (-18 + 48*n - 55*n**2 + 36*n**3 - 13*n**4 + 2*n**5)/(8.*n**5), (6 - 16*n + 17*n**2 - 9*n**3 + 2*n**4)/(16.*n**5), ((-1 + n)**2*(-3 + 2*n))/(8.*n**4), 0, ((-1 + n)**2*(7 - 6*n + 4*n**2))/(8.*n**5), ((-1 + n)**2*(-1 + 2*n))/(16.*n**5), (1 - 3*n + 2*n**2)/(8.*n**4), 0, 0 ], ## D^2s
-                     [ 0, 0, 0, 0, 0, (3*(-1 + n)**2*(6 - 7*n + 2*n**2))/(2.*n**5), ((-1 + n)**3*(6 - 7*n + 2*n**2))/(4.*n**5), 0, 0, -((-1 + n)**3*(-7 + 2*n))/(2.*n**5), ((-1 + n)**3*(-1 + 2*n))/(4.*n**5), 0, 0, 0 ], ## Dzs
-                     [ 0, 0, 0, 0, 0, (3*(-3 + 11*n - 12*n**2 + 4*n**3))/(4.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**4), 0, -((-7 + 26*n - 28*n**2 + 8*n**3))/(8.*n**5), (-1 + 2*n)**3/(16.*n**5), (-1 + 2*n)**3/(8.*n**4), 0, 0 ], ## pis
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, (-3 + 11*n - 12*n**2 + 4*n**3)/(4.*n**3), 0, 0, 0, (1 - 2*n)**2/(8.*n**3), 0 ], ## s^2
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1 + n)**2/(8.*n**3), (-1 + n)/(4.*n**2), 0, 0 ], ## D^2
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + n)**2/(1.*n**3), (-1 + n)**3/(2.*n**3), 0, 0, 0 ], ## Dz
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n)/(4.*n**3), (1 - 2*n)**2/(8.*n**3), (1 - 2*n)**2/(4.*n**2), 0, 0 ], ## pi
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 - 1/(2.*n), 0], ## s
-                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]]) ## 1
+    return np.array([[ (-18 + 30*n - 18*n**2 + 12*n**3 - 11*n**4 + 8*n**5 - 4*n**6 + n**7)/(16.*n**7), (3*(18 - 30*n + 14*n**2 - 5*n**3 + 6*n**4 - 4*n**5 + n**6))/(16.*n**7), (3*(-54 + 72*n + 8*n**2 - 39*n**3 + 15*n**4 - 3*n**5 + n**6))/(8.*n**7), (18 + 12*n - 76*n**2 + 67*n**3 - 26*n**4 + 5*n**5)/(16.*n**7), (3*(-9 + 12*n - n**2 - 3*n**3 + n**4))/(16.*n**6), (-3*(-21 + 35*n - 9*n**2 - 7*n**3 + n**4 + n**5))/(16.*n**7), ((-1 + n)**2*(-3 - n + 2*n**2))/(32.*n**7), (3*(3 - 5*n + 2*n**2))/(32.*n**6), 0, 0, ((-49 + 98*n - 52*n**2 + 6*n**3 - 10*n**4 + 7*n**5))/(64.*n**7), (-1 + n)**4/(128.*n**7), (-3 + 6*n - 4*n**2 + n**3)/(64.*n**6), 0, 0, 0 ], ## D^4
+                     [ (18 - 39*n + 39*n**2 - 30*n**3 + 17*n**4 - 6*n**5 + n**6)/(4.*n**7), (-108 + 252*n - 261*n**2 + 195*n**3 - 111*n**4 + 41*n**5 - 9*n**6 + n**7)/(8.*n**7), (3*(108 - 252*n + 241*n**2 - 153*n**3 + 79*n**4 - 27*n**5 + 4*n**6))/(4.*n**7), (-36 + 48*n + 29*n**2 - 84*n**3 + 61*n**4 - 21*n**5 + 3*n**6)/(8.*n**7), ((3 - 2*n)**2*(2 - 3*n + n**2))/(4.*n**6), (-3*(42 - 109*n + 118*n**2 - 81*n**3 + 42*n**4 - 14*n**5 + 2*n**6))/(8.*n**7), ((-1 + n)**2*(6 - 7*n + 2*n**2))/(16.*n**7), -((-1 + n)**2*(6 - 7*n + 2*n**2))/(8.*n**6), 0, 0, ((49 - 140*n + 168*n**2 - 123*n**3 + 64*n**4 - 21*n**5 + 3*n**6))/(16.*n**7), (-1 + n)**5/(32.*n**7), ((-2 + n)*(-1 + n)**3)/(16.*n**6), 0, 0, 0 ], ## D^3z
+                     [ (-18 + 48*n - 55*n**2 + 36*n**3 - 13*n**4 + 2*n**5)/(16.*n**7), (108 - 324*n + 422*n**2 - 317*n**3 + 143*n**4 - 36*n**5 + 4*n**6)/(32.*n**7), (-324 + 1080*n - 1570*n**2 + 1329*n**3 - 708*n**4 + 233*n**5 - 44*n**6 + 4*n**7)/(16.*n**7), ((3 - 2*n)**2*(4 - 8*n + 6*n**2 - 3*n**3 + n**4))/(32.*n**7), ((3 - 2*n)**2*(-1 + n)**3)/(16.*n**6), (126 - 444*n + 661*n**2 - 547*n**3 + 268*n**4 - 72*n**5 + 8*n**6)/(32.*n**7), (-6 + 28*n - 49*n**2 + 43*n**3 - 20*n**4 + 4*n**5)/(64.*n**7), ((-1 + n)**2*(3 - 8*n + 4*n**2))/(32.*n**6), 0, 0, ((-49 + 182*n - 278*n**2 + 225*n**3 - 100*n**4 + 20*n**5))/(64.*n**7), (1 - 3*n + 2*n**2)**2/(128.*n**7), ((1 - 2*n)**2*(-1 + n))/(64.*n**6), 0, 0, 0 ], ## D^2pi
+                     [ (3*(-1 + n)**2*(6 - 7*n + 2*n**2))/(4.*n**7), (9*(-3 + 2*n)*(2 - 3*n + n**2)**2)/(8.*n**7), (9*(6 - 13*n + 9*n**2 - 2*n**3)**2)/(4.*n**7), ((-1 + n)**3*(6 - 7*n + 2*n**2)**2)/(8.*n**7), 0, (-3*(-1 + n)**3*(-42 + 61*n - 28*n**2 + 4*n**3))/(8.*n**7), ((-1 + n)**3*(-6 + 19*n - 16*n**2 + 4*n**3))/(16.*n**7), 0, 0, 0, ((7 - 2*n)**2*(-1 + n)**4)/(16.*n**7), ((1 - 2*n)**2*(-1 + n)**3)/(32.*n**7), 0, 0, 0, 0 ], ## Dpiz
+                     [ (3*(-3 + 11*n - 12*n**2 + 4*n**3))/(8.*n**7), (3*(3 - 2*n)**2*(1 - 3*n + 2*n**2))/(8.*n**7), (9*(-1 + 2*n)*(3 - 5*n + 2*n**2)**2)/(4.*n**7), (3 - 11*n + 12*n**2 - 4*n**3)**2/(8.*n**7), (3 - 11*n + 12*n**2 - 4*n**3)**2/(16.*n**6), (63 - 339*n + 684*n**2 - 648*n**3 + 288*n**4 - 48*n**5)/(16.*n**7), ((-1 + 2*n)**3*(3 - 5*n + 2*n**2))/(32.*n**7), ((-1 + 2*n)**3*(3 - 5*n + 2*n**2))/(32.*n**6), 0, 0, ((-1 + 2*n)*(7 - 12*n + 4*n**2)**2)/(64.*n**7), (1 - 2*n)**4/(128.*n**7), (1 - 2*n)**4/(64.*n**6), 0, 0, 0 ], ## pi^2
+                     [ 0, 0, 0, 0, 0, (-18 + 48*n - 55*n**2 + 36*n**3 - 13*n**4 + 2*n**5)/(8.*n**5), (6 - 16*n + 17*n**2 - 9*n**3 + 2*n**4)/(16.*n**5), ((-1 + n)**2*(-3 + 2*n))/(8.*n**4), 0, 0, ((-1 + n)**2*(7 - 6*n + 4*n**2))/(8.*n**5), ((-1 + n)**2*(-1 + 2*n))/(16.*n**5), (1 - 3*n + 2*n**2)/(8.*n**4), 0, 0, 0 ], ## D^2s
+                     [ 0, 0, 0, 0, 0, (3*(-1 + n)**2*(6 - 7*n + 2*n**2))/(2.*n**5), ((-1 + n)**3*(6 - 7*n + 2*n**2))/(4.*n**5), 0, 0, 0, -((-1 + n)**3*(-7 + 2*n))/(2.*n**5), ((-1 + n)**3*(-1 + 2*n))/(4.*n**5), 0, 0, 0, 0 ], ## Dzs
+                     [ 0, 0, 0, 0, 0, (3*(-3 + 11*n - 12*n**2 + 4*n**3))/(4.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**5), ((1 - 2*n)**2*(3 - 5*n + 2*n**2))/(8.*n**4), 0, 0, -((-7 + 26*n - 28*n**2 + 8*n**3))/(8.*n**5), (-1 + 2*n)**3/(16.*n**5), (-1 + 2*n)**3/(8.*n**4), 0, 0, 0 ], ## pis
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, (-3 + 11*n - 12*n**2 + 4*n**3)/(4.*n**3), 0, 0, 0, 0, (1 - 2*n)**2/(8.*n**3), 0, 0 ], ## sp^2
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, (-3 + 11*n - 12*n**2 + 4*n**3)/(4.*n**3), 0, 0, 0, 0, (1 - 2*n)**2/(8.*n**3), 0 ], ## sq^2
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n - 2*n**2 + n**3)/(4.*n**3), (-1 + n)**2/(8.*n**3), (-1 + n)/(4.*n**2), 0, 0, 0 ], ## D^2
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + n)**2/(1.*n**3), (-1 + n)**3/(2.*n**3), 0, 0, 0, 0 ], ## Dz
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (-1 + 2*n)/(4.*n**3), (1 - 2*n)**2/(8.*n**3), (1 - 2*n)**2/(4.*n**2), 0, 0, 0 ], ## pi
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 - 1/(2.*n), 0, 0], ## sp
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 - 1/(2.*n), 0], ## sq
+                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ]]) ## 1
 
 
 
@@ -1439,4 +1482,4 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
             mom = stats[np.argwhere(np.array(stat_names) == 'zq_{0}_{1}'.format(popq1,popq2))[0]]
             return mom
     else:
-        return -1e6
+        return 1.0
