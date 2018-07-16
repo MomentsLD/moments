@@ -170,14 +170,14 @@ def mutations(n, theta=1.0):
     
     M_1to2 = np.zeros((Msize,Msize))
     # A/a -> AB and aB
-    for j in range(0,n-1):
+    for j in range(0,n-1): # B falls on A background
         M_1to2[index_n(n,1,j,0),index_n(n,0,j+1,0)] += (j+1)*theta/2.
-    for j in range(1,n-1):
+    for j in range(1,n): # B falls on a background
         M_1to2[index_n(n,0,j,1),index_n(n,0,j,0)] += (n-j)*theta/2.
     # B/b -> AB and Ab
     for k in range(0,n-1):
         M_1to2[index_n(n,1,0,k),index_n(n,0,0,k+1)] += (k+1)*theta/2.
-    for k in range(1,n-1):
+    for k in range(1,n):
         M_1to2[index_n(n,0,1,k),index_n(n,0,0,k)] += (n-k)*theta/2.
     
     M_0to1 = np.zeros(Msize)
