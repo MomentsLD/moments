@@ -209,8 +209,17 @@ def closest_ijk_edges((i,j,k),n,jump):
     elif i == 0 and k == 0:
         for jj in range(1,n):
             possible_ijk.append((i,jj,k))
+    elif j == 0 and n+jump-i-j-k == 0:
+        for ii in range(1,n):
+            kk = n-ii
+            possible_ijk.append((ii,j,kk))
+    elif k == 0 and n+jump-i-j-k == 0:
+        for ii in range(1,n):
+            jj = n-ii
+            possible_ijk.append((ii,jj,k))
     else:
         pass
+    
     possible_ijk = np.array(possible_ijk)
     smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),3)[:3]
     smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -222,7 +231,7 @@ def closest_ijk_edges((i,j,k),n,jump):
     i_range, j_range, k_range = np.max(ordered_set[:,0]) - np.min(ordered_set[:,0]), np.max(ordered_set[:,1]) - np.min(ordered_set[:,1]), np.max(ordered_set[:,2]) - np.min(ordered_set[:,2])
     # XXX don't think this is needed
     next_index = 4
-    if i == 0 and j == 0:
+    if i == 0 and j == 0: # all aB/ab
         while k_range < 2:
             smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),next_index)[:next_index]
             smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -232,7 +241,7 @@ def closest_ijk_edges((i,j,k),n,jump):
             ordered_set[-1] = new_ordered_set[-1]
             k_range = np.max(ordered_set[:,2]) - np.min(ordered_set[:,2])
             next_index += 1
-    elif i == 0 and k == 0:
+    elif i == 0 and k == 0: # Ab/ab
         while j_range < 2:
             smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),next_index)[:next_index]
             smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -242,7 +251,7 @@ def closest_ijk_edges((i,j,k),n,jump):
             ordered_set[-1] = new_ordered_set[-1]
             j_range = np.max(ordered_set[:,1]) - np.min(ordered_set[:,1])
             next_index += 1
-    elif j == 0 and k == 0:
+    elif j == 0 and k == 0: # AB/ab
         while i_range < 2:
             smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),next_index)[:next_index]
             smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -252,7 +261,7 @@ def closest_ijk_edges((i,j,k),n,jump):
             ordered_set[-1] = new_ordered_set[-1]
             i_range = np.max(ordered_set[:,0]) - np.min(ordered_set[:,0])
             next_index += 1
-    elif i == 0 and n+jump-i-j-k == 0:
+    elif i == 0 and n+jump-i-j-k == 0: # Ab/aB
         while j_range < 2:
             smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),next_index)[:next_index]
             smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -262,6 +271,14 @@ def closest_ijk_edges((i,j,k),n,jump):
             ordered_set[-1] = new_ordered_set[-1]
             j_range = np.max(ordered_set[:,1]) - np.min(ordered_set[:,1])
             next_index += 1
+    
+    elif j == 0 and n+jump-i-j-k == 0: # AB/aB
+        while i_range < 2 or k_range < 2:
+            print "oh no"
+    
+    elif k == 0 and n+jump-i-j-k == 0: # AB/Ab
+        while i_range < 2 or j_range < 2:
+            print "oh no"
     
     return ordered_set
 
@@ -473,6 +490,7 @@ def calc_jk(n,jump):
                     data.append(alpha)
 
         # jackknife edges
+        # AB/ab edge
         j = 0
         k = 0
         for i in range(1,n+jump):
@@ -484,7 +502,8 @@ def calc_jk(n,jump):
                 row.append(index1)
                 col.append(index)
                 data.append(alpha)
-
+        
+        # Ab/aB edge
         i = 0
         for j in range(1,n+jump):
             k = n+jump-i-j
@@ -522,7 +541,33 @@ def calc_jk(n,jump):
                 row.append(index1)
                 col.append(index)
                 data.append(alpha)
-
+        
+        # AB/Ab edge
+        k = 0
+        for i in range(1,n+jump):
+            j = n+jump-i
+            ordered_set = closest_ijk_edges((i,j,k),n,jump)
+            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+            for coord,alpha in zip(ordered_set,alphas):
+                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                row.append(index1)
+                col.append(index)
+                data.append(alpha)
+        
+        # AB/aB edge
+        j = 0
+        for i in range(1,n+jump):
+            k = n+jump-i
+            ordered_set = closest_ijk_edges((i,j,k),n,jump)
+            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+            for coord,alpha in zip(ordered_set,alphas):
+                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                row.append(index1)
+                col.append(index)
+                data.append(alpha)
+        
         size_from = (n+1)*(n+2)*(n+3)/6
         size_to = (n+1+jump)*(n+2+jump)*(n+3+jump)/6
         jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))

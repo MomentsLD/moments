@@ -170,14 +170,14 @@ def mutations(n, theta=1.0):
     
     M_1to2 = np.zeros((Msize,Msize))
     # A/a -> AB and aB
-    for j in range(0,n-1):
+    for j in range(0,n-1): # B falls on A background
         M_1to2[index_n(n,1,j,0),index_n(n,0,j+1,0)] += (j+1)*theta/2.
-    for j in range(1,n-1):
+    for j in range(1,n): # B falls on a background
         M_1to2[index_n(n,0,j,1),index_n(n,0,j,0)] += (n-j)*theta/2.
     # B/b -> AB and Ab
     for k in range(0,n-1):
         M_1to2[index_n(n,1,0,k),index_n(n,0,0,k+1)] += (k+1)*theta/2.
-    for k in range(1,n-1):
+    for k in range(1,n):
         M_1to2[index_n(n,0,1,k),index_n(n,0,0,k)] += (n-k)*theta/2.
     
     M_0to1 = np.zeros(Msize)
@@ -260,22 +260,22 @@ def selection_additive_component(n):
         for j in range(n+1-i):
             for k in range(n+1-i-j):
                 this_ind = index_n(n,i,j,k)
-                if i > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+1,i+1,j,k))
-                    data.append( - 1./(n+1) * (i+1)*(n-i-j) )
-                if j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+1,i,j+1,k))
-                    data.append( - 1./(n+1) * (j+1)*(n-i-j) )
-                if k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+1,i,j,k+1))
-                    data.append( 1./(n+1) * (i+j)*(k+1) )
-                if n-i-j-k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+1,i,j,k))
-                    data.append( 1./(n+1) * (i+j)*(n-i-j-k+1) )
+                #if i > 0:
+                row.append(this_ind)
+                col.append(index_n(n+1,i+1,j,k))
+                data.append( - 1./(n+1) * (i+1)*(n-i-j) )
+                #if j > 0:
+                row.append(this_ind)
+                col.append(index_n(n+1,i,j+1,k))
+                data.append( - 1./(n+1) * (j+1)*(n-i-j) )
+                #if k > 0:
+                row.append(this_ind)
+                col.append(index_n(n+1,i,j,k+1))
+                data.append( 1./(n+1) * (i+j)*(k+1) )
+                #if n-i-j-k > 0:
+                row.append(this_ind)
+                col.append(index_n(n+1,i,j,k))
+                data.append( 1./(n+1) * (i+j)*(n-i-j-k+1) )
     return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
 
 def selection_dominance_component(n):
@@ -416,3 +416,246 @@ def project(F_from, proj_to):
             proj_weights = cached_projection(proj_to,proj_from,hits)
             F_proj += proj_weights * F_from[0,0,X3]
         return F_proj
+
+## methods for reversible mutation model
+
+def mutations_reversible(n, u, v):
+    """
+    Assuming equal forward and backward mutation rates, but allowing different rates
+    at left (u) and right (v) loci
+    """
+    Msize = (n+1)*(n+2)*(n+3)/6
+    
+    M = np.zeros((Msize,Msize))
+    for i in range(n+1):
+        for j in range(n+1-i):
+            for k in range(n+1-i-j):
+                this_ind = index_n(n,i,j,k)
+                if i > 0:
+                    M[this_ind, index_n(n,i-1,j,k+1)] += u*(k+1)
+                    M[this_ind, index_n(n,i-1,j+1,k)] += v*(j+1)
+                if j > 0:
+                    M[this_ind, index_n(n,i,j-1,k)] += u*(n-i-j-k+1)
+                    M[this_ind, index_n(n,i+1,j-1,k)] += v*(i+1)
+                if k > 0:
+                    M[this_ind, index_n(n,i+1,j,k-1)] += u*(i+1)
+                    M[this_ind, index_n(n,i,j,k-1)] += v*(n-i-j-k+1)
+                if n-i-j-k > 0:
+                    M[this_ind, index_n(n,i,j+1,k)] += u*(j+1)
+                    M[this_ind, index_n(n,i,j,k+1)] += v*(k+1)
+                
+                M[this_ind, this_ind] -= (u+v)*n
+    
+    return csc_matrix(M)
+
+def mutations_reversible_2(n, u, v):
+    """
+    we allow only mutations if the frequency is zero
+    if a mutation fixes, put that density back at sero
+    """
+    Msize = (n+1)*(n+2)*(n+3)/6
+    
+    M = np.zeros((Msize,Msize))
+
+    #fA = i+j
+    i = 0
+    j = 0
+    # mutations introduce new A mutation along aB/ab axis 
+    # B/b -> AB and Ab
+    for k in range(0,n-1):
+        M[index_n(n,1,0,k),index_n(n,0,0,k+1)] += (k+1)*u/2.
+        M[index_n(n,0,0,k+1),index_n(n,0,0,k+1)] -= (k+1)*u/2.
+    for k in range(0,n-1):
+        M[index_n(n,0,1,k),index_n(n,0,0,k)] += (n-k)*u/2.
+        M[index_n(n,0,0,k),index_n(n,0,0,k)] -= (n-k)*u/2.
+
+    # fB = i+k
+    i = 0
+    k = 0
+    # mutations introduce new A mutation along Ab/ab
+    # A/a -> AB and aB
+    for j in range(0,n-1):
+        M[index_n(n,1,j,0),index_n(n,0,j+1,0)] += (j+1)*v/2.
+        M[index_n(n,0,j+1,0),index_n(n,0,j+1,0)] -= (j+1)*v/2.
+    for j in range(0,n-1):
+        M[index_n(n,0,j,1),index_n(n,0,j,0)] += (n-j)*v/2.
+        M[index_n(n,0,j,0),index_n(n,0,j,0)] -= (n-j)*v/2.
+    
+    # return fixed density to origin
+    M2 = np.zeros((Msize,Msize))
+    M2[index_n(n,0,0,0), index_n(n,n,0,0)] += 1
+    M2[index_n(n,n,0,0), index_n(n,n,0,0)] -= 1
+    M2[index_n(n,0,0,0), index_n(n,0,n,0)] += 1
+    M2[index_n(n,0,n,0), index_n(n,0,n,0)] -= 1
+    M2[index_n(n,0,0,0), index_n(n,0,0,n)] += 1
+    M2[index_n(n,0,0,n), index_n(n,0,0,n)] -= 1
+    return csc_matrix(M), M2
+    
+def drift_reversible(n):
+    Dsize = (n+1)*(n+2)*(n+3)/6
+    row = []
+    col = []
+    data = []
+    for ii in range(n+1):
+        for jj in range(n+1-ii):
+            for kk in range(n+1-ii-jj):
+                this_ind = index_n(n,ii,jj,kk)
+                # incoming density
+                if ii > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii-1,jj,kk))
+                    data.append(2*choose(n,2)*(1.*(ii-1)*(n-ii-jj-kk+1)/n/(n-1)))
+                
+                if n-ii-jj-kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii+1,jj,kk))
+                    data.append(2*choose(n,2)*(1.*(ii+1)*(n-ii-jj-kk-1)/n/(n-1)))
+                
+                if ii > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii-1,jj,kk+1))
+                    data.append(2*choose(n,2)*(1.*(ii-1)*(kk+1)/n/(n-1)))
+                
+                if kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii+1,jj,kk-1))
+                    data.append(2*choose(n,2)*(1.*(ii+1)*(kk-1)/n/(n-1)))
+                
+                if ii > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii-1,jj+1,kk))
+                    data.append(2*choose(n,2)*(1.*(ii-1)*(jj+1)/n/(n-1)))
+                
+                if jj > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii+1,jj-1,kk))
+                    data.append(2*choose(n,2)*(1.*(ii+1)*(jj-1)/n/(n-1)))
+                
+                if jj > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj-1,kk))
+                    data.append(2*choose(n,2)*(1.*(jj-1)*(n-ii-jj-kk+1)/n/(n-1)))
+                
+                if n-ii-jj-kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj+1,kk))
+                    data.append(2*choose(n,2)*(1.*(jj+1)*(n-ii-jj-kk-1)/n/(n-1)))
+                
+                if jj > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj-1,kk+1))
+                    data.append(2*choose(n,2)*(1.*(jj-1)*(kk+1)/n/(n-1)))
+                
+                if kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj+1,kk-1))
+                    data.append(2*choose(n,2)*(1.*(jj+1)*(kk-1)/n/(n-1)))
+                
+                if kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj,kk-1))
+                    data.append(2*choose(n,2)*(1.*(kk-1)*(n-ii-jj-kk+1)/n/(n-1)))
+                
+                if n-ii-jj-kk > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n,ii,jj,kk+1))
+                    data.append(2*choose(n,2)*(1.*(kk+1)*(n-ii-jj-kk-1)/n/(n-1)))
+                
+                #outgoing density
+                row.append(this_ind)
+                col.append(this_ind)
+                data.append(-2*choose(n,2) * 2.*(ii*(n-ii-jj-kk) + ii*kk + ii*jj + jj*(n-ii-jj-kk) + jj*kk + kk*(n-ii-jj-kk))/n/(n-1))
+                
+    return csc_matrix((data,(row,col)),shape=(Dsize,Dsize))
+
+def recombination_reversible(n, rho):
+    """
+    rho = 4*Ne*r
+    where r is the recombination probability
+    """
+    Rsize0 = (n+1)*(n+2)*(n+3)/6
+    Rsize1 = (n+2)*(n+3)*(n+4)/6
+    row = []
+    col = []
+    data = [] 
+    
+    for i in range(n+1):
+        for j in range(n+1-i):
+            for k in range(n+1-i-j):
+                fA = i+j
+                fa = n-i-j
+                fB = i+k
+                fb = n-i-k
+                # incoming
+                if j > 0:
+                    row.append( index_n(n,i,j,k) )
+                    col.append( index_n(n+1,i+1,j-1,k) )
+                    data.append( n*rho/2. * 1.*(i+1)*(n-i-j-k+1)/(n+1)/n )
+                
+                if k > 0:
+                    row.append( index_n(n,i,j,k) )
+                    col.append( index_n(n+1,i+1,j,k-1) )
+                    data.append( n*rho/2. * 1.*(i+1)*(n-i-j-k+1)/(n+1)/n )
+                
+                if i > 0:
+                    row.append( index_n(n,i,j,k) )
+                    col.append( index_n(n+1,i-1,j+1,k+1) )
+                    data.append( n*rho/2. * 1.*(j+1)*(k+1)/(n+1)/n )
+                
+                if i+j+k+1 < n+1:
+                    row.append( index_n(n,i,j,k) )
+                    col.append( index_n(n+1,i,j+1,k+1) )
+                    data.append( n*rho/2. * 1.*(j+1)*(k+1)/(n+1)/n )
+
+                # outgoing
+                row.append( index_n(n,i,j,k) )
+                col.append( index_n(n+1,i+1,j,k) )
+                data.append( -n*rho/2. * 1.*(i+1)*(n-i-j-k)/(n+1)/n )
+
+                row.append( index_n(n,i,j,k) )
+                col.append( index_n(n+1,i,j+1,k) )
+                data.append( -n*rho/2. * 1.*(j+1)*(k)/(n+1)/n )
+
+                row.append( index_n(n,i,j,k) )
+                col.append( index_n(n+1,i,j,k+1) )
+                data.append( -n*rho/2. * 1.*(j)*(k+1)/(n+1)/n )
+
+                row.append( index_n(n,i,j,k) )
+                col.append( index_n(n+1,i,j,k) )
+                data.append( -n*rho/2. * 1.*(i)*(n-i-j-k+1)/(n+1)/n )
+
+    return csc_matrix((data,(row,col)),shape=(Rsize0,Rsize1))
+
+def selection_reversible_additive(n):
+    """
+    selection at just the left locus, accounting for selection at fixed entries as well
+    for now, just additive (n->n+1)
+    """
+    Ssize0 = (n+1)*(n+2)*(n+3)/6
+    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    S = np.zeros((Ssize0,Ssize1))
+    for ii in range(n+1):
+        for jj in range(n+1-ii):
+            for kk in range(n+1-ii-jj):
+                this_ind = index_n(n,ii,jj,kk)
+                if ii > 0:
+                    S[this_ind,index_n(n+1,ii,jj+1,kk)] += ii * (jj+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj+1,kk),index_n(n+1,ii,jj+1,kk)] -= ii * (jj+1.) / (n+1.)
+                    
+                    S[this_ind,index_n(n+1,ii,jj,kk+1)] += ii * (kk+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj,kk+1),index_n(n+1,ii,jj,kk+1)] -= ii * (kk+1.) / (n+1.)
+
+                    S[this_ind,index_n(n+1,ii,jj,kk)] += ii * (n-ii-jj-kk+1.) / (n+1.)
+                    S[index_n(n,ii-1,jj,kk),index_n(n+1,ii,jj,kk)] -= ii * (n-ii-jj-kk+1.) / (n+1.)
+                if jj > 0:
+                    S[this_ind,index_n(n+1,ii+1,jj,kk)] += jj * (ii+1.) / (n+1.)
+                    S[index_n(n,ii+1,jj-1,kk),index_n(n+1,ii+1,jj,kk)] -= jj * (ii+1.) / (n+1.)
+                    
+                    S[this_ind,index_n(n+1,ii,jj,kk+1)] += jj * (kk+1.) / (n+1.)
+                    S[index_n(n,ii,jj-1,kk+1),index_n(n+1,ii,jj,kk+1)] -= jj * (kk+1.) / (n+1.)
+
+                    S[this_ind,index_n(n+1,ii,jj,kk)] += jj * (n-ii-jj-kk+1.) / (n+1.)
+                    S[index_n(n,ii,jj-1,kk),index_n(n+1,ii,jj,kk)] -= jj * (n-ii-jj-kk+1.) / (n+1.)
+
+    return csc_matrix(S)
+    
