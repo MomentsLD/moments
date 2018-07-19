@@ -46,6 +46,8 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
         F = moments.TwoLocus.TLSpectrum.from_file(eq_name)
     except IOError:
         F = np.zeros((ns+1,ns+1,ns+1))
+        ### I would rather compute the equilibrium state by inverting the transition matrix
+        ### so long as it is not poory conditioned (note 7/16)
         F = moments.TwoLocus.Integration.integrate(F, 1.0, 40.0, rho=rho, theta=theta, 
                                 gamma=gamma, h=h, sel_params=sel_params)
         F = moments.TwoLocus.TLSpectrum(F)

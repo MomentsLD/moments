@@ -562,6 +562,15 @@ def merge_2pop(y, f):
     y_new[4] = zq
     return y_new
 
+def admix_npops(y, pop1, pop2, f):
+    """
+    New population is appended
+    f from pop1, 1-f from pop2
+    """
+    A = Matrices.admix_npops(n_pops, pop1, pop2, f)
+    y_new = A.dot(y)
+    return y_new
+
 def admix_2pop(y, f):
     """
     admixture event between two populations, giving rise to a third population
