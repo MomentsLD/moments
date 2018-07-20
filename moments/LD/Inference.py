@@ -154,7 +154,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     for func_kwargs_rho in func_kwargs_list:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
         rho = func_kwargs_rho['rho']
-        F = F0 * np.exp(-lam * rho)
+        if corr_mu == True:
+            F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
             temp_stats = temp_stats[:-1] # last value is 1
             stats.append(np.delete(temp_stats,inds_to_remove))
@@ -168,7 +169,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     for func_kwargs_rho in func_kwargs_list_mids:
         temp_stats = model_func[0](*all_args, **func_kwargs_rho)
         rho = func_kwargs_rho['rho']
-        F = F0 * np.exp(-lam * rho)
+        if corr_mu == True:
+            F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
             temp_stats = temp_stats[:-1] # last value is 1
             stats_mid.append(np.delete(temp_stats,inds_to_remove))
