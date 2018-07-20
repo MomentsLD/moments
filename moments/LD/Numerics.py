@@ -562,12 +562,14 @@ def merge_2pop(y, f):
     y_new[4] = zq
     return y_new
 
-def admix_npops(y, pop1, pop2, f):
+def admix_npops(y, n_pops, pop1, pop2, f):
     """
     New population is appended
     f from pop1, 1-f from pop2
     """
-    A = Matrices.admix_npops(n_pops, pop1, pop2, f)
+    moms_from = moment_names_multipop(n_pops)
+    moms_to = moment_names_multipop(n_pops+1)
+    A = Matrices.admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to)
     y_new = A.dot(y)
     return y_new
 

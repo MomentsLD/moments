@@ -822,11 +822,36 @@ def migration_multipop_terms(mom, ms, npops):
     
     return mom2s, vals
 
-def admix_npops(n_pops, pop1, pop2, f):
+mom_map = {}
+def map_moment(mom):
+    try:
+        return mom_map[mom]
+    except KeyError:
+        if mom.split('_')[0] == 'DD':
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'DD_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
+        elif mom.split('_')[0] == 'zz':
+            popsp = sorted([int(p) for p in mom.split('_')[1:3]])
+            popsq = sorted([int(p) for p in mom.split('_')[3:]])
+            mom_out = 'zz_'+'_'.join([str(p) for p in popsp])+'_'+'_'.join([str(p) for p in popsq])
+            mom_map[mom] = mom_out
+        elif mom.split('_')[0] == 'zp':
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'zp_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
+        elif mom.split('_')[0] == 'zq':
+            pops = sorted([int(p) for p in mom.split('_')[1:]])
+            mom_out = 'zq_'+'_'.join([str(p) for p in pops])
+            mom_map[mom] = mom_out
+        else:
+            mom_out = mom
+        mom_map[mom] = mom_out
+        return mom_map[mom] 
+
+def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
     # not going to comment this fucking mess
-    moms_from = Numerics.moment_names_multipop(n_pops)
-    moms_to = Numerics.moment_names_multipop(n_pops+1)
-    A = np.zeros((len(moms_from), len(moms_to)))
+    A = np.zeros((len(moms_to), len(moms_from)))
     for ii,mom_to in enumerate(moms_to):
         if mom_to in moms_from: # moments that don't include the new population are unchanged
             A[ii, moms_from.index(mom_to)] = 1
@@ -870,8 +895,8 @@ def admix_npops(n_pops, pop1, pop2, f):
                     A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = -1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
                 else: # D_other D_new
-                    A[ii, moms_from.index(Numerics.map_moment('DD_{0}_{1}'.format(pop1,pops[0])))] = f
-                    A[ii, moms_from.index(Numerics.map_moment('DD_{0}_{0}'.format(pop2,pops[0])))] = 1-f
+                    A[ii, moms_from.index(map_moment('DD_{0}_{1}'.format(pop1,pops[0])))] = f
+                    A[ii, moms_from.index(map_moment('DD_{0}_{0}'.format(pop2,pops[0])))] = 1-f
                     A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = 1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = -1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = -1./4*f*(1-f)
@@ -923,12 +948,12 @@ def admix_npops(n_pops, pop1, pop2, f):
                         A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2,pops[2]))] = f*(1-f)
                         A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2,pops[2]))] = f*(1-f)
                         A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2,pops[2]))] = (1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)*(1-2*f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)*(1-2*f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)*(1-2*f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)*(1-2*f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)**2
                 elif pops[0] == pops[2] == n_pops+1:
                     if pops[1] == pop1:
                         A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f**2
@@ -957,12 +982,12 @@ def admix_npops(n_pops, pop1, pop2, f):
                         A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2,pops[1]))] = f*(1-f)
                         A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2,pops[1]))] = f*(1-f)
                         A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2,pops[1]))] = (1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)*(1-2*f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = -1./4*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)*(1-2*f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)*(1-2*f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = -1./4*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)*(1-2*f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)**2
                 elif pops[1] == pops[2] == n_pops+1:
                     if pops[0] == pop1:
                         A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f**2
@@ -975,10 +1000,10 @@ def admix_npops(n_pops, pop1, pop2, f):
                         A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = f*(1-f)
                         A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = (1-f)**2
                     else:
-                        A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[1]))] = f**2
-                        A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[1]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[1]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[1]))] = (1-f)**2
+                        A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = f**2
+                        A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = (1-f)**2
                 elif pops[0] == n_pops+1:
                     if pops[1] == pop1:
                         if pops[2] == pop1:
@@ -988,7 +1013,7 @@ def admix_npops(n_pops, pop1, pop2, f):
                             A[ii, moms_from.index('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2))] = -1./4*f*(1-f)
                             A[ii, moms_from.index('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2))] = -1./4*f*(1-f)
                             A[ii, moms_from.index('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
-                        elif pops[2] == pop2
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = (1-f)
                             A[ii, moms_from.index('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
@@ -998,10 +1023,10 @@ def admix_npops(n_pops, pop1, pop2, f):
                         else:
                             A[ii, moms_from.index('Dz_{0}_{0}_{2}'.format(pop1,pop2,pops[2]))] = f
                             A[ii, moms_from.index('Dz_{1}_{0}_{2}'.format(pop1,pop2,pops[2]))] = (1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
                     elif pops[1] == pop2:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f
@@ -1010,7 +1035,7 @@ def admix_npops(n_pops, pop1, pop2, f):
                             A[ii, moms_from.index('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2))] = -1./4*f*(1-f)
                             A[ii, moms_from.index('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2))] = -1./4*f*(1-f)
                             A[ii, moms_from.index('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
-                        elif pops[2] == pop2
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = (1-f)
                             A[ii, moms_from.index('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
@@ -1020,46 +1045,46 @@ def admix_npops(n_pops, pop1, pop2, f):
                         else:
                             A[ii, moms_from.index('Dz_{0}_{1}_{2}'.format(pop1,pop2,pops[2]))] = f
                             A[ii, moms_from.index('Dz_{1}_{1}_{2}'.format(pop1,pop2,pops[2]))] = (1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)
                     else:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{2}_{0}'.format(pop1,pop2,pops[1]))] = f
                             A[ii, moms_from.index('Dz_{1}_{2}_{0}'.format(pop1,pop2,pops[1]))] = (1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
-                        elif pops[2] == pop2
+                            A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{2}_{1}'.format(pop1,pop2,pops[1]))] = f
                             A[ii, moms_from.index('Dz_{1}_{2}_{1}'.format(pop1,pop2,pops[1]))] = (1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                            A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                            A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
                         else:
                             if pops[1] == pops[2]:
                                 A[ii, moms_from.index('Dz_{0}_{2}_{2}'.format(pop1,pop2,pops[1]))] = f
                                 A[ii, moms_from.index('Dz_{1}_{2}_{2}'.format(pop1,pop2,pops[1]))] = (1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)
                             else:
                                 A[ii, moms_from.index('Dz_{0}_{2}_{3}'.format(pop1,pop2,pops[1],pops[2]))] = f
                                 A[ii, moms_from.index('Dz_{1}_{2}_{3}'.format(pop1,pop2,pops[1],pops[2]))] = (1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = -1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = -1./4*f*(1-f)
-                                A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = -1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = -1./4*f*(1-f)
+                                A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1./4*f*(1-f)
                 elif pops[1] == n_pops+1:
                     if pops[0] == pop1:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f
-                        elif pops[2] == pop2
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = f
                         else:
@@ -1069,7 +1094,7 @@ def admix_npops(n_pops, pop1, pop2, f):
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = f
-                        elif pops[2] == pop2
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = f
                         else:
@@ -1079,11 +1104,11 @@ def admix_npops(n_pops, pop1, pop2, f):
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = f
                             A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = f
-                        elif pops[2] == pop2
+                        elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = f
                             A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = f
                         else:
-                            if pops[0] == pops[2]
+                            if pops[0] == pops[2]:
                                 A[ii, moms_from.index('Dz_{2}_{0}_{2}'.format(pop1,pop2,pops[0]))] = f
                                 A[ii, moms_from.index('Dz_{2}_{1}_{2}'.format(pop1,pop2,pops[0]))] = f
                             else:
@@ -1094,7 +1119,7 @@ def admix_npops(n_pops, pop1, pop2, f):
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f
-                        elif pops[1] == pop2
+                        elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = f
                         else:
@@ -1104,7 +1129,7 @@ def admix_npops(n_pops, pop1, pop2, f):
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = f
-                        elif pops[1] == pop2
+                        elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = f
                             A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = f
                         else:
@@ -1114,369 +1139,452 @@ def admix_npops(n_pops, pop1, pop2, f):
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = f
                             A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = f
-                        elif pops[1] == pop2
+                        elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = f
                             A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = f
                         else:
-                            if pops[0] == pops[1]
+                            if pops[0] == pops[1]:
                                 A[ii, moms_from.index('Dz_{2}_{2}_{0}'.format(pop1,pop2,pops[0]))] = f
                                 A[ii, moms_from.index('Dz_{2}_{2}_{1}'.format(pop1,pop2,pops[0]))] = f
                             else:
                                 A[ii, moms_from.index('Dz_{2}_{3}_{0}'.format(pop1,pop2,pops[0],pops[1]))] = f
-                                A[ii, moms_from.index('Dz_{2}_{3}_{1}'.format(pop1,pop2,pops[0],pops[2]))] = f
+                                A[ii, moms_from.index('Dz_{2}_{3}_{1}'.format(pop1,pop2,pops[0],pops[1]))] = f
 
             if mom == 'zz':
                 if pops[0] == pops[1] == n_pops+1:
                     if pops[2] == pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**4
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 2*f**3*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*(1-f)*f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 4*(1-f)**2*f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*(1-f)**3*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f**2*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**4
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**4
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 2*f**3*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*(1-f)*f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 4*(1-f)**2*f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*(1-f)**3*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**2*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**4
                     elif pops[2] == pop1 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**3
                     elif pops[2] == pop2 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
                     elif pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**3
                     elif pops[2] == pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop1 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = (1-f)**2
                     elif pops[2] == pop2 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = (1-f)**2
                     elif pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
                     elif pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
                     elif pops[2] == pops[3]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
                     else:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 2*f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = (1-f)**2
                 
                 elif pops[0] == pop1 and pops[1] == n_pops+1:
                     if pops[2] == pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)*f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)*f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
                     elif pops[2] == pop1 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop2 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
                     elif pops[2] == pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop1 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
                     elif pops[2] == pop2 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
                     elif pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     elif pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     elif pops[2] == pops[3]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     else:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{0}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 1-f
 
                 elif pops[0] == pop2 and pops[1] == n_pops+1:
                     if pops[2] == pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)*f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = (1-f)*f**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**3
                     elif pops[2] == pop1 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop2 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = (1-f)**2
                     elif pops[2] == pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop1 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
                     elif pops[2] == pop2 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[3])))] = 1-f
                     elif pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     elif pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     elif pops[2] == pops[3]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{2}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                     else:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{2}_{3}'.format(pop1,pop2,pops[2],pops[3])))] = 1-f
 
                 elif pops[1] == n_pops+1:
                     if pops[2] == pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**3
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*f**2*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = (1-f)*f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*(1-f)**2*f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**3
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*f**2*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = (1-f)*f**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*(1-f)**2*f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**3
                     elif pops[2] == pop1 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[2] == pop2 and pops[3] == n_pops+1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[3] == n_pops+1 and pops[0] == pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[3] == n_pops+1 and pops[0] != pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f**2
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f*(1-f)
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = (1-f)**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = (1-f)**2
                     elif pops[2] == pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop1 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop1 and pops[3] == pops[0]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop1 and pops[3] != pops[0]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
                     elif pops[2] == pop2 and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop2 and pops[3] == pops[0]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop2 and pops[3] != pops[0]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
                     elif pops[2] == pops[0] and pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pops[0] and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pops[0] and pops[3] == pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{2}_{2}'.format(pop1,pop2,pops[0])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{2}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{2}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{2}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pops[0] and pops[3] != pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[3])))] = 1-f
                     elif pops[2] != pops[0] and pops[3] == pop1:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                     elif pops[2] != pops[0] and pops[3] == pop2:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                     elif pops[2] != pops[0] and pops[3] == pops[0]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{2}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                     elif pops[2] != pops[0] and pops[3] == pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{3}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{3}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{3}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{3}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                     elif pops[2] != pops[0] and pops[3] != pops[2]:
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{0}_{2}_{3}_{4}'.format(pop1,pop2,pops[0],pops[2],pops[3])))] = f
-                        A[ii, moms_from.index(Numerics.map_moment('zz_{1}_{2}_{3}_{4}'.format(pop1,pop2,pops[0],pops[2],pops[3])))] = 1-f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{3}_{4}'.format(pop1,pop2,pops[0],pops[2],pops[3])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{3}_{4}'.format(pop1,pop2,pops[0],pops[2],pops[3])))] = 1-f
                         
                 elif pops[0] == pops[1] == pop1:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] = 1-f
                     else:
-                
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+                        
                 elif pops[0] == pop1 and pops[1] == pop2:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
                     else:
-                        
-                
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
+
                 elif pops[0] == pop1:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1-f
                     elif pops[2] == pops[1]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = 1-f
                     else:
-                        
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1-f
                 
                 elif pops[0] == pops[1] == pop2:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] = 1-f
                     else:
-                        
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{1}_{1}_{2}'.format(pop1,pop2,pops[2])))] = 1-f
                 
                 elif pops[0] == pop2:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = 1-f
                     elif pops[2] == pops[1]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[1])))] = 1-f
                     else:
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[1],pops[2])))] = 1-f
                         
                 elif pops[1] == pop1:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop2:
-                    
-                    elif pops[2] == pops[0]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
+                    elif pops[2] == pops[1]:
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     else:
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                     
                 elif pops[1] == pop2:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop2:
-                    
-                    elif pops[2] == pops[0]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
+                    elif pops[2] == pops[1]:
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     else:
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{1}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                         
                 elif pops[0] == pops[1]:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{0}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
                     elif pops[2] == pop2:
-                    
-                    elif pops[2] == pops[0]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{1}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{1}_{1}'.format(pop1,pop2,pops[0])))] = 1-f
+                    elif pops[2] == pops[1]:
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
                     else:
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2])))] = 1-f
                         
                 else:
                     if pops[2] == pops[3] == n_pops+1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{0}'.format(pop1,pop2,pops[0],pops[1])))] = f**2
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{1}'.format(pop1,pop2,pops[0],pops[1])))] = 2*f*(1-f)
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{1}_{1}'.format(pop1,pop2,pops[0],pops[1])))] = (1-f)**2
                     elif pops[2] == pop1:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{0}'.format(pop1,pop2,pops[0],pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{1}'.format(pop1,pop2,pops[0],pops[1])))] = 1-f
                     elif pops[2] == pop2:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{1}'.format(pop1,pop2,pops[0],pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{1}_{1}'.format(pop1,pop2,pops[0],pops[1])))] = 1-f
                     elif pops[2] == pops[0]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{2}'.format(pop1,pop2,pops[0],pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{1}_{2}'.format(pop1,pop2,pops[0],pops[1])))] = 1-f
                     elif pops[2] == pops[1]:
-                    
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{3}'.format(pop1,pop2,pops[0],pops[1])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{1}_{3}'.format(pop1,pop2,pops[0],pops[1])))] = 1-f
                     else:
-                
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{0}_{4}'.format(pop1,pop2,pops[0],pops[1],pops[2])))] = f
+                        A[ii, moms_from.index(map_moment('zz_{2}_{3}_{1}_{4}'.format(pop1,pop2,pops[0],pops[1],pops[2])))] = 1-f
                 
             if mom == 'zp':
-                
-            if mom == 'zq:
-                
+                if pops[0] == pops[1] == n_pops+1:
+                    A[ii, moms_from.index(map_moment('zp_{0}_{0}'.format(pop1,pop2)))] = f**2
+                    A[ii, moms_from.index(map_moment('zp_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                    A[ii, moms_from.index(map_moment('zp_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                elif pops[0] == pop1:
+                    A[ii, moms_from.index(map_moment('zp_{0}_{0}'.format(pop1,pop2)))] = f
+                    A[ii, moms_from.index(map_moment('zp_{0}_{1}'.format(pop1,pop2)))] = 1-f
+                elif pops[0] == pop2:
+                    A[ii, moms_from.index(map_moment('zp_{0}_{1}'.format(pop1,pop2)))] = f
+                    A[ii, moms_from.index(map_moment('zp_{1}_{1}'.format(pop1,pop2)))] = 1-f
+                else:
+                    A[ii, moms_from.index(map_moment('zp_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                    A[ii, moms_from.index(map_moment('zp_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+            
+            if mom == 'zq':
+                if pops[0] == pops[1] == n_pops+1:
+                    A[ii, moms_from.index(map_moment('zq_{0}_{0}'.format(pop1,pop2)))] = f**2
+                    A[ii, moms_from.index(map_moment('zq_{0}_{1}'.format(pop1,pop2)))] = 2*f*(1-f)
+                    A[ii, moms_from.index(map_moment('zq_{1}_{1}'.format(pop1,pop2)))] = (1-f)**2
+                elif pops[0] == pop1:
+                    A[ii, moms_from.index(map_moment('zq_{0}_{0}'.format(pop1,pop2)))] = f
+                    A[ii, moms_from.index(map_moment('zq_{0}_{1}'.format(pop1,pop2)))] = 1-f
+                elif pops[0] == pop2:
+                    A[ii, moms_from.index(map_moment('zq_{0}_{1}'.format(pop1,pop2)))] = f
+                    A[ii, moms_from.index(map_moment('zq_{1}_{1}'.format(pop1,pop2)))] = 1-f
+                else:
+                    A[ii, moms_from.index(map_moment('zq_{0}_{2}'.format(pop1,pop2,pops[0])))] = f
+                    A[ii, moms_from.index(map_moment('zq_{1}_{2}'.format(pop1,pop2,pops[0])))] = 1-f
+
     return A
 
 # based on the order of moments in numerics_onepop.moment_names(n)

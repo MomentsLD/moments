@@ -231,15 +231,15 @@ class LDstats(numpy.ma.masked_array):
         admixture between pop1 and pop2, with fraction f of migrants from pop 1 (1-f from pop 2)
         returns a new LDstats object with the admixed population in last index
         """
-        if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.numpops:
+        if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.num_pops:
             raise ValueError("Something wrong with calling admix.")
         elif pop1 >= pop2:
             raise ValueError("pop1 must be less than pop2, and f is fraction from pop1.")
         elif self.num_pops == 2 and pop1 == 1 and pop2 == 2:
-            y_new = Numerics.admix_2pop(self.data,f)
+            y_new = Numerics.admix_2pop(self.data, f)
             return LDstats(y_new, num_pops=3, order=self.order, basis=self.basis)
         else:
-            y_new = Numerics.admix_npops(self.data,pop1,pop2,f)
+            y_new = Numerics.admix_npops(self.data, self.num_pops, pop1, pop2, f)
             return LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
     
     def pulse_migrate(self, pop_from, pop_to, f):
