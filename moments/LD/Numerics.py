@@ -274,6 +274,7 @@ For larger number of pops (>4) we build them here
 """
 
 def drift_multipop(nus,npops):
+    nus = [float(nu) for nu in nus]
     if npops == 1:
         return Matrices.drift_one_pop(nus[0])
     elif npops == 2:
@@ -472,7 +473,7 @@ def integrate_multipop(y, nu, T, num_pops=1, rho=0.0, theta=0.0008, dt=0.001, m=
     else:
         nus = [float(nu_pop) for nu_pop in nu]
     
-    D = drift_multipop(nus,num_pops)
+    #D = drift_multipop(nus,num_pops)
     
     dt_last = dt
     nus_last = nus
