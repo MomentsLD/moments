@@ -7,7 +7,7 @@ logger = logging.getLogger('Spectrum_mod')
 
 import operator
 import os
-import sys
+
 import numpy
 from numpy import newaxis as nuax
 import scipy.misc as misc
@@ -1590,4 +1590,3 @@ def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
 def Spectrum_pickler(fs):
     return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
 copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
-

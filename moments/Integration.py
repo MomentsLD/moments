@@ -7,7 +7,7 @@ import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
-from checkUtils import check_1D_jk, check_nD_jk
+
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -579,23 +579,11 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
-
-    dim_prod = np.product(np.array(np.array(sfs0).shape))
-    check_flag = True
-    selection_mig_flag = False
     
     # neutral case if the parameters are not provided
-    if gamma is None:
-        gamma = np.zeros(len(n))
-
-    if gamma.any():
-        selection_mig_flag = True
-
+    if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
-    if m is None:
-        m = np.zeros([len(n), len(n)])
-    if m.any():
-        selection_mig_flag = True
+    if m is None: m = np.zeros([len(n), len(n)])
     
     # parameters of the equation
     if callable(Npop): 
@@ -656,7 +644,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     # time loop:
     t = 0.0
     sfs = sfs0
-
+    
     while t < Tmax:
         dt_old = dt
         sfs_old = sfs
@@ -716,14 +704,6 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                 sfs = slv[0](sfs + dt*B)
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
-
-            if selection_mig_flag:
-                if dim_prod < 2500:
-                    check_1D_jk(sfs)
-                elif check_flag:
-                    check_1D_jk(sfs)
-                    check_flag = False
-
         elif len(n) > 1:
             if finite_genome == False:
                 for i in range(int(split_dt)):
@@ -738,14 +718,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
                         sfs = sfs + (dt/split_dt*B[j]).dot(sfs.flatten()).reshape(n+1)
                     sfs = _update_step2(sfs, slv, dims, order)
                     order = _permute(order)
-
-            if selection_mig_flag:
-                if dim_prod < 2500:
-                    check_nD_jk(sfs)
-                elif check_flag:
-                    check_nD_jk(sfs)
-                    check_flag = False
-
+        
         if (sfs<0).any() and adapt_dt:
             neg = True
             if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:

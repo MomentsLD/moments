@@ -9,7 +9,6 @@ import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from Integration import compute_dt
-from checkUtils import check_nD_jk, check_1D_jk
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -388,23 +387,20 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
 # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n
 #   or directly the vector if N does not evolve in time\n
     """
-    n = np.array(sfs0.shape) - 1
-
-    dim_prod = np.product(np.array(np.array(sfs0).shape))
-    check_flag = True
-    selection_flag = False
-
+    
+    assert (not finite_genome) or (theta_fd is not None and theta_bd is not None), \
+    "forward and backward mutation rate must be defined if finite genome is true " 
+    sfs0 = np.array(sfs0)
+    n = np.array(sfs0.shape)-1
+    
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
-
-    if gamma.any():
-        selection_flag = True
-
     if h is None:
         h = 0.5 * np.ones(len(n))
     
-    sfs0 = np.array(sfs0)
+    
+    
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
@@ -511,14 +507,6 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
                 sfs = slv[0](sfs + dt*B)
             else:
                 sfs = slv[0](sfs + (dt*B).dot(sfs))
-
-            if selection_flag:
-                if dim_prod <= 2500:
-                    check_1D_jk(Spectrum_mod.Spectrum(sfs))
-                elif check_flag:
-                    check_1D_jk(Spectrum_mod.Spectrum(sfs))
-                    check_flag = False
-
         elif len(n) > 1:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:
@@ -527,13 +515,6 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
                 for i in range(len(n)):
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2(sfs, slv)
-
-            if selection_flag:
-                if dim_prod <= 2500:
-                    check_nD_jk(sfs)
-                elif check_flag:
-                    check_nD_jk(sfs)
-                    check_flag = False
         Nold = N
         t += dt
 
@@ -560,8 +541,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
     """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape)-1
-
-
     # parameters of the equation
     if callable(Npop):
         N = np.array(Npop(0))
@@ -585,7 +564,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
         B = _calcB(dims, u)
     else:
         B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
-
 
     # time loop:
     t = 0.0
@@ -636,7 +614,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
                 sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + dt*B)
             else:
                 sfs = ts.solve(A[0], Di[0], C[0], np.dot(Q[0], sfs) + (dt*B).dot(sfs))
-
         else:
             sfs = _update_step1(sfs, Q)
             if finite_genome == False:
@@ -645,7 +622,6 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
                 for i in range(len(n)):
                     sfs = sfs + (dt*B[i]).dot(sfs.flatten()).reshape(n+1)
             sfs = _update_step2_neutral(sfs, A, Di, C)
-
         Nold = N
         t += dt
 

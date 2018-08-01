@@ -174,8 +174,10 @@ def calcS2_jk3(dims, s, h):
         for j in range(len(dims)):
             ind = np.zeros(len(dims), dtype='int')
             ind[j] = int(1)
-            g1 = s[j] * (1-2.0*h[j]) * (index[j]+1) / np.float64(dims[j]) / (dims[j]+1) * index[j] * (dims[j]-index[j])
-            g2 = -s[j] * (1-2.0*h[j]) * (index[j]+1) / np.float64(dims[j]) / (dims[j]+1) * (index[j]+2) * (dims[j]-1-index[j])
+            g1 = s[j] * (1-2.0*h[j]) * (index[j]+1) / np.float64(dims[j])
+                 / (dims[j]+1) * index[j] * (dims[j]-index[j])
+            g2 = -s[j] * (1-2.0*h[j]) * (index[j]+1) / np.float64(dims[j])
+                 / (dims[j]+1) * (index[j]+2) * (dims[j]-1-index[j])
             index_ter = np.array(index) + ind
             index_ter[j] = jk.index_bis(index_ter[j], dims[j] - 1)
             index_qua = np.array(index) + 2*ind
@@ -320,7 +322,7 @@ def calcM_jk3(dims, m):
 def steady_state(n, N=None, gamma=None, h=None, m=None, theta=1.0, reshape=True):
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
-    if model is not None:
+    if model is not None
         model.initialize(len(n))
 
     # neutral case if the parameters are not provided

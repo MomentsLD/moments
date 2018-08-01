@@ -88,22 +88,25 @@ ljk is the Jacknife array corresponding to the concerned population size,
 """
 # selection with h = 0.5
 cpdef calcS(int d, np.ndarray[np.float64_t, ndim = 2] ljk):
+    # Computes the jackknife-transformed selection matrix 1
+    # for the addition of a single sample
     cdef int i, i_bis, i_ter
     cdef list data, row, col
     cdef np.float64_t g1, g2
     # arrays for the creation of the sparse (coo) matrix
+    # data will have matrix entry, row + column have coordinates
     data = []
     row = []
     col = []
     # loop over the fs elements:
     for i in range(d):
-        i_bis = jk.index_bis(i, d - 1)
-        i_ter = jk.index_bis(i + 1, d - 1)
-        # coefficients
+        i_bis = jk.index_bis(i, d - 1) # This picks the second jackknife index 
+        i_ter = jk.index_bis(i + 1, d - 1) # This picks the third jackknife index
+        # coefficients of the selection matrix
         g1 = i * (d-i) / np.float64(d)
         g2 = -(i+1) * (d-1-i) / np.float64(d)
 
-        if i < d - 1 and i > 0:
+        if i < d - 1 and i > 0: # First deal with non-fixed variants
             data += [g1 * ljk[i - 1, i_bis - 1], g1 * ljk[i - 1, i_bis - 2],
                     g1 * ljk[i - 1, i_bis], g2 * ljk[i, i_ter - 1],
                     g2 * ljk[i, i_ter - 2], g2 * ljk[i, i_ter]]
