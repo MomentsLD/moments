@@ -146,7 +146,7 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
               re-optimize with ll_scale=1.
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -249,7 +249,7 @@ def optimize_log_lbfgsb(p0, data, model_func,
     
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -356,7 +356,7 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     missing = numpy.logical_and(model.mask, not_data_mask)
     if numpy.any(missing)\
        and data[missing].sum()/data_sum > missing_model_cutoff:
-        print data[missing].sum(), data_sum
+        print(data[missing].sum(), data_sum)
         logger.warn('Model is masked in some entries where data is not.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
@@ -545,7 +545,7 @@ def optimize_log_fmin(p0, data, model_func,
      fixed_params usage.)
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -632,7 +632,7 @@ def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
     retall: If True, return a list of solutions at each iteration.
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -712,7 +712,7 @@ def optimize_log_powell(p0, data, model_func,
         fixed_params usage.)
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -791,7 +791,7 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
               re-optimize with ll_scale=1.
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -890,7 +890,7 @@ def optimize_lbfgsb(p0, data, model_func,
         ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 
@@ -1022,7 +1022,7 @@ def optimize_grid(data, model_func, grid,
     parameter values.
     """
     if output_file:
-        output_stream = file(output_file, 'w')
+        output_stream = open(output_file, 'w')
     else:
         output_stream = sys.stdout
 

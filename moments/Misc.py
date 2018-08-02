@@ -9,7 +9,7 @@ import scipy.linalg
 
 import moments.Numerics
 import moments.Spectrum_mod
-
+import functools
 # Nucleotide order assumed in Q matrices.
 code = 'CGTA'
 
@@ -148,7 +148,7 @@ def make_fux_table(fid, ts, Q, tri_freq):
     eQhalf = scipy.linalg.matfuncs.expm(Q * ts / 2.)
     if not hasattr(fid, 'write'):
         newfile = True
-        fid = file(fid, 'w')
+        fid = open(fid, 'w')
 
     outlines = []
     for first_ii, first in enumerate(code):
@@ -708,7 +708,7 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
                     contrib = moments.Numerics._cached_projection(
                                       p_to, p_from, hits)[slices[pop_index]]
                     pop_contribs.append(contrib)
-                new_sfs += reduce(operator.mul, pop_contribs)
+                new_sfs += functools.reduce(operator.mul, pop_contribs)
             
         new_sfs = moments.Spectrum_mod.Spectrum(new_sfs, 
                                                 mask_corners=mask_corners, 
