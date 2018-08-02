@@ -4,10 +4,10 @@ Contains Spectrum object, which represents frequency spectra.
 import logging
 logging.basicConfig()
 logger = logging.getLogger('Spectrum_mod')
-
+import functools
 import operator
 import os
-
+import sys
 import numpy
 from numpy import newaxis as nuax
 import scipy.misc as misc
@@ -215,7 +215,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         line = fid.readline()
         # Strip out the comments
@@ -304,7 +304,7 @@ class Spectrum(numpy.ma.masked_array):
         newfile = False
         if not hasattr(fid, 'write'):
             newfile = True
-            fid = file(fid, 'w')
+            fid = open(fid, 'w')
 
         # Write comments
         for line in comment_lines:
@@ -666,7 +666,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         # Parse the commandline
         command = line = fid.readline()
@@ -840,7 +840,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         if sites == 'all':
             only_nonsyn, only_syn = False, False
@@ -1245,7 +1245,7 @@ class Spectrum(numpy.ma.masked_array):
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
                 contrib = _cached_projection(p_to,p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
-            fs += reduce(operator.mul, pop_contribs)
+            fs += functools.reduce(operator.mul, pop_contribs)
         fsout = Spectrum(fs, mask_corners=mask_corners, 
                          pop_ids=pop_ids)
         if polarized:
@@ -1282,7 +1282,7 @@ class Spectrum(numpy.ma.masked_array):
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
                 contrib = _cached_projection(p_to, p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
-            fs_proj = reduce(operator.mul, pop_contribs)
+            fs_proj = functools.reduce(operator.mul, pop_contribs)
             
             # create slices for adding projected fs to overall fs
             fs_total += count * fs_proj
@@ -1390,7 +1390,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         # Read the fux file into a dictionary.
         fux_dict = {}
-        f = file(fux_filename)
+        f = open(fux_filename)
         for line in f.readlines():
             if line.startswith('#'):
                 continue
