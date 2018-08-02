@@ -16,7 +16,7 @@ Here, there are functions to find the six closest points to use for the extrapol
 """
 
 ### get closest six points for jackknife, (i/(n+1),j/(n+1))
-def closest_ij_1((i,j),n):
+def closest_ij_1(i,j,n):
     # sort by closest to farthest
     # I think we will need to have a spread of three grid points in each direction - a rectangular box leads to an A matrix with rank < 6
     fi,fj = i/(n+1.), j/(n+1.)
@@ -45,7 +45,7 @@ def closest_ij_1((i,j),n):
         next_index += 1
     return ordered_set
 
-def compute_alphas_1((i,j),ordered_set,n):
+def compute_alphas_1(i,j,ordered_set,n):
     A = np.zeros((6,6))
     b = np.zeros(6)
     A[0] = 1
@@ -63,7 +63,7 @@ def compute_alphas_1((i,j),ordered_set,n):
     return np.dot(np.linalg.inv(A),b)
 
 ## now for the n+2 jackknife
-def closest_ij_2((i,j),n):
+def closest_ij_2(i,j,n):
     # sort by closest to farthest
     # I think we will need to have a spread of three grid points in each direction - a rectangular box leads to an A matrix with rank < 6
     fi,fj = i/(n+2.), j/(n+2.)
@@ -93,7 +93,7 @@ def closest_ij_2((i,j),n):
     return ordered_set
 
 
-def compute_alphas_2((i,j),ordered_set,n):
+def compute_alphas_2(i,j,ordered_set,n):
     A = np.zeros((6,6))
     b = np.zeros(6)
     A[0] = 1
@@ -141,8 +141,8 @@ def calcJK_2(n):
     
     for i in range(1,n+2):
         for j in range(1,n+2-i):
-            ordered_set = closest_ij_2((i,j),n)
-            alphas = compute_alphas_2((i,j),ordered_set,n)
+            ordered_set = closest_ij_2(i,j,n)
+            alphas = compute_alphas_2(i,j,ordered_set,n)
             index2 = moments.Triallele.Numerics.get_index(n+2,i,j)
             for pair,alpha in zip(ordered_set,alphas):
                 index = moments.Triallele.Numerics.get_index(n,pair[0],pair[1])

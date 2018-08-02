@@ -199,7 +199,7 @@ def integrate(F, nu, tf, rho=0.0, dt=0.01, theta=1.0, gamma=0.0, h=0.5, sel_para
                     N_old = N
                     t_elapsed += dt
     else:
-        print "rho must be >= 0"
+        print("rho must be >= 0")
     return moments.TwoLocus.Numerics.Phi_to_array(Phi,n)
 
         

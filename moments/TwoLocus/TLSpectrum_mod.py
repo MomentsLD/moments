@@ -164,7 +164,7 @@ class TLSpectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         line = fid.readline()
         # Strip out the comments
@@ -230,7 +230,7 @@ class TLSpectrum(numpy.ma.masked_array):
         newfile = False
         if not hasattr(fid, 'write'):
             newfile = True
-            fid = file(fid, 'w')
+            fid = open(fid, 'w')
 
         # Write comments
         for line in comment_lines:
