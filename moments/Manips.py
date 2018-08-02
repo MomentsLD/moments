@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.misc as misc
 
-import ModelPlot
-import Spectrum_mod
+from . import ModelPlot
+from . import Spectrum_mod
 from scipy.optimize import _nnls
 import scipy as sp
 from scipy import stats

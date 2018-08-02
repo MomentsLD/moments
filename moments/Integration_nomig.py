@@ -1,14 +1,14 @@
 import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
-
-import Spectrum_mod
-import Numerics
+from . import Reversible
+from . import Spectrum_mod
+from . import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
-from Integration import compute_dt
+from .Integration import compute_dt
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -37,7 +37,7 @@ def _calcB(dims, u):
         B[tp] = dims[k] - 1
     return u * B
 
-import Reversible
+
 # Finite genome mutation model
 def _calcB_FB(dims, theta_fd, theta_bd):
     """

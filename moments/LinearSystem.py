@@ -3,7 +3,7 @@ import scipy as sp
 from scipy.sparse import linalg
 
 import Jackknife as jk
-import ModelPlot
+from . import ModelPlot
 
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:

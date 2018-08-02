@@ -9,7 +9,7 @@ import os,sys
 import numpy
 from numpy import logical_and, logical_not
 
-from moments import Misc, Numerics
+from . import Misc, Numerics
 from scipy.special import gammaln
 import scipy.optimize
 

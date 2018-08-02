@@ -2,12 +2,12 @@ import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
 
-import Spectrum_mod
-import Numerics
+from . import Spectrum_mod
+from . import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
-
+from . import Reversible
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models:
 # we integrate the ode system on the Phi_n(i) to compute their evolution
@@ -41,7 +41,7 @@ def _calcB(dims, u):
         B[tp] = dims[k] - 1
     return u * B
 
-import Reversible
+
 # Finite genome mutation model
 def _calcB_FB(dims, theta_fd, theta_bd):
     """

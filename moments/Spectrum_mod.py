@@ -480,7 +480,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         ind = numpy.indices(self.shape)
         # Transpose the first access to the last, so ind[ii,jj,kk] = [ii,jj,kk]
-        ind = ind.transpose(range(1, self.Npop + 1) + [0])
+        ind = ind.transpose(list(range(1, self.Npop + 1)) + [0])
         return ind
 
     def _total_per_entry(self):
@@ -986,7 +986,7 @@ class Spectrum(numpy.ma.masked_array):
         # records the indices of the entry. 
         # For example, counts_per_pop[4,19,8] = [4,19,8]
         counts_per_pop = numpy.indices(self.shape)
-        counts_per_pop = numpy.transpose(counts_per_pop, axes=range(1, r + 1) + [0])
+        counts_per_pop = numpy.transpose(counts_per_pop, axes=list(range(1, r + 1)) + [0])
     
         # The last axis of ptwiddle is now the relative frequency of SNPs in
         # that bin in each of the populations.
@@ -1583,10 +1583,31 @@ def %(method)s(self, other):
 
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm
-import copy_reg
-def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
-    return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded, 
-                            check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
-def Spectrum_pickler(fs):
-    return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
-copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
+try:
+    import copy_reg
+
+
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+        return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded,
+                                check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
+
+
+    def Spectrum_pickler(fs):
+        return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
+
+
+    copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
+except:
+    import copyreg
+
+
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+        return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded,
+                                check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
+
+
+    def Spectrum_pickler(fs):
+        return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
+
+
+    copyreg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
