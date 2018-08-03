@@ -13,7 +13,7 @@ def flatten(T):
     takes 2D spectrum T and flattens into array Phi, indexed by index_n
     """
     ns = len(T)-1
-    Phi = np.zeros((ns+1)*(ns+2)/2)
+    Phi = np.zeros(int((ns+1)*(ns+2)/2))
     for ii in range(ns+1):
         start = sum(range(ns-ii+2,ns+2))
         Phi[start:start+ns-ii+1] = T[ii,:ns-ii+1]
@@ -128,7 +128,7 @@ def mutation(ns, theta0=1, theta1=1, theta2=1):
     theta1 - scaled mutation rate for allele 1 (against derived allele 2 background)
     theta2 - scaled mutation rate for allele 2 (against derived allele 1 background)
     """
-    Bsize = (ns+1)*(ns+2)/2
+    Bsize = int((ns+1)*(ns+2)/2)
     # B_tri depends on background biallelic frequencies, so requires a dot product
     B_tri = np.zeros((Bsize,Bsize))
     # B_bi just gets added at rate dt*B_bi
@@ -230,8 +230,8 @@ def fold(F):
 
 def selection(n, sel_params):
     sAA, sA0, sBB, sB0, sAB = sel_params
-    Ssize_from = (n+1)*(n+2)/2
-    Ssize_to = (n+3)*(n+4)/2
+    Ssize_from = int((n+1)*(n+2)/2)
+    Ssize_to = int((n+3)*(n+4)/2)
     S = np.zeros((Ssize_from,Ssize_to))
     ## selection transitions for triallelic sites
     for i in range(1,n):
