@@ -30,7 +30,7 @@ def index_n(n,i,j,k):
 
 def array_to_Phi(F):
     n = len(F)-1
-    Phi = np.zeros((n+1)*(n+2)*(n+3)/6)
+    Phi = np.zeros(int((n+1)*(n+2)*(n+3)/6))
     for ii in range(n+1):
         for jj in range(n+1-ii):
             for kk in range(n+1-ii-jj):
@@ -166,7 +166,7 @@ def mutations(n, theta=1.0):
     """
     Mutations can occur on a background with ???? huh?
     """
-    Msize = (n+1)*(n+2)*(n+3)/6
+    Msize = int((n+1)*(n+2)*(n+3)/6)
     
     M_1to2 = np.zeros((Msize,Msize))
     # A/a -> AB and aB
