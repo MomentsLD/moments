@@ -8,7 +8,7 @@ import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
-from .Integration import compute_dt
+from . import Integration
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -571,7 +571,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
     while t < Tmax:
         dt_old = dt
         #dt = compute_dt(sfs.shape, N, 0, 0, 0, Tmax * dt_fac)
-        dt = min(compute_dt(N), Tmax * dt_fac)
+        dt = min(Integration.compute_dt(N), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
                 

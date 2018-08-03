@@ -19,10 +19,9 @@ except ImportError:
 from scipy.integrate import trapz
 from scipy.special import betainc
 
-from moments.Integration import integrate_nD
-from moments.Integration_nomig import integrate_nomig, integrate_neutral
-import moments.Numerics
-from moments.Numerics import reverse_array, _cached_projection, _lncomb
+from . import Integration
+from . import Integration_nomig
+from . import Numerics
 plotting = True
 try:
     import moments.ModelPlot
@@ -415,7 +414,7 @@ class Spectrum(numpy.ma.masked_array):
             least, most = max(n - (proj_from - hits), 0), min(hits, n)
             to_slice[axis] = slice(least, most + 1)
             # The projection weights.
-            proj = _cached_projection(n, proj_from, hits)
+            proj = Numerics._cached_projection(n, proj_from, hits)
             proj_slice[axis] = slice(least, most + 1)
             # Do the multiplications
             pfs.data[to_slice] += self.data[from_slice] * proj[proj_slice]
@@ -532,12 +531,12 @@ class Spectrum(numpy.ma.masked_array):
         # Here we create a mask that masks any values that were masked in
         # the original fs (or folded onto by a masked value).
         final_mask = numpy.logical_or(original_mask, 
-                                      reverse_array(original_mask))
+                                      Numerics.reverse_array(original_mask))
         
         # To do the actual folding, we take those entries that would be folded
         # out, reverse the array along all axes, and add them back to the
         # original fs.
-        reversed = reverse_array(numpy.where(where_folded_out, self, 0))
+        reversed = Numerics.reverse_array(numpy.where(where_folded_out, self, 0))
         folded = numpy.ma.masked_array(self.data + reversed)
         folded.data[where_folded_out] = 0
     
@@ -545,7 +544,7 @@ class Spectrum(numpy.ma.masked_array):
         # ambiguous.
         where_ambiguous = (total_per_entry == total_samples / 2.)
         ambiguous = numpy.where(where_ambiguous, self, 0)
-        folded += -0.5*ambiguous + 0.5*reverse_array(ambiguous)
+        folded += -0.5*ambiguous + 0.5*Numerics.reverse_array(ambiguous)
     
         # Mask out the remains of the folding operation.
         final_mask = numpy.logical_or(final_mask, where_folded_out)
@@ -569,7 +568,7 @@ class Spectrum(numpy.ma.masked_array):
             raise ValueError('Input Spectrum is not folded.')
 
         # Unfolding the data is easy.
-        reversed_data = reverse_array(self.data)
+        reversed_data = Numerics.reverse_array(self.data)
         newdata = (self.data + reversed_data)/2.
 
         # Unfolding the mask is trickier. We want to preserve masking of entries
@@ -581,7 +580,7 @@ class Spectrum(numpy.ma.masked_array):
         where_folded_out = total_per_entry > int(total_samples/2)
 
         newmask = numpy.logical_xor(self.mask, where_folded_out)
-        newmask = numpy.logical_or(newmask, reverse_array(newmask))
+        newmask = numpy.logical_or(newmask, Numerics.reverse_array(newmask))
     
         outfs = Spectrum(newdata, mask=newmask, data_folded=False, 
                          pop_ids=self.pop_ids)
@@ -1159,8 +1158,8 @@ class Spectrum(numpy.ma.masked_array):
         for counts, derived in zip(counts_per_entry, total_per_entry.ravel()):
             # The probability here is 
             # (t1 choose d1)*(t2 choose d2)/(ntot choose derived)
-            lnprob = sum(_lncomb(t, d) for t, d in zip(self.sample_sizes,counts))
-            lnprob -= _lncomb(total_samp, derived)
+            lnprob = sum(Numerics._lncomb(t, d) for t, d in zip(self.sample_sizes,counts))
+            lnprob -= Numerics._lncomb(total_samp, derived)
             prob = numpy.exp(lnprob)
             # Assign result using the appropriate weighting
             resamp[tuple(counts)] += prob * combined[derived]
@@ -1243,7 +1242,7 @@ class Spectrum(numpy.ma.masked_array):
             pop_contribs = []
             iter = zip(projections, successful_calls, derived_calls)
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
-                contrib = _cached_projection(p_to,p_from,hits)[slices[pop_ii]]
+                contrib = Numerics._cached_projection(p_to,p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
             fs += functools.reduce(operator.mul, pop_contribs)
         fsout = Spectrum(fs, mask_corners=mask_corners, 
@@ -1280,7 +1279,7 @@ class Spectrum(numpy.ma.masked_array):
             pop_contribs = []
             iter = zip(projections, called_by_pop, derived_by_pop)
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
-                contrib = _cached_projection(p_to, p_from,hits)[slices[pop_ii]]
+                contrib = Numerics._cached_projection(p_to, p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
             fs_proj = functools.reduce(operator.mul, pop_contribs)
             
@@ -1424,9 +1423,9 @@ class Spectrum(numpy.ma.masked_array):
             Nxu = Spectrum.from_data_dict(mis_data, pop_ids, projections)
     
             # Equations 5 & 6 from the paper.
-            Nxu_rev = reverse_array(Nxu)
+            Nxu_rev = Numerics.reverse_array(Nxu)
             Rux = (fxu*Nux - (1-fxu)*Nxu_rev)/(fux+fxu-1)
-            Rxu = reverse_array((fux*Nxu_rev - (1-fux)*Nux)/(fux+fxu-1))
+            Rxu = Numerics.reverse_array((fux*Nxu_rev - (1-fux)*Nux)/(fux+fxu-1))
     
             fs += Rux + Rxu
     
@@ -1435,7 +1434,7 @@ class Spectrum(numpy.ma.masked_array):
         if force_pos:
             negative_entries = numpy.minimum(0, fs)
             fs -= negative_entries
-            fs += reverse_array(negative_entries)
+            fs += Numerics.reverse_array(negative_entries)
     
         return Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
 
@@ -1556,11 +1555,11 @@ def %(method)s(self, other):
             if h is None:
                 h = 0.5
             if gamma == 0:
-                self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
+                self.data[:] = Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
             else:
                 #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
-                self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
+                self.data[:] = Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
         else:
             if gamma is None:
@@ -1572,13 +1571,13 @@ def %(method)s(self, other):
             if (m == 0).all(): 
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n)<3:
-                    self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
+                    self.data[:] = Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
                 else:
-                    self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
+                    self.data[:] = Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
             else:
-                self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
+                self.data[:] = Integration.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
 
 # Allow spectrum objects to be pickled.
