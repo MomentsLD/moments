@@ -19,8 +19,8 @@ except ImportError:
 from scipy.integrate import trapz
 from scipy.special import betainc
 
-from . import Integration
-from . import Integration_nomig
+import moments.Integration
+import moments.Integration_nomig
 from . import Numerics
 plotting = True
 try:
@@ -1555,11 +1555,11 @@ def %(method)s(self, other):
             if h is None:
                 h = 0.5
             if gamma == 0:
-                self.data[:] = Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
+                self.data[:] = moments.Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
             else:
                 #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
-                self.data[:] = Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
+                self.data[:] = moments.Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
         else:
             if gamma is None:
@@ -1571,13 +1571,13 @@ def %(method)s(self, other):
             if (m == 0).all(): 
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n)<3:
-                    self.data[:] = Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
+                    self.data[:] = moments.Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
                 else:
-                    self.data[:] = Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
+                    self.data[:] = moments.Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
             else:
-                self.data[:] = Integration.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt,
+                self.data[:] = moments.Integration.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd)
 
 # Allow spectrum objects to be pickled.

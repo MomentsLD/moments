@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
 
-from . import Spectrum_mod
+import moments.Spectrum_mod
 from . import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
@@ -732,6 +732,6 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
         
 
     if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
+        return moments.Spectrum_mod.Spectrum(sfs)
     else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
+        return moments.Spectrum_mod.Spectrum(sfs, mask_corners=False)
