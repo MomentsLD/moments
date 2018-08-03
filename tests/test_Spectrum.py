@@ -218,7 +218,12 @@ class SpectrumTestCase(unittest.TestCase):
         folded2 = fs2.fold()
 
         # We'll iterate through each of these arithmetic functions.
-        from operator import add,sub,mul,div,truediv,floordiv,pow,abs,pos,neg
+        try:
+            from operator import add,sub,mul,div,truediv,floordiv,pow,abs,pos,neg
+            lst = [add,sub,mul,div,truediv,floordiv,pow]
+        except:
+            from operator import add, sub, mul, truediv, floordiv, pow, abs, pos, neg
+            lst = [add,sub,mul,truediv,floordiv,pow]
 
         arr = numpy.random.uniform(size=ns)
         marr = numpy.random.uniform(size=ns)
@@ -227,7 +232,7 @@ class SpectrumTestCase(unittest.TestCase):
         # want to explicitly test this case.
         numpyfloat = numpy.float64(2.0)
 
-        for op in [add,sub,mul,div,truediv,floordiv,pow]:
+        for op in lst:
             # Check that binary operations propogate folding status.
             # Need to check cases both on right-hand-side of operator and
             # left-hand-side
