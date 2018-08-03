@@ -274,7 +274,7 @@ class TriSpectrum(numpy.ma.masked_array):
             raise ValueError('Input Spectrum is already folded.')
         folded = self + np.transpose(self)
         for ii in range(len(folded)):
-            folded[ii,ii] /= 2
+            folded[ii,ii] = np.divide(folded[ii,ii], 2)
         folded.mask[0,:] = True
         folded.mask[:,0] = True
         for ii in range(len(folded)):
