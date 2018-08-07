@@ -182,13 +182,14 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     
     one_locus_stats = temp_stats[1]
     # remove the f3 statistics, since they are just combinations of f2 statistics and cause Sigma to be ill-conditioned
-    stats1_to_delete = []
-    for ii,stat in enumerate(multipop_stats[1]):
-        ps = [int(p) for p in stat.split('_')[1:]]
-        if stat.split('_')[0] == 'f2' and (ps[0] != ps[2] or ps[1] != ps[3]):
-            stats1_to_delete.append(ii)
-    
-    one_locus_stats = np.delete(one_locus_stats, stats1_to_delete)
+    ## already did this in demo_model
+#    stats1_to_delete = []
+#    for ii,stat in enumerate(multipop_stats[1]):
+#        ps = [int(p) for p in stat.split('_')[1:]]
+#        if stat.split('_')[0] == 'f2' and (ps[0] != ps[2] or ps[1] != ps[3]):
+#            stats1_to_delete.append(ii)
+#    
+#    one_locus_stats = np.delete(one_locus_stats, stats1_to_delete)
     
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
     #trap_stats = []
