@@ -896,7 +896,7 @@ def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
                     A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)
                 else: # D_other D_new
                     A[ii, moms_from.index(map_moment('DD_{0}_{1}'.format(pop1,pops[0])))] = f
-                    A[ii, moms_from.index(map_moment('DD_{0}_{0}'.format(pop2,pops[0])))] = 1-f
+                    A[ii, moms_from.index(map_moment('DD_{0}_{1}'.format(pop2,pops[0])))] = 1-f
                     A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = 1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = -1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = -1./4*f*(1-f)
@@ -944,10 +944,10 @@ def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
                         A[ii, moms_from.index('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2))] = -1./4*f*(1-f)**2
                         A[ii, moms_from.index('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)**2
                     else:
-                        A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2,pops[2]))] = f**2
-                        A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2,pops[2]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2,pops[2]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2,pops[2]))] = (1-f)**2
+                        A[ii, moms_from.index('Dz_{0}_{0}_{2}'.format(pop1,pop2,pops[2]))] = f**2
+                        A[ii, moms_from.index('Dz_{0}_{1}_{2}'.format(pop1,pop2,pops[2]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{1}_{0}_{2}'.format(pop1,pop2,pops[2]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{1}_{1}_{2}'.format(pop1,pop2,pops[2]))] = (1-f)**2
                         A[ii, moms_from.index(map_moment('zz_{0}_{0}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f**2*(1-f)
                         A[ii, moms_from.index(map_moment('zz_{0}_{0}_{1}_{2}'.format(pop1,pop2,pops[2])))] = -1./4*f**2*(1-f)
                         A[ii, moms_from.index(map_moment('zz_{0}_{1}_{0}_{2}'.format(pop1,pop2,pops[2])))] = 1./4*f*(1-f)*(1-2*f)
@@ -978,10 +978,10 @@ def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
                         A[ii, moms_from.index('zz_{1}_{1}_{0}_{1}'.format(pop1,pop2))] = -1./4*f*(1-f)*(1-2*f)
                         A[ii, moms_from.index('zz_{1}_{1}_{1}_{1}'.format(pop1,pop2))] = 1./4*f*(1-f)**2
                     else:
-                        A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2,pops[1]))] = f**2
-                        A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2,pops[1]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2,pops[1]))] = f*(1-f)
-                        A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2,pops[1]))] = (1-f)**2
+                        A[ii, moms_from.index('Dz_{0}_{2}_{0}'.format(pop1,pop2,pops[1]))] = f**2
+                        A[ii, moms_from.index('Dz_{0}_{2}_{1}'.format(pop1,pop2,pops[1]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{1}_{2}_{0}'.format(pop1,pop2,pops[1]))] = f*(1-f)
+                        A[ii, moms_from.index('Dz_{1}_{2}_{1}'.format(pop1,pop2,pops[1]))] = (1-f)**2
                         A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{0}'.format(pop1,pop2,pops[1])))] = 1./4*f**2*(1-f)
                         A[ii, moms_from.index(map_moment('zz_{0}_{2}_{0}_{1}'.format(pop1,pop2,pops[1])))] = 1./4*f*(1-f)*(1-2*f)
                         A[ii, moms_from.index(map_moment('zz_{0}_{2}_{1}_{1}'.format(pop1,pop2,pops[1])))] = -1./4*f*(1-f)**2
