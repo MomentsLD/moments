@@ -422,8 +422,10 @@ def __nnls_mod__(A, b):
     w = zeros((n,), dtype=double)
     zz = zeros((m,), dtype=double)
     index = zeros((n,), dtype=int)
-
-    x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
+    try:
+        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
+    except:
+        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
         print("Warning: too many iterations in nnls") #SG my modification
 
