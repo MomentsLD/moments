@@ -47,7 +47,7 @@ def choose(n,i):
     return np.exp(gammaln(n+1)- gammaln(n-i+1) - gammaln(i+1))
 
 def drift(ns):
-    Dsize = (ns+1)*(ns+2)/2
+    Dsize = int((ns+1)*(ns+2)/2)
     row = []
     col = []
     data = []

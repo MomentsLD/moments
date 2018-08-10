@@ -205,7 +205,7 @@ def calcJK_2(n):
         col.append(moments.Triallele.Numerics.get_index(n,ii+1,n-ii-1))
         data.append(alphas[2])
         
-    return csr_matrix((data,(row,col)),shape=((n+3)*(n+4)/2,(n+1)*(n+2)/2))
+    return csr_matrix((data,(row,col)),shape=(int((n+3)*(n+4)/2),int((n+1)*(n+2)/2)))
 
 
 

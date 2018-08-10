@@ -488,8 +488,8 @@ def calc_jk(n,jump):
                 col.append(index)
                 data.append(alpha)
 
-        size_from = (n+1)*(n+2)*(n+3)/6
-        size_to = (n+1+jump)*(n+2+jump)*(n+3+jump)/6
+        size_from = int((n+1)*(n+2)*(n+3)/6)
+        size_to = int((n+1+jump)*(n+2+jump)*(n+3+jump)/6)
         jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
         return jks[(n,jump)]
 
