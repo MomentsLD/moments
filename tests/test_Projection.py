@@ -1,8 +1,18 @@
 import unittest
 import numpy
 import moments
+import time
+
 
 class ProjectionTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_project_up(self):
         """
         Saving spectrum to file.

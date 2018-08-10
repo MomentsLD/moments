@@ -7,8 +7,17 @@ import moments
 
 # these are slow because integrating to equilibrium takes a while 
 # since we are starting with entries only in fixed bins
+import time
+
 
 class FiniteGenomeTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_reversible_neutral(self):
         ns = 30
         theta_fd = 2e-3
@@ -23,7 +32,7 @@ class FiniteGenomeTestCase(unittest.TestCase):
                                             theta_fd=theta_fd, theta_bd=theta_bd)
         self.assertTrue(numpy.allclose(fs, exact))
     
-    def test_reversible_selection(self):
+    def test_reversible_selection_slow(self):
         gamma = -5.0
         theta_fd = 2e-3
         theta_bd = 1e-3
