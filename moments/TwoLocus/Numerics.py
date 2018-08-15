@@ -164,7 +164,7 @@ def drift(n):
 
 def mutations(n, theta=1.0):
     """
-    Mutations can occur on a background with ???? huh?
+    
     """
     Msize = (n+1)*(n+2)*(n+3)/6
     

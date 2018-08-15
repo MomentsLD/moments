@@ -9,6 +9,7 @@ import os
 import numpy, numpy as np
 import moments.TwoLocus.Numerics
 from moments.TwoLocus.Integration import integrate
+import scipy.special
 
 class TLSpectrum(numpy.ma.masked_array):
     """
@@ -159,6 +160,84 @@ class TLSpectrum(numpy.ma.masked_array):
                 for kk in range(n+1-ii-jj):
                     fr[ii+kk] += self[ii,jj,kk]
         return fr
+    
+    def D(self, proj=True):
+        n = len(self)-1
+        DD = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            DD += self.data[ii,jj,kk] * ( ii*(n-ii-jj-kk)/float(n*(n-1)) - jj*kk/float(n*(n-1)) )
+                        else:
+                            DD += self.data[ii,jj,kk] * ( ii*(n-ii-jj-kk)/float(n**2) - jj*kk/float(n**2) )
+        return DD
+        
+    def D2(self, proj=True):
+        n = len(self)-1
+        DD2 = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            DD2 += self.data[ii,jj,kk] * 1./3 * ( scipy.special.binom(ii,2)*scipy.special.binom(n-ii-jj-kk,2)/scipy.special.binom(n,4) + scipy.special.binom(jj,2)*scipy.special.binom(kk,2)/scipy.special.binom(n,4) - 1./2 * ii*jj*kk*(n-ii-jj-kk)/scipy.special.binom(n,4) )
+                        else:
+                            DD2 += self.data[ii,jj,kk] * 2./n**4 * ( ii**2 * (n-ii-jj-kk)**2 + jj**2 * kk**2 - 2*ii * jj * kk * (n-ii-jj-kk) )
+        return DD2
+
+    def pi2(self, proj=True):
+        n = len(self)-1
+        stat = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    ll = n-ii-jj-kk
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            stat += self.data[ii,jj,kk] * 2./scipy.special.binom(n,4) * (
+                                        ii*(ii-1)/2*jj*kk / 12. + 
+                                        ii*jj*(jj-1)/2*kk / 12. + 
+                                        ii*jj*kk*(kk-1)/2 / 12. + 
+                                        jj*(jj-1)/2*kk*(kk-1)/2 / 6. + 
+                                        ii*(ii-1)/2*jj*ll / 12. + 
+                                        ii*jj*(jj-1)/2*ll / 12. + 
+                                        ii*(ii-1)/2*kk*ll / 12. + 
+                                        2 * ii*jj*kk*ll / 24. + 
+                                        jj*(jj-1)/2*kk*ll / 12. + 
+                                        ii*kk*(kk-1)/2*ll / 12. + 
+                                        jj*kk*(kk-1)/2*ll / 12. + 
+                                        ii*(ii-1)/2*ll*(ll-1)/2 / 6. + 
+                                        ii*jj*ll*(ll-1)/2 / 12. + 
+                                        ii*kk*ll*(ll-1)/2 / 12. + 
+                                        jj*kk*ll*(ll-1)/2 / 12.
+                                        )
+                        else:
+                            stat += self.data[ii,jj,kk] * 2./n**4 * (
+                                        ii**2*jj*kk + 
+                                        ii*jj**2*kk + 
+                                        ii*jj*kk**2 + 
+                                        jj**2*kk**2 + 
+                                        ii**2*jj*ll + 
+                                        ii*jj**2*ll + 
+                                        ii**2*kk*ll + 
+                                        2 * ii*jj*kk*ll + 
+                                        jj**2*kk*ll + 
+                                        ii*kk**2*ll + 
+                                        jj*kk**2*ll + 
+                                        ii**2*ll**2 + 
+                                        ii*jj*ll**2 + 
+                                        ii*kk*ll**2 + 
+                                        jj*kk*ll**2
+                                        )
+        return stat
 
 # Make from_file a static method, so we can use it without an instance.
     @staticmethod
