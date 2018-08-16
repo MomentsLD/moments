@@ -40,14 +40,14 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
         gamma=0.0
     
     # fetch from cache if neutral (cache only neutral spectra for the moment)
-    if gamma == 0.0 and sel_params == None:
+    if gamma == 0.0 and (sel_params == None or (sel_params[0] == 0.0 and sel_params[1] == 0.0 and sel_params[2] == 0.0)):
         eq_name = 'tlfs_ns{0}_rho{1}_theta{2}.fs'.format(ns,rho,theta)
         eq_name = os.path.join(cache_path, eq_name)
     elif gamma != 0.0: # cache for gammaA, hA
         eq_name = 'tlfs_ns{0}_rho{1}_theta{2}_gammaA{3}_hA{4}.fs'.format(ns,rho,theta,gamma,h)
         eq_name = os.path.join(cache_path, eq_name)
     elif sel_params != None:
-        eq_name = 'tlfs_ns{0}_rho{1}_theta{2}_sel_{3}_{4}_{5}_{6}_{7}.fs'.format(ns,rho,theta,sel_params[0],sel_params[1],sel_params[2],sel_params[3],sel_params[4])
+        eq_name = 'tlfs_ns{0}_rho{1}_theta{2}_sel_{3}_{4}_{5}.fs'.format(ns,rho,theta,sel_params[0],sel_params[1],sel_params[2])
         eq_name = os.path.join(cache_path, eq_name)
     
     try:

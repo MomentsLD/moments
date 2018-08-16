@@ -246,86 +246,106 @@ def recombination(n, rho):
 
     return csc_matrix((data,(row,col)),shape=(Rsize0,Rsize1))
 
-def selection_additive_component(n):
-    """
-    This is for selection at just the left locus
-    """
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize1 = (n+2)*(n+3)*(n+4)/6
-    
-    row = []
-    col = []
-    data = []
-    for i in range(n+1):
-        for j in range(n+1-i):
-            for k in range(n+1-i-j):
-                this_ind = index_n(n,i,j,k)
-                #if i > 0:
-                row.append(this_ind)
-                col.append(index_n(n+1,i+1,j,k))
-                data.append( - 1./(n+1) * (i+1)*(n-i-j) )
-                #if j > 0:
-                row.append(this_ind)
-                col.append(index_n(n+1,i,j+1,k))
-                data.append( - 1./(n+1) * (j+1)*(n-i-j) )
-                #if k > 0:
-                row.append(this_ind)
-                col.append(index_n(n+1,i,j,k+1))
-                data.append( 1./(n+1) * (i+j)*(k+1) )
-                #if n-i-j-k > 0:
-                row.append(this_ind)
-                col.append(index_n(n+1,i,j,k))
-                data.append( 1./(n+1) * (i+j)*(n-i-j-k+1) )
-    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
-
-def selection_dominance_component(n):
-    """
-    This is for selection at just the left locus
-    """
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize2 = (n+3)*(n+4)*(n+5)/6
-    
-    row = []
-    col = []
-    data = []
-    for i in range(n+1):
-        for j in range(n+1-i):
-            for k in range(n+1-i-j):
-                this_ind = index_n(n,i,j,k)
-                if i > 0 and k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i+1,j,k+1))
-                    data.append( 1./(n+1)/(n+2) * (i+1)*(k+1)*(i+j) )
-                if i > 0 and n-i-j-k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i+1,j,k))
-                    data.append( 1./(n+1)/(n+2) * (i+1)*(n-i-j-k+1)*(i+j) )
-                if j > 0 and k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i,j+1,k+1))
-                    data.append( 1./(n+1)/(n+2) * (j+1)*(k+1)*(i+j) )
-                if j > 0 and n-i-j-k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i,j+1,k))
-                    data.append( 1./(n+1)/(n+2) * (j+1)*(n-i-j-k+1)*(i+j) )
-                if i > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i+2,j,k))
-                    data.append( - 1./(n+1)/(n+2) * (i+2)*(i+1)*(n-i-j) )
-                if i > 0 and j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i+1,j+1,k))
-                    data.append( - 2./(n+1)/(n+2) * (i+1)*(j+1)*(n-i-j) )
-                if j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n+2,i,j+2,k))
-                    data.append( - 1./(n+1)/(n+2) * (j+2)*(j+1)*(n-i-j) )
-
-    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize2))
+#These don't work properly...
+#def selection_additive_component(n):
+#    """
+#    This is for selection at just the left locus
+#    """
+#    Ssize0 = (n+1)*(n+2)*(n+3)/6
+#    Ssize1 = (n+2)*(n+3)*(n+4)/6
+#    
+#    row = []
+#    col = []
+#    data = []
+#    for i in range(n+1):
+#        for j in range(n+1-i):
+#            for k in range(n+1-i-j):
+#                fA = i+j
+#                fa = n-i-j
+#                fB = i+k
+#                fb = n-i-k
+#                this_ind = index_n(n,i,j,k)
+#                
+#                if fA == 0: # i,j both 0, so we have just B/b, which has zero selection
+#                    continue
+#                if fB == 0: # i,k both 0, so we have just A/a, which is selected agains
+#                    if j < n and j > 0:
+#                        row.append(this_ind)
+#                        col.append(index_n(n+1,i,j,k))
+#                        data.append(j * (n-i-j-k+1) / (n+1.))
+#                    if j > 1:
+#                        row.append(index_n(n,i,j-1,k))
+#                        col.append(index_n(n+1,i,j,k))
+#                        data.append(-j * (n-i-j-k+1) / (n+1.))
+#                if fa == 0 or fb == 0:
+#                    continue
+#                    
+#                #if i > 0:
+#                row.append(this_ind)
+#                col.append(index_n(n+1,i+1,j,k))
+#                data.append( - 1./(n+1) * (i+1)*(n-i-j) )
+#                #if j > 0:
+#                row.append(this_ind)
+#                col.append(index_n(n+1,i,j+1,k))
+#                data.append( - 1./(n+1) * (j+1)*(n-i-j) )
+#                #if k > 0:
+#                row.append(this_ind)
+#                col.append(index_n(n+1,i,j,k+1))
+#                data.append( 1./(n+1) * (i+j)*(k+1) )
+#                #if n-i-j-k > 0:
+#                row.append(this_ind)
+#                col.append(index_n(n+1,i,j,k))
+#                data.append( 1./(n+1) * (i+j)*(n-i-j-k+1) )
+#    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
+#
+#def selection_dominance_component(n):
+#    """
+#    This is for selection at just the left locus
+#    """
+#    Ssize0 = (n+1)*(n+2)*(n+3)/6
+#    Ssize2 = (n+3)*(n+4)*(n+5)/6
+#    
+#    row = []
+#    col = []
+#    data = []
+#    for i in range(n+1):
+#        for j in range(n+1-i):
+#            for k in range(n+1-i-j):
+#                this_ind = index_n(n,i,j,k)
+#                if i > 0 and k > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i+1,j,k+1))
+#                    data.append( 1./(n+1)/(n+2) * (i+1)*(k+1)*(i+j) )
+#                if i > 0 and n-i-j-k > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i+1,j,k))
+#                    data.append( 1./(n+1)/(n+2) * (i+1)*(n-i-j-k+1)*(i+j) )
+#                if j > 0 and k > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i,j+1,k+1))
+#                    data.append( 1./(n+1)/(n+2) * (j+1)*(k+1)*(i+j) )
+#                if j > 0 and n-i-j-k > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i,j+1,k))
+#                    data.append( 1./(n+1)/(n+2) * (j+1)*(n-i-j-k+1)*(i+j) )
+#                if i > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i+2,j,k))
+#                    data.append( - 1./(n+1)/(n+2) * (i+2)*(i+1)*(n-i-j) )
+#                if i > 0 and j > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i+1,j+1,k))
+#                    data.append( - 2./(n+1)/(n+2) * (i+1)*(j+1)*(n-i-j) )
+#                if j > 0:
+#                    row.append(this_ind)
+#                    col.append(index_n(n+2,i,j+2,k))
+#                    data.append( - 1./(n+1)/(n+2) * (j+2)*(j+1)*(n-i-j) )
+#
+#    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize2))
 
 def selection_two_locus(n, sel_params):
     """
-    This is for selection at both loci, where Ab has selection coefficient sA, 
+    This is for additive selection at both loci, where Ab has selection coefficient sA, 
     aB has sB, and AB has sAB
     Additive model, allowing for epistasis if sAB != sA+sB
     """

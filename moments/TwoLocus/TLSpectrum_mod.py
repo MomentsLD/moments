@@ -167,6 +167,8 @@ class TLSpectrum(numpy.ma.masked_array):
         for ii in range(n+1):
             for jj in range(n+1-ii):
                 for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
                     if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
                         continue
                     else:
@@ -182,6 +184,8 @@ class TLSpectrum(numpy.ma.masked_array):
         for ii in range(n+1):
             for jj in range(n+1-ii):
                 for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
                     if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
                         continue
                     else:
@@ -197,6 +201,8 @@ class TLSpectrum(numpy.ma.masked_array):
         for ii in range(n+1):
             for jj in range(n+1-ii):
                 for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
                     ll = n-ii-jj-kk
                     if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
                         continue
@@ -372,17 +378,18 @@ class TLSpectrum(numpy.ma.masked_array):
                     q = ii + kk
                     if p > ns/2 and q > ns/2:
                         # Switch A/a and B/b, so AB becomes ab, Ab becomes aB, etc
-                        folded[ns-ii-jj-kk,kk,jj] = self[ns-ii-jj-kk,kk,jj] + self[ii,jj,kk]
+                        folded[ns-ii-jj-kk,kk,jj] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
                     elif p > ns/2:
                         # Switch A/a, so AB -> aB, Ab -> ab, aB -> AB, and ab -> Ab
-                        folded[kk,ns-ii-jj-kk,ii] = self[kk,ns-ii-jj-kk,ii] + self[ii,jj,kk]
+                        folded[kk,ns-ii-jj-kk,ii] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
                     elif q > ns/2:
                         # Switch B/b, so AB -> Ab, Ab -> AB, aB -> ab, and ab -> aB
-                        folded[jj,ii,ns-ii-jj-kk] = self[jj,ii,ns-ii-jj-kk] + self[ii,jj,kk]
+                        folded[jj,ii,ns-ii-jj-kk] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
-        
+                    else:
+                        folded[ii,jj,kk] += self.data[ii,jj,kk]
         folded.folded = True
         return folded
     
