@@ -436,7 +436,7 @@ def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
     outputs = scipy.optimize.fmin_powell(_object_func_log, np.log(p0), args=args, full_output=True, disp=False)
     
     xopt, fopt, direc, iter, funcalls, warnflag = outputs
-    xopt = _project_params_up(numpy.exp(xopt), fixed_params)
+    xopt = _project_params_up(np.exp(xopt), fixed_params)
     
     return xopt, fopt
 
