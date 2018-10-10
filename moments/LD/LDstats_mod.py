@@ -252,8 +252,18 @@ class LDstats(numpy.ma.masked_array):
         Pulse migration event, from pop_from to pop_to.
         After pulse migration event, pop_to is composed of (1-f) from pop_to and
         f from pop_from.
+        
+        This is equivalent to admix into new, so we'll use the admix function 
+            and then rearrange and marginalize populations
         """
-        pass
+        if pop_from < pop_to:
+            y_new = self.admix(pop_from, pop_to, f)
+        elif pop_to < pop_from:
+            y_new = self.admix(pop_to, pop_from, 1-f)
+        
+        y_new = y_new.swap_pops(pop_to, y_new.num_pops)
+        y_new = y_new.marginalize([y_new.num_pops])
+        return y_new
     
     def switch_basis(self):
         if self.basis == 'pi':

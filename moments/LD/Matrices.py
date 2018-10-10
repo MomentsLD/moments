@@ -902,7 +902,7 @@ def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
                     A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = -1./4*f*(1-f)
                     A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = 1./4*f*(1-f)
             if mom == 'Dz':
-                if pops[0] == pops[1] == pops[2]:
+                if pops[0] == pops[1] == pops[2]: # this is D_{n+1}(1-2p_{n+1})(1-2q_{n+1})
                     A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f**3
                     A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f**2*(1-f)
                     A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f**2*(1-f)
@@ -1083,72 +1083,72 @@ def admix_npops(n_pops, pop1, pop2, f, moms_from, moms_to):
                     if pops[0] == pop1:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = 1-f
                         elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = 1-f
                         else:
                             A[ii, moms_from.index('Dz_{0}_{0}_{2}'.format(pop1,pop2,pops[2]))] = f
-                            A[ii, moms_from.index('Dz_{0}_{1}_{2}'.format(pop1,pop2,pops[2]))] = f
+                            A[ii, moms_from.index('Dz_{0}_{1}_{2}'.format(pop1,pop2,pops[2]))] = 1-f
                     elif pops[0] == pop2:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = 1-f
                         elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = 1-f
                         else:
                             A[ii, moms_from.index('Dz_{1}_{0}_{2}'.format(pop1,pop2,pops[2]))] = f
-                            A[ii, moms_from.index('Dz_{1}_{1}_{2}'.format(pop1,pop2,pops[2]))] = f
+                            A[ii, moms_from.index('Dz_{1}_{1}_{2}'.format(pop1,pop2,pops[2]))] = 1-f
                     else:
                         if pops[2] == pop1:
                             A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = f
-                            A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = f
+                            A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = 1-f
                         elif pops[2] == pop2:
                             A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = f
-                            A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = f
+                            A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = 1-f
                         else:
                             if pops[0] == pops[2]:
                                 A[ii, moms_from.index('Dz_{2}_{0}_{2}'.format(pop1,pop2,pops[0]))] = f
-                                A[ii, moms_from.index('Dz_{2}_{1}_{2}'.format(pop1,pop2,pops[0]))] = f
+                                A[ii, moms_from.index('Dz_{2}_{1}_{2}'.format(pop1,pop2,pops[0]))] = 1-f
                             else:
                                 A[ii, moms_from.index('Dz_{2}_{0}_{3}'.format(pop1,pop2,pops[0],pops[2]))] = f
-                                A[ii, moms_from.index('Dz_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2]))] = f
+                                A[ii, moms_from.index('Dz_{2}_{1}_{3}'.format(pop1,pop2,pops[0],pops[2]))] = 1-f
                 elif pops[2] == n_pops+1:
                     if pops[0] == pop1:
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{0}_{0}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{0}_{0}_{1}'.format(pop1,pop2))] = 1-f
                         elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{0}_{1}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{0}_{1}_{1}'.format(pop1,pop2))] = 1-f
                         else:
                             A[ii, moms_from.index('Dz_{0}_{2}_{0}'.format(pop1,pop2,pops[1]))] = f
-                            A[ii, moms_from.index('Dz_{0}_{2}_{1}'.format(pop1,pop2,pops[1]))] = f
+                            A[ii, moms_from.index('Dz_{0}_{2}_{1}'.format(pop1,pop2,pops[1]))] = 1-f
                     elif pops[0] == pop2:
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{1}_{0}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{1}_{0}_{1}'.format(pop1,pop2))] = 1-f
                         elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{1}_{1}_{0}'.format(pop1,pop2))] = f
-                            A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = f
+                            A[ii, moms_from.index('Dz_{1}_{1}_{1}'.format(pop1,pop2))] = 1-f
                         else:
                             A[ii, moms_from.index('Dz_{1}_{2}_{0}'.format(pop1,pop2,pops[1]))] = f
-                            A[ii, moms_from.index('Dz_{1}_{2}_{1}'.format(pop1,pop2,pops[1]))] = f
+                            A[ii, moms_from.index('Dz_{1}_{2}_{1}'.format(pop1,pop2,pops[1]))] = 1-f
                     else:
                         if pops[1] == pop1:
                             A[ii, moms_from.index('Dz_{2}_{0}_{0}'.format(pop1,pop2,pops[0]))] = f
-                            A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = f
+                            A[ii, moms_from.index('Dz_{2}_{0}_{1}'.format(pop1,pop2,pops[0]))] = 1-f
                         elif pops[1] == pop2:
                             A[ii, moms_from.index('Dz_{2}_{1}_{0}'.format(pop1,pop2,pops[0]))] = f
-                            A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = f
+                            A[ii, moms_from.index('Dz_{2}_{1}_{1}'.format(pop1,pop2,pops[0]))] = 1-f
                         else:
                             if pops[0] == pops[1]:
                                 A[ii, moms_from.index('Dz_{2}_{2}_{0}'.format(pop1,pop2,pops[0]))] = f
-                                A[ii, moms_from.index('Dz_{2}_{2}_{1}'.format(pop1,pop2,pops[0]))] = f
+                                A[ii, moms_from.index('Dz_{2}_{2}_{1}'.format(pop1,pop2,pops[0]))] = 1-f
                             else:
                                 A[ii, moms_from.index('Dz_{2}_{3}_{0}'.format(pop1,pop2,pops[0],pops[1]))] = f
-                                A[ii, moms_from.index('Dz_{2}_{3}_{1}'.format(pop1,pop2,pops[0],pops[1]))] = f
+                                A[ii, moms_from.index('Dz_{2}_{3}_{1}'.format(pop1,pop2,pops[0],pops[1]))] = 1-f
 
             if mom == 'zz':
                 if pops[0] == pops[1] == n_pops+1:
