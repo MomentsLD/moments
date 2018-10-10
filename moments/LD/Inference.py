@@ -157,7 +157,6 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
         if corr_mu == True:
             F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
-            temp_stats = temp_stats[:-1] # last value is 1
             stats.append(np.delete(temp_stats,inds_to_remove))
         else:
             if corr_mu == False:
@@ -172,24 +171,12 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
         if corr_mu == True:
             F = F0 * np.exp(-lam * rho)
         if multipop_stats == None:
-            temp_stats = temp_stats[:-1] # last value is 1
             stats_mid.append(np.delete(temp_stats,inds_to_remove))
         else:
             if corr_mu == False:
                 stats_mid.append(temp_stats[0])
             if corr_mu == True:
                 stats_mid.append( (mu_low/mu_ave)**2 * F * p * temp_stats[0] + (mu_high/mu_ave)**2 * F * (1-p) * temp_stats[0] + (1-F) * temp_stats[0] )
-    
-    one_locus_stats = temp_stats[1]
-    # remove the f3 statistics, since they are just combinations of f2 statistics and cause Sigma to be ill-conditioned
-    ## already did this in demo_model
-#    stats1_to_delete = []
-#    for ii,stat in enumerate(multipop_stats[1]):
-#        ps = [int(p) for p in stat.split('_')[1:]]
-#        if stat.split('_')[0] == 'f2' and (ps[0] != ps[2] or ps[1] != ps[3]):
-#            stats1_to_delete.append(ii)
-#    
-#    one_locus_stats = np.delete(one_locus_stats, stats1_to_delete)
     
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
     #trap_stats = []
@@ -208,6 +195,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     ## result in ll from afs plus ll from rho bins
     if use_afs == True:
         result = ll_afs + ll_over_bins(means, simp_stats, varcovs)
+        #print ll_afs, ll_over_bins(means, simp_stats, varcovs)
     else:
         result = ll_over_bins(means, simp_stats, varcovs)
     
@@ -279,41 +267,7 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
     
-    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
-        # we don't want the sigma/one locus statistics, since they are just summaries of the frequency spectrum
-        if multipop == False:
-            names = Numerics.moment_names_onepop(order)
-            inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
-            for ii in range(len(vcs)):
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-            for ii in range(len(ms)):
-                ms[ii] = np.delete(ms[ii], inds_to_remove)
-        elif multipop == True:
-            if multipop_stats == None:
-                names = Numerics.moments_names_multipop(num_pops)
-                inds_to_remove = []
-                for name in names:
-                    if name.split('_')[0] in ['zp','zq']:
-                        inds_to_remove.append(names.index(name))
-                for ii in range(len(vcs)):
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-                for ii in range(len(ms)):
-                    ms[ii] = np.delete(ms[ii], inds_to_remove)
-            else: # we remove stats of the form sig_ and f2 (set up so far for two populations)
-                names = multipop_stats
-                inds_to_remove = []
-                for name in names:
-                    if name.split('_')[0] in ['sig','f2']:
-                        inds_to_remove.append(names.index(name))
-                for ii in range(len(vcs)):
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-                for ii in range(len(ms)):
-                    ms[ii] = np.delete(ms[ii], inds_to_remove)
-    else:
-        inds_to_remove = []
+    inds_to_remove = []
     
     args = (ns, model_func, ms, vcs, fs, rhos, rs,
             order, theta, u, Ne, Leff, ism, corrected,
