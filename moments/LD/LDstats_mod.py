@@ -219,12 +219,20 @@ class LDstats(numpy.ma.masked_array):
                 count += 1
         return LDstats(y, num_pops=self.num_pops-len(pops), order=self.order, basis=self.basis)
 
-    def merge(self, f):
-        if self.num_pops == 2:
-            y_new = Numerics.merge_2pop(self.data,f)
-            return LDstats(y_new, num_pops=1, order=self.order, basis=self.basis)
-        else:
-            raise ValueError("merge function is 2->1 pop.")
+#    def merge(self, f):
+#        if self.num_pops == 2:
+#            y_new = Numerics.merge_2pop(self.data,f)
+#            return LDstats(y_new, num_pops=1, order=self.order, basis=self.basis)
+#        else:
+#            raise ValueError("merge function is 2->1 pop.")
+    
+    def merge(self, pop1, pop2, f):
+        y_new = Numerics.admix_npops(self.data, self.num_pops, pop1, pop2, f)
+        y_new = LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
+        y_new = y_new.swap_pops(pop1, y_new.num_pops)
+        y_new = y_new.marginalize(pop2)
+        y_new = y_new.marginalize(y_new.num_pops)
+        return y_new
 
     def admix(self, pop1, pop2, f):
         """

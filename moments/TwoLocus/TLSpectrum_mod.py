@@ -244,7 +244,17 @@ class TLSpectrum(numpy.ma.masked_array):
                                         jj*kk*ll**2
                                         )
         return stat
-
+    
+    def Dz(self, proj=True):
+        n = len(self)-1
+        if proj == False:
+            print "not implemented with proj=False"
+            return
+        else:
+            F_proj = self.project(4)
+            stat = 1./4*F_proj[3,0,0] - 1./3*F_proj[2,0,0] + 1./4*F_proj[1,0,0] - 1./12*F_proj[2,1,1] - 1./12*F_proj[1,2,0] - 1./12*F_proj[1,0,2] - 1./12*F_proj[0,1,1] + 1./4*F_proj[0,3,1] - 1./3*F_proj[0,2,2] + 1./4*F_proj[0,1,3] + 1./6*F_proj[1,1,1]
+            return 2*stat
+    
 # Make from_file a static method, so we can use it without an instance.
     @staticmethod
     def from_file(fid, mask_infeasible=True, return_comments=False):
