@@ -366,7 +366,7 @@ def merge_2D_to_1D(sfs):
     if model is not None:
         model.merge((0,1),0)
     
-    data_2D = copy.copy(sp)
+    data_2D = copy.copy(sfs)
     assert(len(data_2D.shape) == 2)
     data_2D.unmask_all()
     dim1, dim2 = data_2D.shape
