@@ -428,7 +428,7 @@ def integrate(y, nu, T, dt=0.001, rho=0.0, theta=0.0008, m=[], order=None, num_p
                 nus = nu(elapsed_T+dt/2.)
             
             if dt != dt_last or nus != nus_last or elapsed_T == 0:
-                D = drift(num_pops, order, nus=nu)
+                D = drift(num_pops, order, nus=nus)
                 if num_pops > 1 and m is not None:
                     Ab = D+M+R+U
                 else:
