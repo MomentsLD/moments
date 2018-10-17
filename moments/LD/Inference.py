@@ -178,6 +178,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
             if corr_mu == True:
                 stats_mid.append( (mu_low/mu_ave)**2 * F * p * temp_stats[0] + (mu_high/mu_ave)**2 * F * (1-p) * temp_stats[0] + (1-F) * temp_stats[0] )
     
+    one_locus_stats = temp_stats[1]
+    
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
     #trap_stats = []
     #for ii in range(len(stats)-1):
@@ -189,7 +191,7 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
     for ii in range(len(stats)-1):
         simp_stats.append((stats[ii] + 4*stats_mid[ii] + stats[ii+1])/6.)
     
-    if multipop == True:
+    if multipop == True and use_afs == False:
         simp_stats.append(one_locus_stats)
     
     ## result in ll from afs plus ll from rho bins
@@ -340,41 +342,7 @@ def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
     
-    if use_afs == True: # we adjust varcovs and means to remove sigma statistics
-        # we don't want the sigma/one locus statistics, since they are just summaries of the frequency spectrum
-        if multipop == False:
-            names = Numerics.moment_names_onepop(order)
-            inds_to_remove = [names.index('1_s{0}'.format(ii)) for ii in range(1,order/2+1)]
-            for ii in range(len(vcs)):
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-            for ii in range(len(ms)):
-                ms[ii] = np.delete(ms[ii], inds_to_remove)
-        elif multipop == True:
-            if multipop_stats == None:
-                names = Numerics.moments_names_multipop(num_pops)
-                inds_to_remove = []
-                for name in names:
-                    if name.split('_')[0] in ['zp','zq']:
-                        inds_to_remove.append(names.index(name))
-                for ii in range(len(vcs)):
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-                for ii in range(len(ms)):
-                    ms[ii] = np.delete(ms[ii], inds_to_remove)
-            else: # we remove stats of the form sig_ and f2 (set up so far for two populations)
-                names = multipop_stats
-                inds_to_remove = []
-                for name in names:
-                    if name.split('_')[0] in ['sig','f2']:
-                        inds_to_remove.append(names.index(name))
-                for ii in range(len(vcs)):
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=0)
-                    vcs[ii] = np.delete(vcs[ii], inds_to_remove, axis=1)
-                for ii in range(len(ms)):
-                    ms[ii] = np.delete(ms[ii], inds_to_remove)
-    else:
-        inds_to_remove = []
+    inds_to_remove = []
     
     args = (ns, model_func, ms, vcs, fs, rhos, rs,
             order, theta, u, Ne, Leff, ism, corrected,
