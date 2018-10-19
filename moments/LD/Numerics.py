@@ -211,6 +211,8 @@ def drift(num_pops, order, nus=None):
             return Matrices.drift_three_pop_pi(nus)
         elif num_pops == 4:
             return Matrices.drift_four_pop_pi(nus)
+        elif num_pops == 5:
+            return Matrices.drift_five_pop_pi(nus)
         else:
             print "not done"
             return
@@ -319,6 +321,8 @@ def migration(num_pops, ms, ism=True):
         return Matrices.migra_three_pop_pi(ms)
     elif num_pops == 4:
         return Matrices.migra_four_pop_pi(ms)
+    elif num_pops == 5:
+        return Matrices.migra_five_pop_pi(ms)
     else:
         print "not done"
         return
