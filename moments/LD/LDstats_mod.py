@@ -180,7 +180,12 @@ class LDstats(numpy.ma.masked_array):
         if pop1 == pop2:
             return self
         else:
-            mom_list = Numerics.moment_names_multipop(self.num_pops)
+            if self.basis == 'z':
+                mom_list = Numerics.moment_names_multipop(self.num_pops)
+            elif self.basis == 'pi':
+                mom_list = Numerics.moment_names_pi(self.num_pops)
+            else:
+                raise ValueError("Need to have object specified as pi or z basis.")
             y_new = np.zeros(len(mom_list))
             pops_old = range(1,self.num_pops+1)
             pops_new = range(1,self.num_pops+1)
