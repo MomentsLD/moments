@@ -668,7 +668,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
+        B = _calcB_FB(dims, u, v)
     
     # indexes for the permutation trick
     order = list(range(nbp))
