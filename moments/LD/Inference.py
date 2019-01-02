@@ -61,8 +61,8 @@ def ll_over_bins(xs,mus,Sigmas):
 
 _out_of_bounds_val = -1e12
 def _object_func(params, ns, model_func, means, varcovs, fs=None,
-                 rhos=[0], rs = None,
-                 order=2, theta=None, u=None, Ne=None,
+                 rhos=[0], rs = None, het_model=None,
+                 order=2, theta=None, u=None, Ne=None, pass_Ne=False,
                  Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None,
                  verbose=0, flush_delay=0, func_args=[], func_kwargs={},
@@ -116,7 +116,10 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
                 Ne = params_up[-1]
                 theta = 4*Ne*u
                 all_args = [params_up] + list(func_args)
-                all_args = [all_args[0][:-1]]
+                if pass_Ne == False:
+                    all_args = [all_args[0][:-1]]
+                else:
+                    all_args = [all_args[0]]
             rhos = [4*Ne*r for r in rs]
         else:
             if fixed_theta == False:
@@ -178,7 +181,10 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
             if corr_mu == True:
                 stats_mid.append( (mu_low/mu_ave)**2 * F * p * temp_stats[0] + (mu_high/mu_ave)**2 * F * (1-p) * temp_stats[0] + (1-F) * temp_stats[0] )
     
-    one_locus_stats = temp_stats[1]
+    if het_model == None:
+        one_locus_stats = temp_stats[1]
+    else:
+        one_locus_stats = het_model(params_up, theta=theta)
     
     ## rhos are the bin edges, so we used trapezoid to approx stats for each bin
     #trap_stats = []
@@ -216,8 +222,8 @@ def _object_func(params, ns, model_func, means, varcovs, fs=None,
 def _object_func_log(log_params, *args, **kwargs):
     return _object_func(np.exp(log_params), *args, **kwargs)
 
-def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
-                 order=2, theta=None, u=None, Ne=None,
+def optimize_log_fmin(p0, ns, data, model_func, het_model=None, rhos=[0], rs=None,
+                 order=2, theta=None, u=None, Ne=None, pass_Ne=False,
                  Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None, 
                  verbose=0, flush_delay=0.5,
@@ -271,8 +277,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
     
     inds_to_remove = []
     
-    args = (ns, model_func, ms, vcs, fs, rhos, rs,
-            order, theta, u, Ne, Leff, ism, corrected,
+    args = (ns, model_func, ms, vcs, fs, rhos, rs, het_model,
+            order, theta, u, Ne, pass_Ne, Leff, ism, corrected,
             lower_bound, upper_bound, 
             verbose, flush_delay, func_args, func_kwargs,
             fixed_params, multinom, fixed_theta, 
@@ -289,8 +295,8 @@ def optimize_log_fmin(p0, ns, data, model_func, rhos=[0], rs=None,
     
     return xopt, fopt
 
-def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
-                 order=2, theta=None, u=None, Ne=None,
+def optimize_log_powell(p0, ns, data, model_func, het_model=None, rhos=[0], rs=None,
+                 order=2, theta=None, u=None, Ne=None, pass_Ne=False,
                  Leff=None, ism=True, corrected=True,
                  lower_bound=None, upper_bound=None, 
                  verbose=0, flush_delay=0.5,
@@ -344,8 +350,8 @@ def optimize_log_powell(p0, ns, data, model_func, rhos=[0], rs=None,
     
     inds_to_remove = []
     
-    args = (ns, model_func, ms, vcs, fs, rhos, rs,
-            order, theta, u, Ne, Leff, ism, corrected,
+    args = (ns, model_func, ms, vcs, fs, rhos, rs, het_model,
+            order, theta, u, Ne, pass_Ne, Leff, ism, corrected,
             lower_bound, upper_bound, 
             verbose, flush_delay, func_args, func_kwargs,
             fixed_params, multinom, fixed_theta, 

@@ -92,8 +92,8 @@ def integrate_het(h, nu, T, dt=0.001, theta=0.001, m=None, ism=True, num_pops=1,
             for ii in range(num_pops):
                 if frozen[ii] == True:
                     for jj in range(num_pops):
-                        m[ii,jj] = 0
-                        m[jj,ii] = 0
+                        m[ii][jj] = 0
+                        m[jj][ii] = 0
         M = migration(m)
     else:
         M = 0*U
