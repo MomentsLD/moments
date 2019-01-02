@@ -302,7 +302,7 @@ def recombination(num_pops, order, rho=0.0):
     row = []
     data = []
     if num_pops == 1 and order != 2:
-        moms = moment_names_onepop(num_pops)
+        moms = moment_names_onepop(order)
         for ii,moment in enumerate(moms):
             if 'D' in moment:
                 D_order = int(moment.split('_')[0].split('^')[1])
@@ -311,6 +311,7 @@ def recombination(num_pops, order, rho=0.0):
             else:
                 continue
         size = (len(moms),len(moms))
+        return csc_matrix((data,(row,row)),shape=size)
     else:
         return recombination_multipop(rho,num_pops)
 
@@ -354,10 +355,11 @@ def integrate(y, nu, T, dt=0.001, rho=0.0, theta=0.0008, m=[], order=None, num_p
         if len(y) != len(moms):
             raise ValueError("there is a vector size mismatch")
         
-        # found that using numpy linalg was faster than scipy sparse solver for this size system
-    #    D = drift(order)
-    #    M = mutation(order, ism)
-    #    R = recombination(order)
+        # found that using numpy linalg inverse was faster than scipy sparse solver 
+        # for this size system, though admittedly not that great...
+#        D = drift(1, order)
+#        M = mutation(1, order, theta, ism)
+#        R = recombination(num_pops, order, rho=rho)
         
         D = drift(1, order).toarray()
         M = mutation(1, order, theta, ism).toarray()
@@ -382,11 +384,11 @@ def integrate(y, nu, T, dt=0.001, rho=0.0, theta=0.0008, m=[], order=None, num_p
                 A = D/N + M + R
                 Afd = EYE + dt/2.*A
                 Abd = np.linalg.inv(EYE - dt/2.*A)
-    #            Afd = identity(A.shape[0], format='csc') + dt/2.*A
-    #            Abd = factorized(identity(A.shape[0], format='csc') - dt/2.*A)
+#                Afd = identity(A.shape[0], format='csc') + dt/2.*A
+#                Abd = factorized(identity(A.shape[0], format='csc') - dt/2.*A)
             
             y = Abd.dot(Afd.dot(y))
-    #        y = Abd(Afd.dot(y))
+#            y = Abd(Afd.dot(y))
             elapsed_t += dt
             dt_old = dt
             N_old = N

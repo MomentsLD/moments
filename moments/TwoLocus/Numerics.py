@@ -408,8 +408,9 @@ def cached_projection(proj_to, proj_from, hits):
                     proj_weights[ii,jj,kk] = np.exp(f)
                     
         
-        projection_cache[key] = proj_weights
-        return projection_cache[key]
+        #projection_cache[key] = proj_weights
+        #return projection_cache[key]
+        return proj_weights
     
 def project(F_from, proj_to):
     proj_from = len(F_from)-1
