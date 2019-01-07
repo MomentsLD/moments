@@ -214,7 +214,7 @@ def drift(num_pops, order, nus=None):
         elif num_pops == 5:
             return Matrices.drift_five_pop_pi(nus)
         else:
-            print "not done"
+            print("not done")
             return
 
 def mutation(num_pops, order, theta, ism):
@@ -268,7 +268,7 @@ def mutation(num_pops, order, theta, ism):
             if num_pops == 4:
                 return Matrices.mutat_four_pop_pi(theta)
             else:
-                print "not done"
+                print("not done")
                 return
         else:
             theta1,theta2 = theta
@@ -325,7 +325,7 @@ def migration(num_pops, ms, ism=True):
     elif num_pops == 5:
         return Matrices.migra_five_pop_pi(ms)
     else:
-        print "not done"
+        print("not done")
         return
 
 """

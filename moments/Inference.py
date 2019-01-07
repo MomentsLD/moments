@@ -356,7 +356,7 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     missing = numpy.logical_and(model.mask, not_data_mask)
     if numpy.any(missing)\
        and data[missing].sum()/data_sum > missing_model_cutoff:
-        print data[missing].sum(), data_sum
+        print(data[missing].sum(), data_sum)
         logger.warn('Model is masked in some entries where data is not.')
         logger.warn('Number of affected entries is %i. Sum of data in those '
                     'entries is %g:' % (missing.sum(), data[missing].sum()))
