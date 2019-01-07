@@ -842,7 +842,7 @@ def migration_multipop_terms(mom, ms, npops):
                     vals.append( mdict[(l,i)] )
         else:
             if len(set([pop1,pop2,pop3,pop4])) != 4:
-                print mom
+                print(mom)
             i = pop1
             j = pop2
             k = pop3

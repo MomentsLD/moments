@@ -1488,7 +1488,7 @@ def adjust_moment_genotype(name, stat_names, stats, sample_sizes):
 #### for pi basis (multipop)
 def corrected_pi(y, ns=None, num_pops=None):
     if num_pops == None or ns == None:
-        print "specify ns and num_pops"
+        print("specify ns and num_pops")
         return y
     elif num_pops == 1:
         A = pi_corrections_1pop(ns)
@@ -1503,12 +1503,12 @@ def corrected_pi(y, ns=None, num_pops=None):
         A = pi_corrections_4pop(ns)
         return LDstats(A.dot(y), num_pops=4, basis='pi', order=2)
     else:
-        print "whoops haven't done this yet"
+        print("whoops haven't done this yet")
 
 
 def corrected_pi_genotypes(y, ns=None, num_pops=None):
     if num_pops == None or ns == None:
-        print "specify ns and num_pops"
+        print("specify ns and num_pops")
         return y
     elif num_pops == 1:
         A = pi_corrections_genotype_1pop(ns)
@@ -1523,7 +1523,7 @@ def corrected_pi_genotypes(y, ns=None, num_pops=None):
         A = pi_corrections_genotype_4pop(ns)
         return LDstats(A.dot(y), num_pops=4, basis='pi', order=2)
     else:
-        print "whoops haven't done this yet"
+        print("whoops haven't done this yet")
 
 def pi_corrections_1pop(ns):
     n1 = ns[0]
