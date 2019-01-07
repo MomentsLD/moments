@@ -504,9 +504,16 @@ def %(method)s(self, other):
             raise ValueError("basis is not defined on this LD object")
 
 # Allow LDstats objects to be pickled.
-import copy_reg
+try:
+    import copy_reg
+except:
+    import copyreg
 def LDstats_pickler(y):
     return LDstats_unpickler, (y.data, y.mask, y.order, y.num_pops)
 def LDstats_unpickler(data, mask, order, num_pops):
     return LDstats(data, mask, order=order, num_pops=num_pops)
-copy_reg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)
+
+try:
+    copy_reg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)
+except:
+    copyreg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)

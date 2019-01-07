@@ -248,7 +248,7 @@ class TLSpectrum(numpy.ma.masked_array):
     def Dz(self, proj=True):
         n = len(self)-1
         if proj == False:
-            print "not implemented with proj=False"
+            print("not implemented with proj=False")
             return
         else:
             F_proj = self.project(4)

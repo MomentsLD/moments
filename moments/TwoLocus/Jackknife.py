@@ -7,7 +7,7 @@ import moments.TwoLocus.Numerics
 from copy import copy
 import os, sys
 
-import cPickle as pickle
+import pickle
 
 def save_pickle(matrix, filename):
     with open(filename, 'wb+') as outfile:
@@ -274,11 +274,11 @@ def closest_ijk_edges(i,j,k,n,jump):
     
     elif j == 0 and n+jump-i-j-k == 0: # AB/aB
         while i_range < 2 or k_range < 2:
-            print "oh no"
+            print("oh no")
     
     elif k == 0 and n+jump-i-j-k == 0: # AB/Ab
         while i_range < 2 or j_range < 2:
-            print "oh no"
+            print("oh no")
     
     return ordered_set
 

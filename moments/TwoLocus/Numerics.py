@@ -556,7 +556,7 @@ def selection_reversible_additive(n):
     for now, just additive (n->n+1)
     """
     Ssize0 = int((n+1)*(n+2)*(n+3)/6)
-    Ssize1 = int((n+2)*(n+3)*(n+4)/6
+    Ssize1 = int((n+2)*(n+3)*(n+4)/6)
     S = np.zeros((Ssize0,Ssize1))
     for ii in range(n+1):
         for jj in range(n+1-ii):

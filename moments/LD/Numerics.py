@@ -13,7 +13,7 @@ from scipy.sparse.linalg import inv as spinv
 from moments.LD import Matrices
 
 import networkx as nx
-import cPickle as pickle
+import pickle
 import itertools
 
 ### one pop numerics
@@ -60,7 +60,7 @@ def moment_names_onepop(n):
                     last_sigma.append(new_mom)
             new_moments = []
             for ii in range(order+1):
-                pi_order = ii/2
+                pi_order = int(ii/2)
                 z_order = ii%2
                 if pi_order > 0:
                     if z_order > 0:
@@ -253,7 +253,7 @@ def mutation(num_pops, order, theta, ism):
             M[mom_list.index('1_sq1'), mom_list.index('1')] = 1./2 * theta2
             M[mom_list.index('pi^1'), mom_list.index('1_sp1')] = 1./2 * theta2
             M[mom_list.index('pi^1'), mom_list.index('1_sq1')] = 1./2 * theta1
-            for ii in range(1,order/2):
+            for ii in range(1,int(order/2)):
                 M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_sp{0}'.format(ii+1))] = 1./2 * theta2
                 M[mom_list.index('pi^1_s{0}'.format(ii)), mom_list.index('1_sq{0}'.format(ii+1))] = 1./2 * theta1
         
