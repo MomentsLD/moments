@@ -8,7 +8,7 @@ from copy import copy
 # Jackknife for interior points
 # grab closest 10 points that, for n->n+1
 
-def closest_ijk((i,j,k),n,jump):
+def closest_ijk(i,j,k,n,jump):
     fi,fj,fk = i/(n+float(jump)), j/(n+float(jump)), k/(n+float(jump))
     possible_ijk = []
     for ii in range(1,n):
@@ -82,7 +82,7 @@ def closest_ijk((i,j,k),n,jump):
     
     return ordered_set
 
-def closest_ijk_sides((i,j,k),n,jump):
+def closest_ijk_sides(i,j,k,n,jump):
     # closest six points along sides (2D)
     fi,fj,fk = i/(n+float(jump)), j/(n+float(jump)), k/(n+float(jump))
     
@@ -105,7 +105,7 @@ def closest_ijk_sides((i,j,k),n,jump):
                 kk = n-ii-jj
                 possible_ijk.append((ii,jj,kk))
     else:
-        print "not on a side"
+        print("not on a side")
     possible_ijk = np.array(possible_ijk)
     smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),6)[:6]
     smallest_set = np.array([possible_ijk[l] for l in smallests])
@@ -160,7 +160,7 @@ def closest_ijk_sides((i,j,k),n,jump):
 
     return ordered_set
 
-def closest_ijk_edges((i,j,k),n,jump):
+def closest_ijk_edges(i,j,k,n,jump):
     # closest three points along edges (1D)
     fi,fj,fk = i/(n+float(jump)), j/(n+float(jump)), k/(n+float(jump))
     
@@ -252,7 +252,7 @@ def get_A(ordered_set,n,jump):
     A[9] = (ordered_set[:,2]+2.)*(ordered_set[:,2]+1.)
     return A
 
-def compute_alphas((i,j,k),ordered_set,n,jump):
+def compute_alphas(i,j,k,ordered_set,n,jump):
     A = get_A(ordered_set,n,jump)
     b = np.zeros(10)
     b[0] = (n+1.)*(n+2.)*(n+3.)/(n+1.+jump)/(n+2.+jump)/(n+3.+jump)
@@ -267,7 +267,7 @@ def compute_alphas((i,j,k),ordered_set,n,jump):
     b[9] = (n+1.)*(n+2.)*(n+3.)*(n+4.)*(n+5.)/(n+1.+jump)/(n+2.+jump)/(n+3.+jump)/(n+4.+jump)/(n+5.+jump) * (k+2.)*(k+1.)
     return np.linalg.solve(A,b)
 
-def compute_alphas_sides((i,j,k),ordered_set,n,jump):
+def compute_alphas_sides(i,j,k,ordered_set,n,jump):
     A = np.zeros((6,6))
     b = np.zeros(6)
     # depends what surface we are on
@@ -328,7 +328,7 @@ def compute_alphas_sides((i,j,k),ordered_set,n,jump):
         b[5] = (n+1.)*(n+2.)*(n+3.)*(n+4.)/(n+1.+jump)/(n+2.+jump)/(n+3.+jump)/(n+4.+jump) * (j+1.)*(j+2.)
         return np.linalg.solve(A,b)
 
-def compute_alphas_edges((i,j,k),ordered_set,n,jump):
+def compute_alphas_edges(i,j,k,ordered_set,n,jump):
     A = np.zeros((3,3))
     b = np.zeros(3)
     # depends what edge we are on
@@ -379,8 +379,8 @@ def calc_jk(n,jump):
         for i in range(1,n+jump):
             for j in range(1,n+jump-i):
                 for k in range(1,n+jump-i-j):
-                    ordered_set = closest_ijk((i,j,k),n,jump)
-                    alphas = compute_alphas((i,j,k),ordered_set,n,jump)
+                    ordered_set = closest_ijk(i,j,k,n,jump)
+                    alphas = compute_alphas(i,j,k,ordered_set,n,jump)
                     index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                     for coord,alpha in zip(ordered_set,alphas):
                         index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -392,8 +392,8 @@ def calc_jk(n,jump):
         i = 0
         for j in range(1,n+jump):
             for k in range(1,n+jump-j):
-                ordered_set = closest_ijk_sides((i,j,k),n,jump)
-                alphas = compute_alphas_sides((i,j,k),ordered_set,n,jump)
+                ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
                 index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                 for coord,alpha in zip(ordered_set,alphas):
                     index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -404,8 +404,8 @@ def calc_jk(n,jump):
         j = 0
         for i in range(1,n+jump):
             for k in range(1,n+jump-i):
-                ordered_set = closest_ijk_sides((i,j,k),n,jump)
-                alphas = compute_alphas_sides((i,j,k),ordered_set,n,jump)
+                ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
                 index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                 for coord,alpha in zip(ordered_set,alphas):
                     index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -416,8 +416,8 @@ def calc_jk(n,jump):
         k = 0
         for i in range(1,n+jump):
             for j in range(1,n+jump-i):
-                ordered_set = closest_ijk_sides((i,j,k),n,jump)
-                alphas = compute_alphas_sides((i,j,k),ordered_set,n,jump)
+                ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
                 index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                 for coord,alpha in zip(ordered_set,alphas):
                     index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -428,8 +428,8 @@ def calc_jk(n,jump):
         for i in range(1,n+jump):
             for j in range(1,n+jump-i):
                 k = n+jump-i-j
-                ordered_set = closest_ijk_sides((i,j,k),n,jump)
-                alphas = compute_alphas_sides((i,j,k),ordered_set,n,jump)
+                ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
                 index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                 for coord,alpha in zip(ordered_set,alphas):
                     index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -441,8 +441,8 @@ def calc_jk(n,jump):
         j = 0
         k = 0
         for i in range(1,n+jump):
-            ordered_set = closest_ijk_edges((i,j,k),n,jump)
-            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            ordered_set = closest_ijk_edges(i,j,k,n,jump)
+            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
             index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
             for coord,alpha in zip(ordered_set,alphas):
                 index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -453,8 +453,8 @@ def calc_jk(n,jump):
         i = 0
         for j in range(1,n+jump):
             k = n+jump-i-j
-            ordered_set = closest_ijk_edges((i,j,k),n,jump)
-            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            ordered_set = closest_ijk_edges(i,j,k,n,jump)
+            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
             index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
             for coord,alpha in zip(ordered_set,alphas):
                 index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -466,8 +466,8 @@ def calc_jk(n,jump):
         i = 0
         k = 0
         for j in range(1,n+jump):
-            ordered_set = closest_ijk_edges((i,j,k),n,jump)
-            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            ordered_set = closest_ijk_edges(i,j,k,n,jump)
+            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
             index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
             for coord,alpha in zip(ordered_set,alphas):
                 index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -479,8 +479,8 @@ def calc_jk(n,jump):
         i = 0
         j = 0
         for k in range(1,n+jump):
-            ordered_set = closest_ijk_edges((i,j,k),n,jump)
-            alphas = compute_alphas_edges((i,j,k),ordered_set,n,jump)
+            ordered_set = closest_ijk_edges(i,j,k,n,jump)
+            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
             index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
             for coord,alpha in zip(ordered_set,alphas):
                 index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
@@ -488,8 +488,8 @@ def calc_jk(n,jump):
                 col.append(index)
                 data.append(alpha)
 
-        size_from = (n+1)*(n+2)*(n+3)/6
-        size_to = (n+1+jump)*(n+2+jump)*(n+3+jump)/6
+        size_from = int((n+1)*(n+2)*(n+3)/6)
+        size_to = int((n+1+jump)*(n+2+jump)*(n+3+jump)/6)
         jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
         return jks[(n,jump)]
 

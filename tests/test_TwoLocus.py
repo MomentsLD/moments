@@ -2,8 +2,17 @@ import os, unittest
 
 import numpy
 import moments, moments.TwoLocus
+import time
+
 
 class TwoLocusTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_to_from_file(self):
         # make some data
         comments = ['comment 1', 'comment 2']
@@ -46,21 +55,21 @@ class TwoLocusTestCase(unittest.TestCase):
 #        self.assertTrue(numpy.allclose(fs1, jk1, atol=2e-3))
 #        self.assertTrue(numpy.allclose(fs2, jk2, atol=5e-3))
 
-    def test_neutral(self):
+    def test_neutral_slow(self):
         ns = 30
         cached = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns{0}_rho0.fs'.format(ns))
         fs = moments.TwoLocus.TLSpectrum(numpy.zeros((ns+1,ns+1,ns+1)))
         fs.integrate(1, 20, rho=0.0)
         self.assertTrue(numpy.allclose(fs, cached))
 
-    def test_recombination(self):
+    def test_recombination_slow(self):
         ns = 30
         cached = moments.TwoLocus.TLSpectrum.from_file('test_files/two_locus_ns{0}_rho1.fs'.format(ns))
         fs = moments.TwoLocus.TLSpectrum(numpy.zeros((ns+1,ns+1,ns+1)))
         fs.integrate(1, 20, rho=1.0)
         self.assertTrue(numpy.allclose(fs, cached))
     
-    def test_selection(self):
+    def test_selection_slow(self):
         # test if sel_params and gamma give same answer
         ns = 30
         gamma = -1.

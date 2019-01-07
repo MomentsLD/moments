@@ -1,8 +1,17 @@
 import unittest
 import numpy
 import moments
+import time
+
 
 class JackknifeTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_jk_one_jump(self):
         n = 100
         xx = [1.0/i for i in range(1,n)]

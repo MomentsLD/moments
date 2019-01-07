@@ -2,8 +2,17 @@ import os
 import unittest
 import numpy
 import moments
+import time
+
 
 class ResultsTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_1d_ic(self):
         # This just the standard neutral model
         n = 10
@@ -38,7 +47,7 @@ class ResultsTestCase(unittest.TestCase):
         sfs_ref = moments.Spectrum.from_file('test_files/2_pops.fs')
         self.assertTrue(numpy.allclose(sfs, sfs_ref))
     
-    def test_3pops(self):
+    def test_3pops_slow(self):
         n1, n2, n3 = 15, 20, 18
         gamma = [0, 0.5, -2]
         h = [0.5, 0.1, 0.9]

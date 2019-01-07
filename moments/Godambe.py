@@ -3,8 +3,8 @@ Parameter uncertainties and likelihood ratio tests using Godambe information.
 """
 import numpy
 
-from moments import Inference
-from moments.Spectrum_mod import Spectrum
+from . import Inference
+from .Spectrum_mod import Spectrum
 
 def hessian_elem(func, f0, p0, ii, jj, eps, args=()):
     """

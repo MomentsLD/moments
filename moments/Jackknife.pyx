@@ -8,9 +8,14 @@ cimport numpy as np
 # from the Phi_n.
 #--------------------------------------------
 
+def python2round(float f):
+    if round(f + 1) - round(f) != 1:
+        return f + abs(f) / f * 0.5
+    return round(f)
+
 # The choice i' in n samples that best approximates the frequency of \i/(n + 1) is i*n / (n + 1)
 cpdef int index_bis(int i, int n):
-    return int(min(max(round(i * n / (n+1.)), 2), n-2))
+    return int(min(max(python2round(i * n / float(n+1)), 2), n-2))
 
 # Compute the order 3 Jackknife extrapolation coefficients for 1 jump (Phi_n -> Phi_(n+1))
 cpdef np.ndarray[np.float64_t, ndim = 2] calcJK13(int n):

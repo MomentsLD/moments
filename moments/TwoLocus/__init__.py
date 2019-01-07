@@ -1,2 +1,2 @@
-import TLSpectrum_mod, Jackknife, Numerics, Demographics, Inference
+from . import TLSpectrum_mod, Jackknife, Numerics, Demographics, Inference
 TLSpectrum = TLSpectrum_mod.TLSpectrum

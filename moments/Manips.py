@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.misc as misc
 
-import ModelPlot
-import Spectrum_mod
+from . import ModelPlot
+from . import Spectrum_mod
 from scipy.optimize import _nnls
 import scipy as sp
 from scipy import stats
@@ -422,8 +422,10 @@ def __nnls_mod__(A, b):
     w = zeros((n,), dtype=double)
     zz = zeros((m,), dtype=double)
     index = zeros((n,), dtype=int)
-
-    x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
+    try:
+        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
+    except:
+        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
         print("Warning: too many iterations in nnls") #SG my modification
 
@@ -524,7 +526,7 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     target_dimensions[target_population_index] = target_N
     
     assert keep_1 <= M, "Cannot keep more lineages than we started with, keep_1=%d,\
-    M=%d" % (n_lineages, keep_1, M)
+    M=%d" % (keep_1, M)
    
     ############################
     # We first compute the sequence of SFSs we would obtain by migrating individuals
@@ -572,9 +574,9 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     weights = __nnls_mod__(gamma.transpose(), target) # find a positive definite set of 
                                                   # parameters that imitates the target  
     if weights[1] > 0.001:
-        print "warning, in binomial distribution approximation is %2.3f, consider\
+        print("warning, in binomial distribution approximation is %2.3f, consider\
         including more lineages. If more lineages don't resolve the situation,\
-        consider using the exact admixture model" % weights[1]    
+        consider using the exact admixture model" % weights[1])
     # Following could be optimized by making it a dot product  
     new_sfs=0
     for i in range(len(weights[0])):

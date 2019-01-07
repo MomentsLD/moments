@@ -8,7 +8,7 @@ logger = logging.getLogger('TLSpectrum_mod')
 import os
 import numpy, numpy as np
 import moments.TwoLocus.Numerics
-from moments.TwoLocus.Integration import integrate
+import moments.TwoLocus.Integration
 
 class TLSpectrum(numpy.ma.masked_array):
     """
@@ -164,7 +164,7 @@ class TLSpectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         line = fid.readline()
         # Strip out the comments
@@ -230,7 +230,7 @@ class TLSpectrum(numpy.ma.masked_array):
         newfile = False
         if not hasattr(fid, 'write'):
             newfile = True
-            fid = file(fid, 'w')
+            fid = open(fid, 'w')
 
         # Write comments
         for line in comment_lines:
@@ -365,14 +365,17 @@ def %(method)s(self, other):
             rho = 0.0
             print('Warning: rho was not specified. Simulating with rho = 0.')
         
-        self.data[:] = integrate(self.data, nu, tf, rho=rho, dt=dt, theta=theta,
+        self.data[:] = moments.TwoLocus.Integration.integrate(self.data, nu, tf, rho=rho, dt=dt, theta=theta,
                                     gamma=gamma, h=h, sel_params=sel_params)
         
         return self
 
 # Allow TLSpectrum objects to be pickled. 
 # See http://effbot.org/librarybook/copy-reg.htm
-import copy_reg
+try:
+    import copy_reg
+except:
+    import copyreg
 def TLSpectrum_pickler(fs):
     # Collect all the info necessary to save the state of a TLSpectrum
     return TLSpectrum_unpickler, (fs.data, fs.mask, fs.folded)
@@ -380,4 +383,8 @@ def TLSpectrum_unpickler(data, mask, folded):
     # Use that info to recreate the TLSpectrum
     return TLSpectrum(data, mask, mask_infeasible=False,
                        data_folded=folded)
-copy_reg.pickle(TLSpectrum, TLSpectrum_pickler, TLSpectrum_unpickler)
+
+try:
+    copy_reg.pickle(TLSpectrum, TLSpectrum_pickler, TLSpectrum_unpickler)
+except:
+    copyreg.pickle(TLSpectrum, TLSpectrum_pickler, TLSpectrum_unpickler)

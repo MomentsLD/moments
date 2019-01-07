@@ -150,7 +150,7 @@ def array_from_file(fid, return_comments=False):
     # use to open a file.
     if not hasattr(fid, 'read'):
         newfile = True
-        fid = file(fid, 'r')
+        fid = open(fid, 'r')
 
     line = fid.readline()
     # Strip out the comments
@@ -198,7 +198,7 @@ def array_to_file(data, fid, precision=16, comment_lines = []):
     newfile = False
     if not hasattr(fid, 'write'):
         newfile = True
-        fid = file(fid, 'w')
+        fid = open(fid, 'w')
 
     # Write comments
     for line in comment_lines:

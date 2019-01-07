@@ -30,7 +30,7 @@ def index_n(n,i,j,k):
 
 def array_to_Phi(F):
     n = len(F)-1
-    Phi = np.zeros((n+1)*(n+2)*(n+3)/6)
+    Phi = np.zeros(int((n+1)*(n+2)*(n+3)/6))
     for ii in range(n+1):
         for jj in range(n+1-ii):
             for kk in range(n+1-ii-jj):
@@ -53,7 +53,7 @@ def choose(n,i):
     return np.exp(gammaln(n+1)- gammaln(n-i+1) - gammaln(i+1))
 
 def drift(n):
-    Dsize = (n+1)*(n+2)*(n+3)/6
+    Dsize = int((n+1)*(n+2)*(n+3)/6)
     row = []
     col = []
     data = []
@@ -166,7 +166,7 @@ def mutations(n, theta=1.0):
     """
     Mutations can occur on a background with ???? huh?
     """
-    Msize = (n+1)*(n+2)*(n+3)/6
+    Msize = int((n+1)*(n+2)*(n+3)/6)
     
     M_1to2 = np.zeros((Msize,Msize))
     # A/a -> AB and aB
@@ -190,8 +190,8 @@ def recombination(n, rho):
     rho = 4*Ne*r
     where r is the recombination probability
     """
-    Rsize0 = (n+1)*(n+2)*(n+3)/6
-    Rsize1 = (n+2)*(n+3)*(n+4)/6
+    Rsize0 = int((n+1)*(n+2)*(n+3)/6)
+    Rsize1 = int((n+2)*(n+3)*(n+4)/6)
     row = []
     col = []
     data = [] 
@@ -250,8 +250,8 @@ def selection_additive_component(n):
     """
     This is for selection at just the left locus
     """
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    Ssize0 = int((n+1)*(n+2)*(n+3)/6)
+    Ssize1 = int((n+2)*(n+3)*(n+4)/6)
     
     row = []
     col = []
@@ -282,8 +282,8 @@ def selection_dominance_component(n):
     """
     This is for selection at just the left locus
     """
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize2 = (n+3)*(n+4)*(n+5)/6
+    Ssize0 = int((n+1)*(n+2)*(n+3)/6)
+    Ssize2 = int((n+3)*(n+4)*(n+5)/6)
     
     row = []
     col = []
@@ -330,8 +330,8 @@ def selection_two_locus(n, sel_params):
     Additive model, allowing for epistasis if sAB != sA+sB
     """
     sAB, sA, sB = sel_params
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    Ssize0 = int((n+1)*(n+2)*(n+3)/6)
+    Ssize1 = int((n+2)*(n+3)*(n+4)/6)
     
     row = []
     col = []
