@@ -30,7 +30,7 @@ def index_n(n,i,j,k):
 
 def array_to_Phi(F):
     n = len(F)-1
-    Phi = np.zeros((n+1)*(n+2)*(n+3)/6)
+    Phi = np.zeros(int((n+1)*(n+2)*(n+3)/6))
     for ii in range(n+1):
         for jj in range(n+1-ii):
             for kk in range(n+1-ii-jj):
@@ -53,7 +53,7 @@ def choose(n,i):
     return np.exp(gammaln(n+1)- gammaln(n-i+1) - gammaln(i+1))
 
 def drift(n):
-    Dsize = (n+1)*(n+2)*(n+3)/6
+    Dsize = int((n+1)*(n+2)*(n+3)/6)
     row = []
     col = []
     data = []
@@ -166,7 +166,7 @@ def mutations(n, theta=1.0):
     """
     
     """
-    Msize = (n+1)*(n+2)*(n+3)/6
+    Msize = int((n+1)*(n+2)*(n+3)/6)
     
     M_1to2 = np.zeros((Msize,Msize))
     # A/a -> AB and aB
@@ -190,8 +190,8 @@ def recombination(n, rho):
     rho = 4*Ne*r
     where r is the recombination probability
     """
-    Rsize0 = (n+1)*(n+2)*(n+3)/6
-    Rsize1 = (n+2)*(n+3)*(n+4)/6
+    Rsize0 = int((n+1)*(n+2)*(n+3)/6)
+    Rsize1 = int((n+2)*(n+3)*(n+4)/6)
     row = []
     col = []
     data = [] 
@@ -246,103 +246,6 @@ def recombination(n, rho):
 
     return csc_matrix((data,(row,col)),shape=(Rsize0,Rsize1))
 
-#These don't work properly...
-#def selection_additive_component(n):
-#    """
-#    This is for selection at just the left locus
-#    """
-#    Ssize0 = (n+1)*(n+2)*(n+3)/6
-#    Ssize1 = (n+2)*(n+3)*(n+4)/6
-#    
-#    row = []
-#    col = []
-#    data = []
-#    for i in range(n+1):
-#        for j in range(n+1-i):
-#            for k in range(n+1-i-j):
-#                fA = i+j
-#                fa = n-i-j
-#                fB = i+k
-#                fb = n-i-k
-#                this_ind = index_n(n,i,j,k)
-#                
-#                if fA == 0: # i,j both 0, so we have just B/b, which has zero selection
-#                    continue
-#                if fB == 0: # i,k both 0, so we have just A/a, which is selected agains
-#                    if j < n and j > 0:
-#                        row.append(this_ind)
-#                        col.append(index_n(n+1,i,j,k))
-#                        data.append(j * (n-i-j-k+1) / (n+1.))
-#                    if j > 1:
-#                        row.append(index_n(n,i,j-1,k))
-#                        col.append(index_n(n+1,i,j,k))
-#                        data.append(-j * (n-i-j-k+1) / (n+1.))
-#                if fa == 0 or fb == 0:
-#                    continue
-#                    
-#                #if i > 0:
-#                row.append(this_ind)
-#                col.append(index_n(n+1,i+1,j,k))
-#                data.append( - 1./(n+1) * (i+1)*(n-i-j) )
-#                #if j > 0:
-#                row.append(this_ind)
-#                col.append(index_n(n+1,i,j+1,k))
-#                data.append( - 1./(n+1) * (j+1)*(n-i-j) )
-#                #if k > 0:
-#                row.append(this_ind)
-#                col.append(index_n(n+1,i,j,k+1))
-#                data.append( 1./(n+1) * (i+j)*(k+1) )
-#                #if n-i-j-k > 0:
-#                row.append(this_ind)
-#                col.append(index_n(n+1,i,j,k))
-#                data.append( 1./(n+1) * (i+j)*(n-i-j-k+1) )
-#    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize1))
-#
-#def selection_dominance_component(n):
-#    """
-#    This is for selection at just the left locus
-#    """
-#    Ssize0 = (n+1)*(n+2)*(n+3)/6
-#    Ssize2 = (n+3)*(n+4)*(n+5)/6
-#    
-#    row = []
-#    col = []
-#    data = []
-#    for i in range(n+1):
-#        for j in range(n+1-i):
-#            for k in range(n+1-i-j):
-#                this_ind = index_n(n,i,j,k)
-#                if i > 0 and k > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i+1,j,k+1))
-#                    data.append( 1./(n+1)/(n+2) * (i+1)*(k+1)*(i+j) )
-#                if i > 0 and n-i-j-k > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i+1,j,k))
-#                    data.append( 1./(n+1)/(n+2) * (i+1)*(n-i-j-k+1)*(i+j) )
-#                if j > 0 and k > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i,j+1,k+1))
-#                    data.append( 1./(n+1)/(n+2) * (j+1)*(k+1)*(i+j) )
-#                if j > 0 and n-i-j-k > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i,j+1,k))
-#                    data.append( 1./(n+1)/(n+2) * (j+1)*(n-i-j-k+1)*(i+j) )
-#                if i > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i+2,j,k))
-#                    data.append( - 1./(n+1)/(n+2) * (i+2)*(i+1)*(n-i-j) )
-#                if i > 0 and j > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i+1,j+1,k))
-#                    data.append( - 2./(n+1)/(n+2) * (i+1)*(j+1)*(n-i-j) )
-#                if j > 0:
-#                    row.append(this_ind)
-#                    col.append(index_n(n+2,i,j+2,k))
-#                    data.append( - 1./(n+1)/(n+2) * (j+2)*(j+1)*(n-i-j) )
-#
-#    return csc_matrix((data,(row,col)), shape=(Ssize0,Ssize2))
-
 def selection_two_locus(n, sel_params):
     """
     This is for additive selection at both loci, where Ab has selection coefficient sA, 
@@ -350,8 +253,8 @@ def selection_two_locus(n, sel_params):
     Additive model, allowing for epistasis if sAB != sA+sB
     """
     sAB, sA, sB = sel_params
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    Ssize0 = int((n+1)*(n+2)*(n+3)/6)
+    Ssize1 = int((n+2)*(n+3)*(n+4)/6)
     
     row = []
     col = []
@@ -445,7 +348,7 @@ def mutations_reversible(n, u, v):
     Assuming equal forward and backward mutation rates, but allowing different rates
     at left (u) and right (v) loci
     """
-    Msize = (n+1)*(n+2)*(n+3)/6
+    Msize = int((n+1)*(n+2)*(n+3)/6)
     
     M = np.zeros((Msize,Msize))
     for i in range(n+1):
@@ -474,7 +377,7 @@ def mutations_reversible_2(n, u, v):
     we allow only mutations if the frequency is zero
     if a mutation fixes, put that density back at sero
     """
-    Msize = (n+1)*(n+2)*(n+3)/6
+    Msize = int((n+1)*(n+2)*(n+3)/6)
     
     M = np.zeros((Msize,Msize))
 
@@ -513,7 +416,7 @@ def mutations_reversible_2(n, u, v):
     return csc_matrix(M), M2
     
 def drift_reversible(n):
-    Dsize = (n+1)*(n+2)*(n+3)/6
+    Dsize = int((n+1)*(n+2)*(n+3)/6)
     row = []
     col = []
     data = []
@@ -594,8 +497,8 @@ def recombination_reversible(n, rho):
     rho = 4*Ne*r
     where r is the recombination probability
     """
-    Rsize0 = (n+1)*(n+2)*(n+3)/6
-    Rsize1 = (n+2)*(n+3)*(n+4)/6
+    Rsize0 = int((n+1)*(n+2)*(n+3)/6)
+    Rsize1 = int((n+2)*(n+3)*(n+4)/6)
     row = []
     col = []
     data = [] 
@@ -652,8 +555,8 @@ def selection_reversible_additive(n):
     selection at just the left locus, accounting for selection at fixed entries as well
     for now, just additive (n->n+1)
     """
-    Ssize0 = (n+1)*(n+2)*(n+3)/6
-    Ssize1 = (n+2)*(n+3)*(n+4)/6
+    Ssize0 = int((n+1)*(n+2)*(n+3)/6)
+    Ssize1 = int((n+2)*(n+3)*(n+4)/6
     S = np.zeros((Ssize0,Ssize1))
     for ii in range(n+1):
         for jj in range(n+1-ii):

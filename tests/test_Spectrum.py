@@ -5,8 +5,16 @@ import numpy
 import scipy.special
 import moments
 import pickle
+import time
 
 class SpectrumTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_to_file(self):
         """
         Saving spectrum to file.
@@ -218,7 +226,12 @@ class SpectrumTestCase(unittest.TestCase):
         folded2 = fs2.fold()
 
         # We'll iterate through each of these arithmetic functions.
-        from operator import add,sub,mul,div,truediv,floordiv,pow,abs,pos,neg
+        try:
+            from operator import add, sub, mul, div, truediv, floordiv, pow, abs, pos, neg
+            lst = [add, sub, mul, div, truediv, floordiv, pow]
+        except:
+            from operator import add, sub, mul, truediv, floordiv, pow, abs, pos, neg
+            lst = [add, sub, mul, truediv, floordiv, pow]
 
         arr = numpy.random.uniform(size=ns)
         marr = numpy.random.uniform(size=ns)
@@ -227,7 +240,7 @@ class SpectrumTestCase(unittest.TestCase):
         # want to explicitly test this case.
         numpyfloat = numpy.float64(2.0)
 
-        for op in [add,sub,mul,div,truediv,floordiv,pow]:
+        for op in lst:
             # Check that binary operations propogate folding status.
             # Need to check cases both on right-hand-side of operator and
             # left-hand-side

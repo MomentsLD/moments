@@ -8,7 +8,7 @@ logger = logging.getLogger('TriSpectrum_mod')
 import os
 import numpy, numpy as np
 import moments.Triallele.Numerics
-from moments.Triallele.Integration import integrate_cn
+import moments.Triallele.Integration
 
 class TriSpectrum(numpy.ma.masked_array):
     """
@@ -158,7 +158,7 @@ class TriSpectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         line = fid.readline()
         # Strip out the comments
@@ -231,7 +231,7 @@ class TriSpectrum(numpy.ma.masked_array):
         newfile = False
         if not hasattr(fid, 'write'):
             newfile = True
-            fid = file(fid, 'w')
+            fid = open(fid, 'w')
 
         # Write comments
         for line in comment_lines:
@@ -274,7 +274,7 @@ class TriSpectrum(numpy.ma.masked_array):
             raise ValueError('Input Spectrum is already folded.')
         folded = self + np.transpose(self)
         for ii in range(len(folded)):
-            folded[ii,ii] /= 2
+            folded[ii,ii] = np.divide(folded[ii,ii], 2)
         folded.mask[0,:] = True
         folded.mask[:,0] = True
         for ii in range(len(folded)):
@@ -426,13 +426,16 @@ def %(method)s(self, other):
         if gammas == None:
             gammas = [0,0,0,0,0]
         
-        self.data[:] = integrate_cn(self.data, nu, tf, dt=dt, gammas=gammas, theta=theta)
+        self.data[:] = moments.Triallele.Integration.integrate_cn(self.data, nu, tf, dt=dt, gammas=gammas, theta=theta)
         
         return self
     
 # Allow TriSpectrum objects to be pickled. 
 # See http://effbot.org/librarybook/copy-reg.htm
-import copy_reg
+try:
+    import copy_reg
+except:
+    import copyreg
 def TriSpectrum_pickler(fs):
     # Collect all the info necessary to save the state of a TriSpectrum
     return TriSpectrum_unpickler, (fs.data, fs.mask, fs.folded_major,
@@ -442,4 +445,7 @@ def TriSpectrum_unpickler(data, mask, folded_major, folded_ancestral):
     return TriSpectrum(data, mask, mask_infeasible=False,
                        data_folded_major=folded_major,
                        data_folded_ancestral=folded_ancestral)
-copy_reg.pickle(TriSpectrum, TriSpectrum_pickler, TriSpectrum_unpickler)
+try:
+    copy_reg.pickle(TriSpectrum, TriSpectrum_pickler, TriSpectrum_unpickler)
+except:
+    copyreg.pickle(TriSpectrum, TriSpectrum_pickler, TriSpectrum_unpickler)

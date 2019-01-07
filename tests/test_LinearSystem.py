@@ -1,7 +1,7 @@
 import unittest
 import numpy
 import moments
-
+import time
 import sys
 sys.path[:0] = ['../moments/']
 
@@ -10,6 +10,13 @@ import LinearSystem_1D
 import LinearSystem_2D
 
 class LinearSystemTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_matrix_drift_1D(self):
         Dref = dlim = numpy.genfromtxt('test_files/drift_matrix_1D.csv', delimiter=',')
         d = LinearSystem_1D.calcD(25).todense()

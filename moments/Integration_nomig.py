@@ -1,14 +1,14 @@
 import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
-
-import Spectrum_mod
-import Numerics
+from . import Reversible
+import moments.Spectrum_mod
+from . import Numerics
 import Jackknife as jk
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
-from Integration import compute_dt
+from . import Integration
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -39,7 +39,7 @@ def _calcB(dims, u):
         B[tp] = (dims[k] - 1) * u[k]
     return B
 
-import Reversible
+
 # Finite genome mutation model
 def _calcB_FB(dims, u, v):
     """
@@ -491,7 +491,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
     while t < Tmax:
         dt_old = dt
         #dt = compute_dt(sfs.shape, N, gamma, h, 0, Tmax * dt_fac)
-        dt = min(compute_dt(N, s=s, h=h), Tmax * dt_fac)
+        dt = min(Integration.compute_dt(N, s=s, h=h), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
 
@@ -556,9 +556,9 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
         t += dt
 
     if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
+        return moments.Spectrum_mod.Spectrum(sfs)
     else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
+        return moments.Spectrum_mod.Spectrum(sfs, mask_corners=False)
 
 
 def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False, 
@@ -645,7 +645,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
     while t < Tmax:
         dt_old = dt
         #dt = compute_dt(sfs.shape, N, 0, 0, 0, Tmax * dt_fac)
-        dt = min(compute_dt(N), Tmax * dt_fac)
+        dt = min(Integration.compute_dt(N), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
                 
@@ -700,8 +700,8 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
         t += dt
 
     if finite_genome == False:
-        return Spectrum_mod.Spectrum(sfs)
+        return moments.Spectrum_mod.Spectrum(sfs)
     else:
-        return Spectrum_mod.Spectrum(sfs, mask_corners=False)
+        return moments.Spectrum_mod.Spectrum(sfs, mask_corners=False)
 
     return Spectrum_mod.Spectrum(sfs)

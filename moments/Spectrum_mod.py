@@ -4,10 +4,10 @@ Contains Spectrum object, which represents frequency spectra.
 import logging
 logging.basicConfig()
 logger = logging.getLogger('Spectrum_mod')
-
+import functools
 import operator
 import os
-
+import sys
 import numpy
 from numpy import newaxis as nuax
 import scipy.misc as misc
@@ -19,10 +19,9 @@ except ImportError:
 from scipy.integrate import trapz
 from scipy.special import betainc
 
-from moments.Integration import integrate_nD
-from moments.Integration_nomig import integrate_nomig, integrate_neutral
-import moments.Numerics
-from moments.Numerics import reverse_array, _cached_projection, _lncomb
+import moments.Integration
+import moments.Integration_nomig
+from . import Numerics
 plotting = True
 try:
     import moments.ModelPlot
@@ -215,7 +214,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         line = fid.readline()
         # Strip out the comments
@@ -304,7 +303,7 @@ class Spectrum(numpy.ma.masked_array):
         newfile = False
         if not hasattr(fid, 'write'):
             newfile = True
-            fid = file(fid, 'w')
+            fid = open(fid, 'w')
 
         # Write comments
         for line in comment_lines:
@@ -415,7 +414,7 @@ class Spectrum(numpy.ma.masked_array):
             least, most = max(n - (proj_from - hits), 0), min(hits, n)
             to_slice[axis] = slice(least, most + 1)
             # The projection weights.
-            proj = _cached_projection(n, proj_from, hits)
+            proj = Numerics._cached_projection(n, proj_from, hits)
             proj_slice[axis] = slice(least, most + 1)
             # Do the multiplications
             pfs.data[to_slice] += self.data[from_slice] * proj[proj_slice]
@@ -480,7 +479,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         ind = numpy.indices(self.shape)
         # Transpose the first access to the last, so ind[ii,jj,kk] = [ii,jj,kk]
-        ind = ind.transpose(range(1, self.Npop + 1) + [0])
+        ind = ind.transpose(list(range(1, self.Npop + 1)) + [0])
         return ind
 
     def _total_per_entry(self):
@@ -532,12 +531,12 @@ class Spectrum(numpy.ma.masked_array):
         # Here we create a mask that masks any values that were masked in
         # the original fs (or folded onto by a masked value).
         final_mask = numpy.logical_or(original_mask, 
-                                      reverse_array(original_mask))
+                                      Numerics.reverse_array(original_mask))
         
         # To do the actual folding, we take those entries that would be folded
         # out, reverse the array along all axes, and add them back to the
         # original fs.
-        reversed = reverse_array(numpy.where(where_folded_out, self, 0))
+        reversed = Numerics.reverse_array(numpy.where(where_folded_out, self, 0))
         folded = numpy.ma.masked_array(self.data + reversed)
         folded.data[where_folded_out] = 0
     
@@ -545,7 +544,7 @@ class Spectrum(numpy.ma.masked_array):
         # ambiguous.
         where_ambiguous = (total_per_entry == total_samples / 2.)
         ambiguous = numpy.where(where_ambiguous, self, 0)
-        folded += -0.5*ambiguous + 0.5*reverse_array(ambiguous)
+        folded += -0.5*ambiguous + 0.5*Numerics.reverse_array(ambiguous)
     
         # Mask out the remains of the folding operation.
         final_mask = numpy.logical_or(final_mask, where_folded_out)
@@ -569,7 +568,7 @@ class Spectrum(numpy.ma.masked_array):
             raise ValueError('Input Spectrum is not folded.')
 
         # Unfolding the data is easy.
-        reversed_data = reverse_array(self.data)
+        reversed_data = Numerics.reverse_array(self.data)
         newdata = (self.data + reversed_data)/2.
 
         # Unfolding the mask is trickier. We want to preserve masking of entries
@@ -581,7 +580,7 @@ class Spectrum(numpy.ma.masked_array):
         where_folded_out = total_per_entry > int(total_samples/2)
 
         newmask = numpy.logical_xor(self.mask, where_folded_out)
-        newmask = numpy.logical_or(newmask, reverse_array(newmask))
+        newmask = numpy.logical_or(newmask, Numerics.reverse_array(newmask))
     
         outfs = Spectrum(newdata, mask=newmask, data_folded=False, 
                          pop_ids=self.pop_ids)
@@ -666,7 +665,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         # Parse the commandline
         command = line = fid.readline()
@@ -840,7 +839,7 @@ class Spectrum(numpy.ma.masked_array):
         # use to open a file.
         if not hasattr(fid, 'read'):
             newfile = True
-            fid = file(fid, 'r')
+            fid = open(fid, 'r')
 
         if sites == 'all':
             only_nonsyn, only_syn = False, False
@@ -986,7 +985,7 @@ class Spectrum(numpy.ma.masked_array):
         # records the indices of the entry. 
         # For example, counts_per_pop[4,19,8] = [4,19,8]
         counts_per_pop = numpy.indices(self.shape)
-        counts_per_pop = numpy.transpose(counts_per_pop, axes=range(1, r + 1) + [0])
+        counts_per_pop = numpy.transpose(counts_per_pop, axes=list(range(1, r + 1)) + [0])
     
         # The last axis of ptwiddle is now the relative frequency of SNPs in
         # that bin in each of the populations.
@@ -1159,8 +1158,8 @@ class Spectrum(numpy.ma.masked_array):
         for counts, derived in zip(counts_per_entry, total_per_entry.ravel()):
             # The probability here is 
             # (t1 choose d1)*(t2 choose d2)/(ntot choose derived)
-            lnprob = sum(_lncomb(t, d) for t, d in zip(self.sample_sizes,counts))
-            lnprob -= _lncomb(total_samp, derived)
+            lnprob = sum(Numerics._lncomb(t, d) for t, d in zip(self.sample_sizes,counts))
+            lnprob -= Numerics._lncomb(total_samp, derived)
             prob = numpy.exp(lnprob)
             # Assign result using the appropriate weighting
             resamp[tuple(counts)] += prob * combined[derived]
@@ -1243,9 +1242,9 @@ class Spectrum(numpy.ma.masked_array):
             pop_contribs = []
             iter = zip(projections, successful_calls, derived_calls)
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
-                contrib = _cached_projection(p_to,p_from,hits)[slices[pop_ii]]
+                contrib = Numerics._cached_projection(p_to,p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
-            fs += reduce(operator.mul, pop_contribs)
+            fs += functools.reduce(operator.mul, pop_contribs)
         fsout = Spectrum(fs, mask_corners=mask_corners, 
                          pop_ids=pop_ids)
         if polarized:
@@ -1280,9 +1279,9 @@ class Spectrum(numpy.ma.masked_array):
             pop_contribs = []
             iter = zip(projections, called_by_pop, derived_by_pop)
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
-                contrib = _cached_projection(p_to, p_from,hits)[slices[pop_ii]]
+                contrib = Numerics._cached_projection(p_to, p_from,hits)[slices[pop_ii]]
                 pop_contribs.append(contrib)
-            fs_proj = reduce(operator.mul, pop_contribs)
+            fs_proj = functools.reduce(operator.mul, pop_contribs)
             
             # create slices for adding projected fs to overall fs
             fs_total += count * fs_proj
@@ -1390,7 +1389,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         # Read the fux file into a dictionary.
         fux_dict = {}
-        f = file(fux_filename)
+        f = open(fux_filename)
         for line in f.readlines():
             if line.startswith('#'):
                 continue
@@ -1424,9 +1423,9 @@ class Spectrum(numpy.ma.masked_array):
             Nxu = Spectrum.from_data_dict(mis_data, pop_ids, projections)
     
             # Equations 5 & 6 from the paper.
-            Nxu_rev = reverse_array(Nxu)
+            Nxu_rev = Numerics.reverse_array(Nxu)
             Rux = (fxu*Nux - (1-fxu)*Nxu_rev)/(fux+fxu-1)
-            Rxu = reverse_array((fux*Nxu_rev - (1-fux)*Nux)/(fux+fxu-1))
+            Rxu = Numerics.reverse_array((fux*Nxu_rev - (1-fux)*Nux)/(fux+fxu-1))
     
             fs += Rux + Rxu
     
@@ -1435,7 +1434,7 @@ class Spectrum(numpy.ma.masked_array):
         if force_pos:
             negative_entries = numpy.minimum(0, fs)
             fs -= negative_entries
-            fs += reverse_array(negative_entries)
+            fs += Numerics.reverse_array(negative_entries)
     
         return Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
 
@@ -1563,12 +1562,12 @@ def %(method)s(self, other):
             if h is None:
                 h = 0.5
             if gamma == 0:
-                self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
+                self.data[:] = moments.Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
             else:
                 #self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
-                self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
+                self.data[:] = moments.Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
         else:
@@ -1581,24 +1580,45 @@ def %(method)s(self, other):
             if (m == 0).all(): 
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n)<3:
-                    self.data[:] = integrate_neutral(self.data, Npop, tf, dt_fac, theta, 
+                    self.data[:] = moments.Integration_nomig.integrate_neutral(self.data, Npop, tf, dt_fac, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
                 else:
-                    self.data[:] = integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta, 
+                    self.data[:] = moments.Integration_nomig.integrate_nomig(self.data, Npop, tf, dt_fac, gamma, h, theta,
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
             else:
-                self.data[:] = integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
+                self.data[:] = moments.Integration_nomig.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
 
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm
-import copy_reg
-def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
-    return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded, 
-                            check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
-def Spectrum_pickler(fs):
-    return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
-copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
+try:
+    import copy_reg
+
+
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+        return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded,
+                                check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
+
+
+    def Spectrum_pickler(fs):
+        return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
+
+
+    copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
+except:
+    import copyreg
+
+
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+        return moments.Spectrum(data, mask, mask_corners=False, data_folded=data_folded,
+                                check_folding=False, pop_ids=pop_ids, extrap_x=extrap_x)
+
+
+    def Spectrum_pickler(fs):
+        return Spectrum_unpickler, (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x)
+
+
+    copyreg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)

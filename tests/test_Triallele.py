@@ -3,8 +3,17 @@ import unittest
 
 import numpy
 import moments, moments.Triallele
+import time
+
 
 class TrialleleTestCase(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_to_from_file(self):
         # make some data
         comments = ['comment 1', 'comment 2']
@@ -66,7 +75,7 @@ class TrialleleTestCase(unittest.TestCase):
         fs.integrate(1.0, 20.0)
         self.assertTrue(numpy.allclose(fs, exact))
     
-    def test_selection(self):
+    def test_selection_slow(self):
         ns = 30
         cached = moments.Triallele.TriSpectrum.from_file('test_files/triallele_selection.fs')
         sA, hA = -1.0, 0.5

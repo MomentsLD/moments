@@ -8,33 +8,33 @@ distribution.
 import logging
 logging.basicConfig()
 
-import Demographics1D
-import Demographics2D
-import Godambe
-import Inference
-import Integration
-import Integration_nomig
+from . import Demographics1D
+from . import Demographics2D
+from . import Godambe
+from . import Inference
+from . import Integration
+from . import Integration_nomig
 import Jackknife
 import LinearSystem_1D
 import LinearSystem_2D
-import Manips
-import Misc
-import Numerics
+from . import Manips
+from . import Misc
+from . import Numerics
 
 # Protect import of Plotting in case matplotlib not installed.
 try:
-    import Plotting
+    from . import Plotting
 except ImportError:
     pass
 
 # Protect import of ModelPlot in case matplotlib not installed.
 try:
-    import ModelPlot
+    from . import ModelPlot
 except ImportError:
     pass
 
 # We do it this way so it's easier to reload.
-import Spectrum_mod 
+from . import Spectrum_mod
 Spectrum = Spectrum_mod.Spectrum
 
 
