@@ -19,14 +19,14 @@ def drift_one_pop(nu):
     return csc_matrix(A)
 
 def recom_one_pop(rho):
-    row = range(2)
-    col = range(2)
+    row = list(range(2))
+    col = list(range(2))
     data = np.array([ -1.*rho , -rho/2. ])
     return csc_matrix((data,(row,col)),shape=(6,6))
 
 def mutat_one_pop(theta):
-    row = range(5)
-    col = range(5)
+    row = list(range(5))
+    col = list(range(5))
     data = np.array([ -4.*theta , -4.*theta , -4.*theta , -2.*theta , -2.*theta ])
     return csc_matrix((data,(row,col)),shape=(6,6))
 
@@ -39,15 +39,15 @@ def drift_two_pop(params):
 
 def recom_two_pop(params):
     rho = params
-    row = range(3+2**3)
-    col = range(3+2**3)
+    row = list(range(3+2**3))
+    col = list(range(3+2**3))
     data = [-1.*rho]*3 + [-rho/2.]*2**3
     return csc_matrix((data,(row,col)),shape=(27,27))
 
 def mutat_two_pop(params):
     theta = params
-    row = range(3+2**3+3**2+3+3)
-    col = range(3+2**3+3**2+3+3)
+    row = list(range(3+2**3+3**2+3+3))
+    col = list(range(3+2**3+3**2+3+3))
     data = [-4.*theta]*(3+2**3+3**2) + [-2.*theta]*(3+3)
     return csc_matrix((data,(row,col)),shape=(27,27))
 
@@ -67,15 +67,15 @@ def drift_three_pop(params):
 
 def recom_three_pop(params):
     rho = params
-    row = range(6+3**3)
-    col = range(6+3**3)
+    row = list(range(6+3**3))
+    col = list(range(6+3**3))
     data = [-1.*rho]*6 + [-rho/2.]*3**3
     return csc_matrix((data,(row,col)),shape=(82,82))
 
 def mutat_three_pop(params):
     theta = params
-    row = range(6+3**3+6**2+6+6)
-    col = range(6+3**3+6**2+6+6)
+    row = list(range(6+3**3+6**2+6+6))
+    col = list(range(6+3**3+6**2+6+6))
     data = [-4.*theta]*(6+3**3+6**2) + [-2.*theta]*(6+6)
     return csc_matrix((data,(row,col)),shape=(82,82))
 
@@ -95,15 +95,15 @@ def drift_four_pop(params):
 
 def recom_four_pop(params):
     rho = params
-    row = range(10+4**3)
-    col = range(10+4**3)
+    row = list(range(10+4**3))
+    col = list(range(10+4**3))
     data = [-1.*rho]*10 + [-rho/2.]*4**3
     return csc_matrix((data,(row,col)),shape=(195,195))
 
 def mutat_four_pop(params):
     theta = params
-    row = range(10+4**3+10**2+10+10)
-    col = range(10+4**3+10**2+10+10)
+    row = list(range(10+4**3+10**2+10+10))
+    col = list(range(10+4**3+10**2+10+10))
     data = [-4.*theta]*(10+4**3+10**2) + [-2.*theta]*(10+10)
     return csc_matrix((data,(row,col)),shape=(195,195))
 
@@ -129,15 +129,15 @@ def drift_two_pop_pi(params):
 
 def recom_two_pop_pi(params):
     rho = params
-    row = range(3+2**3)
-    col = range(3+2**3)
+    row = list(range(3+2**3))
+    col = list(range(3+2**3))
     data = [-1.*rho]*3 + [-rho/2.]*2**3
     return csc_matrix((data,(row,col)),shape=(27,27))
 
 def mutat_two_pop_pi(params): # reversible mutation
     theta = params
-    row = range(3+2**3+3**2+3+3)
-    col = range(3+2**3+3**2+3+3)
+    row = list(range(3+2**3+3**2+3+3))
+    col = list(range(3+2**3+3**2+3+3))
     data = [-4.*theta]*(3+2**3+3**2) + [-2.*theta]*(3+3)
     return csc_matrix((data,(row,col)),shape=(27,27))
 
@@ -161,15 +161,15 @@ def drift_three_pop_pi(params):
 
 def recom_three_pop_pi(params):
     rho = params
-    row = range(6+3**3)
-    col = range(6+3**3)
+    row = list(range(6+3**3))
+    col = list(range(6+3**3))
     data = [-1./rho]*6 + [-rho/2.]*3**3
     return csc_matrix((data,(row,col)),shape=(82,82))
 
 def mutat_three_pop_pi(params): # reversible mutation
     theta = params
-    row = range(6+3**3+6**2+6+6)
-    col = range(6+3**3+6**2+6+6)
+    row = list(range(6+3**3+6**2+6+6))
+    col = list(range(6+3**3+6**2+6+6))
     data = [-4.*theta]*(6+3**3+6**2) + [-2.*theta]*(6+6)
     return csc_matrix((data,(row,col)),shape=(82,82))
 
@@ -194,15 +194,15 @@ def drift_four_pop_pi(params):
 
 def recom_four_pop_pi(params):
     rho = params
-    row = range(10+4**3)
-    col = range(10+4**3)
+    row = list(range(10+4**3))
+    col = list(range(10+4**3))
     data = [-1.*rho]*10 + [-rho/2.]*4**3
     return csc_matrix((data,(row,col)),shape=(195,195))
 
 def mutat_four_pop_pi(params):
     theta = params
-    row = range(10+4**3+10**2+10+10)
-    col = range(10+4**3+10**2+10+10)
+    row = list(range(10+4**3+10**2+10+10))
+    col = list(range(10+4**3+10**2+10+10))
     data = [-4.*theta]*(10+4**3+10**2) + [-2.*theta]*(10+10)
     return csc_matrix((data,(row,col)),shape=(195,195))
 
@@ -440,7 +440,7 @@ def drift_multipop_terms(mom,nus):
 def migration_multipop_terms(mom, ms, npops):
     mdict = {}
     mijs = []
-    all_pops = range(1,npops+1)
+    all_pops = list(range(1,npops+1))
     
     for pair in itertools.combinations(all_pops, 2):
         mijs.append((pair[0],pair[1]))

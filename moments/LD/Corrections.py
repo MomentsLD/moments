@@ -75,7 +75,7 @@ def corrected_multipop(stats, ns=None, num_pops=2):
         raise ValueError("mismatch of input moments and number of populations")
     
     corrected = np.ones(len(stats))
-    for ii,name in zip(range(len(stat_names)),stat_names):
+    for ii,name in zip(list(range(len(stat_names))),stat_names):
         corrected[ii] = adjust_moment(name, stat_names, stats, ns)
     
     return LDstats(corrected, num_pops=num_pops, order=2)
@@ -94,7 +94,7 @@ def corrected_multipop_genotypes(stats, ns=None, num_pops=2):
         raise ValueError("mismatch of input moments and number of populations")
 
     corrected = np.ones(len(stats))
-    for ii,name in zip(range(len(stat_names)),stat_names):
+    for ii,name in zip(list(range(len(stat_names))),stat_names):
         corrected[ii] = adjust_moment_genotype(name, stat_names, stats, ns)
     
     return LDstats(corrected, num_pops=num_pops, order=2)

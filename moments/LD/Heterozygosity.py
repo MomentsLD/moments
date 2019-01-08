@@ -20,7 +20,7 @@ def het_names(num_pops):
 
 def drift(nus):
     num_pops = len(nus)
-    D = np.zeros( ( num_pops*(num_pops+1)/2, num_pops*(num_pops+1)/2 ) )
+    D = np.zeros( ( int(num_pops*(num_pops+1)/2), int(num_pops*(num_pops+1)/2) ) )
     c = 0
     for ii in range(num_pops):
         D[c,c] = 1./nus[ii]
@@ -29,7 +29,7 @@ def drift(nus):
 
 def migration(mig_mat):
     num_pops = len(mig_mat)
-    M = np.zeros( ( num_pops*(num_pops+1)/2, num_pops*(num_pops+1)/2 ) )
+    M = np.zeros( ( int(num_pops*(num_pops+1)/2), int(num_pops*(num_pops+1)/2) ) )
     Hs = het_names(num_pops)
     for ii,H in enumerate(Hs):
         pop1,pop2 = [int(f) for f in H.split('_')[1:]]
@@ -67,9 +67,9 @@ def migration(mig_mat):
 
 def mutation(u, num_pops, frozen=None):
     if frozen is None:
-        return 2*u*np.ones(num_pops*(num_pops+1)/2)
+        return 2*u*np.ones(int(num_pops*(num_pops+1)/2))
     else:
-        U = np.zeros(num_pops*(num_pops+1)/2)
+        U = np.zeros( int(num_pops*(num_pops+1)/2) )
         c = 0
         for ii in range(num_pops):
             for jj in range(ii,num_pops):
@@ -202,7 +202,7 @@ class Het(np.ma.masked_array):
             raise ValueError("population to split larger than number of pops")
         
         h_from = self.data
-        h_new = np.empty((self.num_pops+1)*(self.num_pops+2)/2)
+        h_new = np.empty(int((self.num_pops+1)*(self.num_pops+2)/2))
         c = 0
         for ii in range(1,self.num_pops+2):
             for jj in range(ii,self.num_pops+2):
@@ -229,8 +229,8 @@ class Het(np.ma.masked_array):
         else:
             Hs = het_names(self.num_pops)
             h_new = np.zeros(len(Hs))
-            pops_old = range(1,self.num_pops+1)
-            pops_new = range(1,self.num_pops+1)
+            pops_old = list(range(1,self.num_pops+1))
+            pops_new = list(range(1,self.num_pops+1))
             pops_new[pop1-1] = pop2
             pops_new[pop2-1] = pop1
             d = dict(zip(pops_old, pops_new))

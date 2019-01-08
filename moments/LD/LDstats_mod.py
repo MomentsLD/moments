@@ -167,7 +167,7 @@ class LDstats(numpy.ma.masked_array):
                         mom_from_split[3:] = [str(s) for s in sorted([int(x) for x in mom_from_split[3:]])]
                 mom_from = '_'.join(mom_from_split)
                 points[mom_to] = mom_from
-        for ii,mom_to in zip(range(len(mom_list_to)),mom_list_to):
+        for ii,mom_to in zip(list(range(len(mom_list_to))),mom_list_to):
             y_new[ii] = self[mom_list_from.index(points[mom_to])]
         return LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
             
@@ -187,8 +187,8 @@ class LDstats(numpy.ma.masked_array):
             else:
                 raise ValueError("Need to have object specified as pi or z basis.")
             y_new = np.zeros(len(mom_list))
-            pops_old = range(1,self.num_pops+1)
-            pops_new = range(1,self.num_pops+1)
+            pops_old = list(range(1,self.num_pops+1))
+            pops_new = list(range(1,self.num_pops+1))
             pops_new[pop1-1] = pop2
             pops_new[pop2-1] = pop1
             d = dict(zip(pops_old, pops_new))
