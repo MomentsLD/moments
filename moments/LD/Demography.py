@@ -1,4 +1,4 @@
-import networkx as nx
+import networkx and nx
 import numpy as np
 
 import moments.LD
