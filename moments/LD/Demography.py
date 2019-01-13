@@ -1,9 +1,9 @@
-import networkx and nx
+import networkx as nx
 import numpy as np
 
 import moments.LD
 
-
+tol = 1e-12
 """
 We define a demography on an acyclic directed graph, where each node is a population
 and each edge denotes parental relationship between populations. This can include 
@@ -22,8 +22,112 @@ Other functions extract the timing of events from the demo_graph, ...
 
 
 
+# Example: Gutenkunst demographic model
+   \\ root
+    \\_
+    / / A
+   / /___
+  / /--- \ B
+ / /   //\\
+/ /   //  \\
+YRI  CEU  CHB
+
+nuA, TA, nuB, TB, nuEu0, nuEuF, nuAs0, nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs = ( 2.11, 0.377, 0.251, 0.111, 0.0904, 5.77, 0.224, 3.02, 0.0711, 3.80, 0.256, 0.125, 1.07 ) 
+    
+# Define a directed graph G
+G = nx.DiGraph()
+
+# The nodes are the populations (with attributes nu, T, etc), and directed edges are population relationships (weights are 1 unless merger, in which case must sum to 1)
+G.add_node('root', nu=1, T=0)
+G.add_node('A', nu=nuA, T=TA)
+G.add_node('B', nu=nuB, T=TB, m={'YRI': mAfB})
+G.add_node('YRI', nu=nuA, T=TB+TF, m={'B': mAfB, 'CEU': mAfEu, 'CHB': mAfAs})
+G.add_node('CEU', nu=lambda t: nuEu0 * np.exp(np.log(nuEuF/nuEu0) * t/TF ), 
+                    T=TF, m={'YRI': mAfEu, 'CHB': mEuAs})
+G.add_node('CHB', nu=lambda t: nuAs0 * np.exp(np.log(nuAsF/nuAs0) * t/TF ), 
+                    T=TF, m={'YRI': mAfAs, 'CEU': mEuAs})
+
+G.add_edges_from([ ('root', 'A'), 
+                   ('A', 'YRI'), 
+                   ('A', 'B'), 
+                   ('B', 'CEU'), 
+                   ('B', 'CHB') ])
+
+### for mergers, we can use weighted directed edges, where the weights into any node sum to 1
+### G.add_edge( (A, B), f)
+
 
 """
+
+
+
+def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
+    """
+    demo_graph : a directed graph containing the topology and parameters of the demography
+    theta : the scaled mutation rate 4*N*u
+    rho : if None, we only compute heterozygosity statistics
+          if scalar, we compute heterozygosity and LD statistics for that rho
+          if list or array, we compute heterozygosity and LD statistics for each rho
+    """
+    
+    # list of rhos, if we compute LD statistics
+    if rho == None:
+        continue
+    elif np.isscalar(rho):
+        rho = [rho]
+    
+    # set y (two locus stats) and h (heterozygosity stats) for ancestral pop
+    
+    Y = equilibrium(rho=rho, theta=theta)
+
+    present_pops, integration_times, nus, migration_matrices, frozen_pops, events = get_event_times(demo_graph)
+    
+    for ii, (pops, T, nu, mig_mat, frozen) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops)):
+        Y.integrate(nu, T, rho=rho, theta=theta, m=mig_mat, frozen=frozen)
+        if ii < len(events):
+            # apply events in between epochs
+            for e in events[ii]:
+                if e[0] == 'split':
+                    Y = dg_split(Y, e[1], e[2], e[3])
+                elif e[0] == 'merger':
+                    Y = dg_merge(Y, e[1], e[2], e[3])
+                elif e[0] == 'admix':
+                    Y = dg_admix(Y, e[1], e[2], e[3]) 
+                elif e[0] == 'marginalize':
+                    Y = dg_marginalize(Y, e[1])
+            
+            # make sure correct order of pops for the next epoch
+            Y = rearrange_pops(demo_graph, present_pops[ii+1])
+    
+    if pop_ids is not None:
+        Y = rearrange_pops(demograph, pop_ids)
+    
+    return Y 
+
+
+def dg_split(Y, parent, child1, child2):
+    ids_from = Y.pop_ids
+    Y = Y.split(ids_from.index(parent))
+    ids_to = ids_from + [child2]
+    ids_to[ids_from.index(parent)] = child1
+    Y.pop_ids = ids_to
+    return Y
+
+def dg_merg():
+    pass
+
+def dg_admix():
+    pass:
+
+def dg_marginalize(Y, pop):
+    ids_from = Y.pop_ids
+    Y = Y.marginalize(ids_from.index(pop))
+    ids_to = ids_from[:ids_from.index(pop)] + ids_from[ids_from.index(pop):]
+    Y.pop_ids = ids_to
+    return Y
+
+def rearrange_pops(demo_graph, pop_order):
+    pass
 
 def get_event_times(demo_graph):
     """
@@ -32,63 +136,99 @@ def get_event_times(demo_graph):
     reference time. The last time in the returned list is "present" or the stopping 
     time for integration.
     """
-    pass
-
-def get_pops_at_time(demo_graph, t):
-    pass
-
-def get_pop_sizes(demo_graph, event_times, t):
-    if t in event_times:
-        # we're at a t0
-        pass
-    else:
-        pass
-
-def get_migration_rates():
-    pass
-
-def get_epochs(demo_graph):
-    event_times = get_event_times(demo_graph)
-    pops = [get_pops_at_time(demo_graph, t) for t in ]
-    t0s = event_times[:-1]
-    Ts = event_times[1:] - event_times[:-1]
-    nus = [ for epoch in ]
-    ms = [ for epoch in ]
-    return pops, Ts, nus, ms
-
-def get_actions():
-    # maybe we want get epochs and get actions together. and just step forward through the demography
-
-def evolve(demo_graph, theta=0.001, rho=0.0, genotypes=False, ns=None):
-    """
+    parents = {}
+    for pop in demo_graph:
+        if len(list(G.predecessors(pop))) == 0:
+            root = pop
+        else:
+            parents[pop] = list(G.predecessors(pop)) # usually one parent, could be two in case of merger
     
-    """
+    children = {} # could have zero, one, or two children (if zero, node is a leaf and doesn't appear here)
+    for pop in parents:
+        for parent in parents[pop]: 
+            children.setdefault(parent,[]) 
+            children[parent].append(pop) 
+    
+    leaves = []
+    for pop in demo_graph: 
+        if pop not in children: 
+            leaves.append(pop)
     
     
+    present_pops = [[root]]
+    integration_times = [demo_graph.nodes[root]['T']]
+    nus = [[demo_graph.nodes[root]['nu']]]
+    migration_matrices = [[0]]
+    frozen_pops = [[False]]
+    events = []
     
-    # set y (two locus stats) and h (heterozygosity stats) for ancestral pop
-    y,h = 
-
-    # two lists, one of actions (split, admix, param_change/none) at each epoch bdry, 
-    # the other of
-    # the "epochs" which store lists of integration times, pop sizes, ms, needed
-    # to run each integration in turn, with the actions interspersed. 
-    # if there are n epochs, then the will be n+1 actions (since we can have an
-    # action at both beginning and end)
+    time_left = [0.] # tracks time left on each branch to integrate, of present_pops[-1]
+    advance = True
+    while advance == True:
+        # if no pop has any time left and all pops are leaves, end it
+        if np.all(np.array(time_left) < tol) and np.all([p not in children for p in present_pops[-1]]):
+            advance = False
+        else:
+            new_pops = []
+            new_times = []
+            new_nus = []
+            new_events = []
+            for ii,t in enumerate(time_left):
+                this_pop = present_pops[-1][ii]
+                if t < tol:
+                    if this_pop in children: # if it has children (1 or 2), split or carry over
+                        new_pops += children[this_pop]
+                        new_times += [demo_graph.nodes[child]['T'] for child in children[this_pop]]
+                        new_nus += [demo_graph.nodes[child]['nu'] for child in children[this_pop]]
+                        if len(children[this_pop]) == 2:
+                            child1, child2 = children[this_pop]
+                            new_events.append( ('split', this_pop, child1, child2) )
+                        else:
+                            # if the one child is a merger, need to specify, otherwise, nothing needed
+                            if parents[children[this_pop][0]] == [this_pop]:
+                                continue
+                            else:
+                                new_events.append( ('merger', (this_pop, child), f_this_pop) )
+                    else: # else no children and we eliminate it
+                        new_events.append( ('marginalize', this_pop) )
+                        continue
+                else:
+                    new_pops += [this_pop]
+                    new_times += [t]
+                    new_nus += [demo_graph.nodes[this_pop]['nu']]
+            time_left = new_times
+            t_epoch = min(time_left)
+            integration_times.append(t_epoch)
+            time_left = [t - t_epoch for t in time_left]
+            present_pops.append(new_pops)
+            nus.append(new_nus)
+            
+            new_m = np.zeros((len(new_pops), len(new_pops)))
+            for ii, pop_from in enumerate(new_pops):
+                if 'm' in demo_graph.nodes[pop_from]:
+                    for jj, pop_to in enumerate(new_pops):
+                        if pop_from == pop_to:
+                            continue
+                        else:
+                            if pop_to in demo_graph.nodes[pop_from]['m']:
+                                new_m[ii][jj] = demo_graph.nodes[pop_from]['m'][pop_to]
+            
+            migration_matrices.append(new_m)
+            
+            frozen = []
+            for pop in new_pops:
+                if 'frozen' in demo_graph.nodes[pop]:
+                    if demo_graph.nodes[pop]['frozen'] == True:
+                        frozen.append(True)
+                    else:
+                        frozen.append(False)
+                else:
+                    frozen.append(False)
+            frozen_pops.append(frozen)
+            
+            events.append(new_events)
     
+    return present_pops, integration_times, nus, migration_matrices, frozen_pops, events
     
-
-
-
-
-
-
-
-
-
-
-
-
-    pass
 
 
