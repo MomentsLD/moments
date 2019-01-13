@@ -133,7 +133,7 @@ def plot_model(model, save_file=None, ax=None, show=False,
     if ax == None:
         fig = plt.figure(**fig_kwargs)
         ax = fig.add_subplot(111)
-    ax.set_axis_bgcolor(plot_bg_color)
+    ax.set_facecolor(plot_bg_color)
     ax.set_title(fig_title, color=text_color,fontsize=24)
     xlabel = "Time Ago" if reverse_timeline else "Time"
     if nref:
