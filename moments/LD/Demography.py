@@ -1,7 +1,8 @@
 import networkx as nx
 import numpy as np
 
-import moments.LD
+import LDstats_mod2
+import Numerics2
 
 tol = 1e-12
 """
@@ -70,54 +71,66 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
           if list or array, we compute heterozygosity and LD statistics for each rho
     """
     
-    # list of rhos, if we compute LD statistics
-    if rho == None:
-        continue
-    elif np.isscalar(rho):
-        rho = [rho]
+#    # list of rhos, if we compute LD statistics
+#    if rho == None:
+#        continue
+#    elif np.isscalar(rho):
+#        rho = [rho]
     
     # set y (two locus stats) and h (heterozygosity stats) for ancestral pop
     
-    Y = equilibrium(rho=rho, theta=theta)
-
+    root, parents, children, leaves = get_pcl(demo_graph)
     present_pops, integration_times, nus, migration_matrices, frozen_pops, events = get_event_times(demo_graph)
+    
+    Y = LDstats_mod2.LDstats2(equilibrium(rho=rho, theta=theta), num_pops=1, pop_ids=[present_pops[0][0]])
     
     for ii, (pops, T, nu, mig_mat, frozen) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops)):
         Y.integrate(nu, T, rho=rho, theta=theta, m=mig_mat, frozen=frozen)
         if ii < len(events):
-            # apply events in between epochs
-            for e in events[ii]:
-                if e[0] == 'split':
-                    Y = dg_split(Y, e[1], e[2], e[3])
-                elif e[0] == 'merger':
-                    Y = dg_merge(Y, e[1], e[2], e[3])
-                elif e[0] == 'admix':
-                    Y = dg_admix(Y, e[1], e[2], e[3]) 
-                elif e[0] == 'marginalize':
-                    Y = dg_marginalize(Y, e[1])
-            
+            if len(events[ii]) ==  0:
+                # just pass on populations, make sure keeping correct order of pop_ids
+                new_ids = []
+                for pid in pops:
+                    if pid in present_pops[ii+1]:
+                        new_ids.append(pid)
+                    else:
+                        new_ids.append(children[pid][0])
+                Y.pop_ids = new_ids
+            else:
+                # apply events in between epochs
+                for e in events[ii]:
+                    if e[0] == 'split':
+                        Y = dg_split(Y, e[1], e[2], e[3])
+                    elif e[0] == 'merger':
+                        Y = dg_merge(Y, e[1], e[2], e[3])
+                    elif e[0] == 'admix':
+                        Y = dg_admix(Y, e[1], e[2], e[3]) 
+                    elif e[0] == 'marginalize':
+                        Y = dg_marginalize(Y, e[1])
             # make sure correct order of pops for the next epoch
-            Y = rearrange_pops(demo_graph, present_pops[ii+1])
+            Y = rearrange_pops(Y, present_pops[ii+1])
     
     if pop_ids is not None:
-        Y = rearrange_pops(demograph, pop_ids)
+        Y = rearrange_pops(Y, pop_ids)
     
     return Y 
 
+def equilibrium(rho=None, theta=0.001):
+    return Numerics2.steady_state(theta=theta, rho=rho)
 
 def dg_split(Y, parent, child1, child2):
     ids_from = Y.pop_ids
-    Y = Y.split(ids_from.index(parent))
+    Y = Y.split(ids_from.index(parent)+1)
     ids_to = ids_from + [child2]
     ids_to[ids_from.index(parent)] = child1
     Y.pop_ids = ids_to
     return Y
 
-def dg_merg():
+def dg_merge():
     pass
 
 def dg_admix():
-    pass:
+    pass
 
 def dg_marginalize(Y, pop):
     ids_from = Y.pop_ids
@@ -126,22 +139,28 @@ def dg_marginalize(Y, pop):
     Y.pop_ids = ids_to
     return Y
 
-def rearrange_pops(demo_graph, pop_order):
-    pass
+def rearrange_pops(Y, pop_order):
+    current_order = Y.pop_ids
+    for ii in range(len(pop_order)):
+        if current_order[ii] != pop_order[ii]:
+            jj = current_order.index(pop_order[ii])
+            while jj > ii:
+                Y = Y.swap_pops(jj,jj+1)
+                current_order = Y.pop_ids
+                jj -= 1
+    if current_order != pop_order:
+        print("fucked up")
+        print(current_order)
+        print(pop_order)
+    return Y
 
-def get_event_times(demo_graph):
-    """
-    For purposes of integration, we set time=0 to be the pre-event time in the ancestral
-    population. Then every event (split, param change, merger) is a time since this 
-    reference time. The last time in the returned list is "present" or the stopping 
-    time for integration.
-    """
+def get_pcl(demo_graph):
     parents = {}
     for pop in demo_graph:
-        if len(list(G.predecessors(pop))) == 0:
+        if len(list(demo_graph.predecessors(pop))) == 0:
             root = pop
         else:
-            parents[pop] = list(G.predecessors(pop)) # usually one parent, could be two in case of merger
+            parents[pop] = list(demo_graph.predecessors(pop)) # usually one parent, could be two in case of merger
     
     children = {} # could have zero, one, or two children (if zero, node is a leaf and doesn't appear here)
     for pop in parents:
@@ -154,6 +173,16 @@ def get_event_times(demo_graph):
         if pop not in children: 
             leaves.append(pop)
     
+    return root, parents, children, leaves
+
+def get_event_times(demo_graph):
+    """
+    For purposes of integration, we set time=0 to be the pre-event time in the ancestral
+    population. Then every event (split, param change, merger) is a time since this 
+    reference time. The last time in the returned list is "present" or the stopping 
+    time for integration.
+    """
+    root, parents, children, leaves = get_pcl(demo_graph)
     
     present_pops = [[root]]
     integration_times = [demo_graph.nodes[root]['T']]
@@ -201,7 +230,22 @@ def get_event_times(demo_graph):
             integration_times.append(t_epoch)
             time_left = [t - t_epoch for t in time_left]
             present_pops.append(new_pops)
-            nus.append(new_nus)
+            
+            # check if any new_nus are callable, and if so make new_news callable
+            nus_callable = 0
+            for nu in new_nus:
+                if callable(nu):
+                    nus_callable = 1
+            if nus_callable == 0:
+                nus.append(new_nus)
+            else:
+                new_nus_callable = []
+                for nu in new_nus:
+                    if callable(nu):
+                        new_nus_callable.append(nu)
+                    else:
+                        new_nus_callable.append( lambda t: nu )
+                nus.append( lambda t: [nu_func(t) for nu_func in new_nus_callable] )
             
             new_m = np.zeros((len(new_pops), len(new_pops)))
             for ii, pop_from in enumerate(new_pops):

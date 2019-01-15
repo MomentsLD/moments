@@ -7,9 +7,6 @@ from scipy.sparse.linalg import factorized
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import inv as spinv
 
-### XXX want to silence sparseefficiencywarning - or even better, make it more efficient
-### I've commented out the networkx construction for multipopulation modeling - will eventually get rid of it completely
-
 from moments.LD import Matrices
 
 import networkx as nx

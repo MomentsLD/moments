@@ -8,59 +8,56 @@ logger = logging.getLogger('LDstats_mod')
 import os,sys
 import numpy, numpy as np
 
-from . import Numerics2
+import Numerics2, Util
 
-class LDstats2(numpy.ma.masked_array):
+class LDstats2(list):
     """
     Represents linkage disequilibrium statistics, stored in a more accessible
         way, with heterozygosity separated and multiple rho values (LDstats2).
     
     (Only allows equal mutation rates, and all statistics here are order 2 (D^2))
     
-    LDstats are represented as an array of (array of) statistics over two locus pairs for 
+    LDstats are represented as a list of statistics over two locus pairs for 
     a given recombination distance.
     
     It has form Y[0] = two locus stats for rho[0], ... Y[n] = two locus stats for rho[n], H
     Each Y[i] is a condensed set of statistics (E[D_i(1-2p_j)(1-2q_k)] = E[D_i(1-2p_k)(1-2q_j)]
     
     The constructor has the format:
-        y = moments.LD.LDstats(data, mask, num_pops, pop_ids)
-        
+        y = moments.LD.LDstats(data, num_pops, pop_ids)
         data: The list of statistics
-        mask: An optional array of the same size. 'True' entries in this array
-              are masked in LDstats. These represent missing data, invalid 
-              entries, or entries we wish to ignore when performing inference 
-              using LD statistics.
         num_pops: Number of populations. For one population, higher order 
                   statistics may be computed.
         pop_ids: population names in order that statistics are represented here.
     """
-    def __new__(subtype, data, mask=numpy.ma.nomask, num_pops=1, pop_ids=None,
-                dtype=float, copy=True, fill_value=numpy.nan, keep_mask=True,
-                shrink=True):
+    def __new__(self, data, num_pops=None, pop_ids=None):
         if num_pops == None:
             raise ValueError('Specify number of populations as num_pops=.')
-        
-        data = numpy.asanyarray(data)
-        
-        if mask is numpy.ma.nomask:
-            mask = numpy.ma.make_mask_none(data.shape)
-
-        subarr = numpy.ma.masked_array(data, mask=mask, dtype=dtype, copy=copy,
-                                    fill_value=fill_value, keep_mask=keep_mask,
-                                    shrink=True)
+        my_list = super(LDstats2, self).__new__(self, data, num_pops=None, pop_ids=None)
         
         if hasattr(data, 'num_pops'):
-            subarr.num_pops = data.num_pops
+            my_list.num_pops = data.num_pops
         else:
-            subarr.num_pops = num_pops
+            my_list.num_pops = num_pops
         
         if hasattr(data, 'pop_ids'):
-            subarr.pop_ids = data.pop_ids
+            my_list.pop_ids = data.pop_ids
         else:
-            subarr.pop_ids = pop_ids
+            my_list.pop_ids = pop_ids
         
-        return subarr
+        return my_list
+
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and hasattr(args[0], '__iter__'):
+            list.__init__(self, args[0])
+        else:
+            list.__init__(self, args)
+        self.__dict__.update(kwargs)
+
+    def __call__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        return self
+    
 
     # See http://www.scipy.org/Subclasses for information on the
     # __array_finalize__ and __array_wrap__ methods. I had to do some debugging
@@ -94,14 +91,16 @@ class LDstats2(numpy.ma.masked_array):
     __array_priority__ = 20
 
     def __repr__(self):
-        return 'LDstats(%s, num_pops=%s, order=%s)'\
-                % (str(self), str(self.num_pops), str(self.pop_ids))
+        ys = np.asanyarray(self[:-1])
+        h = self[-1]
+        return 'LDstats(%s, %s, num_pops=%s, pop_ids=%s)'\
+                % (str(ys), str(h), str(self.num_pops), str(self.pop_ids))
 
     def names(self):
         if self.num_pops == None:
             raise ValueError('Number of populations must be specified (as stats.num_pops)')
         
-        return Numerics2.moment_names(self.num_pops) # returns (ld_stat_names, het_stat_names)
+        return Util.moment_names(self.num_pops) # returns (ld_stat_names, het_stat_names)
     
     def split(self, pop_to_split):
         """
@@ -111,49 +110,73 @@ class LDstats2(numpy.ma.masked_array):
         the output statistics would have population order [pop1, pop2, pop_new]
         New population always appended on end. 
         """
+        if pop_to_split > self.num_pops:
+            raise ValueError("population to split larger than number of pops")
+
+        h = self[-1]
+        ys = self[:-1]
         
-        h = self.data[-1]
-        ys = self.data[:-1]
-        
-        h_new = Numerics2.split_h(h, pop_to_split)
+        h_new = Numerics2.split_h(h, pop_to_split, self.num_pops)
         ys_new = []
         for y in ys:
-            ys_new.append(Numerics2.split_ld(y, pop_to_split))
+            ys_new.append(Numerics2.split_ld(y, pop_to_split, self.num_pops))
         
-        return LDstats([h_new]+ys_new, num_pops=self.num_pops+1)
+        return LDstats2(ys_new+[h_new], num_pops=self.num_pops+1)
         
             
-#    def swap_pops(self,pop1,pop2):
-#        """
-#        like swapaxes for switching population ordering
-#        """
-#        if pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
-#            raise ValueError("Invalid population number specified.")
-#        if pop1 == pop2:
-#            return self
-#        else:
-#            if self.basis == 'z':
-#                mom_list = Numerics.moment_names_multipop(self.num_pops)
-#            elif self.basis == 'pi':
-#                mom_list = Numerics.moment_names_pi(self.num_pops)
-#            else:
-#                raise ValueError("Need to have object specified as pi or z basis.")
-#            y_new = np.zeros(len(mom_list))
-#            pops_old = list(range(1,self.num_pops+1))
-#            pops_new = list(range(1,self.num_pops+1))
-#            pops_new[pop1-1] = pop2
-#            pops_new[pop2-1] = pop1
-#            d = dict(zip(pops_old, pops_new))
-#            for ii,mom in enumerate(mom_list):
-#                if mom == '1':
-#                    y_new[ii] = 1.
-#                    continue
-#                pops_mom = [int(p) for p in mom.split('_')[1:]]
-#                pops_mom_new = [d.get(p) for p in pops_mom]
-#                mom_new = mom.split('_')[0] + '_' + '_'.join([str(p) for p in pops_mom_new])
-#### basis check
-#                y_new[ii] = self.data[mom_list.index(Numerics.map_moment(mom_new, self.basis))]
-#            return LDstats(y_new, num_pops=self.num_pops, order=self.order, basis=self.basis)
+    def swap_pops(self, pop1, pop2):
+        """
+        like swapaxes for switching population ordering
+        pop1 and pop2 are indexes of 
+        """
+        if pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
+            raise ValueError("Invalid population number specified.")
+        if pop1 == pop2:
+            return self            
+
+        mom_list = Util.moment_names(self.num_pops)
+        h_new = np.zeros(len(mom_list[-1]))
+
+        if len(self) == 2:
+            y_new = np.zeros(len(mom_list[0]))
+        if len(self) > 2:
+            ys_new = [np.zeros(len(mom_list[0])) for i in range(len(self)-1)]
+        
+        pops_old = list(range(1,self.num_pops+1))
+        pops_new = list(range(1,self.num_pops+1))
+        pops_new[pop1-1] = pop2
+        pops_new[pop2-1] = pop1
+        
+        d = dict(zip(pops_old, pops_new))
+        
+        for ii,mom in enumerate(mom_list[-1]):
+            pops_mom = [int(p) for p in mom.split('_')[1:]]
+            pops_mom_new = [d.get(p) for p in pops_mom]
+            mom_new = mom.split('_')[0] + '_' + '_'.join([str(p) for p in pops_mom_new])
+            h_new[ii] = self[-1][mom_list[-1].index(Util.map_moment(mom_new))]
+
+        if len(self) > 1:
+            for ii,mom in enumerate(mom_list[0]):
+                pops_mom = [int(p) for p in mom.split('_')[1:]]
+                pops_mom_new = [d.get(p) for p in pops_mom]
+                mom_new = mom.split('_')[0] + '_' + '_'.join([str(p) for p in pops_mom_new])
+                if len(self) == 2:
+                    y_new[ii] = self[0][mom_list[0].index(Util.map_moment(mom_new))]
+                elif len(self) > 2:
+                    for jj in range(len(self)-1):
+                        ys_new[jj][ii] = self[jj][mom_list[0].index(Util.map_moment(mom_new))]
+                
+        if self.pop_ids is not None:
+            current_order = self.pop_ids
+            new_order = [self.pop_ids[d[ii]-1] for ii in range(1,self.num_pops+1)]
+
+        if len(self) == 1:
+            return LDstats2(h_new, num_pops=self.num_pops, pop_ids=new_order)
+        elif len(self) == 2:
+            return LDstats2([y_new,h_new], num_pops=self.num_pops, pop_ids=new_order)
+        else:
+            return LDstats2(ys_new+[h_new], num_pops=self.num_pops, pop_ids=new_order)
+
 
 #    def marginalize(self,pops):
 #        """
@@ -182,13 +205,13 @@ class LDstats2(numpy.ma.masked_array):
 
 #    def merge(self, f):
 #        if self.num_pops == 2:
-#            y_new = Numerics.merge_2pop(self.data,f)
+#            y_new = Numerics.merge_2pop(self,f)
 #            return LDstats(y_new, num_pops=1, order=self.order, basis=self.basis)
 #        else:
 #            raise ValueError("merge function is 2->1 pop.")
     
 #    def merge(self, pop1, pop2, f):
-#        y_new = Numerics.admix_npops(self.data, self.num_pops, pop1, pop2, f)
+#        y_new = Numerics.admix_npops(self, self.num_pops, pop1, pop2, f)
 #        y_new = LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
 #        y_new = y_new.swap_pops(pop1, y_new.num_pops)
 #        y_new = y_new.marginalize([pop2,y_new.num_pops])
@@ -205,7 +228,7 @@ class LDstats2(numpy.ma.masked_array):
 #            raise ValueError("pop1 must be less than pop2, and f is fraction from pop1.")
 #        else:
 #### Numerics.admix_npops probably needs to check for basis
-#            y_new = Numerics.admix_npops(self.data, self.num_pops, pop1, pop2, f)
+#            y_new = Numerics.admix_npops(self, self.num_pops, pop1, pop2, f)
 #            return LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
     
 #    def pulse_migrate(self, pop_from, pop_to, f):
@@ -324,7 +347,7 @@ class LDstats2(numpy.ma.masked_array):
 #        fid.write('%i ' % self.order)
 #        
 #        # Write out model type (onepop or multipop) and number of populations
-#        if len(self.data) == 5:
+#        if len(self) == 5:
 #            fid.write('onepop %i' % self.num_pops)
 #        else:
 #            fid.write('multipop %i' % self.num_pops)
@@ -336,7 +359,7 @@ class LDstats2(numpy.ma.masked_array):
 #        fid.write(os.linesep)
 #
 #        # Write the data to the file
-#        self.data.tofile(fid, ' ', '%%.%ig' % precision)
+#        self.tofile(fid, ' ', '%%.%ig' % precision)
 #        fid.write(os.linesep)
 #
 #        # Write the mask to the file
@@ -359,13 +382,13 @@ class LDstats2(numpy.ma.masked_array):
         exec("""
 def %(method)s(self, other):
     if isinstance(other, np.ma.masked_array):
-        newdata = self.data.%(method)s (other.data)
+        newdata = self.%(method)s (other.data)
         newmask = np.ma.mask_or(self.mask, other.mask)
     else:
-        newdata = self.data.%(method)s (other)
+        newdata = self.%(method)s (other)
         newmask = self.mask
     outLDstats = self.__class__.__new__(self.__class__, newdata, newmask, 
-                                   order=self.order, num_pops=self.num_pops)
+                                   num_pops=self.num_pops, pop_ids=self.pop_ids)
     return outLDstats
 """ % {'method':method})
 
@@ -375,15 +398,15 @@ def %(method)s(self, other):
         exec("""
 def %(method)s(self, other):
     if isinstance(other, np.ma.masked_array):
-        self.data.%(method)s (other.data)
+        self.%(method)s (other.data)
         self.mask = np.ma.mask_or(self.mask, other.mask)
     else:
-        self.data.%(method)s (other)
+        self.%(method)s (other)
     return self
 """ % {'method':method})
     
     
-    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None):
+    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None, frozen=None):
         """
         Integrates the LD statistics forward in time. The tricky part is 
         combining single population and multi-population integration routines. 
@@ -408,16 +431,16 @@ def %(method)s(self, other):
             return
         elif np.isscalar(rho) and len(self) != 2:
             print('Single rho passed but LD object has additional statistics.')
-        elif len(rho) != len(self)-1:
+        elif np.isscalar(rho) == False and len(rho) != len(self)-1:
             print('Mismatch of rhos passed and size of LD object.')
         
         if m is not None and num_pops > 1:
             if np.shape(m) != (num_pops, num_pops):
                 raise ValueError("migration matrix incorrectly defined for number of pops.")
         
-        self.data[:] = Numerics2.integrate(self.data, nu, tf, dt=dt,
+        self[:] = Numerics2.integrate(self, nu, tf, dt=dt,
                                     rho=rho, theta=theta, m=m,
-                                    num_pops=num_pops)
+                                    num_pops=num_pops, frozen=frozen)
 
 # Allow LDstats objects to be pickled.
 try:
@@ -430,6 +453,6 @@ def LDstats_unpickler(data, mask, num_pops, pop_ids):
     return LDstats(data, mask, num_pops=num_pops, pop_ids=pop_ids)
 
 try:
-    copy_reg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)
+    copy_reg.pickle(LDstats2, LDstats_pickler, LDstats_unpickler)
 except:
-    copyreg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)
+    copyreg.pickle(LDstats2, LDstats_pickler, LDstats_unpickler)
