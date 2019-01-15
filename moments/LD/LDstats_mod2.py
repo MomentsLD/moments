@@ -7,6 +7,7 @@ logger = logging.getLogger('LDstats_mod')
 
 import os,sys
 import numpy, numpy as np
+import copy
 
 import Numerics2, Util
 
@@ -178,31 +179,38 @@ class LDstats2(list):
             return LDstats2(ys_new+[h_new], num_pops=self.num_pops, pop_ids=new_order)
 
 
-#    def marginalize(self,pops):
-#        """
-#        Marginalize over the LDstats, removing moments for given pops
-#        pops could be a single population or a list of pops
-#        assume that we have 
-#        """
-#        if self.num_pops == 1:
-#            print("You're trying to marginalize a single population model.")
-#            return self
-#        if hasattr(pops,"__len__") == False:
-#            pops = [pops]
-#
-#### check for basis        
-#        # multiple pop indices to marginalize over
-#        names_from = Numerics.moment_names_multipop(self.num_pops)
-#        names_to = Numerics.moment_names_multipop(self.num_pops - len(pops))
-#        y = np.zeros(len(names_to))
-#        count = 0
-#        for mom in names_from:
-#            mom_pops = [int(p) for p in mom.split('_')[1:]]
-#            if len(np.intersect1d(pops, mom_pops)) == 0:
-#                y[count] = self[names_from.index(mom)]
-#                count += 1
-#        return LDstats(y, num_pops=self.num_pops-len(pops), order=self.order, basis=self.basis)
+    def marginalize(self,pops):
+        """
+        Marginalize over the LDstats, removing moments for given pops
+        pops could be a single population or a list of pops
+        assume that we have 
+        """
+        if self.num_pops == 1:
+            print("no populations left.")
+            return self
+        if hasattr(pops,"__len__") == False:
+            pops = [pops]
 
+        # multiple pop indices to marginalize over
+        names_from_ld, names_from_h = Util.moment_names(self.num_pops)
+        names_to_ld, names_to_h = Util.moment_names(self.num_pops - len(pops))
+        y_new = [np.zeros(len(names_to_ld)) for i in range(len(self)-1)] + [np.zeros(len(names_to_h))]
+        count = 0
+        for mom in names_from_ld:
+            mom_pops = [int(p) for p in mom.split('_')[1:]]
+            if len(np.intersect1d(pops, mom_pops)) == 0:
+                for ii in range(len(y_new)-1):
+                    y_new[ii][count] = self[ii][names_from_ld.index(mom)]
+                count += 1
+        if self.pop_ids == None:
+            return LDstats2(y_new, num_pops=self.num_pops-len(pops))
+        else:
+            new_ids = copy.copy(self.pop_ids)
+            for ii in sorted(pops)[::-1]:
+                new_ids.pop(ii-1)
+            return LDstats2(y_new, num_pops=self.num_pops-len(pops), pop_ids=new_ids)
+
+            
 #    def merge(self, f):
 #        if self.num_pops == 2:
 #            y_new = Numerics.merge_2pop(self,f)
