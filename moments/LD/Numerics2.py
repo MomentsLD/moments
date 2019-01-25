@@ -196,14 +196,14 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
 
 def steady_state(theta=0.001, rho=None):
     h_ss = [theta]
-    if rho == None: # only het stats
-        return [h_ss]
+    if hasattr(rho, '__len__'): # list of rhos
+        ys_ss = [equilibrium_ld(theta=theta, rho=r) for r in rho]
+        return ys_ss + [h_ss]
     elif np.isscalar(rho): # one rho value
         y_ss = equilibrium_ld(theta=theta, rho=rho)
         return [y_ss, h_ss]
-    else: # list of rhos
-        ys_ss = [equilibrium_ld(theta=theta, rho=r) for r in rho]
-        return ys_ss + [h_ss]
+    else: # only het stats
+        return [h_ss]
 
 def equilibrium_ld(theta=0.001, rho=0.0):
     h_ss = [theta]
