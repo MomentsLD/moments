@@ -103,6 +103,29 @@ class LDstats2(list):
         
         return Util.moment_names(self.num_pops) # returns (ld_stat_names, het_stat_names)
     
+    def LD(self, pops = None):
+        """
+        returns LD stats for populations given (if None, returns all)
+        """
+        if len(self) > 1:
+            if pops is not None:
+                to_marginalize = list(set(range(1,self.num_pops+1)) - set(pops))
+                Y_new = self.marginalize(to_marginalize)
+                if len(self) == 2:
+                    return Y_new[:-1][0]
+                else:
+                    return Y_new[:-1]
+            else:
+                return self[:-1]
+    
+    def H(self, pops = None):
+        if pops is not None:
+            to_marginalize = list(set(range(1,self.num_pops+1)) - set(pops))
+            Y_new = self.marginalize(to_marginalize)
+            return Y_new[-1]
+        else:
+            return self[-1]
+        
     def split(self, pop_to_split):
         """
         y: LDstats object for 
@@ -202,6 +225,13 @@ class LDstats2(list):
                 for ii in range(len(y_new)-1):
                     y_new[ii][count] = self[ii][names_from_ld.index(mom)]
                 count += 1
+        count = 0
+        for mom in names_from_h:
+            mom_pops = [int(p) for p in mom.split('_')[1:]]
+            if len(np.intersect1d(pops, mom_pops)) == 0:
+                y_new[-1][count] = self[-1][names_from_h.index(mom)]
+                count += 1
+        
         if self.pop_ids == None:
             return LDstats2(y_new, num_pops=self.num_pops-len(pops))
         else:
