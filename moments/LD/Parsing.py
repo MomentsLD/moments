@@ -26,7 +26,7 @@ import pandas
 from collections import Counter
 import stats_from_genotype_counts as sgc
 
-### right now can only handle one chromosome at a time !!!
+### right now can only handle one chromosome at a time, only parses genotype (not haplotype) data
 
 def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True):
     """
