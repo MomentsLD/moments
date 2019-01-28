@@ -25,40 +25,45 @@ import numpy as np
 import pandas
 from collections import Counter
 import stats_from_genotype_counts as sgc
+import stats_from_haplotype_counts as shc
 
-### right now can only handle one chromosome at a time, only parses genotype (not haplotype) data
+### does this handle only a single chromosome at a time???
 
+def load_h5(vcf_file):
+    check_imports()
+    ## open the h5 callset, create if doesn't exist
+    ## saves h5 callset as same name and path, but with h5 extension instead of vcf or vcf.gz
+    h5_file_path = vcf_file.split('.vcf')[0] + '.h5' # kinda hacky, sure
+    try:
+        callset = h5py.File(h5_file_path, mode='r')
+    except OSError:
+        print("creating and saving h5 file")
+        allel.vcf_to_hdf5(vcf_file, h5_file_path, fields='*', overwrite=True)
+        callset = h5py.File(h5_file_path, mode='r')
+    return callset
+
+
+### genotype function
 def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True):
     """
     Given a vcf file, we extract the biallelic SNP genotypes.
     If bed_file is None, we use all valid variants. Otherwise we filter genotypes
         by the given bed file.
         Warning!!! make sure that the chromosome labels are consistent (e.g., chr22 vs 22)
+    min_bp : only used with bed file, filters out features that are smaller than min_bp
     If use_h5 is True, we try to load the h5 file, which has the same path/name as 
         vcf_file, but with *.h5 instead of *.vcf or *.vcf.gz. If the h5 file does not
         exist, we create it and save it as *.h5
-    
-    I strongly suggest using h5!! In fact, I haven't implemented use_h5=False yet,
-        because I never use that option :)
-    
-    
-    This function 
+    report : prints progress updates if True, silent otherwise
     """
     
     check_imports()
     
     if use_h5 is True:
-        ## open the h5 callset
-        h5_file_path = vcf_file.split('.vcf')[0] + '.h5' # kinda hacky, sure
-        try:
-            callset = h5py.File(h5_file_path, mode='r')
-        except OSError:
-            print("creating and saving h5 file")
-            allel.vcf_to_hdf5(vcf_file, h5_file_path, fields='*', overwrite=True)
-            callset = h5py.File(h5_file_path, mode='r')
+        callset = load_h5(vcf_file)
     else:
         ## read the vcf directly
-        raise ValueError("Try using hdf5 format.")
+        raise ValueError("Use hdf5 format.")
     
     all_genotypes = allel.GenotypeChunkedArray(callset['calldata/GT'])
     all_positions = callset['variants/POS'][:]
@@ -101,7 +106,9 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
     allele_counts = all_genotypes.count_alleles()
     is_biallelic = allele_counts.is_biallelic_01()
     biallelic_positions = all_positions.compress(is_biallelic)
+    
     biallelic_genotypes_012 = all_genotypes_012.compress(is_biallelic)
+    
     biallelic_allele_counts = allele_counts.compress(is_biallelic)
     biallelic_genotypes = all_genotypes.compress(is_biallelic)
     
@@ -114,7 +121,7 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
     sample_ids = callset['samples']
     
     return biallelic_positions, biallelic_genotypes, biallelic_allele_counts, sample_ids
-    
+
 
 def assign_r_pos(positions, rec_map):
     rs = np.zeros(len(positions))
@@ -164,7 +171,13 @@ def g_tally_counter(g_l, g_r):
             c[(0,2)], c[(0,1)], c[(0,0)])
 
 
-def count_genotypes(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, report=True):
+def h_tally_counter(h_l, h_r):
+    hs = list(zip(h_l, h_r))
+    c = Counter(hs)
+    return (c[(1,1)], c[(1,0)], c[(0,1)], c[(0,0)])
+
+
+def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True):
     """
     genotypes : in format of 0,1,2
     """
@@ -205,15 +218,18 @@ def count_genotypes(genotypes, bins, sample_ids, positions=None, pos_rs=None, po
         pop_indexes['ALL'] = np.array([True]*len(np.shape(genotypes)[1]))
         genotypes_pops = genotypes
     
-    genotypes_pops_012 = genotypes_pops.to_n_alt()
+    if use_genotypes == True:
+        genotypes_pops_012 = genotypes_pops.to_n_alt()
+    else:
+        haplotypes_pops_01 = genotypes_pops.to_haplotypes()
     
     ## only keep biallelic positions that are variable in the populations we care about
     
     bs = list(zip(bins[:-1],bins[1:]))
     
-    genotype_counts = {}
+    type_counts = {}
     for b in bs:
-        genotype_counts[b] = {}
+        type_counts[b] = {}
     
     if pos_rs is not None:
         rs = pos_rs
@@ -222,12 +238,16 @@ def count_genotypes(genotypes, bins, sample_ids, positions=None, pos_rs=None, po
     
     ns = np.array([2 * sum(pop_indexes[pop]) for pop in pops])
     
-    for ii,r in enumerate(rs):
+    for ii,r in enumerate(rs[:-1]):
         if report is True:
             if ii%1000 == 0:
-                print("tallied two locus genotype counts {0} of {1} positions".format(ii, len(rs)))
+                print("tallied two locus counts {0} of {1} positions".format(ii, len(rs)))
         
-        gs_ii = genotypes_pops_012[ii]
+        if use_genotypes == True:
+            gs_ii = genotypes_pops_012[ii]
+        else:
+            gs_ii = haplotypes_pops_01[ii]
+        
         gs_l = [gs_ii.compress(pop_indexes[pop]) for pop in pops]
         
         allele_counts = np.array([sum(g_l) for g_l in gs_l])
@@ -236,46 +256,71 @@ def count_genotypes(genotypes, bins, sample_ids, positions=None, pos_rs=None, po
             continue
         
         for b in bs:
-            filt = np.logical_and(pos_rs[ii:] - r >= b[0], pos_rs[ii:] - r < b[1])
-            gs_to_right = genotypes_pops_012[ii:].compress(filt, axis=0)
+            filt = np.logical_and(pos_rs[ii+1:] - r >= b[0], pos_rs[ii+1:] - r < b[1])
+            if use_genotypes == True:
+                gs_to_right = genotypes_pops_012[ii+1:].compress(filt, axis=0)
+            else:
+                gs_to_right = haplotypes_pops_01[ii+1:].compress(filt, axis=0)
+            
             if np.shape(gs_to_right) is ():
                 continue
+            
             for gs_jj in gs_to_right:
                 gs_r = [gs_jj.compress(pop_indexes[pop]) for pop in pops]
-                cs = tuple([g_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
-                genotype_counts[b].setdefault(cs,0)
-                genotype_counts[b][cs] += 1
+                if use_genotypes == True:
+                    cs = tuple([g_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
+                else:
+                    cs = tuple([h_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
+                
+                type_counts[b].setdefault(cs,0)
+                type_counts[b][cs] += 1
     
-    return genotype_counts
+    return type_counts
 
 
-def call_sgc(stat, Gs):
+def call_sgc(stat, Cs, use_genotypes):
     s = stat.split('_')[0]
     pop_nums = [int(p)-1 for p in stat.split('_')[1:]]
     if s == 'DD':
-        return sgc.DD(Gs, pop_nums)
+        if use_genotypes == True:
+            return sgc.DD(Cs, pop_nums)
+        else:
+            return shc.DD(Cs, pop_nums)
     if s == 'Dz':
         ii,jj,kk = pop_nums
         if jj == kk:
-            return sgc.Dz(Gs, pop_nums)
+            if use_genotypes == True:
+                return sgc.Dz(Cs, pop_nums)
+            else:
+                return shc.Dz(Cs, pop_nums)
         else:
             alt_pop_nums = [ii,kk,jj]
-            return 1./2 * sgc.Dz(Gs, pop_nums) + 1./2 * sgc.Dz(Gs, alt_pop_nums)
+            if use_genotypes == True:
+                return 1./2 * sgc.Dz(Cs, pop_nums) + 1./2 * sgc.Dz(Cs, alt_pop_nums)
+            else:
+                return 1./2 * shc.Dz(Cs, pop_nums) + 1./2 * shc.Dz(Cs, alt_pop_nums)
     if s == 'pi2':
-        ii,jj,kk,ll = pop_nums
+        ii,jj,kk,ll = pop_nums ### this below probably is incorrect for multiple pops
         if [ii,jj] == [kk,ll]:
-            return sgc.pi2(Gs, pop_nums)
+            if use_genotypes == True:
+                return sgc.pi2(Cs, pop_nums)
+            else:
+                return shc.pi2(Cs, pop_nums)
         else:
             alt_pop_nums = [kk,ll,ii,jj]
-            return 1./2 * sgc.pi2(Gs, pop_nums) + 1./2 * sgc.pi2(Gs, alt_pop_nums)
+            if use_genotypes == True:
+                return 1./2 * sgc.pi2(Cs, pop_nums) + 1./2 * sgc.pi2(Cs, alt_pop_nums)
+            else:
+                return 1./2 * shc.pi2(Cs, pop_nums) + 1./2 * shc.pi2(Cs, alt_pop_nums)
 
-def cache_ld_statistics(genotype_counts, ld_stats, bins, report=True):
+
+def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=True):
     bs = list(zip(bins[:-1],bins[1:]))
     
     estimates = {}
     for b in bs:
-        for cs in genotype_counts[b].keys():
-            estimates.setdefault(cs, {})
+        for cs in type_counts[b].keys():
+            estimates.setdefault(cs, {})        
     
     all_counts = np.array(list(estimates.keys()))
     all_counts = np.swapaxes(all_counts,0,1)
@@ -283,7 +328,7 @@ def cache_ld_statistics(genotype_counts, ld_stats, bins, report=True):
     
     for stat in ld_stats:
         if report is True: print("computing " + stat)
-        vals = call_sgc(stat, all_counts)
+        vals = call_sgc(stat, all_counts, use_genotypes)
         for ii in range(len(all_counts[0,0])):
             cs = all_counts[:,:,ii]
             estimates[tuple([tuple(c) for c in cs])][stat] = vals[ii]
@@ -292,7 +337,7 @@ def cache_ld_statistics(genotype_counts, ld_stats, bins, report=True):
 
 def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     """
-    H values are not normalized by sequence length, would need to compute L from bed file.
+    Het values are not normalized by sequence length, would need to compute L from bed file.
     """
     
     if pops == None:
@@ -310,14 +355,9 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
         # for each population, get the list of samples that belong to the population
         pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
     }
-
-
+    
     ac_subpop = genotypes.count_alleles_subpops(subpops)
-
-#L = 0
-#for l,r in zip(mask_bed[1], mask_bed[2]):
-#    L += r-l
-
+    
     Hs = {}
     for ii,pop1 in enumerate(list(subpops.keys())):
         for pop2 in list(subpops.keys())[ii:]:
@@ -330,7 +370,7 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     return Hs
 
 
-def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, r_bins=None, bp_bins=None, min_bp=None, use_h5=True, stats_to_compute=None, report=True):
+def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True):
 
     """ testing
     vcf_file = '/Users/aragsdal/Data/Human/ThousandGenomes/genotypes/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz'
@@ -356,7 +396,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
     
     if report is True: print("assigning recombination rates to positions, if recombination map is passed")
     if rec_map_file is not None and r_bins is not None:
-        pos_rs = assign_recombination_rates(positions, rec_map_file, map_name=map_name, map_sep=map_sep, report=report)
+        pos_rs = assign_recombination_rates(positions, rec_map_file, map_name=map_name, map_sep=map_sep, cM=cM, report=report)
         bins = r_bins
     else:
         if bp_bins is not None:
@@ -365,8 +405,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
             bins = []
     
     # now if bins is empty, we only return heterozygosity statistics
-    
-    genotype_counts = count_genotypes(genotypes, bins, sample_ids, positions=None, pos_rs=pos_rs, pop_file=pop_file, pops=pops, report=report)
+    type_counts = count_types(genotypes, bins, sample_ids, positions=None, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report)
     
     if stats_to_compute == None:
         if pops is None:
@@ -374,7 +413,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
         else:
             stats_to_compute = Util.moment_names(len(pops))
     
-    statistics_cache = cache_ld_statistics(genotype_counts, stats_to_compute[0], bins, report=report)
+    statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
     
     bs = list(zip(bins[:-1],bins[1:]))
     sums = {}
@@ -382,8 +421,8 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
         sums[b] = {}
         for stat in stats_to_compute[0]:
             sums[b][stat] = 0
-            for cs in genotype_counts[b]:
-                sums[b][stat] += genotype_counts[b][cs] * statistics_cache[cs][stat]
+            for cs in type_counts[b]:
+                sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
     
     Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
     
