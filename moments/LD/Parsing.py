@@ -126,12 +126,15 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
 def assign_r_pos(positions, rec_map):
     rs = np.zeros(len(positions))
     for ii,pos in enumerate(positions):
-        map_ii = np.where(pos >= np.array(rec_map[0]))[0][-1]
-        l = rec_map[0][map_ii]
-        r = rec_map[0][map_ii+1]
-        v_l = rec_map[1][map_ii]
-        v_r = rec_map[1][map_ii+1]
-        rs[ii] = v_l + (v_r-v_l) * (pos-l)/(r-l)
+        if pos in np.array(rec_map[0]):
+            rs[ii] = np.array(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0]] 
+        else:
+            map_ii = np.where(pos >= np.array(rec_map[0]))[0][-1]
+            l = rec_map[0][map_ii]
+            r = rec_map[0][map_ii+1]
+            v_l = rec_map[1][map_ii]
+            v_r = rec_map[1][map_ii+1]
+            rs[ii] = v_l + (v_r-v_l) * (pos-l)/(r-l)
     return rs
 
 
@@ -182,10 +185,9 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     genotypes : in format of 0,1,2
     """
     
-    samples = pandas.read_csv(pop_file, sep='\t')
-    
     pop_indexes = {}
     if pops is not None:
+        samples = pandas.read_csv(pop_file, sep='\t')
         cols_to_keep = np.array([False]*np.shape(genotypes)[1])
         all_samples_to_keep = []
         for pop in pops:
@@ -195,6 +197,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         for s in all_samples_to_keep:
             cols_to_keep[list(sample_ids.value).index(s)] = True
         
+        # keep only biallelic genotypes from populations in pops, discard the rest
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
         allele_counts_pops = genotypes_pops.count_alleles()
         is_biallelic = allele_counts_pops.is_biallelic_01()
@@ -207,6 +210,11 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             for s in samples[samples['pop'] == pop]['sample']:
                 pop_indexes[pop][sample_ids_pops.index(s)] = True
         
+        if use_genotypes == False:
+            pop_indexes_haps = {}
+            for pop in pops:
+                pop_indexes_haps[pop] = np.reshape(list(zip(pop_indexes[pop], pop_indexes[pop])),(2*len(pop_indexes[pop]),))
+        
         if positions is not None:
             positions = positions.compress(is_biallelic)
         if pos_rs is not None:
@@ -215,8 +223,13 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     else:
         print("No populations given, using all samples as one population.")
         pops = ['ALL']
-        pop_indexes['ALL'] = np.array([True]*len(np.shape(genotypes)[1]))
+        pop_indexes['ALL'] = np.array([True]*np.shape(genotypes)[1])
         genotypes_pops = genotypes
+        if use_genotypes == False:
+            pop_indexes_haps = {}
+            for pop in pops:
+                pop_indexes_haps[pop] = np.reshape(list(zip(pop_indexes[pop], pop_indexes[pop])),(2*len(pop_indexes[pop]),))
+
     
     if use_genotypes == True:
         genotypes_pops_012 = genotypes_pops.to_n_alt()
@@ -245,10 +258,12 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         
         if use_genotypes == True:
             gs_ii = genotypes_pops_012[ii]
+            gs_l = [gs_ii.compress(pop_indexes[pop]) for pop in pops]
         else:
             gs_ii = haplotypes_pops_01[ii]
+            gs_l = [gs_ii.compress(pop_indexes_haps[pop]) for pop in pops]
         
-        gs_l = [gs_ii.compress(pop_indexes[pop]) for pop in pops]
+        
         
         allele_counts = np.array([sum(g_l) for g_l in gs_l])
         
@@ -266,7 +281,11 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
                 continue
             
             for gs_jj in gs_to_right:
-                gs_r = [gs_jj.compress(pop_indexes[pop]) for pop in pops]
+                if use_genotypes == True:
+                    gs_r = [gs_jj.compress(pop_indexes[pop]) for pop in pops]
+                else:
+                    gs_r = [gs_jj.compress(pop_indexes_haps[pop]) for pop in pops]
+                
                 if use_genotypes == True:
                     cs = tuple([g_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
                 else:
@@ -405,7 +424,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
             bins = []
     
     # now if bins is empty, we only return heterozygosity statistics
-    type_counts = count_types(genotypes, bins, sample_ids, positions=None, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report)
+    type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report)
     
     if stats_to_compute == None:
         if pops is None:
