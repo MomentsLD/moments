@@ -12,7 +12,7 @@ try:
 except ImportError:
     pass
 
-import Util
+from . import Util
 
 def check_imports():
     if imported_allel == 0:
@@ -24,8 +24,8 @@ def check_imports():
 import numpy as np
 import pandas
 from collections import Counter
-import stats_from_genotype_counts as sgc
-import stats_from_haplotype_counts as shc
+from . import stats_from_genotype_counts as sgc
+from . import stats_from_haplotype_counts as shc
 
 ### does this handle only a single chromosome at a time???
 

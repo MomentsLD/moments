@@ -1,8 +1,8 @@
 import networkx as nx
 import numpy as np
 
-import LDstats_mod2
-import Numerics2
+from . import LDstats_mod
+from . import Numerics
 
 tol = 1e-12
 """
@@ -82,7 +82,7 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
     root, parents, children, leaves = get_pcl(demo_graph)
     present_pops, integration_times, nus, migration_matrices, frozen_pops, events = get_event_times(demo_graph)
     
-    Y = LDstats_mod2.LDstats2(equilibrium(rho=rho, theta=theta), num_pops=1, pop_ids=[present_pops[0][0]])
+    Y = LDstats_mod.LDstats(equilibrium(rho=rho, theta=theta), num_pops=1, pop_ids=[present_pops[0][0]])
     
     for ii, (pops, T, nu, mig_mat, frozen) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops)):
         Y.integrate(nu, T, rho=rho, theta=theta, m=mig_mat, frozen=frozen)
@@ -116,7 +116,7 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
     return Y 
 
 def equilibrium(rho=None, theta=0.001):
-    return Numerics2.steady_state(theta=theta, rho=rho)
+    return Numerics.steady_state(theta=theta, rho=rho)
 
 def dg_split(Y, parent, child1, child2):
     ids_from = Y.pop_ids
