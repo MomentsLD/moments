@@ -152,7 +152,6 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
             Ab1_h = np.eye(Ab_h.shape[0]) + dt/2.*Ab_h
             Ab2_h = np.linalg.inv(np.eye(Ab_h.shape[0]) - dt/2.*Ab_h)
             # ld solvers
-            ### also need to have the mutation(ld) depending on H!!!
             if rho is not None:
                 if np.isscalar(rho):
                     Ab1_ld = identity(Ab_ld.shape[0], format='csc') + dt/2.*Ab_ld
@@ -167,7 +166,7 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
             if np.isscalar(rho):
                 y = Ab1_ld.dot(y) + dt*Uld.dot(h)
             else:
-                ys = [Ab1_ld[i].dot(ys[i]) +  + dt*Uld.dot(h) for i in range(len(ys))]
+                ys = [Ab1_ld[i].dot(ys[i]) + dt*Uld.dot(h) for i in range(len(ys))]
         # h
         h = Ab1_h.dot(h) + dt*Uh
         

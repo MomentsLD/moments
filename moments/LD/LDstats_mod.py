@@ -195,7 +195,7 @@ class LDstats(list):
             new_order = [self.pop_ids[d[ii]-1] for ii in range(1,self.num_pops+1)]
 
         if len(self) == 1:
-            return LDstats(h_new, num_pops=self.num_pops, pop_ids=new_order)
+            return LDstats([h_new], num_pops=self.num_pops, pop_ids=new_order)
         elif len(self) == 2:
             return LDstats([y_new,h_new], num_pops=self.num_pops, pop_ids=new_order)
         else:
@@ -473,6 +473,9 @@ def %(method)s(self, other):
         elif rho is not None and np.isscalar(rho) == False and len(rho) != len(self)-1:
             print('Mismatch of rhos passed and size of LD object.')
             return
+        
+        if rho is not None and np.isscalar(rho) == False and len(rho) == 1:
+            rho = rho[0]
         
         if m is not None and num_pops > 1:
             if np.shape(m) != (num_pops, num_pops):
