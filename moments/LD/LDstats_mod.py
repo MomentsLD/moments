@@ -240,52 +240,48 @@ class LDstats(list):
                 new_ids.pop(ii-1)
             return LDstats(y_new, num_pops=self.num_pops-len(pops), pop_ids=new_ids)
 
-            
-#    def merge(self, f):
-#        if self.num_pops == 2:
-#            y_new = Numerics.merge_2pop(self,f)
-#            return LDstats(y_new, num_pops=1, order=self.order, basis=self.basis)
-#        else:
-#            raise ValueError("merge function is 2->1 pop.")
     
-#    def merge(self, pop1, pop2, f):
-#        y_new = Numerics.admix_npops(self, self.num_pops, pop1, pop2, f)
-#        y_new = LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
-#        y_new = y_new.swap_pops(pop1, y_new.num_pops)
-#        y_new = y_new.marginalize([pop2,y_new.num_pops])
-#        return y_new
-
-#    def admix(self, pop1, pop2, f):
-#        """
-#        admixture between pop1 and pop2, with fraction f of migrants from pop 1 (1-f from pop 2)
-#        returns a new LDstats object with the admixed population in last index
-#        """
-#        if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.num_pops:
-#            raise ValueError("Something wrong with calling admix.")
-#        elif pop1 >= pop2:
-#            raise ValueError("pop1 must be less than pop2, and f is fraction from pop1.")
-#        else:
-#### Numerics.admix_npops probably needs to check for basis
-#            y_new = Numerics.admix_npops(self, self.num_pops, pop1, pop2, f)
-#            return LDstats(y_new, num_pops=self.num_pops+1, order=self.order, basis=self.basis)
+    ## Admix takes two populations, creates new population with fractions f, 1-f
+    ## Merge takes two populations (pop1, pop2) and merges together with fraction
+    ## f from population pop1, and (1-f) from pop2
+    ## Pulse migrate again takes two populations, pop1 and pop2, and replaces fraction
+    ## f from pop2 with pop1
+    ## In each case, we use the admix function, which appends a new population on the end
+    ## In the case of merge, we use admix and then marginalize pop1 and pop2
+    ## in the case of pulse migrate, we use admix, and then swap new pop with pop2, and
+    ## then marginalize pop2, so the new population takes the same position in pop_ids 
+    ## that pop2 was previously in
     
-#    def pulse_migrate(self, pop_from, pop_to, f):
-#        """
-#        Pulse migration event, from pop_from to pop_to.
-#        After pulse migration event, pop_to is composed of (1-f) from pop_to and
-#        f from pop_from.
-#        
-#        This is equivalent to admix into new, so we'll use the admix function 
-#            and then rearrange and marginalize populations
-#        """
-#        if pop_from < pop_to:
-#            y_new = self.admix(pop_from, pop_to, f)
-#        elif pop_to < pop_from:
-#            y_new = self.admix(pop_to, pop_from, 1-f)
-#        
-#        y_new = y_new.swap_pops(pop_to, y_new.num_pops)
-#        y_new = y_new.marginalize([y_new.num_pops])
-#        return y_new
+    def admix(self, pop1, pop2, f):
+        if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
+            raise ValueError("Improper usage of admix (wrong indices?).")
+        else:
+            Y_new = Numerics.admix(self, self.num_pops, pop1, pop2, f)
+            if self.pop_ids is not None:
+                new_pop_ids = self.pop_ids + ['Adm']
+            else:
+                new_pop_ids = None
+            return LDstats(Y_new, num_pops=self.num_pops+1, pop_ids=new_pop_ids)
+    
+    def merge(self, pop1, pop2, f):
+        """
+        places new population at the end, then marginalizes pop1 and pop2
+        """
+        Y_new = self.admix(pop1, pop2, f)
+        Y_new.marginalize([pop1,pop2])
+        return Y_new
+    
+    def pulse_migrate(self, pop1, pop2, f):
+        """
+        pulse migration from pop1 to pop2, with fraction f replacement
+        we admix pop1 and pop2 with fraction f and 1-f, then swap the new
+        admixed population with pop2, then marginalize the old un-pulsed pop2
+        """
+        Y_new = self.admix(pop1, pop2, f)
+        Y_new = Y_new.swap_pops(pop2, Y_new.num_pops)
+        Y_new.pop_ids[pop2] = Y_new.pop_ids[-1]
+        Y_new = Y_new.marginalize(Y_new.num_pops)
+        return Y_new
     
 #    # Make from_file a static method, so we can use it without an instance.
 #    @staticmethod

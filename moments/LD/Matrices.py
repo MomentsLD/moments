@@ -519,14 +519,774 @@ def migration_ld(num_pops, m):
     return csc_matrix(M)
 
 
+def admix_h(num_pops, pop1, pop2, f):
+    moms_from = Util.moment_names(num_pops)[1]
+    moms_to = Util.moment_names(num_pops+1)[1]
+    A = np.zeros((len(moms_to), len(moms_from)))
+    for ii, mom_to in enumerate(moms_to):
+        if mom_to in moms_from: # doesn't involve new pop (unchanged)
+            A[ii, moms_from.index(mom_to)] = 1
+        else: # all moments are of the form H_k_new, k in [1,...,new] (new = num_pops+1)
+            i1 = int(mom_to.split('_')[1])
+            i2 = int(mom_to.split('_')[2])
+            if i2 != num_pops+1:
+                raise ValueError("This is unexpected... i2 should have been num_pops+1.")
+            if i1 == i2 == num_pops+1: # H_new_new
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{0}'.format(pop1)))] = f**2
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{1}'.format(pop1, pop2)))] = 2*f*(1-f)
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{0}'.format(pop2)))] = (1-f)**2
+            elif i1 == pop1: # H_pop1_new
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{0}'.format(pop1)))] = f
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{1}'.format(pop1, pop2)))] = (1-f)
+            elif i1 == pop2: # H_pop2_new
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{1}'.format(pop1, pop2)))] = f
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{0}'.format(pop2)))] = (1-f)
+            else: # H_non-source_new
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{1}'.format(pop1, i1)))] = f
+                A[ii, moms_from.index(Util.map_moment('H_{0}_{1}'.format(pop2, i1)))] = (1-f)
+    return A
 
 
 
+def admix_ld(num_pops, pop1, pop2, f):
+    # lots of fucking cases. good luck debugging this demon-spawn, you sucker
+    moms_from = Util.moment_names(num_pops)[0]
+    moms_to = Util.moment_names(num_pops+1)[0]
+    A = np.zeros((len(moms_to), len(moms_from)))
+    for ii, mom_to in enumerate(moms_to):
+        if mom_to in moms_from: # doesn't involve new pop (unchanged)
+            A[ii, moms_from.index(mom_to)] = 1
+        else: # moments are either DD, Dz, or pi2. we handle each in turn
+            mom_name = mom_to.split('_')[0]
+            if mom_name == 'DD':
+                i1 = int(mom_to.split('_')[1])
+                i2 = int(mom_to.split('_')[2])
+                
+                if i1 == i2 == num_pops+1: # DD_new_new
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{0}'.format(pop1,pop2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] += 2*f*(1-f)
+                    A[ii, moms_from.index(Util.map_moment('DD_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += 1./2 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += -1./2 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += -1./2 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += 1./2 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += 1./2 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += -1./2 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += -1./2 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += 1./2 * f * (1-f)**2
 
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += -2 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += -2 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += -2 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += -2 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                
+                elif i1 == pop1: # DD_pop1_new
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += 1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += 1./4 * f * (1-f)
+                
+                elif i1 == pop2: # DD_pop2_new
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('DD_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += 1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += 1./4 * f * (1-f)
+                
+                else: # DD_non-source_new
+                    A[ii, moms_from.index(Util.map_moment('DD_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                    A[ii, moms_from.index(Util.map_moment('DD_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += 1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{0}'.format(pop1,pop2,i1)))] += -1./4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += 1./4 * f * (1-f)
+                
+            elif mom_name == 'Dz':
+                i1 = int(mom_to.split('_')[1])
+                i2 = int(mom_to.split('_')[2])
+                i3 = int(mom_to.split('_')[3])
+                
+                if i1 == i2 == i3 == num_pops+1: # Dz_new_new_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += f**3
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += f**3
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += 4 * f**3 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 4 * f**2 * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += -4 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 4 * f**2 * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f) * (1-2*f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)**2 * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += -4 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)**2 * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)**3
+                
+                elif i1 == pop1 and i2 == i3 == num_pops+1: # Dz_pop1_new_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                
+                elif i1 == pop2 and i2 == i3 == num_pops+1: # Dz_pop2_new_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                
+                elif i2 == i3 == num_pops+1: # Dz_non-source_new_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{0}'.format(pop1,pop2,i1)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                
+                
+                elif i1 == i3 == num_pops+1 and i2 == pop1: # Dz_new_pop1_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += 4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += -4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)**2
+                    
+                elif i1 == i3 == num_pops+1 and i2 == pop2: # Dz_ne2_pop2_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += -4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)**2
+                
+                elif i1 == i3 == num_pops+1: # Dz_new_non-source_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{0}'.format(pop1,pop2,i2)))] += f**2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{1}'.format(pop1,pop2,i2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{0}'.format(pop1,pop2,i2)))] += f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{1}'.format(pop1,pop2,i2)))] += (1-f)**2
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += 4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += -4 * f**2 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += -4 * f * (1-f) * (1-2*f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)**2
+                
+                elif i1 == num_pops+1 and i2 == pop1 and i3 == pop1: # Dz_new_pop1_pop1
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == pop1 and i3 == pop2: # Dz_new_pop1_pop2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == pop2 and i3 == pop1: # Dz_new_pop2_pop1
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == pop2 and i3 == pop2: # Dz_new_pop2_pop2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == pop1: # Dz_new_pop1_non
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop2,i3)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == pop2: # Dz_new_pop2_non
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,i3)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i3 == pop1: # Dz_new_non_pop1
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{0}'.format(pop1,pop2,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{0}'.format(pop1,pop2,i2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i3 == pop2: # Dz_new_non_pop2
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{1}'.format(pop1,pop2,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{1}'.format(pop1,pop2,i2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1 and i2 == i3: # Dz_new_non_non (same non-source pop)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{2}'.format(pop1,pop2,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{2}'.format(pop1,pop2,i2)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i2)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i2)))] += 4 * f * (1-f)
+                
+                elif i1 == num_pops+1: # Dz_new_non1_non2 (different non-source pops)
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{3}'.format(pop1,pop2,i2,i3)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{3}'.format(pop1,pop2,i2,i3)))] += (1-f)
+                    
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i2,i3)))] += 4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i2,i3)))] += -4 * f * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i2,i3)))] += 4 * f * (1-f)
+                
+                elif i1 == pop1 and i2 == pop1 and i3 == num_pops+1: # Dz_pop1_pop1_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop2)))] += (1-f)
+                
+                elif i1 == pop1 and i2 == pop2 and i3 == num_pops+1: # Dz_pop1_pop2_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += (1-f)
+                
+                elif i1 == pop1 and i3 == num_pops+1: # Dz_pop1_non_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{0}'.format(pop1,pop2,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{0}_{2}_{1}'.format(pop1,pop2,i2)))] += (1-f)
+                
+                elif i1 == pop2 and i2 == pop1 and i3 == num_pops+1: # Dz_pop2_pop1_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += (1-f)
+                
+                elif i1 == pop2 and i2 == pop2 and i3 == num_pops+1: # Dz_pop2_pop2_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)
+                
+                elif i1 == pop2 and i3 == num_pops+1: # Dz_pop2_non_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{0}'.format(pop1,pop2,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{2}_{1}'.format(pop1,pop2,i2)))] += (1-f)
+                
+                elif i2 == pop1 and i3 == num_pops+1: # Dz_non_pop1_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += (1-f)
+                
+                elif i2 == pop2 and i3 == num_pops+1: # Dz_non_pop2_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{0}'.format(pop1,pop2,i1)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)
+                
+                elif i1 == i2 and i3 == num_pops+1: # Dz_non_non_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{2}_{0}'.format(pop1,pop2,i1)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{2}_{1}'.format(pop1,pop2,i1)))] += (1-f)
+                
+                elif i3 == num_pops+1: # Dz_non1_non2_new
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{3}_{0}'.format(pop1,pop2,i1,i2)))] += f
+                    A[ii, moms_from.index(Util.map_moment('Dz_{2}_{3}_{1}'.format(pop1,pop2,i1,i2)))] += (1-f)
+                
+                else:
+                    print("missed a Dz: ", mom_to)
+                
+            elif mom_name == 'pi2':
+                i1 = int(mom_to.split('_')[1])
+                i2 = int(mom_to.split('_')[2])
+                i3 = int(mom_to.split('_')[3])
+                i4 = int(mom_to.split('_')[4])
+                
+                if i1 == i2 == i3 == i4 == num_pops+1: # pi2_new_new_new_new
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**4
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 2 * f**3 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 2 * f**3 * (1-f)
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**3
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)**2
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**3
+                    A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**4
+                
+                elif i2 == i3 == i4 == num_pops+1:
+                    if i1 == pop1: # pi2_pop1_new_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**3
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**3
+                    
+                    elif i1 == pop2: # pi2_pop2_new_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**3
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**3
+                    
+                    else: # pi2_non-source_new_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**3
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2 * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**3
 
+                elif i3 == i4 == num_pops+1:
+                    if i1 == i2 == pop1: # pi2_pop1_pop1_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                        
+                    elif i1 == pop1 and i2 == pop2: # pi2_pop1_pop2_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                        
+                    elif i1 == pop1: # pi2_pop1_non-source_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += (1-f)**2
+                        
+                    elif i1 == pop2 and i2 == pop1: # pi2_pop2_pop1_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                        
+                    elif i1 == pop2 and i2 == pop2: # pi2_pop2_pop2_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                        
+                    elif i1 == pop2: # pi2_pop2_non-source_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += (1-f)**2
+                        
+                    elif i2 == pop1: # pi2_non-source_pop1_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                        
+                    elif i2 == pop2: # pi2_non-source_pop2_new_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                        
+                    elif i1 == i2: # pi2_non_non_new_new (non-source pops are the same)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                        
+                    else: # pi2_non1_non2_new_new (differenc=t non-source pops)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{0}'.format(pop1,pop2,i1,i2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{1}'.format(pop1,pop2,i1,i2)))] += 2 * f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{1}_{1}'.format(pop1,pop2,i1,i2)))] += (1-f)**2
+                
+                elif i2 == num_pops+1 and i4 == num_pops+1:
+                    if i1 == pop1 and i3 == pop1: # pi2_pop1_new_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    elif i1 == pop1 and i3 == pop2: # pi2_pop1_new_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    elif i1 == pop1: # pi2_pop1_new_non-source_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop2,i3)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop2,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += (1-f)**2
+                    
+                    elif i1 == pop2 and i3 == pop1: # pi2_pop2_new_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    elif i1 == pop2 and i3 == pop2: # pi2_pop2_new_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**2
+                    
+                    elif i1 == pop2: # pi2_pop2_new_non-source_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += (1-f)**2
+                    
+                    elif i3 == pop1: # pi2_non_new_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                    
+                    elif i3 == pop2: # pi2_non_new_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += (1-f)**2
+                   
+                    elif i1 == i3: # pi2_non_new_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += (1-f)**2
+                    
+                    else: # pi2_non1_new_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f * (1-f)
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += (1-f)**2
+                
+                elif i4 == num_pops+1:
+                    if i1 == pop1 and i2 == pop1 and i3 == pop1: # pi2_pop1_pop1_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                        
+                    elif i1 == pop1 and i2 == pop1 and i3 == pop2: # pi2_pop1_pop1_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop1 and i2 == pop1: # pi2_pop1_pop1_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop1 and i2 == pop2 and i3 == pop1: # pi2_pop1_pop2_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                   
+                    elif i1 == pop1 and i2 == pop2 and i3 == pop2: # pi2_pop1_pop2_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop1 and i2 == pop2: # pi2_pop1_pop2_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop1: # pi2_pop1_non_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop2: # pi2_pop1_non_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop1 and i2 == i3: # pi2_pop1_non_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop1: # pi2_pop1_non1_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i2,i3)))] += 1-f
+                    
+                    
+                    elif i1 == pop2 and i2 == pop1 and i3 == pop1: # pi2_pop2_pop1_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == pop1 and i3 == pop2: # pi2_pop2_pop1_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == pop1: # pi2_pop2_pop1_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == pop2 and i3 == pop1: # pi2_pop2_pop2_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == pop2 and i3 == pop2: # pi2_pop2_pop2_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == pop2: # pi2_pop2_pop2_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop1: # pi2_pop2_non_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop2: # pi2_pop2_non_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop2 and i2 == i3: # pi2_pop2_non_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i2)))] += 1-f
+                    
+                    elif i1 == pop2: # pi2_pop2_non1_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i2,i3)))] += 1-f
+                    
+                    
+                    elif i2 == pop1 and i3 == pop1: # pi2_non_pop1_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop1 and i3 == pop2: # pi2_non_pop1_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop1 and i1 == i3: # pi2_non_pop1_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop1: # pi2_non1_pop1_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i2 == pop2 and i3 == pop1: # pi2_non_pop2_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop2 and i3 == pop2: # pi2_non_pop2_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop2 and i1 == i3: # pi2_non_pop2_non_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i2 == pop2: # pi2_non1_pop2_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i3 == pop1 and i1 == i2: # pi2_non1_non1_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop2 and i1 == i2: # pi2_non1_non1_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i1 == i2 == i3: # pi2_non1_non1_non1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i1 == i2: # pi2_non1_non1_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i3 == pop1: # pi2_non1_non2_pop1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{0}'.format(pop1,pop2,i1,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{1}'.format(pop1,pop2,i1,i2)))] += 1-f
+                    
+                    elif i3 == pop2: # pi2_non1_non2_pop2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{1}'.format(pop1,pop2,i1,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{1}_{1}'.format(pop1,pop2,i1,i2)))] += 1-f
+                    
+                    elif i1 == i3: # pi2_non1_non2_non1_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{2}'.format(pop1,pop2,i1,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{1}_{2}'.format(pop1,pop2,i1,i2)))] += 1-f
+                    
+                    elif i2 == i3: # pi2_non1_non2_non2_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{3}'.format(pop1,pop2,i1,i2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{1}_{3}'.format(pop1,pop2,i1,i2)))] += 1-f
+                    
+                    else: # pi2_non1_non2_non3_new
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{0}_{4}'.format(pop1,pop2,i1,i2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{2}_{3}_{1}_{4}'.format(pop1,pop2,i1,i2,i3)))] += 1-f
+                    
+                
+                elif i2 == num_pops+1:
+                    if i1 == pop1 and i3 == pop1 and i4 == pop1: # pi2_pop1_new_pop1_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 1-f
+                        
+                    elif i1 == pop1 and i3 == pop1 and i4 == pop2: # pi2_pop1_new_pop1_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop1: # pi2_pop1_new_pop1_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop2,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i4)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop2 and i4 == pop1: # pi2_pop1_new_pop2_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop2 and i4 == pop2: # pi2_pop1_new_pop2_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == pop2: # pi2_pop1_new_pop2_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop2,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i4)))] += 1-f
+                    
+                    elif i1 == pop1 and i4 == pop1: # pi2_pop1_new_non_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop1 and i4 == pop2: # pi2_pop1_new_non_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop1 and i3 == i4: # pi2_pop1_new_non_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{2}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop1: # pi2_pop1_new_non1_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{2}_{3}'.format(pop1,pop2,i3,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,i3,i4)))] += 1-f
 
+                    
+                    elif i1 == pop2 and i3 == pop1 and i4 == pop1: # pi2_pop2_new_pop1_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += 1-f
+                        
+                    elif i1 == pop2 and i3 == pop1 and i4 == pop2: # pi2_pop2_new_pop1_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop1: # pi2_pop2_new_pop1_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{2}'.format(pop1,pop2,i4)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop2 and i4 == pop1: # pi2_pop2_new_pop2_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop2 and i4 == pop2: # pi2_pop2_new_pop2_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{1}'.format(pop1,pop2)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == pop2: # pi2_pop2_new_pop2_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{2}'.format(pop1,pop2,i4)))] += 1-f
+                    
+                    elif i1 == pop2 and i4 == pop1: # pi2_pop2_new_non_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop2 and i4 == pop2: # pi2_pop2_new_non_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{1}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop2 and i3 == i4: # pi2_pop2_new_non_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{2}_{2}'.format(pop1,pop2,i3)))] += 1-f
+                    
+                    elif i1 == pop2: # pi2_pop2_new_non1_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,i3,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{2}_{3}'.format(pop1,pop2,i3,i4)))] += 1-f
+                    
+                    
+                    elif i3 == pop1 and i4 == pop1: # pi2_non_new_pop1_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop1 and i4 == pop2: # pi2_non_new_pop1_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop1 and i1 == i4: # pi2_non_new_pop1_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop1: # pi2_non1_new_pop1_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i1,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i1,i4)))] += 1-f
+                    
+                    elif i3 == pop2 and i4 == pop1: # pi2_non_new_pop2_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop2 and i4 == pop2: # pi2_non_new_pop2_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop2 and i1 == i4: # pi2_non_new_pop2_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i3 == pop2: # pi2_non1_new_pop2_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i1,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i1,i4)))] += 1-f
+                    
+                    elif i1 == i3 and i4 == pop1: # pi2_non_new_non_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i1 == i3 and i4 == pop2: # pi2_non_new_non_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i1 == i3 == i4: # pi2_non_new_non_non
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{2}_{2}'.format(pop1,pop2,i1)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{2}_{2}'.format(pop1,pop2,i1)))] += 1-f
+                    
+                    elif i1 == i3: # pi2_non1_new_non1_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{2}_{3}'.format(pop1,pop2,i1,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{2}_{3}'.format(pop1,pop2,i1,i4)))] += 1-f
+                    
+                    elif i4 == pop1: # pi2_non1_new_non2_pop1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i4 == pop2: # pi2_non1_new_non2_pop2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{1}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i4 == i1: # pi2_non1_new_non2_non1
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{2}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{2}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    elif i4 == i3: # pi2_non1_new_non2_non2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{3}_{3}'.format(pop1,pop2,i1,i3)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{3}_{3}'.format(pop1,pop2,i1,i3)))] += 1-f
+                    
+                    else: # pi2_non1_new_non2_non3
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{3}_{4}'.format(pop1,pop2,i1,i3,i4)))] += f
+                        A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{3}_{4}'.format(pop1,pop2,i1,i3,i4)))] += 1-f
+                    
 
-
-
-
-
+                else:
+                    print("missed a pi2 : ", mom_to)
+    return A

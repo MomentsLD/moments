@@ -53,13 +53,29 @@ def split_ld(y, pop_to_split, num_pops):
             mom_from = '_'.join(mom_to_split)
             y_new[ii] = y[mom_list_from.index(Util.map_moment(mom_from))]
     return y_new
-                
-                
-def marginalize_h(h, p):
-    pass
 
-def marginalize_ld(y, p):
-    pass
+
+def admix_h(h, num_pops, pop1, pop2, f):
+    Ah = Matrices.admix_h(num_pops, pop1, pop2, f)
+    h_new = Ah.dot(h)
+    return h_new
+
+def admix_ld(ys, num_pops, pop1, pop2, f):
+    y_new = []
+    for y in ys:
+        y_new.append()
+        
+    
+
+def admix(Y, num_pops, pop1, pop2, f):
+    h = Y[-1]
+    h_new = admix_h(h, num_pops, pop1, pop2, f)
+    if len(Y) > 1:
+        ys = Y[:-1]
+        ys_new = admix_ld(ys, num_pops, pop1, pop2, f)
+        return ys_new + [h_new]
+    else:
+        return [h_new]
 
 ### transition matrices
 
