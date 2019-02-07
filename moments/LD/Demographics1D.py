@@ -1,137 +1,70 @@
 import numpy as np
-from moments.LD import Numerics
-from moments.LD import Corrections
+from moments.LD import Demography
 from moments.LD.LDstats_mod import LDstats
 
-def snm(order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
+def snm(rho=None, theta=0.001, pop_ids=None):
     """
     Equilibrium neutral model
-    order: order of D statistics (e.g. order=2 gives the D^2 system)
-    rho: population-scaled recombination rate (4Nr)
+    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
     theta: population-scaled mutation rate (4Nu)
-    ns: haploid sample size, used if corrected=True
-    corrected: if True, returns statistics that accounts for sampling bias in sample
-               size ns
-    ism: if True, we assume an infinite site model
-         if False (default), we assume a reversible mutation model with equal forward
-            and back mutation rates theta
     """
-    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order, basis='pi')
-    if corrected == True:
-        if genotypes == False:
-            return Corrections.corrected_onepop(y, ns=ns, order=order)
-        else:
-            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
-    else:
-        return y
+    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
+    return Y
 
-def two_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
+def two_epoch(params, rho=None, theta=0.001, pop_ids=None):
     """
     Two epoch model
     params:  = (nu,T), where nu is the new population size, integrated for time T
-    order: order of D statistics (e.g. order=2 gives the D^2 system)
-    rho: population-scaled recombination rate (4Nr)
+    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
     theta: population-scaled mutation rate (4Nu)
-    ns: haploid sample size, used if corrected=True
-    corrected: if True, returns statistics that accounts for sampling bias in sample
-               size ns
-    ism: if True, we assume an infinite site model
-         if False (default), we assume a reversible mutation model with equal forward
-            and back mutation rates theta
     """
     nu,T = params
-    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order, basis='pi')
-    y.integrate([nu], T, rho=rho, theta=theta, dt=0.001, ism=ism)
-    if corrected == True:
-        if genotypes == False:
-            return Corrections.corrected_onepop(y, ns=ns, order=order)
-        else:
-            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
-    else:
-        return y
+    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
+    Y.integrate([nu], T, rho=rho, theta=theta)
+    return Y
 
-def three_epoch(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
+def three_epoch(params, rho=None, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
     """
     Three epoch model
     params:  = (nu1,nu2,T1,T2), where nus are the population size, integrated 
             for times T1 and T2
-    order: order of D statistics (e.g. order=2 gives the D^2 system)
-    rho: population-scaled recombination rate (4Nr)
+    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
     theta: population-scaled mutation rate (4Nu)
-    ns: haploid sample size, used if corrected=True
-    corrected: if True, returns statistics that accounts for sampling bias in sample
-               size ns
-    ism: if True, we assume an infinite site model
-         if False (default), we assume a reversible mutation model with equal forward
-            and back mutation rates theta
     """
     nu1,nu2,T1,T2 = params
-    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order, basis='pi')
-    y.integrate([nu1], T1, rho=rho, theta=theta, dt=0.001, ism=ism)
-    y.integrate([nu2], T2, rho=rho, theta=theta, dt=0.001, ism=ism)
-    if corrected == True:
-        if genotypes == False:
-            return Corrections.corrected_onepop(y, ns=ns, order=order)
-        else:
-            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
-    else:
-        return y
+    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
+    Y.integrate([nu1], T1, rho=rho, theta=theta)
+    Y.integrate([nu2], T2, rho=rho, theta=theta)
+    return Y
 
 def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True):
     """
     Exponential growth (or decay) model
     params: = (nuF,T), nu F is the final population size after time T (starting from nu=1)
-    order: order of D statistics (e.g. order=2 gives the D^2 system)
-    rho: population-scaled recombination rate (4Nr)
+    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
     theta: population-scaled mutation rate (4Nu)
-    ns: haploid sample size, used if corrected=True
-    corrected: if True, returns statistics that accounts for sampling bias in sample
-               size ns
-    ism: if True, we assume an infinite site model
-         if False (default), we assume a reversible mutation model with equal forward
-            and back mutation rates theta
     """
     nuF,T = params
-    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order, basis='pi')
+    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     nu_func = lambda t: [np.exp( np.log(nuF) *t/T)]
-    y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
-    if corrected == True:
-        if genotypes == False:
-            return Corrections.corrected_onepop(y, ns=ns, order=order)
-        else:
-            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
-    else:
-        return y
+    Y.integrate(nu_func, T, rho=rho, theta=theta)
+    return Y
 
 def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=True, genotypes=False):    
     """
     Exponential growth (or decay) model after size change
     params: = (nuB,nuF,T), nu F is the final population size after time T, 
                 starting from instantaneous population size change of nuB
-    order: order of D statistics (e.g. order=2 gives the D^2 system)
-    rho: population-scaled recombination rate (4Nr)
+    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
     theta: population-scaled mutation rate (4Nu)
-    ns: haploid sample size, used if corrected=True
-    corrected: if True, returns statistics that accounts for sampling bias in sample
-               size ns
-    ism: if True, we assume an infinite site model
-         if False (default), we assume a reversible mutation model with equal forward
-            and back mutation rates theta
     """
     nuB,nuF,T = params
-    y = Numerics.equilibrium(rho, theta, ism=ism, order=order)
-    y = LDstats(y, num_pops=1, order=order, basis='pi')
+    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     nu_func = lambda t: [nuB * np.exp( np.log(nuF/nuB) *t/T)]
-    y.integrate(nu_func, T, rho=rho, theta=theta, dt=0.001, ism=ism)
-    if corrected == True:
-        if genotypes == False:
-            return Corrections.corrected_onepop(y, ns=ns, order=order)
-        else:
-            return Corrections.corrected_onepop_genotypes(y, ns=ns/2, order=order)
-    else:
-        return y
-
+    Y.integrate(nu_func, T, rho=rho, theta=theta)
+    return Y
