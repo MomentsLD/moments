@@ -129,12 +129,18 @@ def assign_r_pos(positions, rec_map):
         if pos in np.array(rec_map[0]):
             rs[ii] = np.array(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0]] 
         else:
-            map_ii = np.where(pos >= np.array(rec_map[0]))[0][-1]
-            l = rec_map[0][map_ii]
-            r = rec_map[0][map_ii+1]
-            v_l = rec_map[1][map_ii]
-            v_r = rec_map[1][map_ii+1]
-            rs[ii] = v_l + (v_r-v_l) * (pos-l)/(r-l)
+            ## for now, if outside rec map, assign to nearest point, but later want to drop these positions
+            if pos < rec_map[0].iloc[0]:
+                rs[ii] = rec_map[1].iloc[0]
+            elif pos > rec_map[0].iloc[-1]:
+                rs[ii] = rec_map[1].iloc[-1]
+            else:
+                map_ii = np.where(pos >= np.array(rec_map[0]))[0][-1]
+                l = rec_map[0][map_ii]
+                r = rec_map[0][map_ii+1]
+                v_l = rec_map[1][map_ii]
+                v_r = rec_map[1][map_ii+1]
+                rs[ii] = v_l + (v_r-v_l) * (pos-l)/(r-l)
     return rs
 
 
