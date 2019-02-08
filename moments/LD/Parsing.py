@@ -142,18 +142,18 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
     if map_file == None:
         raise ValueError("Need to pass a recombination map file. Otherwise can bin by physical distance.")
     try:
-        map = pandas.read_csv(map_file, sep=map_sep)
+        rec_map = pandas.read_csv(map_file, sep=map_sep)
     except:
         raise ValueError("Error loading map.")
     
     if map_name == None: # we use the first map column
         print("No recombination map name given, using first column.")
     else:
-        map_positions = map[map.keys()[0]]
+        map_positions = rec_map[rec_map.keys()[0]]
         try:
-            map_values = map[map_name]
+            map_values = rec_map[map_name]
         except KeyError:
-            map_values = map[map.keys()[1]]
+            map_values = rec_map[rec_map.keys()[1]]
         
     # for positions sticking out the end of the map, they take the value of the closest position
     # ideally, you'd filter these out
