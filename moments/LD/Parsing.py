@@ -26,6 +26,7 @@ import pandas
 from collections import Counter
 from . import stats_from_genotype_counts as sgc
 from . import stats_from_haplotype_counts as shc
+import sys
 
 ### does this handle only a single chromosome at a time???
 
@@ -37,7 +38,7 @@ def load_h5(vcf_file):
     try:
         callset = h5py.File(h5_file_path, mode='r')
     except OSError:
-        print("creating and saving h5 file")
+        print("creating and saving h5 file"); sys.stdout.flush()
         allel.vcf_to_hdf5(vcf_file, h5_file_path, fields='*', overwrite=True)
         callset = h5py.File(h5_file_path, mode='r')
     return callset
@@ -68,7 +69,7 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
     all_genotypes = allel.GenotypeChunkedArray(callset['calldata/GT'])
     all_positions = callset['variants/POS'][:]
     
-    if report is True: print("loaded genotypes")
+    if report is True: print("loaded genotypes"); sys.stdout.flush()
     
     # filter SNPs not in bed file, if one is given
     if bed_file is not None: # filter genotypes and positions
@@ -93,12 +94,12 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
               
             in_mask = np.logical_or(in_mask, np.logical_and(all_positions>=start, 
                                                             all_positions<end))
-        if report is True: print("created bed filter")
+        if report is True: print("created bed filter"); sys.stdout.flush()
         
         all_positions = all_positions.compress(in_mask)
         all_genotypes = all_genotypes.compress(in_mask)
         
-        if report is True: print("filtered by bed")
+        if report is True: print("filtered by bed"); sys.stdout.flush()
     
     all_genotypes_012 = all_genotypes.to_n_alt(fill=-1)
     
@@ -112,7 +113,7 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
     biallelic_allele_counts = allele_counts.compress(is_biallelic)
     biallelic_genotypes = all_genotypes.compress(is_biallelic)
     
-    if report is True: print("kept biallelic positions")
+    if report is True: print("kept biallelic positions"); sys.stdout.flush()
     
     relevant_column = np.array([False] * biallelic_allele_counts.shape[1])
     relevant_column[0:2] = True
@@ -146,14 +147,14 @@ def assign_r_pos(positions, rec_map):
 
 def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t', cM=True, report=True):
     if map_file == None:
-        raise ValueError("Need to pass a recombination map file. Otherwise can bin by physical distance.")
+        raise ValueError("Need to pass a recombination map file. Otherwise can bin by physical distance."); sys.stdout.flush()
     try:
         rec_map = pandas.read_csv(map_file, sep=map_sep)
     except:
-        raise ValueError("Error loading map.")
+        raise ValueError("Error loading map."); sys.stdout.flush()
     
     if map_name == None: # we use the first map column
-        print("No recombination map name given, using first column.")
+        print("No recombination map name given, using first column."); sys.stdout.flush()
     else:
         map_positions = rec_map[rec_map.keys()[0]]
         try:
@@ -229,7 +230,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             pos_rs = pos_rs.compress(is_biallelic)
         
     else:
-        print("No populations given, using all samples as one population.")
+        print("No populations given, using all samples as one population."); sys.stdout.flush()
         pops = ['ALL']
         pop_indexes['ALL'] = np.array([True]*np.shape(genotypes)[1])
         genotypes_pops = genotypes
@@ -273,7 +274,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     for ii,r in enumerate(rs[:-1]):
         if report is True:
             if ii%1000 == 0:
-                print("tallied two locus counts {0} of {1} positions".format(ii, len(rs)))
+                print("tallied two locus counts {0} of {1} positions".format(ii, len(rs))); sys.stdout.flush()
         
         if use_genotypes == True:
             gs_ii = [genotypes_by_pop[pop][ii] for pop in pops]
@@ -361,7 +362,7 @@ def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=
     all_counts = np.swapaxes(all_counts,1,2)
     
     for stat in ld_stats:
-        if report is True: print("computing " + stat)
+        if report is True: print("computing " + stat); sys.stdout.flush()
         vals = call_sgc(stat, all_counts, use_genotypes)
         for ii in range(len(all_counts[0,0])):
             cs = all_counts[:,:,ii]
@@ -375,7 +376,7 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     """
     
     if pops == None:
-        raise ValueError("should pass pops....")
+        raise ValueError("should pass pops...."); sys.stdout.flush()
     
     samples = pandas.read_csv(pop_file, sep='\t')
 
@@ -428,7 +429,12 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
     
     positions, genotypes, counts, sample_ids = get_genotypes(vcf_file, bed_file=bed_file, min_bp=min_bp, use_h5=use_h5, report=report)
     
-    if report is True: print("assigning recombination rates to positions, if recombination map is passed")
+    if report == True:
+        print("kept {0} total variants".format(len(positions))); sys.stdout.flush()
+    
+    if report is True: 
+        print("assigning recombination rates to positions, if recombination map is passed"); sys.stdout.flush()
+    
     if rec_map_file is not None and r_bins is not None:
         pos_rs = assign_recombination_rates(positions, rec_map_file, map_name=map_name, map_sep=map_sep, cM=cM, report=report)
         bins = r_bins
