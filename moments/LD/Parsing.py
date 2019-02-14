@@ -173,6 +173,7 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
 
 
 def g_tally_counter(g_l, g_r):
+    #### Counter on iterable
     gs = list(zip(g_l,g_r))
     c = Counter(gs)
     return (c[(2,2)], c[(2,1)], c[(2,0)], 
@@ -181,6 +182,7 @@ def g_tally_counter(g_l, g_r):
 
 
 def h_tally_counter(h_l, h_r):
+    #### Counter on iterable
     hs = list(zip(h_l, h_r))
     c = Counter(hs)
     return (c[(1,1)], c[(1,0)], c[(0,1)], c[(0,0)])
@@ -249,7 +251,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     type_counts = {}
     for b in bs:
         type_counts[b] = {}
-    
+        
     if pos_rs is not None:
         rs = pos_rs
     elif positions is not None:
@@ -257,19 +259,26 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     
     ns = np.array([2 * sum(pop_indexes[pop]) for pop in pops])
     
+    
+    #### compress by population out here first, to avoid the for pop in pops each ii
+    if use_genotypes == True:        
+        genotypes_by_pop = {}
+        for pop in pops:
+            genotypes_by_pop[pop] = [genotypes_pops_012.compress(pop_indexes[pop], axis=1)
+    else:
+        haplotypes_by_pop = {}
+        for pop in pops:
+            haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
+    
     for ii,r in enumerate(rs[:-1]):
         if report is True:
             if ii%1000 == 0:
                 print("tallied two locus counts {0} of {1} positions".format(ii, len(rs)))
         
         if use_genotypes == True:
-            gs_ii = genotypes_pops_012[ii]
-            gs_l = [gs_ii.compress(pop_indexes[pop]) for pop in pops]
+            gs_ii = [genotypes_by_pop[pop][ii] for pop in pops]
         else:
-            gs_ii = haplotypes_pops_01[ii]
-            gs_l = [gs_ii.compress(pop_indexes_haps[pop]) for pop in pops]
-        
-        
+            gs_ii = [haplotypes_by_pop[pop][ii] for pop in pops]
         
         allele_counts = np.array([sum(g_l) for g_l in gs_l])
         
@@ -277,25 +286,25 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             continue
         
         for b in bs:
-            filt = np.logical_and(pos_rs[ii+1:] - r >= b[0], pos_rs[ii+1:] - r < b[1])
-            if use_genotypes == True:
-                gs_to_right = genotypes_pops_012[ii+1:].compress(filt, axis=0)
-            else:
-                gs_to_right = haplotypes_pops_01[ii+1:].compress(filt, axis=0)
+            filt = np.logical_and(pos_rs - r >= b[0], pos_rs - r < b[1])
+            filt[ii] = False
             
-            if np.shape(gs_to_right) is ():
+            right_indices = np.where(filt == True)[0]
+            
+            if len(right_indices) == 0:
                 continue
             
-            for gs_jj in gs_to_right:
-                if use_genotypes == True:
-                    gs_r = [gs_jj.compress(pop_indexes[pop]) for pop in pops]
-                else:
-                    gs_r = [gs_jj.compress(pop_indexes_haps[pop]) for pop in pops]
+            if use_genotypes == True:
+                gs_to_right = ((genotypes_by_pop[pop][jj] for jj in right_indices) for pop in pops)
+            else:
+                gs_to_right = ((haplotypes_by_pop[pop][jj] for jj in right_indices) for pop in pops)
+            
+            for jj in len(right_indices):
                 
                 if use_genotypes == True:
-                    cs = tuple([g_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
+                    cs = tuple( [g_tally_counter(gs_ii[kk],gs_to_right[kk][jj]) for kk in len(pops)] )
                 else:
-                    cs = tuple([h_tally_counter(gl, gr) for gr,gl in zip(gs_l, gs_r)])
+                    cs = tuple( [h_tally_counter(gs_ii[kk],gs_to_right[kk][jj]) for kk in len(pops)] )
                 
                 type_counts[b].setdefault(cs,0)
                 type_counts[b][cs] += 1
