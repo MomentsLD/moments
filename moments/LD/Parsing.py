@@ -189,7 +189,7 @@ def h_tally_counter(h_l, h_r):
     return (c[(1,1)], c[(1,0)], c[(0,1)], c[(0,0)])
 
 
-def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True):
+def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None):
     """
     genotypes : in format of 0,1,2
     bins : bin edges, either recombination distances or bp distances
@@ -203,6 +203,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     report_spacing : how often to report (if True) as we parse through positions
     use_cache : if True, we cache count types over each bin and later compute statistics. The caches
                 could require too much memory, in which case we compute statistics as we count pairs
+    stats_to_compute : passed only if use_cache = False
     """
     
     if report==True: print("keeping only variable positions in these pops"); sys.stdout.flush()
@@ -267,9 +268,11 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         for b in bs:
             type_counts[b] = {}
     else:
-        reported_stats = {}
+        sums = {}
         for b in bs:
-            reported_stats[b] = [] #XXX 
+            sums[b] = {}
+            for stat in stats_to_compute[0]:
+                sums[b][stat] = 0
         
     if pos_rs is not None:
         rs = pos_rs
@@ -279,7 +282,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     ns = np.array([2 * sum(pop_indexes[pop]) for pop in pops])
     
     ## here, we split our genotype array into sub-genotype arrays for each population
-    if use_cache == True: # if we use caches, it's faster to look up 
+    if use_cache == True: # if we use caches, it's faster to look up genotype arrays
         if report==True: print("creating look-up dict for genotypes"); sys.stdout.flush()
         if use_genotypes == True:        
             genotypes_by_pop = {}
@@ -297,9 +300,19 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
                 haplotypes_by_pop[pop] = {}
                 for ii in range(len(temp_genotypes)):
                     haplotypes_by_pop[pop][ii] = temp_haplotypes[ii]
-    else: 
+    else: # don't want to use dict caches for genotype arrays, so we have to read from the genotype arrays each time
+        # here we pre-compress them
         if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
+        if use_genotypes == True:        
+            genotypes_by_pop = {}
+            for pop in pops:
+                genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
+        else:
+            haplotypes_by_pop = {}
+            for pop in pops:
+                haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
     
+    # loop through 'left' positions, paired with positions to the right
     for ii,r in enumerate(rs[:-1]):
         if report is True:
             if ii%report_spacing == 0:
@@ -332,13 +345,13 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
                     type_counts[b].setdefault(cs,0)
                     type_counts[b][cs] += 1
                 else:
-                    pass
-                    #XXXXX
+                    for stat in stats_to_compute[0]:
+                        sums[b][stat] += call_sgc(stat, cs, use_genotypes)
     
     if use_cache == True:
         return type_counts
     else:
-        return reported_stats
+        return sums
 
 
 def call_sgc(stat, Cs, use_genotypes):
@@ -433,25 +446,50 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     return Hs
 
 
-def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True):
+def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None):
+    ### build wrapping function that can take use_cache = True or False
+    # now if bins is empty, we only return heterozygosity statistics
+    
+    if stats_to_compute == None:
+        if pops is None:
+            stats_to_compute = Util.moment_names(1)
+        else:
+            stats_to_compute = Util.moment_names(len(pops))
+    
+    bs = list(zip(bins[:-1],bins[1:]))
+    
+    if use_cache == True:
+        type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache)
+        
+        statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
+        
+        sums = {}
+        for b in bs:
+            sums[b] = {}
+            for stat in stats_to_compute[0]:
+                sums[b][stat] = 0
+                for cs in type_counts[b]:
+                    sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
+        
+    else:
+        sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute)
+    
+    Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
+    
+    reported_stats = {}
+    reported_stats['bins'] = bs
+    reported_stats['sums'] = [np.empty(len(stats_to_compute[0])) for b in bs] + [np.empty(len(stats_to_compute[1]))]
+    for ii,b in enumerate(bs):
+        for s in stats_to_compute[0]:
+            reported_stats['sums'][ii][stats_to_compute[0].index(s)] = sums[b][s]
+    for s in stats_to_compute[1]:
+        reported_stats['sums'][-1][stats_to_compute[1].index(s)] = Hs[(pops[int(s.split('_')[1])-1],pops[int(s.split('_')[2])-1])]
+    reported_stats['stats'] = stats_to_compute
+        
+    return reported_stats
 
-    """ testing
-    vcf_file = '/Users/aragsdal/Data/Human/ThousandGenomes/genotypes/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz'
-    bed_file = '/Users/aragsdal/Data/Human/ThousandGenomes/masks/gencode_v19_intergenic_strict_mask.flank20k.chr22.bed.gz'
-    rec_map_file = '/Users/aragsdal/Data/Human/maps_b37/maps_chr.22'
-    pop_file = '/Users/aragsdal/Data/Human/ThousandGenomes/genotypes/integrated_call_samples_v3.20130502.ALL.panel'
-    pops = ['YRI','CEU','CHB']
-    
-    min_bp = 100
-    use_h5 = True
-    
-    map_name = 'AA_Map'
-    map_sep = ' '
-    
-    r_bins = [0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.002]
-    
-    stats = Parsing.compute_ld_statistics(vcf_file, bed_file=bed_file, rec_map_file=rec_map_file, map_name=map_name, pop_file=pop_file, pops=pops, r_bins=r_bins, min_bp=100)
-    """
+
+def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True, report_spacing=1000, use_cache=True):
     
     check_imports()
     
@@ -472,39 +510,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
         else:
             bins = []
     
-    
-    ### build wrapping function that can take use_cache = True or False
-    # now if bins is empty, we only return heterozygosity statistics
-    type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report)
-    
-    if stats_to_compute == None:
-        if pops is None:
-            stats_to_compute = Util.moment_names(1)
-        else:
-            stats_to_compute = Util.moment_names(len(pops))
-    
-    statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
-    
-    bs = list(zip(bins[:-1],bins[1:]))
-    sums = {}
-    for b in bs:
-        sums[b] = {}
-        for stat in stats_to_compute[0]:
-            sums[b][stat] = 0
-            for cs in type_counts[b]:
-                sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
-    
-    Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
-    
-    reported_stats = {}
-    reported_stats['bins'] = bs
-    reported_stats['sums'] = [np.empty(len(stats_to_compute[0])) for b in bs] + [np.empty(len(stats_to_compute[1]))]
-    for ii,b in enumerate(bs):
-        for s in stats_to_compute[0]:
-            reported_stats['sums'][ii][stats_to_compute[0].index(s)] = sums[b][s]
-    for s in stats_to_compute[1]:
-        reported_stats['sums'][-1][stats_to_compute[1].index(s)] = Hs[(pops[int(s.split('_')[1])-1],pops[int(s.split('_')[2])-1])]
-    reported_stats['stats'] = stats_to_compute
+    reported_stats = get_reported_stats(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache)
     
     return reported_stats
 
