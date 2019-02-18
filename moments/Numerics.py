@@ -17,7 +17,7 @@ def reverse_array(arr):
     """
     Reverse an array along all axes, so arr[i,j] -> arr[-(i+1),-(j+1)].
     """
-    reverse_slice = [slice(None, None, -1) for ii in arr.shape]
+    reverse_slice = tuple([slice(None, None, -1) for ii in arr.shape])
     return arr[reverse_slice]
 
 def intersect_masks(m1, m2):
