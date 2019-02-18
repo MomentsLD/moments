@@ -177,7 +177,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         Unmask all values.
         """
-        self.mask[[slice(None)] * self.Npop] = False
+        self.mask[tuple([slice(None)] * self.Npop)] = False
 
     def _get_sample_sizes(self):
         return numpy.asarray(self.shape) - 1
@@ -997,7 +997,7 @@ class Spectrum(numpy.ma.masked_array):
         # We need to use 'this_slice' to get the proper aligment between
         # ptwiddle and pbar.
         this_slice = [slice(None)]*r + [numpy.newaxis]
-        s2 = numpy.sum(ns * (ptwiddle - pbar[this_slice])**2, axis=-1) / ((r-1)*nbar)
+        s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)])**2, axis=-1) / ((r-1)*nbar)
     
         # Note that this 'a' differs from equation 2, because we've used
         # equation 3 and b = 0 to solve for hbar.
