@@ -37,7 +37,7 @@ def load_h5(vcf_file):
     h5_file_path = vcf_file.split('.vcf')[0] + '.h5' # kinda hacky, sure
     try:
         callset = h5py.File(h5_file_path, mode='r')
-    except OSError:
+    except (OSError,IOError): # IOError merged into OSError in python 3
         print("creating and saving h5 file"); sys.stdout.flush()
         allel.vcf_to_hdf5(vcf_file, h5_file_path, fields='*', overwrite=True)
         callset = h5py.File(h5_file_path, mode='r')
