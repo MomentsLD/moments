@@ -474,7 +474,10 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     else:
         sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute)
     
-    Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
+    if len(stats_to_compute[1]) == 0:
+        Hs = {}
+    else:
+        Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
     
     reported_stats = {}
     reported_stats['bins'] = bs
@@ -534,7 +537,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
         else:
             bins = []
     
-    reported_stats = get_reported_stats(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache)
+    reported_stats = get_reported_stats(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, stats_to_compute=stats_to_compute, report_spacing=report_spacing, use_cache=use_cache)
     
     return reported_stats
 
