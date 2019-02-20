@@ -1588,7 +1588,7 @@ def %(method)s(self, other):
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
             else:
-                self.data[:] = moments.Integration_nomig.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
+                self.data[:] = moments.Integration.integrate_nD(self.data, Npop, tf, dt_fac, gamma, h, m, theta, adapt_dt, 
                                         finite_genome=finite_genome, theta_fd=theta_fd, theta_bd=theta_bd,
                                         frozen=frozen)
 

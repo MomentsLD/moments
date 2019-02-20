@@ -33,6 +33,7 @@ import sys
 def load_h5(vcf_file):
     check_imports()
     ## open the h5 callset, create if doesn't exist
+    ## note that if the h5 file exists, but isn't properly written, you will need to delete and recreate
     ## saves h5 callset as same name and path, but with h5 extension instead of vcf or vcf.gz
     h5_file_path = vcf_file.split('.vcf')[0] + '.h5' # kinda hacky, sure
     try:
@@ -490,6 +491,30 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
 
 
 def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True, report_spacing=1000, use_cache=True):
+    """
+    vcf_file : path to vcf file
+    bed_file : path to bed file to specify regions over which to compute LD statistics. If None, computes statistics
+               for all positions in vcf_file
+    rec_map_file : path to recombination map
+    map_name : if None, takes the first map column, otherwise takes the specified map column
+    map_sep : tells pandas how to parse the recombination map. Default is tabs, though I've been working 
+              with space delimitted map files
+    pop_file : 
+    pops : 
+    cM : 
+    r_bins : 
+    bp_bins : 
+    min_bp : 
+    use_genotypes : 
+    use_h5 : 
+    stats_to_compute : 
+    report : 
+    report_spacing : 
+    use_cache : 
+    
+    Recombination map has the format XXX
+    pop_file has the format XXX
+    """
     
     check_imports()
     
@@ -514,5 +539,75 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
     
     return reported_stats
 
-def bootstrap_data():
-    pass
+def bootstrap_data(all_data, normalization=['pi2_1_1_1_1','H_1_1']):
+    """
+    all_data : dictionary (with arbitrary keys), where each value is are ld statistics computed
+               from a distinct region. all_data[reg]
+               stats from each region has keys, 'bins', 'sums', 'stats', and optional 'pops' (anything else?)
+    normalization : we work with sigma_d^2 statistics, and by default we use population 1 to normalize stats
+    
+    We first check that all 'stats', 'bins', 'pops' (if present), match across all regions
+    
+    If there are N total regions, we compute N bootstrap replicates by sampling N times with replacement
+        and summing over all 'sums'.
+    """
+    
+    ## Check consistencies of bins, stats, and data sizes
+    
+    
+    
+    regions = list(all_data.keys())
+    reg = regions[0]
+    stats = all_data[reg]['stats']
+    N = len(regions)
+    
+    # get means
+    means = [0*sums for sums in all_data[reg]['sums']]
+    for reg in regions:
+        for ii in range(len(means)):
+            means[ii] += all_data[reg]['sums'][ii]
+    
+    for ii in range(len(means)-1):
+        means[ii] /= means[ii][stats[0].index(normalization[0])]
+    means[-1] /= means[-1][stats[1].index(normalization[1])]
+    
+    
+    # construct bootstrap data
+    bootstrap_data = [np.zeros((len(sums),N)) for sums in means] 
+    
+    for boot_num in range(N):
+        boot_means = [0*sums for sums in means]
+        samples = np.random.choice(regions, N)
+        for reg in samples:
+            for ii in range(len(boot_means)):
+                boot_means[ii] += all_data[reg]['sums'][ii]
+        
+        for ii in range(len(boot_means)-1):
+            boot_means[ii] /= boot_means[ii][stats[0].index(normalization[0])]
+        boot_means[-1] /= boot_means[-1][stats[1].index(normalization[1])]
+        
+        for ii in range(len(boot_means)):
+            bootstrap_data[ii][:,boot_num] = boot_means[ii]
+
+    varcovs = [np.cov(bootstrap_data[ii]) for ii in range(len(bootstrap_data))]
+
+    mv = {}
+    mv['bins'] = all_data[reg]['bins']
+    mv['stats'] = all_data[reg]['stats']
+    if 'pops' in all_data[reg]:
+        mv['pops'] = all_data[reg]['pops']
+    mv['means'] = means
+    mv['varcovs'] = varcovs
+    
+    return mv
+
+
+
+
+
+
+
+
+
+
+
