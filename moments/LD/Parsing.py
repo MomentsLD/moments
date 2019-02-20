@@ -377,18 +377,17 @@ def call_sgc(stat, Cs, use_genotypes):
             else:
                 return 1./2 * shc.Dz(Cs, pop_nums) + 1./2 * shc.Dz(Cs, alt_pop_nums)
     if s == 'pi2':
-        ii,jj,kk,ll = pop_nums ### this below probably is incorrect for multiple pops
-        if [ii,jj] == [kk,ll]:
-            if use_genotypes == True:
-                return sgc.pi2(Cs, pop_nums)
+        ii,jj,kk,ll = pop_nums ### this doesn't consider the symmetry between p/q yet...
+        if ii == jj:
+            if kk == ll:
+                return sgc.pi2(Cs, [ii,jj,kk,ll])
             else:
-                return shc.pi2(Cs, pop_nums)
+                return 1./2 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./2 * sgc.pi2(Cs, [ii,jj,ll,kk])
         else:
-            alt_pop_nums = [kk,ll,ii,jj]
-            if use_genotypes == True:
-                return 1./2 * sgc.pi2(Cs, pop_nums) + 1./2 * sgc.pi2(Cs, alt_pop_nums)
+            if kk == ll:
+                return 1./2 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./2 * sgc.pi2(Cs, [jj,ii,kk,ll])
             else:
-                return 1./2 * shc.pi2(Cs, pop_nums) + 1./2 * shc.pi2(Cs, alt_pop_nums)
+                return 1./4 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./4 * sgc.pi2(Cs, [ii,jj,ll,kk]) + 1./4 * sgc.pi2(Cs, [jj,ii,kk,ll]) + 1./4 * sgc.pi2(Cs, [jj,ii,ll,kk])
 
 
 def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=True):
