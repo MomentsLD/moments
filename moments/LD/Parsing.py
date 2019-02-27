@@ -183,8 +183,7 @@ def g_tally_counter(g_l, g_r):
             c[(0,2)], c[(0,1)], c[(0,0)])
 
 def g_tally_counter_2(g_l,g_r):
-    gg = 3*g_l + g_r
-    return tuple(np.bincount(gg)[::-1]) ### could save more time by figuring out how not to switch between tuples and lists and arrays all the time...
+    return tuple(np.bincount(3*g_l + g_r, minlength=9)[::-1]) ### could save more time by figuring out how not to switch between tuples and lists and arrays all the time...
 
 def h_tally_counter(h_l, h_r):
     #### Counter on iterable
