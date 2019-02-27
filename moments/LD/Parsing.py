@@ -182,6 +182,9 @@ def g_tally_counter(g_l, g_r):
             c[(1,2)], c[(1,1)], c[(1,0)], 
             c[(0,2)], c[(0,1)], c[(0,0)])
 
+def g_tally_counter_2(g_l,g_r):
+    gg = 3*g_l + g_r
+    return tuple(np.bincount(gg)[::-1]) ### could save more time by figuring out how not to switch between tuples and lists and arrays all the time...
 
 def h_tally_counter(h_l, h_r):
     #### Counter on iterable
@@ -338,7 +341,8 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             ## for each position to the right within the bin, count genotypes within each population
             for jj in right_indices:
                 if use_genotypes == True:
-                    cs = tuple( [g_tally_counter(gs_ii[kk],genotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
+                    #cs = tuple( [g_tally_counter(gs_ii[kk],genotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
+                    cs = tuple( [g_tally_counter_2(gs_ii[kk],genotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
                 else:
                     cs = tuple( [h_tally_counter(gs_ii[kk],haplotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
                 
