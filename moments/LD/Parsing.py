@@ -292,47 +292,37 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     
     ns = np.array([2 * sum(pop_indexes[pop]) for pop in pops])
     
-#    ## here, we split our genotype array into sub-genotype arrays for each population
-#    if use_cache == True: # if we use caches, it's faster to look up genotype arrays
-#        if report==True: print("creating look-up dict for genotypes"); sys.stdout.flush()
-#        if use_genotypes == True:        
-#            genotypes_by_pop = {}
-#            for pop in pops:
-#                #genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#                temp_genotypes = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#                genotypes_by_pop[pop] = {}
-#                for ii in range(len(temp_genotypes)):
-#                    genotypes_by_pop[pop][ii] = temp_genotypes[ii]
-#        else:
-#            haplotypes_by_pop = {}
-#            for pop in pops:
-#                #haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-#                temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-#                haplotypes_by_pop[pop] = {}
-#                for ii in range(len(temp_genotypes)):
-#                    haplotypes_by_pop[pop][ii] = temp_haplotypes[ii]
-#    else: # don't want to use dict caches for genotype arrays, so we have to read from the genotype arrays each time
-#        # here we pre-compress them
-#        if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
-#        if use_genotypes == True:        
-#            genotypes_by_pop = {}
-#            for pop in pops:
-#                genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#        else:
-#            haplotypes_by_pop = {}
-#            for pop in pops:
-#                haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
+    bins = np.array(bins)
     
-    
-    if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
-    if use_genotypes == True:        
-        genotypes_by_pop = {}
-        for pop in pops:
-            genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-    else:
-        haplotypes_by_pop = {}
-        for pop in pops:
-            haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
+    ## here, we split our genotype array into sub-genotype arrays for each population
+    if use_cache == True: # if we use caches, it's faster to look up genotype arrays
+        if report==True: print("creating look-up dict for genotypes"); sys.stdout.flush()
+        if use_genotypes == True:        
+            genotypes_by_pop = {}
+            for pop in pops:
+                #genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
+                temp_genotypes = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
+                genotypes_by_pop[pop] = {}
+                for ii in range(len(temp_genotypes)):
+                    genotypes_by_pop[pop][ii] = temp_genotypes[ii]
+        else:
+            haplotypes_by_pop = {}
+            for pop in pops:
+                #haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
+                temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
+                haplotypes_by_pop[pop] = {}
+                for ii in range(len(temp_genotypes)):
+                    haplotypes_by_pop[pop][ii] = temp_haplotypes[ii]
+    else: # don't want to use dict caches for genotype arrays, so we have to read from the genotype arrays each time
+        if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
+        if use_genotypes == True:        
+            genotypes_by_pop = {}
+            for pop in pops:
+                genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
+        else:
+            haplotypes_by_pop = {}
+            for pop in pops:
+                haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
     
     # loop through 'left' positions, paired with positions to the right
     for ii,r in enumerate(rs[:-1]):
@@ -362,16 +352,34 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         right_start = right_indices[0]
         right_end = right_indices[-1]+1
         
-        if use_genotypes == True:
-            genotypes_right = [genotypes_by_pop[pop][right_start:right_end] for pop in pops]
+        if use_cache == True:
+            # we stored genotypes in a dictionary
+            if use_genotypes == True:
+                genotypes_right = []
+                for pop_ind,pop in enumerate(pops):
+                    genotypes_right_pop = np.empty((right_end-right_start, int(ns[pop_ind]/2))).astype('int')
+                    for right_ind in range(right_start,right_end):
+                        genotypes_right_pop[right_ind-right_start] = genotypes_by_pop[pop][right_ind]
+                    genotypes_right.append(genotypes_right_pop)
+            else:
+                haplotypes_right = []
+                for pop_ind,pop in enumerate(pops):
+                    haplotypes_right_pop = np.empty((right_end-right_start, ns[pop_ind])).astype('int')
+                    for right_ind in range(right_start,right_end):
+                        haplotypes_right_pop[right_ind-right_start] = haplotypes_by_pop[pop][right_ind]
+                    haplotypes_right.append(haplotypes_right_pop)
         else:
-            haplotypes_right = [haplotypes_by_pop[pop][right_start:right_end] for pop in pops]
+            # we read from a slice of the genotype arrays (which for some reason is slower)
+            if use_genotypes == True:
+                genotypes_right = [genotypes_by_pop[pop][right_start:right_end] for pop in pops]
+            else:
+                haplotypes_right = [haplotypes_by_pop[pop][right_start:right_end] for pop in pops]
         
         cs = [ g_tally_counter_3(genotypes_left[pop_ind], genotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
                 
         for jj,r_pos in enumerate(r_dists[right_start:right_end]):
-            bin_ind = np.where(r_pos >= bins)[0][0]
-            b = (bins[bin_ind],bins[bin_ind+1])
+            bin_ind = np.where(r_pos >= bins)[0][-1]
+            b = bs[bin_ind]
             
             cs_ind = tuple([tuple(cs[pop_ind][jj]) for pop_ind in range(len(pops))])
             
@@ -381,23 +389,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             else:
                 for stat in stats_to_compute[0]:
                     sums[b][stat] += call_sgc(stat, cs_ind, use_genotypes)
-            
-            ## for each position to the right within the bin, count genotypes within each population
-#            for jj in right_indices:
-#                if use_genotypes == True:
-#                    #cs = tuple( [g_tally_counter(gs_ii[kk],genotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
-#                    cs = tuple( [g_tally_counter_2(gs_ii[kk],genotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
-#                    ### could be made faster by not looping over each pair, but working on arrays of g_l x gs_r within min and max rho values
-#                else:
-#                    cs = tuple( [h_tally_counter(gs_ii[kk],haplotypes_by_pop[pop][jj]) for kk,pop in enumerate(pops)] )
-#                
-#                if use_cache == True:
-#                    type_counts[b].setdefault(cs,0)
-#                    type_counts[b][cs] += 1
-#                else:
-#                    for stat in stats_to_compute[0]:
-#                        sums[b][stat] += call_sgc(stat, cs, use_genotypes)
-    
+                
     if use_cache == True:
         return type_counts
     else:
