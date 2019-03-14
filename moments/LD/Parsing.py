@@ -412,23 +412,40 @@ def call_sgc(stat, Cs, use_genotypes):
             else:
                 return shc.Dz(Cs, pop_nums)
         else:
-            alt_pop_nums = [ii,kk,jj]
             if use_genotypes == True:
-                return 1./2 * sgc.Dz(Cs, pop_nums) + 1./2 * sgc.Dz(Cs, alt_pop_nums)
+                return 1./2 * sgc.Dz(Cs, [ii,jj,kk]) + 1./2 * sgc.Dz(Cs, [ii,kk,jj])
             else:
-                return 1./2 * shc.Dz(Cs, pop_nums) + 1./2 * shc.Dz(Cs, alt_pop_nums)
+                return 1./2 * shc.Dz(Cs, [ii,jj,kk]) + 1./2 * shc.Dz(Cs, [ii,kk,jj])
     if s == 'pi2':
         ii,jj,kk,ll = pop_nums ### this doesn't consider the symmetry between p/q yet...
         if ii == jj:
             if kk == ll:
-                return sgc.pi2(Cs, [ii,jj,kk,ll])
-            else:
-                return 1./2 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./2 * sgc.pi2(Cs, [ii,jj,ll,kk])
+                if ii == kk: # all the same
+                    if use_genotypes == True:
+                        return sgc.pi2(Cs, [ii,jj,kk,ll])
+                    else:
+                        return shc.pi2(Cs, [ii,jj,kk,ll])
+                else: # (1, 1; 2, 2)
+                    if use_genotypes == True:
+                        return 1./2 * (sgc.pi2(Cs, [ii,jj,kk,ll]) + sgc.pi2(Cs, [kk,ll,ii,jj]) )
+                    else:
+                        return 1./2 * (shc.pi2(Cs, [ii,jj,kk,ll]) + shc.pi2(Cs, [kk,ll,ii,jj]) )
+            else: # (1, 1; 2, 3) or (1, 1; 1, 2)
+                if use_genotypes == True:
+                    return 1./4 * ( sgc.pi2(Cs, [ii,jj,kk,ll]) + sgc.pi2(Cs, [ii,jj,ll,kk]) + sgc.pi2(Cs, [kk,ll,ii,jj]) + sgc.pi2(Cs, [ll,kk,ii,jj]) )
+                else:
+                    return 1./4 * ( shc.pi2(Cs, [ii,jj,kk,ll]) + shc.pi2(Cs, [ii,jj,ll,kk]) + shc.pi2(Cs, [kk,ll,ii,jj]) + shc.pi2(Cs, [ll,kk,ii,jj]) )
         else:
-            if kk == ll:
-                return 1./2 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./2 * sgc.pi2(Cs, [jj,ii,kk,ll])
-            else:
-                return 1./4 * sgc.pi2(Cs, [ii,jj,kk,ll]) + 1./4 * sgc.pi2(Cs, [ii,jj,ll,kk]) + 1./4 * sgc.pi2(Cs, [jj,ii,kk,ll]) + 1./4 * sgc.pi2(Cs, [jj,ii,ll,kk])
+            if kk == ll: # (1, 2; 3, 3) or (1, 2; 2, 2)
+                if use_genotypes == True:
+                    return 1./4 * ( sgc.pi2(Cs, [ii,jj,kk,ll]) + sgc.pi2(Cs, [jj,ii,kk,ll]) + sgc.pi2(Cs, [kk,ll,ii,jj]) + sgc.pi2(Cs, [kk,ll,jj,ii]) )
+                else:
+                    return 1./4 * ( shc.pi2(Cs, [ii,jj,kk,ll]) + shc.pi2(Cs, [jj,ii,kk,ll]) + shc.pi2(Cs, [kk,ll,ii,jj]) + shc.pi2(Cs, [kk,ll,jj,ii]) )
+            else: # (1, 2; 3, 4)
+                if use_genotypes == True:
+                    return 1./8 * ( sgc.pi2(Cs, [ii,jj,kk,ll]) + sgc.pi2(Cs, [ii,jj,ll,kk]) + sgc.pi2(Cs, [jj,ii,kk,ll]) + sgc.pi2(Cs, [jj,ii,ll,kk]) + sgc.pi2(Cs, [kk,ll,ii,jj]) + sgc.pi2(Cs, [ll,kk,ii,jj]) + sgc.pi2(Cs, [kk,ll,jj,ii]) + sgc.pi2(Cs, [ll,kk,jj,ii]) )
+                else:
+                    return 1./8 * ( shc.pi2(Cs, [ii,jj,kk,ll]) + shc.pi2(Cs, [ii,jj,ll,kk]) + shc.pi2(Cs, [jj,ii,kk,ll]) + shc.pi2(Cs, [jj,ii,ll,kk]) + shc.pi2(Cs, [kk,ll,ii,jj]) + shc.pi2(Cs, [ll,kk,ii,jj]) + shc.pi2(Cs, [kk,ll,jj,ii]) + shc.pi2(Cs, [ll,kk,jj,ii]) )
 
 
 def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=True):
@@ -437,7 +454,7 @@ def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=
     estimates = {}
     for b in bs:
         for cs in type_counts[b].keys():
-            estimates.setdefault(cs, {})        
+            estimates.setdefault(cs, {})
     
     all_counts = np.array(list(estimates.keys()))
     all_counts = np.swapaxes(all_counts,0,1)
