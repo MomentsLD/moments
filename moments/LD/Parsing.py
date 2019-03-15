@@ -483,23 +483,33 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     Het values are not normalized by sequence length, would need to compute L from bed file.
     """
     
-    if pops == None:
-        raise ValueError("should pass pops...."); sys.stdout.flush()
+    if pop_file == None and pops == None:
+        print("No population file or population names given, assuming all samples as single pop."); sys.stdout.flush()
+    elif pops == None:
+        raise ValueError("pop_file given, but not population names..."); sys.stdout.flush()
+    elif pop_file == None:
+        raise ValueError("Population names given, but not pop_file..."); sys.stdout.flush()
     
-    samples = pandas.read_csv(pop_file, sep='\t')
-
-    populations = np.array(samples['pop'].value_counts().keys())
-
-    samples.reset_index(drop=True, inplace=True)
-
-### should use this above when counting two locus genotypes
-
-    subpops = {
-        # for each population, get the list of samples that belong to the population
-        pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
-    }
+    pops = ['1']
     
-    ac_subpop = genotypes.count_alleles_subpops(subpops)
+    if pop_file is not None:
+        samples = pandas.read_csv(pop_file, sep='\t')
+        populations = np.array(samples['pop'].value_counts().keys())
+        samples.reset_index(drop=True, inplace=True)
+
+        ### should use this above when counting two locus genotypes
+
+        subpops = {
+            # for each population, get the list of samples that belong to the population
+            pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
+        }
+        
+        ac_subpop = genotypes.count_alleles_subpops(subpops)
+    else:
+        subpops = {
+            pop_iter: list(range(len(sample_ids))) for pop_iter in pops
+        {
+        ac_subpops = genotypes.count_alleles_subpops(subpops)
     
     Hs = {}
     for ii,pop1 in enumerate(list(subpops.keys())):
