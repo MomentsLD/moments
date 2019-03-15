@@ -169,6 +169,7 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
         try:
             map_values = rec_map[map_name]
         except KeyError:
+            print("WARNING: map_name did not match map names in recombination map file. Using first column...")
             map_values = rec_map[rec_map.keys()[1]]
         
     # for positions sticking out the end of the map, they take the value of the closest position
