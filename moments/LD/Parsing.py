@@ -490,7 +490,7 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     elif pop_file == None:
         raise ValueError("Population names given, but not pop_file..."); sys.stdout.flush()
     
-    pops = ['1']
+    pops = ['ALL']
     
     if pop_file is not None:
         samples = pandas.read_csv(pop_file, sep='\t')
@@ -508,8 +508,8 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     else:
         subpops = {
             pop_iter: list(range(len(sample_ids))) for pop_iter in pops
-        {
-        ac_subpops = genotypes.count_alleles_subpops(subpops)
+        }
+        ac_subpop = genotypes.count_alleles_subpops(subpops)
     
     Hs = {}
     for ii,pop1 in enumerate(list(subpops.keys())):
@@ -562,6 +562,9 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     for ii,b in enumerate(bs):
         for s in stats_to_compute[0]:
             reported_stats['sums'][ii][stats_to_compute[0].index(s)] = sums[b][s]
+    
+    if pops == None:
+        pops = ['ALL']
     for s in stats_to_compute[1]:
         reported_stats['sums'][-1][stats_to_compute[1].index(s)] = Hs[(pops[int(s.split('_')[1])-1],pops[int(s.split('_')[2])-1])]
     reported_stats['stats'] = stats_to_compute
