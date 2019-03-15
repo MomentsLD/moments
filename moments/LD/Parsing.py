@@ -75,11 +75,19 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
     # filter SNPs not in bed file, if one is given
     if bed_file is not None: # filter genotypes and positions
         mask_bed = pandas.read_csv(bed_file, sep='\t', header=None)
-        chroms = ['chr'+c for c in list(set(callset['variants/CHROM'][:]))]
+        chroms = [c for c in list(set(callset['variants/CHROM'][:]))]
+        
+        # because of the variation of chrom labels (with our without chr (22 vs chr22)),
+        # we check that chroms start with chr
+        
+        for ii,c in enumerate(chroms):
+            if 'chr' not in c:
+                chroms[ii] = 'chr'+c
         
         chrom_filter = [False] * len(mask_bed)
         for chrom in chroms:
-            chrom_filter = np.logical_or(chrom_filter, mask_bed[0] == chrom)
+            chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0] == chrom, 'chr'+mask_bed[0] == chrom))
+        
         mask_bed = mask_bed.loc[chrom_filter]
 
         # if we want a minimum length of feature, only keep long enough features
