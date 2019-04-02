@@ -25,7 +25,7 @@ def two_epoch(params, rho=None, theta=0.001, pop_ids=None):
     Y.integrate([nu], T, rho=rho, theta=theta)
     return Y
 
-def three_epoch(params, rho=None, theta=0.0008, ns=200, corrected=False, ism=True, genotypes=False):
+def three_epoch(params, rho=None, theta=0.001, pop_ids=None):
     """
     Three epoch model
     params:  = (nu1,nu2,T1,T2), where nus are the population size, integrated 
@@ -40,7 +40,7 @@ def three_epoch(params, rho=None, theta=0.0008, ns=200, corrected=False, ism=Tru
     Y.integrate([nu2], T2, rho=rho, theta=theta)
     return Y
 
-def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=True):
+def growth(params, order=2, rho=0, theta=0.001, pop_ids=None):
     """
     Exponential growth (or decay) model
     params: = (nuF,T), nu F is the final population size after time T (starting from nu=1)
@@ -54,7 +54,7 @@ def growth(params, order=2, rho=0, theta=0.0008, ns=200, corrected=False, ism=Tr
     Y.integrate(nu_func, T, rho=rho, theta=theta)
     return Y
 
-def bottlegrowth(params, ns=200, rho=0, theta=0.0008, order=2, corrected=False, ism=True, genotypes=False):    
+def bottlegrowth(params, ns=200, rho=0, theta=0.001, pop_ids=None):    
     """
     Exponential growth (or decay) model after size change
     params: = (nuB,nuF,T), nu F is the final population size after time T, 
