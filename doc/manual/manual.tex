@@ -783,7 +783,7 @@ adj = moments.Godambe.LRT_adjust(func_ex, grid_pts, all_boot,
 			 	   p0, data, nested_indices, 
 				   multinom=True, eps)
 \end{lstlisting}
-The parameters have the same meaning as for \py{Godambe.GIM_uncert}, where \py{func_ex} is the complex model function and \py{p0} is the best-fit parameters for the simple implemented in the complex model.
+The parameters have the same meaning as for \py{Godambetr.GIM_uncert}, where \py{func_ex} is the complex model function and \py{p0} is the best-fit parameters for the simple implemented in the complex model.
 The additional parameter \py{nested_indices} is a list that indicates which positions in the complex model arguments are fixed to create the simple model.
 For example, if the complex model parameters are $[T, \nu_1, \nu_2, m]$, and the simple model is no migration (so $m = 0$), then \py{nested_indices=[3]}.
 (Indices are numbered starting from zero.)

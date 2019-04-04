@@ -83,13 +83,13 @@ If you have limited Python experience, this manual should provide the background
 \subsection{Getting help and helping us}
 
 Undoubtedly, there will be bugs.
-If you find a bug in \mold, or more generally if you find certain aspects of the program to be unintuitive or difficult to use, we would appreciate the feedback.
-Please submit a bug report at \url{https://bitbucket.org/simongravel/moments/issues}, and we will try to address the issue in a timely manner.
+If you find a bug in \mold, or more generally if you find certain aspects of the program to be unintuitive or difficult to use, I would appreciate the feedback.
+Please submit a bug report at \url{https://bitbucket.org/simongravel/moments/issues}, and I will try to address the issue in a timely manner.
 Similarly, if you have suggestions for improved functionality or feature requests, those can be submitted in the issues as well or you can contact me directly.
 
 As we do our own research, \textit{moments} and \mold are constantly improving.
 Our philosophy is to include any code we develop for our own projects that may useful to others.
-If you develop \textit{Moments}-related code that you think might be useful to others, please let us know so we can include it with the main distribution.
+If you develop \textit{Moments}-related code that you think might be useful to others, please let me know so I can include it with the main distribution.
 
 \section{LD statistics}
 
@@ -123,39 +123,77 @@ Instead of computing $\E[r^2]$, which is an expectation of ratios, \citet{Hill19
 This statistic has the advantage that its expectation can be computed from the Hill-Robertson recursion, and we can accurately compute it from either phased or unphased data.
 
 \subsection{Multi-population LD statistics}
-In \citet{Ragsdale2018}, we extend 
+
+In \citet{Ragsdale2018}, we extended the Hill-Robertson system to consider LD statistics for multiple populations.
+Here, we can model population size changes, splits, mergers, and migration events (pulse or continuous).
+The statistics we consider take the form
+$$
+\mathbf{z} = \begin{pmatrix} 
+\E[D_i D_j] \\
+\E[D_i z_{j,k}] \\
+\E[{\pi_2}(i,j;k,l)] \\
+\E[H_{i,j}]
+\end{pmatrix},
+$$
+
+where $i,j,k,l$ index populations, and
+\begin{align*}
+ D_iz_{j,k} & = D_i (1-2p_j)(1-2q_k), \\
+ {\pi_2}(i,j;k,l) & = \begin{cases}
+ 				p_i(1-p_i)q_k(1-q_k), & i=j, k=l \\
+				\frac{1}{2} p_i(1-p_j) q_k(1-q_k) + \frac{1}{2} p_j(1-p_i) q_k(1-q_k), & i\not= j, k=l \\
+				\frac{1}{2} p_i(1-p_i) q_k(1-q_l) + \frac{1}{2} p_i(1-p_i) q_l(1-q_k), & i=j, k\not=l \\
+				\frac{1}{4} p_i(1-p_j) q_k(1-q_l) + \frac{1}{4} p_i(1-p_j) q_l(1-q_k) & \\
+					\hspace{15 pt} + \frac{1}{4} p_j(1-p_i) q_k(1-q_l) + \frac{1}{4} p_j(1-p_i) q_l(1-q_k) , & i\not=j, k\not=l
+ 			\end{cases}, \\
+ H_{i,j} & = \begin{cases} 
+ 			p_i(1-p_i), & i = j \\ 
+			\frac{1}{2}p_i(1-p_j) + \frac{1}{2}p_j(1-p_i),& i \not= j 
+		\end{cases}.
+\end{align*}
+
+From these, we can compare a large number of two-locus statistics.
+In practice, we work with $\sigma_D^2$-like statistics, which are normalized by the $\pi_2$ statistic from one of the populations.
 
 
 \section{Getting started}
 
-\subsection{Installation}
+\subsection{Getting and installing \mold}
+
+\mold is packaged and released with \py{moments}, a python program for running analyses based on the allele frequency spectrum.
+\py{moments} is available at \url{https://bitbucket.org/simongravel/moments}.
+Because \mold continues to be developed and improved, it currently lives on the LD branch of the \py{moments} repository.
+For this reason, I recommend cloning the \py{moments} repository and switching to the LD branch.
+To do this, in the Terminal navigate to the parent directory where you want to copy moments and run
+\py{git clone https://bitbucket.org/simongravel/moments.git}.
+To switch to the LD branch, run
+\py{git checkout LD}.
+And then finally, to install run
+\py{sudo python setup.py install}.
 
 \subsubsection{Dependencies}
 
-\begin{enumerate}
-
-\item \py{numpy}, \py{scipy}, what else...
-\item For parsing, we take advantage of \py{scikit-allel} \cite{}
-\item For demography building: \py{networkx}
-\end{enumerate}
-
-\subsubsection{Downloading and compiling \texttt{moments} and \texttt{moments.LD}}
+\py{moments} and \mold depend on a number of Python libraries (We recommend using Python 3).
 
 \begin{enumerate}
-\item Can be cloned from \url{} (pulling to get updates)
-\item Commands for installing
+\item Absolute dependencies: \py{Python} (version 2.7 or $\geq$ 3.5), \py{numpy} (version $\geq$ 1.2.0), \py{scipy} (version $\geq$ 0.6.0), \py{cython}, \py{pickle}
+\item For Plotting, we use \py{matplotlib} (version $\geq$ 0.98.1)
+\item For Parsing, we take advantage of \py{hdf5} and \py{scikit-allel} (version $\geq$ 1.2.0) \cite{}
+\item For Demography building, we use \py{networkx}
 \end{enumerate}
+
+I recommend that you install IPython as well.
+The easiest way to obtain all these dependencies is to use a package management system, such as Conda (\url{https://conda.io/en/latest/}) or Enthought (\url{https://www.enthought.com/product/enthought-python-distribution/}).
+
 
 \subsection{Suggested workflow}
-\begin{enumerate}
-\item Python strengths: interactive
-\item I often have two windows open: one is a script file and the other is IPython, which allows me to interactively test code, and then record it in script
-\item importing \py{import moments.LD as mold}
-\item Magic commands
-\item Reloading modules that you've changed
-\item Running script from command line
-\end{enumerate}
 
+One of Python's strengths is its interactive nature.
+When I am first exploring data or writing scripts to build and test models, I often have two windows open: one editing a python script (\py{script.py}) and the other running an IPython session.
+That way, I can record my work in the python script and test it as I go.
+Using IPython, I can call the magic command \py{\%run script.py}, which applies changes I've made in my python script to the IPython session.
+Note that if I've also changed modules that I've loaded, I'll need to reload those as well.
+Once I'm happy that I have a usable script, I can call it from the terminal for longer runs of optimization or parsing, using \py{python script.py}.
 
 \section{Parsing and importing data}
 
@@ -197,7 +235,7 @@ In \citet{Ragsdale2018}, we extend
 
 \subsection{Creating bootstrap datasets}
 
-
+\clearpage
 \begin{lstlisting}[caption={\textbf{Parsing:} Example of parsing data generated by msprime}, float, label={lst:bottleneck}]
 this is a script dot py
 \end{lstlisting}
@@ -227,7 +265,6 @@ Manual input of demographic model (gets difficult with more than two populations
 \item With old approach: bottleneck with growth, IM model
 \item With demography: Gutenkunst model, Archaic model (w/ denisovans, neand, papuan, EA, EU, Afr)
 \end{enumerate}
-
 
 \begin{lstlisting}[caption={\textbf{Bottleneck:} At time \py{TF} + \py{TB} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF}.}, float, label={lst:bottleneck}]
 def bottleneck(params, ns):
@@ -306,10 +343,11 @@ Bigger issues or difficulties: email
 
 
 \section{Acknowledgements}
-\begin{enumerate}
-\item Ryan Gutenkunst
-\item 
-\end{enumerate}
+\py{moments}, \mold, and their manuals (and indeed much of my scientific course and accomplishments) are greatly indebted to Ryan Gutenkunst.
+Not only are these programs modeled off of \dadi's interface and functionality, but also my general approach to writing, testing, and using scientific software has largely been guided and influenced by Ryan.
+I cannot overstate my gratitude to Ryan for making \dadi open source and accessible, and more personally for his mentorship over the years (if you're reading this Ryan, a gigantic ``Thank you!'').
+
+
 
 \bibliography{manualLD}
 \bibliographystyle{apalike}
