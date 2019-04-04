@@ -1,0 +1,317 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{hyperref}
+
+\usepackage[round]{natbib}
+\renewcommand{\cite}{\citep}
+\setlength{\bibhang}{0pt}
+
+%\bibliographystyle{plos2009}
+
+\usepackage{xspace}
+\newcommand{\dadi}{$\partial$a$\partial$i\xspace}
+\newcommand{\bolddadi}{$\boldsymbol{\partial}$a$\boldsymbol{\partial}$i\xspace}
+\newcommand{\Nref}{\ensuremath{N_\text{ref}}\xspace}
+\newcommand{\ms}{\emph{ms}\xspace}
+\usepackage{color}
+\newcommand{\comment}[1]{{\color{blue}APR: #1}}
+
+\newcommand{\mold}{\texttt{mold}\xspace}
+
+\usepackage{listings}
+\lstset{
+basicstyle=\ttfamily,
+language=Python,
+showstringspaces=False,
+aboveskip=0pt,
+captionpos=b,
+belowskip=0pt
+}
+\newcommand{\py}[1]{\lstinline[breaklines=true,language=Python, showstringspaces=False]@#1@}
+\newcommand{\ccode}[1]{\lstinline[breaklines=true,language=C, showstringspaces=False]@#1@}
+\newcommand{\shell}[1]{\lstinline[breaklines=true, language=csh, showstringspaces=False]@#1@}
+
+\newcommand{\E}{\mathbb{E}}
+
+% For calibration, lines can be 60 characters long in
+% lstlistings.
+%\begin{lstlisting}
+%*******************************************************
+%\end{lstlisting}
+
+
+\begin{document}
+\title{\texttt{Moments LD} user manual\\
+\normalsize  Corresponding to version 0.0.1}
+\author{Aaron Ragsdale \\
+Contact: aaron.ragsdale@mail.mcgill.ca}
+\date{\today}
+\maketitle
+
+\tableofcontents
+
+\clearpage
+
+\renewcommand*{\lstlistlistingname}{Example code}
+\lstlistoflistings
+
+\clearpage
+
+\section{Introduction to \mold}
+
+Welcome to \texttt{moments.LD}, a program for simulating linkage disequilibrium statistics.
+\texttt{moments.LD}, or \mold, can compute a large set of informative LD statistics for many populations, and performs likelihood-based demographic inference using those statistics.
+
+There are three primary features of \mold to enable LD-based demographic inference: reading and parsing data, building demographic models, and inferring the parameters of those models by comparing model predictions to data.
+Typically, we use biallelic SNP data, along with a recombination map, to compute two-locus statistics over a range of genetic distances.
+We then use \mold to compute expectations for those statistics under the demographic models we want to test, which can include multiple populations with variable migration, splits and mergers, and population size changes.
+Using a likelihood-based inference approach, we optimize those models to find the set of parameters that best fit the data.
+
+I've tried to make parsing data and defining demographic models as painless as possible, though the complexity of the program does require some amount of script-writing and interaction.
+Luckily, \mold is written in Python, a friendly and powerful programming language.
+If you are already familiar with \dadi or \emph{moments}, or Python in general, you are in a good position to dive right in to \mold.
+If you have limited Python experience, this manual should provide the background and examples to get you up to speed and productive with \mold.
+
+%Finally, \mold is a living, breathing, evolving \comment{thing}
+
+\subsection{Getting help and helping us}
+
+Undoubtedly, there will be bugs.
+If you find a bug in \mold, or more generally if you find certain aspects of the program to be unintuitive or difficult to use, we would appreciate the feedback.
+Please submit a bug report at \url{https://bitbucket.org/simongravel/moments/issues}, and we will try to address the issue in a timely manner.
+Similarly, if you have suggestions for improved functionality or feature requests, those can be submitted in the issues as well or you can contact me directly.
+
+As we do our own research, \textit{moments} and \mold are constantly improving.
+Our philosophy is to include any code we develop for our own projects that may useful to others.
+If you develop \textit{Moments}-related code that you think might be useful to others, please let us know so we can include it with the main distribution.
+
+\section{LD statistics}
+
+Patterns of linkage disequilibrium (LD) are informative about evolutionary history, for example for inferring recent admixture events and population size changes or localizing regions of the genome that have experienced recent selective events.
+LD is commonly measured as the covariance (or correlation) of alleles co-occurring on a haplotype.
+The covariance ($D$) is
+\begin{align*}
+D = \text{Cov}(A,B) & = f_{AB} - pq \\ & = f_{AB}f_{ab} - f_{Ab}f_{aB},
+\end{align*}
+and the correlation ($r$) is
+\begin{align*}
+r = \frac{D}{\sqrt{p(1-p)q(1-q)}} .
+\end{align*}
+We think of expectations of these quantities as though we average over many realizations of the same evolutionary process, but in reality we have only a single observation for any given pair of SNPs.
+Therefore in practice we take the averages of LD statistics over many independent pairs of SNPs.
+
+$\E[D]$ is zero genome wide, so LD is often measured by the variance of $D$ ($\E[D^2$) or the square correlation ($r^2$), where
+\begin{align*}
+r^2 = \frac{D^2}{p(1-p)q(1-q)}.
+\end{align*}
+Because it is difficult to compute expectations for $\E[r^2]$ under even simple evolutionary scenarios, and because it is difficult to accurately estimate $\widehat{r^2}$ from data, we use $\E[D^2$ and related statistics to compare model predictions for LD to data.
+
+\subsection{Hill-Robertson statistics}
+
+\citet{Hill1968} introduced a recursion for $\E[D^2]$ that allows for variable recombination rate between loci and population size changes over time.
+To solve for $\E[D^2]$, this system requires additional LD statistics, which we call $Dz = D(1-2p)(1-2q)$ and $\pi_2 = p(1-p)q(1-q)$, where $p$ and $q$ are the allele frequencies at the left and right loci, respectively.
+This system also relies on heterozygosity ($H$), so from this system we can compute the vector of statistics
+$$y=\begin{pmatrix} \E[D^2] \\ \E[Dz] \\ \E[\pi_2] \\ \E[H] \end{pmatrix}.$$
+
+Instead of computing $\E[r^2]$, which is an expectation of ratios, \citet{Hill1968} and \citet{Ohta1971} studied the related statistic $\sigma_D^2 = \frac{\E[D^2]}{\E[\pi_2]}$.
+This statistic has the advantage that its expectation can be computed from the Hill-Robertson recursion, and we can accurately compute it from either phased or unphased data.
+
+\subsection{Multi-population LD statistics}
+In \citet{Ragsdale2018}, we extend 
+
+
+\section{Getting started}
+
+\subsection{Installation}
+
+\subsubsection{Dependencies}
+
+\begin{enumerate}
+
+\item \py{numpy}, \py{scipy}, what else...
+\item For parsing, we take advantage of \py{scikit-allel} \cite{}
+\item For demography building: \py{networkx}
+\end{enumerate}
+
+\subsubsection{Downloading and compiling \texttt{moments} and \texttt{moments.LD}}
+
+\begin{enumerate}
+\item Can be cloned from \url{} (pulling to get updates)
+\item Commands for installing
+\end{enumerate}
+
+\subsection{Suggested workflow}
+\begin{enumerate}
+\item Python strengths: interactive
+\item I often have two windows open: one is a script file and the other is IPython, which allows me to interactively test code, and then record it in script
+\item importing \py{import moments.LD as mold}
+\item Magic commands
+\item Reloading modules that you've changed
+\item Running script from command line
+\end{enumerate}
+
+
+\section{Parsing and importing data}
+
+\begin{enumerate}
+\item \mold represents two-locus statistics using \py{mold.LDstats} objects (describe what these are) \comment{add rs to LDstats attributes, can store LD stats for multiple recombination distances}
+\item To create an LDstats object, we could just call \py{y = mold.LDstats([[0.001,0.0005,0.002],[0.05]])}.
+\item Typically, we either compute the LDstats object from a demographic model (below), or we build the object from data.
+\item \mold can create an LDstats object given a vcf file (and optionally a recombination map, mask files, and population files), for either phased or unphased data
+\item Or given a genotype array
+\end{enumerate}
+
+\subsection{\texttt{LDstats} objects}
+
+\begin{enumerate}
+\item Attributes
+\item Marginalization, swapping
+\end{enumerate}
+
+
+\subsection{Estimating two-locus statistics from data}
+\cite{Ragsdale2019}
+
+
+\subsection{Parsing data from a genotype matrix}
+
+\begin{enumerate}
+\item All loci, not caring about recombination distance (say, all unlinked loci)
+\item with the recombination distance between snps known
+\end{enumerate}
+
+\subsection{Parsing a VCF file}
+
+
+\subsubsection{Using a recombination map}
+
+
+\subsubsection{Restricting based on features}
+
+
+\subsection{Creating bootstrap datasets}
+
+
+\begin{lstlisting}[caption={\textbf{Parsing:} Example of parsing data generated by msprime}, float, label={lst:bottleneck}]
+this is a script dot py
+\end{lstlisting}
+
+\clearpage
+
+\section{Specifying a model}
+
+General overview of demographic models
+
+\subsection{Implementation}
+
+Manual input of demographic model (gets difficult with more than two populations)
+
+\subsection{The \texttt{Demography} builder}
+
+\subsection{Units}
+\begin{enumerate}
+\item mutation rate
+\item recombination rate
+\item unit of time
+\item $N_e$ and $N_{ref}$
+\end{enumerate}
+
+\clearpage
+\begin{enumerate}
+\item With old approach: bottleneck with growth, IM model
+\item With demography: Gutenkunst model, Archaic model (w/ denisovans, neand, papuan, EA, EU, Afr)
+\end{enumerate}
+
+
+\begin{lstlisting}[caption={\textbf{Bottleneck:} At time \py{TF} + \py{TB} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF}.}, float, label={lst:bottleneck}]
+def bottleneck(params, ns):
+    nuB, nuF, T = params
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) 
+    			   * t / T)]
+
+    sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
+    fs = moments.Spectrum(sts)
+    fs.integrate(nu_func, T)
+
+    return fs
+\end{lstlisting}
+
+\clearpage
+
+\section{Simulation and fitting the model}
+
+\subsection{Running the model}
+
+\subsection{Comparing model to data}
+
+\subsubsection{Likelihoods}
+
+
+\subsubsection{Fitting}
+
+\begin{enumerate}
+\item Parameter bounds
+\item Fixed parameters
+\item Other options (there are a lot more now)
+\item optimizer choice
+\end{enumerate}
+
+\subsection{Uncertainty analysis}
+
+
+\section{Plotting}
+
+\subsection{Visualizing LD curves}
+
+
+\subsection{Residuals}
+Based on expectations, observations, and covariances
+
+
+\section{The full two-locus frequency spectrum}
+
+\subsection{\texttt{moments.TwoLocus}}
+
+\subsubsection{Specifying models}
+
+\subsubsection{Parameters}
+
+\subsubsection{Selection}
+
+
+\section{Frequently asked questions}
+
+\comment{No one has really asked me questions yet, but here are my own quandaries and answers:}
+
+\begin{enumerate}
+
+\item 
+
+\item How do I cite \mold?
+
+\item What if I'm having issues running this program?
+
+Bug: issues
+
+Bigger issues or difficulties: email
+
+\end{enumerate}
+
+
+
+\section{Acknowledgements}
+\begin{enumerate}
+\item Ryan Gutenkunst
+\item 
+\end{enumerate}
+
+\bibliography{manualLD}
+\bibliographystyle{apalike}
+
+\end{document}
