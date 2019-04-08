@@ -12,6 +12,9 @@
 \renewcommand{\cite}{\citep}
 \setlength{\bibhang}{0pt}
 
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+
 %\bibliographystyle{plos2009}
 
 \usepackage{xspace}
@@ -195,22 +198,58 @@ Using IPython, I can call the magic command \py{\%run script.py}, which applies 
 Note that if I've also changed modules that I've loaded, I'll need to reload those as well.
 Once I'm happy that I have a usable script, I can call it from the terminal for longer runs of optimization or parsing, using \py{python script.py}.
 
+Note that we will need to import \py{moments.LD} to be able to use it: \py{import moments.LD as mold}.
+
+\section{LDstats objects}
+
+\mold represents two-locus statistics using \py{mold.LDstats} objects, which stores the Hill-Robertson statistics and heterozygosity for one or more populations and for any set of recombination rates.
+The simplest way to create an \py{LDstats} object is by defining a set of statistics by hand.
+For a single population, the order of the LD statistics is $[\E[D^2], \E[Dz], \E[\pi_2]]$ along with heterozygosity $\E[H]$.
+If the statistics are defined using variables \py{D2}, \py{Dz}, \py{pi2}, and \py{H}, we would simply call \py{y = mold.LDstats([[D2, Dz, pi2], [H]], num_pops = 1)}.
+For example, if we set \py{D2, Dz, pi2, H = 1e-7, 1e-8, 2e-7, 1e-3} in this example, and then if we print \py{y}, we would see as the output:
+
+\py{Out[1]: LDstats([[1.e-07 1.e-08 2.e-07]], [0.001], num_pops=1, pop_ids=None)}
+
+To see which statistics each value corresponds to, we can call \py{y.names()}, which would output:
+
+\py{Out[2]: (['DD_1_1', 'Dz_1_1_1', 'pi2_1_1_1_1'], ['H_1_1'])}
+
+Typically, we either compute the \py{LDstats} from a demographic model, or we build the object from data.
+We'll walk through both in later sections.
+First, we'll use build in model functions to explore what information is stored in \py{LDstats} objects, and how to manipulate the objects.
+
+To obtain the expected statistics at equilibrium (steady-state demography), we can call \py{mold.Demographics1D.snm} (snm stands for standard neutral model).
+We can specify the per-base population size-scaled mutation rate $\theta = 4N_e\mu$ (default set to $\theta=0.001$) and population size-scaled recombination rates separating loci $\rho=4 N_e r$ (default set to \py{None}).
+\mold can handle any number of recombination rates (zero, one, or multiple), and the returned \py{LDstats} object will contain LD statistics for as many recombination rates as you gave it.
+
+To give some examples,\\
+\py{In [3]: mold.Demographics1D.snm()}\\
+\py{Out[3]: LDstats([], [0.001], num_pops=1, pop_ids=None)}
+
+\py{In [4]: mold.Demographics1D.snm(rho=0)}\\
+\py{Out[4]: LDstats([[1.38888889e-07 1.11111111e-07 3.05555556e-07]], [0.001], num_pops=1, pop_ids=None)}
+
+\py{In [5]: mold.Demographics1D.snm(rho=[0,1,2,10], theta=0.01)}\\
+\py{Out[5]:}\\
+\py{LDstats([[1.38888889e-05 1.11111111e-05 3.05555556e-05]}\\
+\py{ [8.59375000e-06 6.25000000e-06 2.81250000e-05]}\\
+\py{ [6.25000000e-06 4.16666667e-06 2.70833333e-05]}\\
+\py{ [2.01612903e-06 8.06451613e-07 2.54032258e-05]], [0.01], num_pops=1, pop_ids=None)}
+
+In this last example, the four sets of LD statistics correspond to $\rho=0,1,2,$ and $10$, respectively, while expected heterozygosity is only shown a single time ($\E[H]=0.01$).
+In each case, \py{num_pops} is automatically set to \py{1}, and because we didn't specify population IDs, \py{pop_ids = None}.
+\py{y.LD()} will return just the LD statistics, while \py{y.H()} returns just the heterozygosity statistics.
+
+
+
 \section{Parsing and importing data}
 
 \begin{enumerate}
-\item \mold represents two-locus statistics using \py{mold.LDstats} objects (describe what these are) \comment{add rs to LDstats attributes, can store LD stats for multiple recombination distances}
-\item To create an LDstats object, we could just call \py{y = mold.LDstats([[0.001,0.0005,0.002],[0.05]])}.
-\item Typically, we either compute the LDstats object from a demographic model (below), or we build the object from data.
 \item \mold can create an LDstats object given a vcf file (and optionally a recombination map, mask files, and population files), for either phased or unphased data
 \item Or given a genotype array
 \end{enumerate}
 
-\subsection{\texttt{LDstats} objects}
 
-\begin{enumerate}
-\item Attributes
-\item Marginalization, swapping
-\end{enumerate}
 
 
 \subsection{Estimating two-locus statistics from data}
@@ -245,6 +284,12 @@ this is a script dot py
 \section{Specifying a model}
 
 General overview of demographic models
+
+\begin{enumerate}
+\item Attributes of LDstats objects used for building models
+\item Splitting, marginalization, swapping
+\item Admixture, merging
+\end{enumerate}
 
 \subsection{Implementation}
 
