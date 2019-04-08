@@ -27,10 +27,24 @@ def set_cache_path(path='~/.moments/TwoLocus_cache'):
 cache_path=None
 set_cache_path()
 
+def make_floats(params):
+    """
+    pass list of params, return floats of those params (for caching)
+    """
+    if params is None:
+        return None
+    if hasattr(params, "__len__"):
+        return [float(p) for p in params]
+    else:
+        return float(params)
 
 def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     """
     Compute or load the equilibrium two locus frequency spectrum
+    gamma and h, if set, are only for selection at the A/a locus
+    sel_params, which are the (additive) selection coefficients for haplotypes AB, Ab, and aB
+        so that sel_params = (sAB, sA, sB)
+        If sAB = sA + sB, no epistatic interaction
     """
     if rho == None:
         print("Warning: no rho value set. Simulating with rho = 0.")
@@ -38,6 +52,11 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     
     if gamma==None:
         gamma=0.0
+    
+    gamma = make_floats(gamma)
+    rho = make_floats(rho)
+    theta = make_floats(theta)
+    sel_params = make_floats(sel_params)
     
     # fetch from cache if neutral (cache only neutral spectra for the moment)
     if gamma == 0.0 and (sel_params == None or (sel_params[0] == 0.0 and sel_params[1] == 0.0 and sel_params[2] == 0.0)):
@@ -75,6 +94,11 @@ def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=Non
     
     if gamma==None:
         gamma=0.0
+
+    gamma = make_floats(gamma)
+    rho = make_floats(rho)
+    theta = make_floats(rho)
+    sel_params = make_floats(sel_params)
     
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
     F.integrate(nu, T, rho=rho, theta=theta, 
@@ -95,6 +119,11 @@ def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=N
     if gamma==None:
         gamma=0.0
     
+    gamma = make_floats(gamma)
+    rho = make_floats(rho)
+    theta = make_floats(rho)
+    sel_params = make_floats(sel_params)
+
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
     F.integrate(nu1, T1, rho=rho, theta=theta, 
                 gamma=gamma, h=h, sel_params=sel_params)
@@ -117,6 +146,11 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     if gamma==None:
         gamma=0.0
 
+    gamma = make_floats(gamma)
+    rho = make_floats(rho)
+    theta = make_floats(rho)
+    sel_params = make_floats(sel_params)
+
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
     nu_func = lambda t: np.exp(np.log(nu) * t/T)
     F.integrate(nu_func, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
@@ -137,6 +171,11 @@ def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=
     
     if gamma==None:
         gamma=0.0
+
+    gamma = make_floats(gamma)
+    rho = make_floats(rho)
+    theta = make_floats(rho)
+    sel_params = make_floats(sel_params)
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
     nu_func = lambda t: nuB * np.exp(np.log(nuF/nuB) * t/T)

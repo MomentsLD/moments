@@ -481,7 +481,7 @@ def %(method)s(self, other):
                                     finite_genome=finite_genome, u=u, v=v,
                                     alternate_fg=alternate_fg)
         
-        return self
+        #return self # comment out (returned for testing earlier)
 
 # Allow TLSpectrum objects to be pickled. 
 # See http://effbot.org/librarybook/copy-reg.htm

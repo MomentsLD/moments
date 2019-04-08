@@ -15,7 +15,10 @@ def save_pickle(matrix, filename):
 
 def load_pickle(filename):
     with open(filename, 'rb') as infile:
-        matrix = pickle.load(infile)    
+        try:
+            matrix = pickle.load(infile)
+        except:
+            matrix = pickle.load(infile, encoding='Latin1')
     return matrix    
 
 
@@ -195,6 +198,7 @@ def closest_ijk_edges(i,j,k,n,jump):
     fi,fj,fk = i/(n+float(jump)), j/(n+float(jump)), k/(n+float(jump))
     
     # only care about AB/ab and Ab/aB lines (or fA,fB = 0)
+    # 4/5/19: with reversible mutation model, care about all sites
     possible_ijk = []
     if j == 0 and k == 0:
         for ii in range(1,n):
@@ -418,160 +422,162 @@ def calc_jk(n,jump):
     try:
         return jks[(n,jump)]
     except KeyError:
-        # check if it's saved in the cache, if it is, add to jks and return
+        # check if it's saved in the cache, if it is not, add to jks and return
         jk_name = 'jk_{0}_{1}.mtx'.format(n,jump)
         if os.path.isfile(os.path.join(cache_path, jk_name)):
             jks[(n,jump)] = load_pickle(os.path.join(cache_path, jk_name))
             return jks[(n,jump)]
-        row = []
-        col = []
-        data = []
-        
-        # jackknife interior points
-        for i in range(1,n+jump):
-            for j in range(1,n+jump-i):
-                for k in range(1,n+jump-i-j):
-                    ordered_set = closest_ijk(i,j,k,n,jump)
-                    alphas = compute_alphas(i,j,k,ordered_set,n,jump)
+        else:
+            print("creating and caching jackknife matrix for {0}, {1}".format(n, jump))
+            row = []
+            col = []
+            data = []
+            
+            # jackknife interior points
+            for i in range(1,n+jump):
+                for j in range(1,n+jump-i):
+                    for k in range(1,n+jump-i-j):
+                        ordered_set = closest_ijk(i,j,k,n,jump)
+                        alphas = compute_alphas(i,j,k,ordered_set,n,jump)
+                        index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                        for coord,alpha in zip(ordered_set,alphas):
+                            index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                            row.append(index1)
+                            col.append(index)
+                            data.append(alpha)
+                        
+            # jackknife sides
+            i = 0
+            for j in range(1,n+jump):
+                for k in range(1,n+jump-j):
+                    ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                    alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
                     index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
                     for coord,alpha in zip(ordered_set,alphas):
                         index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
                         row.append(index1)
                         col.append(index)
                         data.append(alpha)
-                    
-        # jackknife sides
-        i = 0
-        for j in range(1,n+jump):
-            for k in range(1,n+jump-j):
-                ordered_set = closest_ijk_sides(i,j,k,n,jump)
-                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
-                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-                for coord,alpha in zip(ordered_set,alphas):
-                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                    row.append(index1)
-                    col.append(index)
-                    data.append(alpha)
-        
-        j = 0
-        for i in range(1,n+jump):
-            for k in range(1,n+jump-i):
-                ordered_set = closest_ijk_sides(i,j,k,n,jump)
-                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
-                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-                for coord,alpha in zip(ordered_set,alphas):
-                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                    row.append(index1)
-                    col.append(index)
-                    data.append(alpha)
-        
-        k = 0
-        for i in range(1,n+jump):
-            for j in range(1,n+jump-i):
-                ordered_set = closest_ijk_sides(i,j,k,n,jump)
-                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
-                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-                for coord,alpha in zip(ordered_set,alphas):
-                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                    row.append(index1)
-                    col.append(index)
-                    data.append(alpha)
-        
-        for i in range(1,n+jump):
-            for j in range(1,n+jump-i):
-                k = n+jump-i-j
-                ordered_set = closest_ijk_sides(i,j,k,n,jump)
-                alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
-                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-                for coord,alpha in zip(ordered_set,alphas):
-                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                    row.append(index1)
-                    col.append(index)
-                    data.append(alpha)
+            
+            j = 0
+            for i in range(1,n+jump):
+                for k in range(1,n+jump-i):
+                    ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                    alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
+                    index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                    for coord,alpha in zip(ordered_set,alphas):
+                        index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                        row.append(index1)
+                        col.append(index)
+                        data.append(alpha)
+            
+            k = 0
+            for i in range(1,n+jump):
+                for j in range(1,n+jump-i):
+                    ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                    alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
+                    index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                    for coord,alpha in zip(ordered_set,alphas):
+                        index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                        row.append(index1)
+                        col.append(index)
+                        data.append(alpha)
+            
+            for i in range(1,n+jump):
+                for j in range(1,n+jump-i):
+                    k = n+jump-i-j
+                    ordered_set = closest_ijk_sides(i,j,k,n,jump)
+                    alphas = compute_alphas_sides(i,j,k,ordered_set,n,jump)
+                    index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                    for coord,alpha in zip(ordered_set,alphas):
+                        index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                        row.append(index1)
+                        col.append(index)
+                        data.append(alpha)
 
-        # jackknife edges
-        # AB/ab edge
-        j = 0
-        k = 0
-        for i in range(1,n+jump):
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        # Ab/aB edge
-        i = 0
-        for j in range(1,n+jump):
-            k = n+jump-i-j
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        # fB == 0
-        i = 0
-        k = 0
-        for j in range(1,n+jump):
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        # fA == 0
-        i = 0
-        j = 0
-        for k in range(1,n+jump):
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        # AB/Ab edge
-        k = 0
-        for i in range(1,n+jump):
-            j = n+jump-i
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        # AB/aB edge
-        j = 0
-        for i in range(1,n+jump):
-            k = n+jump-i
-            ordered_set = closest_ijk_edges(i,j,k,n,jump)
-            alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
-            index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
-            for coord,alpha in zip(ordered_set,alphas):
-                index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
-                row.append(index1)
-                col.append(index)
-                data.append(alpha)
-        
-        size_from = int((n+1)*(n+2)*(n+3)/6)
-        size_to = int((n+1+jump)*(n+2+jump)*(n+3+jump)/6)
-        jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
-        save_pickle(jks[(n,jump)], os.path.join(cache_path, jk_name))
-        return jks[(n,jump)]
+            # jackknife edges
+            # AB/ab edge
+            j = 0
+            k = 0
+            for i in range(1,n+jump):
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            # Ab/aB edge
+            i = 0
+            for j in range(1,n+jump):
+                k = n+jump-i-j
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            # fB == 0
+            i = 0
+            k = 0
+            for j in range(1,n+jump):
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            # fA == 0
+            i = 0
+            j = 0
+            for k in range(1,n+jump):
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            # AB/Ab edge
+            k = 0
+            for i in range(1,n+jump):
+                j = n+jump-i
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            # AB/aB edge
+            j = 0
+            for i in range(1,n+jump):
+                k = n+jump-i
+                ordered_set = closest_ijk_edges(i,j,k,n,jump)
+                alphas = compute_alphas_edges(i,j,k,ordered_set,n,jump)
+                index1 = moments.TwoLocus.Numerics.index_n(n+jump,i,j,k)
+                for coord,alpha in zip(ordered_set,alphas):
+                    index = moments.TwoLocus.Numerics.index_n(n,coord[0],coord[1],coord[2])
+                    row.append(index1)
+                    col.append(index)
+                    data.append(alpha)
+            
+            size_from = int((n+1)*(n+2)*(n+3)/6)
+            size_to = int((n+1+jump)*(n+2+jump)*(n+3+jump)/6)
+            jks[(n,jump)] = csc_matrix((data,(row,col)),shape=(size_to,size_from))
+            save_pickle(jks[(n,jump)], os.path.join(cache_path, jk_name))
+            return jks[(n,jump)]
 
 
