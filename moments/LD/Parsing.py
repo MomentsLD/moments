@@ -182,6 +182,139 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
     
     return pos_rs
 
+"""
+For counting genopytes and computing D^2, Dz, and pi2 for a block of genotypes
+vvv
+"""
+
+def count_genotypes(Gs):
+    """
+    Gs is a matrix, where rows correspond to loci (number of loci = L), and
+    the columns correspond to individuals (sample size = n)
+    so Gs has size L x n
+    
+    There are L*(L-1)/2 total comparisons to make
+    """
+    L,n = np.shape(Gs)
+    
+    X = np.empty((L*(L-1)//2, n)).astype('int')
+    c = 0
+    for i in range(L)[:-1]:
+        X[c:c+L-i-1] = 3*Gs[i] + Gs[i+1:]
+        c += (L-i-1)
+    
+    Counts = np.empty((L*(L-1)//2, 9)).astype('int')
+    for i in range(len(Counts)):
+        Counts[i] = np.bincount(X[i], minlength=9)
+    
+    return np.fliplr(Counts)
+
+def count_genotypes_between(Gs1, Gs2):
+    """
+    The Gs are matrices, where rows correspond to loci and columns to individuals
+    Both matrices must have the same number of individuals
+    If Gs1 has length L1 and Gs2 has length L2, we compute all pairwise counts,
+    return Counts, which has size (L1*L2, 9) 
+    """
+    L1,n1 = np.shape(Gs1)
+    L2,n2 = np.shape(Gs2)
+    
+    if n1 != n2:
+        raise ValueError("data must have same number of sequenced individuals")
+    
+    X = np.empty((L1*L2, n)).astype('int')
+    for i in range(L1):
+        X[i*L2:(i+1)*L2] = 3*Gs1[i] + Gs2
+    
+    Counts = np.empty((L1*L2, 9)).astype('int')
+    for i in range(len(Counts)):
+        Counts[i] = np.bincount(X[i], minlength=9)
+    
+    return np.fliplr(Counts)
+
+def compute_D2(Counts):
+    """
+    D2 for block of genotypes counted from count_genotypes(Gs)
+    """
+    n1 = Counts[:,0]
+    n2 = Counts[:,1]
+    n3 = Counts[:,2]
+    n4 = Counts[:,3]
+    n5 = Counts[:,4]
+    n6 = Counts[:,5]
+    n7 = Counts[:,6]
+    n8 = Counts[:,7]
+    n9 = Counts[:,8]
+    n = np.sum(Counts, axis=1)
+    numer = (n2*n4 - n2**2*n4 + 4*n3*n4 - 4*n2*n3*n4 - 4*n3**2*n4 - n2*n4**2 - 4*n3*n4**2 + n1*n5 - n1**2*n5 + n3*n5 + 2*n1*n3*n5 - n3**2*n5 - 4*n3*n4*n5 - n1*n5**2 - n3*n5**2 + 4*n1*n6 - 4*n1**2*n6 + n2*n6 - 4*n1*n2*n6 - n2**2*n6 + 2*n2*n4*n6 - 4*n1*n5*n6 - 4*n1*n6**2 - n2*n6**2 + 4*n2*n7 - 4*n2**2*n7 + 16*n3*n7 - 16*n2*n3*n7 - 16*n3**2*n7 - 4*n2*n4*n7 - 16*n3*n4*n7 + n5*n7 + 2*n1*n5*n7 - 4*n2*n5*n7 - 18*n3*n5*n7 - n5**2*n7 + 4*n6*n7 + 8*n1*n6*n7 - 16*n3*n6*n7 - 4*n5*n6*n7 - 4*n6**2*n7 - 4*n2*n7**2 - 16*n3*n7**2 - n5*n7**2 - 4*n6*n7**2 + 4*n1*n8 - 4*n1**2*n8 + 4*n3*n8 + 8*n1*n3*n8 - 4*n3**2*n8 + n4*n8 - 4*n1*n4*n8 + 2*n2*n4*n8 - n4**2*n8 - 4*n1*n5*n8 - 4*n3*n5*n8 + n6*n8 + 2*n2*n6*n8 - 4*n3*n6*n8 + 2*n4*n6*n8 - n6**2*n8 - 16*n3*n7*n8 - 4*n6*n7*n8 - 4*n1*n8**2 - 4*n3*n8**2 - n4*n8**2 - n6*n8**2 + 16*n1*n9 - 16*n1**2*n9 + 4*n2*n9 - 16*n1*n2*n9 - 4*n2**2*n9 + 4*n4*n9 - 16*n1*n4*n9 + 8*n3*n4*n9 - 4*n4**2*n9 + n5*n9 - 18*n1*n5*n9 - 4*n2*n5*n9 + 2*n3*n5*n9 - 4*n4*n5*n9 - n5**2*n9 - 16*n1*n6*n9 - 4*n2*n6*n9 + 8*n2*n7*n9 + 2*n5*n7*n9 - 16*n1*n8*n9 - 4*n4*n8*n9 - 16*n1*n9**2 - 4*n2*n9**2 - 4*n4*n9**2 - n5*n9**2)/16. + (-((n2/2. + n3 + n5/4. + n6/2.)*(n4/2. + n5/4. + n7 + n8/2.)) + (n1 + n2/2. + n4/2. + n5/4.)*(n5/4. + n6/2. + n8/2. + n9))**2
+    denom = n*(n-1)*(n-2)*(n-3)
+    return 4. * numer / denom    
+
+
+def compute_Dz(Counts):
+    """
+    Dz for block of genotypes counted from count_genotypes(Gs)
+    """
+    n1 = Counts[:,0]
+    n2 = Counts[:,1]
+    n3 = Counts[:,2]
+    n4 = Counts[:,3]
+    n5 = Counts[:,4]
+    n6 = Counts[:,5]
+    n7 = Counts[:,6]
+    n8 = Counts[:,7]
+    n9 = Counts[:,8]
+    n = np.sum(Counts, axis=1)
+    numer = (-(n2*n4) + 3*n1*n2*n4 + n2**2*n4 + 2*n3*n4 + 4*n1*n3*n4 - n2*n3*n4 - 4*n3**2*n4 + n2*n4**2 + 2*n3*n4**2 + 2*n1*n5 - 3*n1**2*n5 - n1*n2*n5 + 2*n3*n5 + 2*n1*n3*n5 - n2*n3*n5 - 3*n3**2*n5 - n1*n4*n5 + n3*n4*n5 + 2*n1*n6 - 4*n1**2*n6 - n2*n6 - n1*n2*n6 + n2**2*n6 + 4*n1*n3*n6 + 3*n2*n3*n6 - 2*n1*n4*n6 - 2*n2*n4*n6 - 2*n3*n4*n6 + n1*n5*n6 - n3*n5*n6 + 2*n1*n6**2 + n2*n6**2 + 2*n2*n7 + 4*n1*n2*n7 + 2*n2**2*n7 + 8*n3*n7 + 4*n1*n3*n7 - 4*n3**2*n7 - n2*n4*n7 + 2*n5*n7 + 2*n1*n5*n7 + n2*n5*n7 + 2*n3*n5*n7 - n4*n5*n7 + 2*n6*n7 - n2*n6*n7 - 2*n4*n6*n7 + n5*n6*n7 + 2*n6**2*n7 - 4*n2*n7**2 - 4*n3*n7**2 - 3*n5*n7**2 - 4*n6*n7**2 + 2*n1*n8 - 4*n1**2*n8 - 2*n1*n2*n8 + 2*n3*n8 - 2*n2*n3*n8 - 4*n3**2*n8 - n4*n8 - n1*n4*n8 - 2*n2*n4*n8 - n3*n4*n8 + n4**2*n8 + n1*n5*n8 + n3*n5*n8 - n6*n8 - n1*n6*n8 - 2*n2*n6*n8 - n3*n6*n8 - 2*n4*n6*n8 + n6**2*n8 + 4*n1*n7*n8 - 2*n2*n7*n8 + 3*n4*n7*n8 - n5*n7*n8 - n6*n7*n8 + 2*n1*n8**2 + 2*n3*n8**2 + n4*n8**2 + n6*n8**2 + 8*n1*n9 - 4*n1**2*n9 + 2*n2*n9 + 2*n2**2*n9 + 4*n1*n3*n9 + 4*n2*n3*n9 + 2*n4*n9 - n2*n4*n9 + 2*n4**2*n9 + 2*n5*n9 + 2*n1*n5*n9 + n2*n5*n9 + 2*n3*n5*n9 + n4*n5*n9 - n2*n6*n9 - 2*n4*n6*n9 - n5*n6*n9 + 4*n1*n7*n9 + 4*n3*n7*n9 + 4*n4*n7*n9 + 2*n5*n7*n9 + 4*n6*n7*n9 - 2*n2*n8*n9 + 4*n3*n8*n9 - n4*n8*n9 - n5*n8*n9 + 3*n6*n8*n9 - 4*n1*n9**2 - 4*n2*n9**2 - 4*n4*n9**2 - 3*n5*n9**2)/4. + (-n1 + n3 - n4 + n6 - n7 + n9)*(-n1 - n2 - n3 + n7 + n8 + n9)*(-((n2/2. + n3 + n5/4. + n6/2.)*(n4/2. + n5/4. + n7 + n8/2.)) + (n1 + n2/2. + n4/2. + n5/4.)*(n5/4. + n6/2. + n8/2. + n9))
+    denom = n*(n-1)*(n-2)*(n-3)
+    return numer / denom
+
+
+def compute_pi2(Counts):
+    """
+    pi2 for block of genotypes counted from count_genotypes(Gs)
+    """
+    n1 = Counts[:,0]
+    n2 = Counts[:,1]
+    n3 = Counts[:,2]
+    n4 = Counts[:,3]
+    n5 = Counts[:,4]
+    n6 = Counts[:,5]
+    n7 = Counts[:,6]
+    n8 = Counts[:,7]
+    n9 = Counts[:,8]
+    n = np.sum(Counts, axis=1)
+    numer = (n1 + n2 + n3 + n4/2. + n5/2. + n6/2.)*(n1 + n2/2. + n4 + n5/2. + n7 + n8/2.)*(n2/2. + n3 + n5/2. + n6 + n8/2. + n9)*(n4/2. + n5/2. + n6/2. + n7 + n8 + n9) + (13*n2*n4 - 16*n1*n2*n4 - 11*n2**2*n4 + 16*n3*n4 - 28*n1*n3*n4 - 24*n2*n3*n4 - 8*n3**2*n4 - 11*n2*n4**2 - 20*n3*n4**2 - 6*n5 + 12*n1*n5 - 4*n1**2*n5 + 17*n2*n5 - 20*n1*n2*n5 - 11*n2**2*n5 + 12*n3*n5 - 28*n1*n3*n5 - 20*n2*n3*n5 - 4*n3**2*n5 + 17*n4*n5 - 20*n1*n4*n5 - 32*n2*n4*n5 - 40*n3*n4*n5 - 11*n4**2*n5 + 11*n5**2 - 16*n1*n5**2 - 17*n2*n5**2 - 16*n3*n5**2 - 17*n4*n5**2 - 6*n5**3 + 16*n1*n6 - 8*n1**2*n6 + 13*n2*n6 - 24*n1*n2*n6 - 11*n2**2*n6 - 28*n1*n3*n6 - 16*n2*n3*n6 + 24*n4*n6 - 36*n1*n4*n6 - 38*n2*n4*n6 - 36*n3*n4*n6 - 20*n4**2*n6 + 17*n5*n6 - 40*n1*n5*n6 - 32*n2*n5*n6 - 20*n3*n5*n6 - 42*n4*n5*n6 - 17*n5**2*n6 - 20*n1*n6**2 - 11*n2*n6**2 - 20*n4*n6**2 - 11*n5*n6**2 + 16*n2*n7 - 28*n1*n2*n7 - 20*n2**2*n7 + 16*n3*n7 - 48*n1*n3*n7 - 44*n2*n3*n7 - 16*n3**2*n7 - 24*n2*n4*n7 - 44*n3*n4*n7 + 12*n5*n7 - 28*n1*n5*n7 - 40*n2*n5*n7 - 48*n3*n5*n7 - 20*n4*n5*n7 - 16*n5**2*n7 + 16*n6*n7 - 48*n1*n6*n7 - 48*n2*n6*n7 - 44*n3*n6*n7 - 36*n4*n6*n7 - 40*n5*n6*n7 - 20*n6**2*n7 - 8*n2*n7**2 - 16*n3*n7**2 - 4*n5*n7**2 - 8*n6*n7**2 + 16*n1*n8 - 8*n1**2*n8 + 24*n2*n8 - 36*n1*n2*n8 - 20*n2**2*n8 + 16*n3*n8 - 48*n1*n3*n8 - 36*n2*n3*n8 - 8*n3**2*n8 + 13*n4*n8 - 24*n1*n4*n8 - 38*n2*n4*n8 - 48*n3*n4*n8 - 11*n4**2*n8 + 17*n5*n8 - 40*n1*n5*n8 - 42*n2*n5*n8 - 40*n3*n5*n8 - 32*n4*n5*n8 - 17*n5**2*n8 + 13*n6*n8 - 48*n1*n6*n8 - 38*n2*n6*n8 - 24*n3*n6*n8 - 38*n4*n6*n8 - 32*n5*n6*n8 - 11*n6**2*n8 - 28*n1*n7*n8 - 36*n2*n7*n8 - 44*n3*n7*n8 - 16*n4*n7*n8 - 20*n5*n7*n8 - 24*n6*n7*n8 - 20*n1*n8**2 - 20*n2*n8**2 - 20*n3*n8**2 - 11*n4*n8**2 - 11*n5*n8**2 - 11*n6*n8**2 + 16*n1*n9 - 16*n1**2*n9 + 16*n2*n9 - 44*n1*n2*n9 - 20*n2**2*n9 - 48*n1*n3*n9 - 28*n2*n3*n9 + 16*n4*n9 - 44*n1*n4*n9 - 48*n2*n4*n9 - 48*n3*n4*n9 - 20*n4**2*n9 + 12*n5*n9 - 48*n1*n5*n9 - 40*n2*n5*n9 - 28*n3*n5*n9 - 40*n4*n5*n9 - 16*n5**2*n9 - 44*n1*n6*n9 - 24*n2*n6*n9 - 36*n4*n6*n9 - 20*n5*n6*n9 - 48*n1*n7*n9 - 48*n2*n7*n9 - 48*n3*n7*n9 - 28*n4*n7*n9 - 28*n5*n7*n9 - 28*n6*n7*n9 - 44*n1*n8*n9 - 36*n2*n8*n9 - 28*n3*n8*n9 - 24*n4*n8*n9 - 20*n5*n8*n9 - 16*n6*n8*n9 - 16*n1*n9**2 - 8*n2*n9**2 - 8*n4*n9**2 - 4*n5*n9**2)/16.
+    denom = n*(n-1)*(n-2)*(n-3)
+    return numer / denom
+
+def compute_pairwise_stats(Gs):
+    Counts = count_genotypes(Gs)
+    D2 = compute_D2(Counts)
+    Dz = compute_Dz(Counts)
+    pi2 = compute_pi2(Counts)
+    return D2, Dz, pi2
+
+def compute_average_stats(Gs):
+    D2, Dz, pi2 = compute_pairwise_stats(Gs)
+    return np.mean(D2), np.mean(Dz), np.mean(pi2)
+
+def compute_pairwise_stats_between(Gs1,Gs2):
+    Counts = count_genotypes_between(Gs1,Gs2)
+    D2 = compute_D2(Counts)
+    Dz = compute_Dz(Counts)
+    pi2 = compute_pi2(Counts)
+    return D2, Dz, pi2
+
+def compute_average_stats_between(Gs1,Gs2):
+    D2, Dz, pi2 = compute_pairwise_stats_between(Gs1,Gs2)
+    return np.mean(D2), np.mean(Dz), np.mean(pi2)
+
+
+"""
+^^^
+"""
+
 
 def g_tally_counter(g_l, g_r):
     #### Counter on iterable
@@ -490,7 +623,8 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     elif pop_file == None:
         raise ValueError("Population names given, but not pop_file..."); sys.stdout.flush()
     
-    pops = ['ALL']
+    if pops == None:
+        pops = ['ALL']
     
     if pop_file is not None:
         samples = pandas.read_csv(pop_file, sep='\t')

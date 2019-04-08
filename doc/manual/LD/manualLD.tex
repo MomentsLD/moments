@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=2cm]{geometry}
 
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{url}
@@ -109,7 +109,7 @@ r = \frac{D}{\sqrt{p(1-p)q(1-q)}} .
 We think of expectations of these quantities as though we average over many realizations of the same evolutionary process, but in reality we have only a single observation for any given pair of SNPs.
 Therefore in practice we take the averages of LD statistics over many independent pairs of SNPs.
 
-$\E[D]$ is zero genome wide, so LD is often measured by the variance of $D$ ($\E[D^2$) or the square correlation ($r^2$), where
+$\E[D]$ is zero genome wide, so LD is often measured by the variance of $D$ ($\E[D^2]$) or the square correlation ($r^2$), where
 \begin{align*}
 r^2 = \frac{D^2}{p(1-p)q(1-q)}.
 \end{align*}
@@ -244,42 +244,92 @@ In each case, \py{num_pops} is automatically set to \py{1}, and because we didn'
 
 \section{Parsing and importing data}
 
-\begin{enumerate}
-\item \mold can create an LDstats object given a vcf file (and optionally a recombination map, mask files, and population files), for either phased or unphased data
-\item Or given a genotype array
-\end{enumerate}
+\mold can import data and compute LD statistics from either phased or unphased sequencing data.
+Typically, data is stored in a VCF formatted file.
+We parse the VCF using \py{scikit-allel} to get genotype arrays, which we then iterate over to count two locus haplotype (phased data) or genotype (unphased data) frequencies for pairs of SNPs.
+We then use two-locus haplotype or genotype counts to compute statistics in the multi-population Hill-Robertson basis.
+If we are binning data based on recombination distance, we will also need a recombination map, and if there are multiple populations, we will need to provide a file that identifies individuals with their population (formats for each are described below).
+If we are interested in data from a subset of the full data (say we want to keep only intergenic variants, or want to focus on a particular region), we can provide a bed file that defines the regions or features we should parse.
+
+\subsection{Computing statistics from genotype arrays}
+To start simply, we might be interested in computing pairwise LD statistics for a given set of genotypes or between two sets of genotypes.
+A genotype array $G$ has size $L\times n$, where $L$ is the number of SNPs and $n$ is the number of sequenced diploid individuals, so that entry $(i,j)$ is the genotype state of individual $j$ at SNP $i$.
+Genotype states are either $0$ (homozygous reference), $1$ (heterozygous), or $2$ (homozygous alternate).
+\py{mold.Parsing} counts and computes statistics from genotype arrays using the approach described in \citet{Ragsdale2019}.
+
+To get pairwise statistics for each possible pair (all $L(L-1)/2$ of them), use \py{mold.Parsing.compute_pairwise_stats(G)}, where \py{G} is the genotype matrix as described above.
+This will output three vectors, each of length $L(L-1)/2$, for $D^2$, $Dz$, and $\pi_2$, in that order.
+To convert to a (symmetric) $L\times L$ matrix of pairwise, we can use \py{numpy}'s \py{triu} function.
+
+To get the average Hill-Robertson statistics over all pairwise comparisons for a block of SNPs, use \py{mold.Parsing.compute_average_stats(G)}, which returns the mean values of $D^2$, $Dz$, and $\pi_2$, in that order.
+
+To compute Hill-Robertson statistics between two sets of genotype data, stored in two genotype arrays \py{G1} and \py{G2}, we can similarly call \py{mold.Parsing.compute_pairwise_stats_between(G1, G2)} (which returns vectors of size $L_1L_2$, where $L_i$ is the number of SNPs in genotype array $G_i$) and \py{mold.Parsing.compute_average_stats_between(G1, G2)}.
 
 
+\subsection{Computing statistics from a VCF file}
 
+In our analyses, we are interested in computing two-locus statistics from genotype data stored in a VCF for pairs of SNPs at varying genetic distances.
+To parse a VCF file and output Hill-Robertson statistics, we use \py{mold.Parsing.compute_ld_statistics}.
+The only required input for this function is the VCF filename.
+Otherwise, there are a number of options and arguments that can be passes to this function.
+\begin{itemize}
+\item \py{bed_file} : default set to \py{None}. To only parse variants in given regions, we specify those regions in a bed file.
+\item \py{rec_map_file} : default set to \py{None}. If we pass a recombination map filename, we can specify the formatting of the recombination map file (see subsection below).
+\item \py{pop_file} : default set to \py{None}. If \py{None}, it uses data from all individuals as a single population. If we pass a population file, we can specify which populations to parse using \py{pops=[pop1, pop2, ...]}.
+\item \py{bp_bins} : default set to \py{None}. If we do not pass a recombination map, we will parse the data based on base pair distance between SNPs. Here, we pass a list of bin edges. For example, to parse data into bins of $(0,10\text{ kb}]$, $(10\text{ kb},20\text{ kb}]$, and $(20\text{ kb},30\text{ kb}]$, we would set \py{bp_bins = [0, 10000, 20000, 30000]}.
+\item \py{use_genotypes} : default set to \py{True}, which we used with unphased data. Set to \py{False} for phased data.
+\item \py{stats_to_compute} : default set to \py{None}. If \py{None}, computes all statistics in the multi-population H-R basis. We can also specify just a subset of these statistics, if desired.
+\item \py{report} : default set to \py{True}. If \py{True}, outputs progress report as it parses the VCF file.
+\end{itemize}
 
-\subsection{Estimating two-locus statistics from data}
-\cite{Ragsdale2019}
+In the simplest case without a recombination map, we can compute statistics from a VCF file based on physical (bp) distance.
+To do this, for a single population, we only need to specify the VCF filename and bin edges in base pairs:\\
+\py{ld_stats = mold.Parsing.compute_ld_statistics('path/to/vcf/file.vcf.gz', bp_bins=[0, 10000, 20000, 30000])}.
 
+\subsection{Multiple populations}
 
-\subsection{Parsing data from a genotype matrix}
+To parse data for multiple populations, we need to also include a file that tells us which population each individual belongs to.
+In the population file, each row corresponds to an individual in the VCF file (individual names must match to those labeled in the VCF header).
+In each row, the first column is the individual ID, and the second column is the population name.
+Additional columns are ignored.
+We could then call \py{ld_stats = mold.Parsing.compute_ld_statistics('path/to/vcf/file.vcf.gz', pop_file='path/to/pop/file.txt', pops=[pop1, pop2, pop3], bp_bins=[0, 10000, 20000, 30000])}.
 
-\begin{enumerate}
-\item All loci, not caring about recombination distance (say, all unlinked loci)
-\item with the recombination distance between snps known
-\end{enumerate}
+\subsection{Using a recombination map}
 
-\subsection{Parsing a VCF file}
+Because recombination rates can vary along the genome, we often want to parse two-locus data by the genetic instead of physical distance separating SNPs.
+To use a recombination map to parse data, we specify the file path and name using \py{rec_map_file}.
+In the recombination map file, the first column corresponds to physical positions, and other columns correspond to the genetic position in either Morgans or cM.
+If there are multiple maps in the file, we can specify the map we want to use by the map name in the header.
 
+For example, the first and last few lines of a set of recombination maps of chromosome 22 for build 37 (available here: \url{https://www.well.ox.ac.uk/~anjali/AAmap/}) are\\\small
+\py{
+"Physical_Pos" "deCODE" "COMBINED_LD" "YRI_LD" "CEU_LD" "AA_Map" "African_Enriched" "Shared_Map"}\\\py{
+16051347 0 0 0 0 0 0 0}\\\py{
+16052618 0 0.0099 0.0083 0.0163 0 0 0}\\\py{
+16053624 0 0.0177 0.0148 0.0293 0 0 0}\\\py{
+16053659 0 0.0179 0.0151 0.0297 0 0 0}\\\py{
+16053758 0 0.0187 0.0157 0.031 0 0 0}\\\py{
+...}\\\py{
+51217134 55.5922 73.6005 75.6968 72.5384 68.9516 67.8206 54.8248}\\\py{
+51219006 55.5922 73.6017 75.6982 72.5398 68.9516 67.8206 54.8248}\\\py{
+51222100 55.5922 73.6037 75.7006 72.5421 68.9516 67.8206 54.8248}\\\py{
+51223637 55.5922 73.6047 75.7018 72.5433 68.9516 67.8206 54.8248}\\\py{
+51229805 55.5922 73.6088 75.7068 72.5479 68.9516 67.8206 54.8248}\\
+\normalsize
+Cumulative distances are given in cM.
+If we want to use the African American admixutre map (``AA\_Map'', \cite{Hinch2011}) from this file, 
+setting recombination bins using \py{r_bins} as, for example,\\
+\py{r_bins = [0, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 1e-3]}\\
+we call:\\
+\py{ld_stats = mold.Parsing.compute_ld_statistics('path/to/vcf/file.vcf.gz', rec_map_file='path/to/rec/map/file', map_name='AA_Map', map_sep=' ', cM=True, r_bins=r_bins)}.\\
+\py{map_sep} by default is set to tab separation, so we'll need tell the parsing function that this map is separated by spaces.
 
-\subsubsection{Using a recombination map}
+\subsection{Parsing example}
 
-
-\subsubsection{Restricting based on features}
-
+\comment{Explain \py{msprime_two_pop_parsing.py}}
 
 \subsection{Creating bootstrap datasets}
-
-\clearpage
-\begin{lstlisting}[caption={\textbf{Parsing:} Example of parsing data generated by msprime}, float, label={lst:bottleneck}]
-this is a script dot py
-\end{lstlisting}
-
-\clearpage
+\comment{to do}
 
 \section{Specifying a model}
 
@@ -369,19 +419,15 @@ Based on expectations, observations, and covariances
 
 \section{Frequently asked questions}
 
-\comment{No one has really asked me questions yet, but here are my own quandaries and answers:}
-
 \begin{enumerate}
 
-\item 
-
-\item How do I cite \mold?
-
-\item What if I'm having issues running this program?
+\item What if I'm having issues running or installing this program?
 
 Bug: issues
 
 Bigger issues or difficulties: email
+
+\item How do I cite \mold?
 
 \end{enumerate}
 
