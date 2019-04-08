@@ -333,19 +333,34 @@ we call:\\
 
 \section{Specifying a model}
 
-General overview of demographic models
-
-\begin{enumerate}
-\item Attributes of LDstats objects used for building models
-\item Splitting, marginalization, swapping
-\item Admixture, merging
-\end{enumerate}
+In \mold, we want to build and test demographic models by computing LD statistics for a specified model.
+\mold allows two ways to specify demographic models, either through direct manipulation of \py{LDstats} objects, or by defining a demography through a graphical structure.
+In this section, we'll describe and give examples for each.
+We'll start with the direct manipulation of \py{LDstats} objects to give intuition about how \mold computes LD statistics under different demographic scenarios.
+For more than just a couple populations, it is far easier to implement models using the Demography module, which builds the demography from a user-defined directed graph.
 
 \subsection{Implementation}
 
-Manual input of demographic model (gets difficult with more than two populations)
+Implementation should be familiar to \dadi and \py{moments} users.
+Once we have defined a \py{LDstats} object, we can perform demographic functions and manipulations on it and integrate it forward in time.
+We can start by specifying the initial distribution, before applying demographic events:\\
+\py{y = mold.Demographics1D.snm(rho = [0,1,10], theta=0.001)}.\\
+\py{y} is now the single population steady-state set of LD statistics for the specified $\rho$ and $\theta$ parameters.
+
+From here, we can integrate forward in time with a specified relative population size, or we can split the population into two daugher populations.
+To integrate forward in time, with a single population, we call:\\
+\py{y.integrate([nu], T, rho=[0,1,10], theta=0.001)},\\
+where \py{nu} is a relative population size and \py{T} is the integration time (in genetic units).
+To split into two, we call:\\
+\py{y = y.split(1)}.\\
+In the \py{split} function, we specify the population number we want to split, and a new population is appended to the end of the population list.
+For example, if \py{y} currently has two populations, and we want to split population 1 into 1A and 1B, we call \py{y.split(1)}, which returns a new \py{LDstats} object with populations ordered as (1A, 2, 1B).
+
+Below, I write out some examples for defining demographic models (a bottleneck model with recent growth, an isolation with migration model, and the Gutenkunst out-of-Africa model).
 
 \subsection{The \texttt{Demography} builder}
+
+Manual specification of demographic functions gets difficult with multiple populations, particularly for more than two or three populations where events in different branches of the demography could switch their order of occurrences.
 
 \subsection{Units}
 \begin{enumerate}
@@ -356,23 +371,44 @@ Manual input of demographic model (gets difficult with more than two populations
 \end{enumerate}
 
 \clearpage
-\begin{enumerate}
-\item With old approach: bottleneck with growth, IM model
-\item With demography: Gutenkunst model, Archaic model (w/ denisovans, neand, papuan, EA, EU, Afr)
-\end{enumerate}
 
-\begin{lstlisting}[caption={\textbf{Bottleneck:} At time \py{TF} + \py{TB} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF}.}, float, label={lst:bottleneck}]
-def bottleneck(params, ns):
+\begin{lstlisting}[caption={\textbf{Bottleneck model:} At time \py{T} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF} through exponential growth. In all examples listed here, we need to \py{import numpy as np} and \py{import moments.LD as mold}.}, float, label={lst:bottleneck}]
+def bottleneck_growth(params, rho=None, theta=0.001):
+    """
+    Instantaneous bottleneck to size nuB
+    followed by exponential growth to size nuF over time T
+    """
     nuB, nuF, T = params
-    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) 
+    nu_func = lambda t: [nuB * np.exp(np.log(nuF/nuB) 
     			   * t / T)]
 
-    sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
-    fs = moments.Spectrum(sts)
-    fs.integrate(nu_func, T)
+    y = mold.Demographics1D.snm(rho=rho, theta=theta)
+    y.integrate(nu_func, T, rho=rho, theta=theta)
 
-    return fs
+    return y
 \end{lstlisting}
+
+\begin{lstlisting}[caption={\textbf{IM model:}}, float, label={lst:IM}]
+def IM():
+    return y
+\end{lstlisting}
+
+\begin{lstlisting}[caption={\textbf{Out of Africa model:}}, float, label={lst:IM}]
+def ooa():
+    return y
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={\textbf{Out of Africa Demography:}}, float, label={lst:IM}]
+def ooa_demo():
+    return y
+\end{lstlisting}
+
+\begin{lstlisting}[caption={\textbf{Archaic Hominin Demography:}}, float, label={lst:IM}]
+def archaics_demo():
+    return y
+\end{lstlisting}
+
 
 \clearpage
 
