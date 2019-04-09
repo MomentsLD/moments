@@ -193,6 +193,8 @@ class LDstats(list):
         if self.pop_ids is not None:
             current_order = self.pop_ids
             new_order = [self.pop_ids[d[ii]-1] for ii in range(1,self.num_pops+1)]
+        else:
+            new_order = None
 
         if len(self) == 1:
             return LDstats([h_new], num_pops=self.num_pops, pop_ids=new_order)

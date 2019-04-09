@@ -301,7 +301,7 @@ def migration_ld(num_pops, m):
                     if kk != pop1:
                         M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop1-1]
                         M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(kk,pop1,pop3)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,kk,pop3)))] += m[kk-1][pop1-1]
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop3)))] += 4 * m[kk-1][pop1-1]
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] -= 4 * m[kk-1][pop1-1]
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop3,kk)))] -= 4 * m[kk-1][pop1-1]
@@ -322,7 +322,7 @@ def migration_ld(num_pops, m):
                         M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,kk)))] += 4 * m[kk-1][pop1-1]
                     if kk != pop2:
                         M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] -= m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,kk)))] += m[kk-1][pop2-1]
                         
             elif pop2 == pop3:
                 for kk in range(1,num_pops+1):
@@ -388,7 +388,7 @@ def migration_ld(num_pops, m):
                     if kk != pop1:
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop1-1]
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop3,kk)))] += 2 * m[kk-1][pop1-1]
-                    elif kk != pop3:
+                    if kk != pop3:
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop3-1]
                         M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += 2 * m[kk-1][pop3-1]
            
