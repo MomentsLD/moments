@@ -41,6 +41,9 @@ belowskip=0pt
 \newcommand{\ccode}[1]{\lstinline[breaklines=true,language=C, showstringspaces=False]@#1@}
 \newcommand{\shell}[1]{\lstinline[breaklines=true, language=csh, showstringspaces=False]@#1@}
 
+\renewcommand{\lstlistingname}{Example Code}
+\renewcommand{\lstlistlistingname}{List of \lstlistingname s}
+
 \newcommand{\E}{\mathbb{E}}
 
 % For calibration, lines can be 60 characters long in
@@ -63,7 +66,6 @@ Contact: aaron.ragsdale@mail.mcgill.ca}
 
 \clearpage
 
-\renewcommand*{\lstlistlistingname}{Example code}
 \lstlistoflistings
 
 \clearpage
@@ -366,6 +368,8 @@ Manual specification of demographic functions gets difficult with multiple popul
 \mold introduces an alternative way to define demographic models, through the Demography module.
 \py{mold.Demography} uses \py{networkx} to represent demographic models as directed graphs, with nodes as populations with attributes (such as size functions, migration rates, frozen ancient sample, etc) and edges defining relationships between populations.
 
+
+
 \subsection{Units}
 \begin{enumerate}
 \item mutation rate
@@ -392,7 +396,7 @@ def bottleneck_growth(params, rho=None, theta=0.001):
     return y
 \end{lstlisting}
 
-\begin{lstlisting}[caption={\textbf{IM model:}}, float, label={lst:IM}]
+\begin{lstlisting}[caption={\textbf{IM model:} One population splits into two some time in the past. Each population can have a new size, with symmetric and continuous migration between populations.}, float, label={lst:IM}]
 def IM(params, rho=None, theta=0.001):
     """
     Population split T generations ago
@@ -409,7 +413,7 @@ def IM(params, rho=None, theta=0.001):
     return y
 \end{lstlisting}
 
-\begin{lstlisting}[caption={\textbf{Out of Africa model:}}, float, label={lst:IM}]
+\begin{lstlisting}[caption={\textbf{Out of Africa model:} The \citet{Gutenkunst2009} Out-of-Africa model, with 13 parameters as originally defined. This model has three representative continental populations (often YRI, CEU, and CHB), with an out of Africa split between Eurasian and African populations, followed by a split between European and East Asian populations, with symmetric migration rates and size changes along each branch.}, float, label={lst:ooa}]
 def ooa(params, rho=None, theta=0.001):
     """
     The 13 parameter out of Africa model introduced in
@@ -424,7 +428,6 @@ def ooa(params, rho=None, theta=0.001):
     mig_mat = [[0,mAfB], [mAfB,0]]
     y.integrate([nuA, nuB], TB, m = mig_mat,
         rho=rho, theta=theta)
-    
     y = y.split(2)
     nu_func = lambda t: [nuA,
         nuEu0 * np.exp(np.log(nuEuF/nuEu0) * t/TF),
@@ -438,12 +441,36 @@ def ooa(params, rho=None, theta=0.001):
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={\textbf{Out of Africa Demography:}}, float, label={lst:IM}]
-def ooa_demo():
+\begin{lstlisting}[caption={\textbf{Out of Africa Demography graph:} The same model as \lstlistingname~\ref{lst:ooa}, but defined using the Demography module. The Demography method takes advantage of the package \py{networkx}, which we \py{import networkx as nx}. Here, we define populations (nodes) with attributes (such as migration rates and sizes), and then define edges to relate populations.}, float, label={lst:ooa_demo}]
+def ooa_demo(params, rho=None, theta=0.001, 
+        pop_ids=['YRI', 'CEU', 'CHB']):
+    (nuA, TA, nuB, TB, nuEu0, nuEuF, nuAs0, 
+        nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs) = params
+    
+    G = nx.DiGraph()
+    # add the population nodes, with sizes, times, and migrations
+    G.add_node('root', nu=1, T=0)
+    G.add_node('A', nu=nuA, T=TA)
+    G.add_node('B', nu=nuB, T=TB, 
+        m={'YRI': mAfB})
+    G.add_node('YRI', nu=nuA, T=TB+TF, 
+        m={'B': mAfB, 'CEU': mAfEu, 'CHB': mAfAs})
+    nu_func_Eu = lambda t: nuEu0 * np.exp(np.log(nuEuF/nuEu0) * t/TF)
+    G.add_node('CEU', nu=nu_func_Eu, T=TF, 
+        m={'YRI': mAfEu, 'CHB': mEuAs})
+    nu_func_As = lambda t: nuAs0 * np.exp(np.log(nuAsF/nuAs0) * t/TF)
+    G.add_node('CHB', nu=nu_func_As, T=TF, 
+        m={'YRI': mAfAs, 'CEU': mEuAs})
+    # define topology of population graph
+    G.add_edges_from([('root', 'A'), ('A', 'YRI'), ('A', 'B'),
+        ('B', 'CEU'), ('B', 'CHB')])
+    # evolve using Demography.evolve
+    y = mold.Demography.evolve(G, theta=theta, 
+        rho=rho, pop_ids=pop_ids)
     return y
 \end{lstlisting}
 
-\begin{lstlisting}[caption={\textbf{Archaic Hominin Demography:}}, float, label={lst:IM}]
+\begin{lstlisting}[caption={\textbf{Archaic Hominin Demography:}}, float, label={lst:archaic_demo}]
 def archaics_demo():
     return y
 \end{lstlisting}
