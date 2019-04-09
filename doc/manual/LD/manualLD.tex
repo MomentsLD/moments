@@ -363,6 +363,8 @@ Below, I write out some examples for defining demographic models (a bottleneck m
 \subsection{The \texttt{Demography} builder}
 
 Manual specification of demographic functions gets difficult with multiple populations, particularly for more than two or three populations where events in different branches of the demography could switch their order of occurrences.
+\mold introduces an alternative way to define demographic models, through the Demography module.
+\py{mold.Demography} uses \py{networkx} to represent demographic models as directed graphs, with nodes as populations with attributes (such as size functions, migration rates, frozen ancient sample, etc) and edges defining relationships between populations.
 
 \subsection{Units}
 \begin{enumerate}
@@ -391,12 +393,47 @@ def bottleneck_growth(params, rho=None, theta=0.001):
 \end{lstlisting}
 
 \begin{lstlisting}[caption={\textbf{IM model:}}, float, label={lst:IM}]
-def IM():
+def IM(params, rho=None, theta=0.001):
+    """
+    Population split T generations ago
+    with relative sizes nu1 and nu2, and symmetric
+    migration rates m
+    """
+    nu1, nu2, T, m = params
+    
+    y = mold.Demographics1D.snm(rho=rho, theta=theta)
+    y = y.split(1)
+    y.integrate([nu1, nu2], T, m=[[0,m],[m,0]],
+        rho=rho, theta=theta)
+    
     return y
 \end{lstlisting}
 
 \begin{lstlisting}[caption={\textbf{Out of Africa model:}}, float, label={lst:IM}]
-def ooa():
+def ooa(params, rho=None, theta=0.001):
+    """
+    The 13 parameter out of Africa model introduced in
+    Gutenkunst et al. (2009)
+    """
+    (nuA, TA, nuB, TB, nuEu0, nuEuF, nuAs0, 
+        nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs) = params
+    
+    y = mold.Demographics1D.snm(rho=rho, theta=theta)
+    y.integrate([nuA], TA, rho=rho, theta=theta)
+    y = y.split(1)
+    mig_mat = [[0,mAfB], [mAfB,0]]
+    y.integrate([nuA, nuB], TB, m = mig_mat,
+        rho=rho, theta=theta)
+    
+    y = y.split(2)
+    nu_func = lambda t: [nuA,
+        nuEu0 * np.exp(np.log(nuEuF/nuEu0) * t/TF),
+        nuAs0 * np.exp(np.log(nuAsF/nuAs0) * t/TF)]
+    mig_mat = [[0, mAfEu, mAfAs],
+        [mAfEu, 0, mEuAs],
+        [mAfAs, mEuAs, 0]]
+    y.integrate(nu_func, TF, m = mig_mat, 
+        rho=rho, theta=theta)
     return y
 \end{lstlisting}
 
