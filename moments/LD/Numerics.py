@@ -210,7 +210,7 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
     return Y
 
 def steady_state(theta=0.001, rho=None):
-    h_ss = [theta]
+    h_ss = np.array([theta])
     if hasattr(rho, '__len__'): # list of rhos
         ys_ss = [equilibrium_ld(theta=theta, rho=r) for r in rho]
         return ys_ss + [h_ss]

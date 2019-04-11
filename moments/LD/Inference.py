@@ -8,6 +8,7 @@ import copy
 import moments
 from moments.Misc import perturb_params
 from moments.Misc import delayed_flush
+from moments.LD.LDstats_mod import LDstats
 
 from scipy.special import gammaln
 import scipy.optimize
@@ -25,6 +26,34 @@ To use the frequency spectrum in the inference, we set the flag use_afs=True
 """
 
 _counter = 0
+
+def sigmaD2(y, normalization=1):
+    """
+    y : LDstats object for n populations
+    normalization : normalizing population (normalized by pi2_i_i_i_i and H_i_i), default set to 1
+    """
+    if normalization > y.num_pops:
+        raise ValueError("normalization index cannot be greater than number of populations.")
+    
+    for i in range(len(y))[:-1]:
+        y[i] /= y[i][y.names()[0].index('pi2_{0}_{0}_{0}_{0}'.format(normalization))]
+    y[-1] /= y[-1][y.names()[1].index('H_{0}_{0}'.format(normalization))]
+    
+    return y
+
+def bin_stats(model_func, params, rho=[], theta=0.001, pop_ids=None):
+    if len(rho) < 2:
+        raise ValueError("number of recombination rates must be greater than one")
+    ## XX check if sorted...
+    
+    ## how to pass arbitrary arguments... right now the function needs to accept pop_ids
+    rho_mids = (np.array(rho[:-1]) + np.array(rho[1:])) / 2
+    y_edges = model_func(params, rho=rho, theta=theta, pop_ids=pop_ids)
+    y_mids = model_func(params, rho=rho_mids, theta=theta, pop_ids=pop_ids)
+    y = [1./6 * (y_edges[i] + y_edges[i+1] + 4*y_mids[i]) for i in range(len(rho_mids))]
+    y.append(y_edges[-1])
+    return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
+    
 
 def multivariate_normal_pdf(x,mu,Sigma):
     p = len(x)

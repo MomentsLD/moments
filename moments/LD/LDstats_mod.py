@@ -32,6 +32,7 @@ class LDstats(list):
         pop_ids: population names in order that statistics are represented here.
     """
     def __new__(self, data, num_pops=None, pop_ids=None):
+        
         if num_pops == None:
             raise ValueError('Specify number of populations as num_pops=.')
         my_list = super(LDstats, self).__new__(self, data, num_pops=None, pop_ids=None)
@@ -489,9 +490,9 @@ try:
 except:
     import copyreg
 def LDstats_pickler(y):
-    return LDstats_unpickler, (y.data, y.mask, y.num_pops, y.pop_ids)
-def LDstats_unpickler(data, mask, num_pops, pop_ids):
-    return LDstats(data, mask, num_pops=num_pops, pop_ids=pop_ids)
+    return LDstats_unpickler, (y, y.num_pops, y.pop_ids)
+def LDstats_unpickler(data, num_pops, pop_ids):
+    return LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
 
 try:
     copy_reg.pickle(LDstats, LDstats_pickler, LDstats_unpickler)
