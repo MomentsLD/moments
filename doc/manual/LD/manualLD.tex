@@ -570,23 +570,50 @@ This is computed using \py{mold.Inference.ll_over_bins(xs, mus, sigmas)}, where 
 
 \subsection{Fitting}
 
-\begin{enumerate}
-\item Parameter bounds
-\item Fixed parameters
-\item Other options (there are a lot more now)
-\item optimizer choice
-\end{enumerate}
+\comment{above need to discuss that we typically also infer $N_e$ based on the recombination map, since they are typically given in raw recombination rates}
+
+For observed data, the goal here is to propose a model and find the parameters of the model that best fit the data.
+We use functions in \py{mold.Inference} to optimize model parameters, given computed average statistics for each recombination bin and the associated covariance matrices.
+We take data that has been parsed over $n$ recombination bins, $\{(r_0,r_1], (r_1,r_2], \ldots, (r_{n-1},r_n]\}$, and use the optimization functions in \py{Inference} to explore parameter space of our model (here, called \py{model_func}) to find the optimal parameter values.
+
+The most common usage of the optimization functions requires the following input.\\
+Required inputs:
+\begin{itemize}
+\item The initial parameter guess \py{p0} : this is the list of model parameters, and it is typically augmented by the reference $N_e$, which is used to scale raw recombination rates ($r$) to get $\rho$ values. \comment{with or without $N_e$ on the end}
+\item \py{data} as two lists. The first list are the mean statistics, which has size $n+1$. The first $n$ entries of the list of means are statistic arrays for each bin (sorted in the order of recombination bins), and the last entry in the list is the set of heterozygosity statistics \comment{as output by \py{Parsing} - does it prefilter the normalized statistic out? or pass all statistics as well as an option for telling it which statistic you normalized by?}. The second list in \py{data} are the corresponding covariance matrices.
+\item \py{model_func}, which computes (unnormalized) LD statistics \comment{in form of Example Codes}
+\item \py{rs} : the list of raw recombination rate bin edges, such as $r_\text{edges} = [r_0, r_1, \ldots, r_n]$. If we use \py{rs}, we set \py{Ne} to a fixed value of $N_\text{ref}$ to scale recombination rates, or we use the last entry in the list of parameters, in which case $N_\text{ref}$ is a parameter to be fit.
+\end{itemize}
+Optional inputs:
+\begin{itemize}
+\item \py{normalization} : The population used to normalize $\sigma_D^2$ statistics. Default set population 1, which uses $\pi_2(1)$ and $H(1)$ statistic in the first population.
+\item \py{verbose} : Set to \py{True} if we want to output updates of function optimization (integer values tell how often to output updates)
+\item \py{fixed_params} : A list the same length as \py{p0}. Default set to \py{[None]*len(p0)}. For any values to be fixed (and not optimized over), set that position to the fixed value.
+\item \py{upper_bounds} and \py{lower_bounds} : Parameters can sometimes diverge to unrealistic values during optimization. To constrain parameter values to a given interval, use \py{upper_bounds} and \py{lower_bounds}, in the same way as \py{fixed_params}.
+\end{itemize}
+
+\subsubsection{Optimization functions}
+\comment{log fmin and powell}
+
+Suppose I have a list of statistics means \py{ms} and covariances \py{vs} over bins defined by bin edges \py{r_bins}, and a model I wish to optimize \py{model_func} that takes parameters \py{[p1,p2,...,pn]}.
+I set my initial guess \py{p0 = [guess_p1, guess_p2, ..., guess_pn, guess_Ne]}.
+To run optimization, I call\\
+\py{mold.Inference.optimize_log_fmin(p0, [ms, vs], [model_func], rs=r_bins, verbose=1)}.
 
 \subsection{Uncertainty analysis}
 
+\comment{to come}
+
+\cite{Coffman2016}
 
 \section{Plotting}\label{section:plotting}
+
+\comment{Under development}
 
 \subsection{Visualizing LD curves}
 
 
 \subsection{Residuals}
-Based on expectations, observations, and covariances
 
 
 \section{The full two-locus frequency spectrum}
@@ -617,8 +644,9 @@ Bigger issues or difficulties: email
 
 
 \section{Acknowledgements}
-\py{moments}, \mold, and their manuals (and indeed much of my scientific course and accomplishments) are greatly indebted to Ryan Gutenkunst.
-Not only are these programs modeled off of \dadi's interface and functionality, but also my general approach to writing, testing, and using scientific software has largely been guided and influenced by Ryan.
+\py{moments} was originally developed by Julien Jouganous, and based off of Ryan Gutenkunst's \dadi software.
+\py{moments} and \mold (and indeed much of my scientific course and accomplishments) are greatly indebted to Ryan Gutenkunst.
+Not only are these programs modeled off of \dadi's interface and functionality, but also my general approach to writing, testing, and using scientific software has been guided or influenced by Ryan.
 I cannot overstate my gratitude to Ryan for making \dadi open source and accessible, and more personally for his mentorship over the years (if you're reading this Ryan, a gigantic ``Thank you!'').
 
 

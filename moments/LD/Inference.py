@@ -3,6 +3,7 @@ import math
 import os,sys
 
 from moments.LD import Numerics
+from moments.LD import Util
 
 import copy
 import moments
@@ -53,7 +54,28 @@ def bin_stats(model_func, params, rho=[], theta=0.001, pop_ids=None):
     y = [1./6 * (y_edges[i] + y_edges[i+1] + 4*y_mids[i]) for i in range(len(rho_mids))]
     y.append(y_edges[-1])
     return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
-    
+
+def remove_normalized_lds(y, normalization=1):
+    to_delete_ld = y.names()[0].index('pi2_1_1_1_1')
+    to_delete_h = y.names()[1].index('H_1_1')
+    for i in range(len(y)-1):
+        y[i] = np.delete(y[i], to_delete_ld)
+    y[-1] = np.delete(y[-1], to_delete_h)
+    return y
+
+def remove_normalized_data(means, varcovs, normalization=1, num_pops=1):
+    stats = Util.moment_names(num_pops)
+    to_delete_ld = stats[0].index('pi2_{0}_{0}_{0}_{0}'.format(normalization))
+    to_delete_h = stats[1].index('H_{0}_{0}'.format(normalization))
+    ms = []
+    vcs = []
+    for i in range(len(means)-1):
+        ms.append(np.delete(means[i], to_delete_ld))
+        vcs.append(np.delete(np.delete(varcovs[i], to_delete_ld, axis=0), to_delete_ld, axis=1))
+    ms.append(np.delete(means[-1], to_delete_h))
+    vcs.append(np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1))
+    return ms, vcs
+
 
 def multivariate_normal_pdf(x,mu,Sigma):
     p = len(x)
@@ -90,21 +112,12 @@ def ll_over_bins(xs,mus,Sigmas):
     ll_val = np.sum(ll_vals)
     return ll_val
 
-"""(model_func, ms, vcs, fs, 
-            rhos, rs, 
-            theta, u, Ne, 
-            lower_bound, upper_bound, 
-            verbose, flush_delay,
-            func_args, func_kwargs, fixed_params, 
-            use_afs, Leff, multinom, ns,
-            output_stream)"""
-
 _out_of_bounds_val = -1e12
 def _object_func(params, model_func, means, varcovs, fs=None,
-                 rhos=None, rs = None,
-                 theta=None, u=None, Ne=None,
+                 rs = None, theta=None, u=None, Ne=None,
                  lower_bound=None, upper_bound=None,
-                 verbose=0, flush_delay=0, 
+                 verbose=0, flush_delay=0,
+                 normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None,
                  use_afs=False, Leff=None, multinom=True, ns=None,
                  output_stream=sys.stdout):
@@ -130,17 +143,14 @@ def _object_func(params, model_func, means, varcovs, fs=None,
         if Ne is None:
             Ne = params_up[-1]
             theta = 4*Ne*u
-            if rhos is None:
-                rhos = [4*Ne*r for r in rs]
+            rhos = [4*Ne*r for r in rs]
             all_args = [all_args[0][:-1]]
         else:
             theta = 4*Ne*u
-            if rhos is None:
-                rhos = [4*Ne*r for r in rs]
+            rhos = [4*Ne*r for r in rs]
     else:
-        if rhos is None:
-            if Ne is not None:
-                rhos = [4*Ne*r for r in rs]
+        if Ne is not None:
+            rhos = [4*Ne*r for r in rs]
         
     ## first get ll of afs
     if use_afs == True:
@@ -156,28 +166,14 @@ def _object_func(params, model_func, means, varcovs, fs=None,
             ll_afs = moments.Inference.ll(model,fs)
     
     ## next get ll for LD stats
-    ## we use simpson's rule to integrate over bins, so we also pass the midpoints of each rho bin
-    rhos = np.array(rhos)
-    mid_rhos = (rhos[:-1] + rhos[1:])/2.
-    
-    pass_rhos = np.empty(len(rhos)+len(mid_rhos))
-    for ii in range(len(mid_rhos)):
-        pass_rhos[2*ii] = rhos[ii]
-        pass_rhos[2*ii+1] = mid_rhos[ii]
-    
-    pass_rhos[-1] = rhos[-1]
-    
-    func_kwargs = {'theta':theta, 'rho':pass_rhos}
+    func_kwargs = {'theta':theta, 'rho':rhos, 'pop_ids':pop_ids}
         
-    # compute ld statistics for the passed parameters, and given theta and rhos
-    stats = model_func[0](*all_args, **func_kwargs)
-    ld_stats = stats[:-1]
+    stats = bin_stats(model_func[0], *all_args, **func_kwargs)
+    stats = sigmaD2(stats, normalization=normalization)
+    stats = remove_normalized_lds(stats, normalization=normalization)
+    simp_stats = stats[:-1]
     het_stats = stats[-1]
-    
-    simp_stats = []
-    for ii in range(len(rhos)-1):
-        simp_stats.append((ld_stats[2*ii] + 4*ld_stats[2*ii+1] + ld_stats[2*ii+2])/6.)
-    
+        
     if use_afs == False:
         simp_stats.append(het_stats)
     
@@ -204,25 +200,24 @@ def _object_func_log(log_params, *args, **kwargs):
     return _object_func(np.exp(log_params), *args, **kwargs)
 
 def optimize_log_fmin(p0, data, model_func,
-                 rhos=None, rs=None,
-                 theta=None, u=None, Ne=None, 
+                 rs=None, theta=None, u=2e-8, Ne=None, 
                  lower_bound=None, upper_bound=None, 
                  verbose=0, flush_delay=0.5,
+                 normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  use_afs=False, Leff=None, multinom=False, ns=None):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
-    means : list of mean statistics matching bins (has length len(rhos)-1)
+    means : list of mean statistics matching bins (has length len(rs)-1)
     varcovs : list of varcov matrices matching means
     model_func : demographic model to compute statistics for a given rho
                  If we are using AFS, it's a list of the two models [LD, AFS]
                  If it's LD stats alone, it's just a single LD model (still passed as a list)
-    rhos : pass fixed list of rho bin edges (4*Ne*r)
     rs : list of raw recombination rates, to be scaled by Ne (either passed or last value in list of params)
     theta : this is population scaled per base mutation rate (4*Ne*mu, not 4*Ne*mu*L)
     u : raw per base mutation rate, theta found by 4*Ne*u
-    Ne : pass if we want a fixed effective population size to scale u and r (if theta and rhos aren't fixed)
+    Ne : pass if we want a fixed effective population size to scale u and r
     lower_bound : 
     upper_bound : 
     verbose : 
@@ -261,20 +256,31 @@ def optimize_log_fmin(p0, data, model_func,
     if use_afs == True:
         raise ValueError("which mutation/theta parameters do we need to check and pass")
     
-    if rhos is None and rs is None:
-        raise ValueError("need to pass one of rhos or rs")
+    if rs is None:
+        raise ValueError("need to pass rs as bin edges")
     
-    if rhos is None and Ne is None:
-        print("using last parameter is list of params as Ne")
+    if Ne is None:
+        print("Warning: using last parameter in list of params as Ne")
     
+    
+    # remove normalized statistics (or how should we handle the masking?)
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
     
+    # get num_pops
+    if Ne == None:
+        y = model_func[0](p0[:-1])
+    else:
+        y = model_func[0](p0)
+    num_pops = y.num_pops
+    
+    ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
+    
     args = (model_func, ms, vcs, fs, 
-            rhos, rs, 
-            theta, u, Ne, 
+            rs, theta, u, Ne, 
             lower_bound, upper_bound, 
             verbose, flush_delay,
+            normalization,
             func_args, func_kwargs, fixed_params, 
             use_afs, Leff, multinom, ns,
             output_stream)
@@ -288,25 +294,24 @@ def optimize_log_fmin(p0, data, model_func,
     return xopt, fopt
 
 def optimize_log_powell(p0, data, model_func,
-                 rhos=None, rs=None,
-                 theta=None, u=None, Ne=None, 
+                 rs=None, theta=None, u=2e-8, Ne=None, 
                  lower_bound=None, upper_bound=None, 
                  verbose=0, flush_delay=0.5,
+                 normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  use_afs=False, Leff=None, multinom=False, ns=None):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
-    means : list of mean statistics matching bins (has length len(rhos)-1)
+    means : list of mean statistics matching bins (has length len(rs)-1)
     varcovs : list of varcov matrices matching means
     model_func : demographic model to compute statistics for a given rho
                  If we are using AFS, it's a list of the two models [LD, AFS]
                  If it's LD stats alone, it's just a single LD model (still passed as a list)
-    rhos : pass fixed list of rho bin edges (4*Ne*r)
     rs : list of raw recombination rates, to be scaled by Ne (either passed or last value in list of params)
     theta : this is population scaled per base mutation rate (4*Ne*mu, not 4*Ne*mu*L)
     u : raw per base mutation rate, theta found by 4*Ne*u
-    Ne : pass if we want a fixed effective population size to scale u and r (if theta and rhos aren't fixed)
+    Ne : pass if we want a fixed effective population size to scale u and r
     lower_bound : 
     upper_bound : 
     verbose : 
@@ -345,20 +350,30 @@ def optimize_log_powell(p0, data, model_func,
     if use_afs == True:
         raise ValueError("which mutation/theta parameters do we need to check and pass")
     
-    if rhos is None and rs is None:
-        raise ValueError("need to pass one of rhos or rs")
+    if rs is None:
+        raise ValueError("need to pass rs as bin edges")
     
-    if rhos is None and Ne is None:
-        print("using last parameter is list of params as Ne")
+    if Ne is None:
+        print("Warning: using last parameter in list of params as Ne")
     
+    # remove normalized statistics (or how should we handle the masking?)
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
+    
+    # get num_pops
+    if Ne == None:
+        y = model_func[0](p0[:-1])
+    else:
+        y = model_func[0](p0)
+    num_pops = y.num_pops
+    
+    ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
 
     args = (model_func, ms, vcs, fs, 
-            rhos, rs, 
-            theta, u, Ne, 
+            rs, theta, u, Ne, 
             lower_bound, upper_bound, 
             verbose, flush_delay,
+            normalization,
             func_args, func_kwargs, fixed_params, 
             use_afs, Leff, multinom, ns,
             output_stream)
