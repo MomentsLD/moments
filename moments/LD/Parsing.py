@@ -40,7 +40,9 @@ def load_h5(vcf_file, report=True):
         callset = h5py.File(h5_file_path, mode='r')
     except (OSError,IOError): # IOError merged into OSError in python 3
         if report is True: print("creating and saving h5 file"); sys.stdout.flush()
-        allel.vcf_to_hdf5(vcf_file, h5_file_path, fields='*', overwrite=True)
+        allel.vcf_to_hdf5(vcf_file, h5_file_path, 
+                fields='*', exclude_fields=['calldata/GQ'],
+                overwrite=True)
         callset = h5py.File(h5_file_path, mode='r')
     return callset
 
@@ -651,7 +653,7 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
             if pop1 == pop2:
                 H = np.sum( 2. * ac_subpop[pop1][:,0] * ac_subpop[pop1][:,1] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1] - 1) )
             else:
-                H = np.sum( ac_subpop[pop1][:,0] * ac_subpop[pop2][:,1] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop2][:,0] + ac_subpop[pop2][:,1]) + ac_subpop[pop1][:,1] * ac_subpop[pop2][:,0] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop2][:,0] + ac_subpop[pop2][:,1]) )
+                H = np.sum( 1. * ac_subpop[pop1][:,0] * ac_subpop[pop2][:,1] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop2][:,0] + ac_subpop[pop2][:,1]) + ac_subpop[pop1][:,1] * ac_subpop[pop2][:,0] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop2][:,0] + ac_subpop[pop2][:,1]) )
             Hs[(pop1,pop2)] = H
     
     return Hs
