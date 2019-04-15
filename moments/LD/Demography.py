@@ -86,7 +86,6 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
     Y = LDstats_mod.LDstats(equilibrium(rho=rho, theta=theta), num_pops=1, pop_ids=[present_pops[0][0]])
     
     for ii, (pops, T, nu, mig_mat, frozen) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops)):
-        
         if np.any([callable(nus[ii][i]) for i in range(len(nus[ii]))]):
             callable_nu = []
             for pop_nu in nu:
@@ -115,9 +114,7 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
                     if e[0] == 'split':
                         Y = dg_split(Y, e[1], e[2], e[3])
                     elif e[0] == 'merger':
-                        Y = dg_merge(Y, e[1], e[2], e[3])
-                    elif e[0] == 'admix':
-                        Y = dg_admix(Y, e[1], e[2], e[3]) 
+                        Y = dg_merge(Y, e[1], e[2], e[3]) # pops_from, weights, pop_to
                     elif e[0] == 'marginalize':
                         Y = Y.marginalize(Y.pop_ids.index(e[1])+1)
             # make sure correct order of pops for the next epoch
@@ -139,12 +136,22 @@ def dg_split(Y, parent, child1, child2):
     Y.pop_ids = ids_to
     return Y
 
-def dg_merge():
-    pass
-
-def dg_admix():
-    pass
-
+def dg_merge(Y, pops_to_merge, weights, pop_to):
+    pop1,pop2 = pops_to_merge
+    ids_from = Y.pop_ids
+    ids_to = copy.copy(ids_from)
+    ids_to.pop(ids_to.index(pop1))
+    ids_to.pop(ids_to.index(pop2))
+    ids_to.append(pop_to)
+    pop1_ind = ids_from.index(pop1)
+    pop2_ind = ids_from.index(pop2)
+    if pop1_ind < pop2_ind:
+        Y = Y.merge(pop1_ind+1, pop2_ind+1, weights[0])
+    else:
+        Y = Y.merge(pop2_ind+1, pop1_ind+1, weights[1])
+    Y.pop_ids = ids_to
+    return Y
+    
 def rearrange_pops(Y, pop_order):
     current_order = Y.pop_ids
     for i in range(len(pop_order)):
@@ -212,18 +219,32 @@ def get_event_times(demo_graph):
                 this_pop = present_pops[-1][ii]
                 if pop_time_left < tol:
                     if this_pop in children: # if it has children (1 or 2), split or carry over
-                        new_pops += children[this_pop]
-                        new_times += [demo_graph.nodes[child]['T'] for child in children[this_pop]]
-                        new_nus += [demo_graph.nodes[child]['nu'] for child in children[this_pop]]
+                        # check if children already in new_pops, if so, it's a merger (with weights)
+                        for child in children[this_pop]:
+                            if child not in new_pops:
+                                new_pops += children[this_pop]
+                                new_times += [demo_graph.nodes[child]['T'] for child in children[this_pop]]
+                                new_nus += [demo_graph.nodes[child]['nu'] for child in children[this_pop]]
                         if len(children[this_pop]) == 2:
                             child1, child2 = children[this_pop]
                             new_events.append( ('split', this_pop, child1, child2) )
                         else:
+                            child = children[this_pop][0]
                             # if the one child is a merger, need to specify, otherwise, nothing needed
-                            if parents[children[this_pop][0]] == [this_pop]:
+                            if parents[child] == [this_pop]:
                                 continue
                             else:
-                                new_events.append( ('merger', (this_pop, child), f_this_pop) )
+                                parent1, parent2 = parents[child]
+                                # check if we've already recorded this event from the other parent
+                                event_recorded = 0
+                                for event in new_events:
+                                    if event[0] == 'merger' and event[1] == (parent1, parent2):
+                                        event_recorded = 1
+                                if event_recorded == 1:
+                                    continue
+                                else:
+                                    weights = (demo_graph.get_edge_data(parent1,child)['weight'], demo_graph.get_edge_data(parent2,child)['weight'])
+                                    new_events.append( ('merger', (parent1, parent2), weights, child) )
                     else: # else no children and we eliminate it
                         new_events.append( ('marginalize', this_pop) )
                         continue

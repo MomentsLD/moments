@@ -143,20 +143,12 @@ $$
 \end{pmatrix},
 $$
 
-where $i,j,k,l$ index populations, and \comment{simplify}
+where $i,j,k,l$ index populations, and
 \begin{align*}
  D_iz_{j,k} & = D_i (1-2p_j)(1-2q_k), \\
- {\pi_2}(i,j;k,l) & = \begin{cases}
- 				p_i(1-p_i)q_k(1-q_k), & i=j, k=l \\
-				\frac{1}{2} p_i(1-p_j) q_k(1-q_k) + \frac{1}{2} p_j(1-p_i) q_k(1-q_k), & i\not= j, k=l \\
-				\frac{1}{2} p_i(1-p_i) q_k(1-q_l) + \frac{1}{2} p_i(1-p_i) q_l(1-q_k), & i=j, k\not=l \\
-				\frac{1}{4} p_i(1-p_j) q_k(1-q_l) + \frac{1}{4} p_i(1-p_j) q_l(1-q_k) & \\
-					\hspace{15 pt} + \frac{1}{4} p_j(1-p_i) q_k(1-q_l) + \frac{1}{4} p_j(1-p_i) q_l(1-q_k) , & i\not=j, k\not=l
- 			\end{cases}, \\
- H_{i,j} & = \begin{cases} 
- 			p_i(1-p_i), & i = j \\ 
-			\frac{1}{2}p_i(1-p_j) + \frac{1}{2}p_j(1-p_i),& i \not= j 
-		\end{cases}.
+ {\pi_2}(i,j;k,l) & = \frac{1}{4} p_i(1-p_j) q_k(1-q_l) + \frac{1}{4} p_i(1-p_j) q_l(1-q_k) & \\
+					&\hspace{15 pt} + \frac{1}{4} p_j(1-p_i) q_k(1-q_l) + \frac{1}{4} p_j(1-p_i) q_l(1-q_k) , \\
+ H_{i,j} & =\frac{1}{2}p_i(1-p_j) + \frac{1}{2}p_j(1-p_i).
 \end{align*}
 
 From these, we can compare a large number of two-locus statistics.
@@ -180,7 +172,7 @@ And then finally, to install run
 
 \subsubsection{Dependencies}
 
-\py{moments} and \mold depend on a number of Python libraries (We recommend using Python 3).
+\py{moments} and \mold depend on a number of Python libraries. I strongly recommend using Python 3.
 
 \begin{enumerate}
 \item Absolute dependencies: \py{Python} (version 2.7 or $\geq$ 3.5), \py{numpy} (version $\geq$ 1.2.0), \py{scipy} (version $\geq$ 0.6.0), \py{cython}, \py{pickle}
@@ -190,8 +182,7 @@ And then finally, to install run
 \end{enumerate}
 
 I recommend that you install IPython as well.
-The easiest way to obtain all these dependencies is to use a package management system, such as Conda (\url{https://conda.io/en/latest/}) or Enthought (\url{https://www.enthought.com/product/enthought-python-distribution/}).
-
+The easiest way to obtain all these dependencies is to use a package manager, such as Conda (\url{https://conda.io/en/latest/}) or Enthought (\url{https://www.enthought.com/product/enthought-python-distribution/}).
 
 \subsection{Suggested workflow}
 
@@ -397,6 +388,13 @@ Time and rates are typically measured in or scaled by $2N_\text{ref}$:
 \item The recombination rate is $\rho=4N_\text{ref}r$, where $r$ is the probability of a recombination event occurring between two loci in a lineage in one generation.
 \end{itemize}
 
+\section{Example Code}
+
+In this section, we give some example demographic functions.
+Some are specified by initializing the equilibrium \py{LDstats} object, and then applying demographic events such as size changes and splits, and integrating forward in time.
+Others are specified using the \py{Demography} module.
+Here, we use \py{networkx} to define a population topology and attributes for each population, and then we call \py{mold.Demography.evolve} to compute the expected statistics.
+
 \clearpage
 
 \begin{lstlisting}[caption={\textbf{Bottleneck model:} At time \py{T} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF} through exponential growth. In all examples listed here, we need to \py{import numpy as np} and \py{import moments.LD as mold}.}, float, label={lst:bottleneck}]
@@ -523,7 +521,6 @@ def OutOfAfrica_graph(params, rho=None, theta=0.001,
 def archaics_demo():
     return y
 \end{lstlisting}
-
 
 \clearpage
 

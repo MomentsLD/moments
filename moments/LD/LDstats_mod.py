@@ -268,10 +268,13 @@ class LDstats(list):
     
     def merge(self, pop1, pop2, f):
         """
-        places new population at the end, then marginalizes pop1 and pop2
+        Merger of populations 1 and 2, with fraction f from pop1 (1-f from pop2)
+        Places new population at the end, then marginalizes pop1 and pop2
+        To admix two populations and keep one or both, use pulse migrate or 
+            admix, respectively.
         """
         Y_new = self.admix(pop1, pop2, f)
-        Y_new.marginalize([pop1,pop2])
+        Y_new = Y_new.marginalize([pop1,pop2])
         return Y_new
     
     def pulse_migrate(self, pop1, pop2, f):
