@@ -395,6 +395,11 @@ Some are specified by initializing the equilibrium \py{LDstats} object, and then
 Others are specified using the \py{Demography} module.
 Here, we use \py{networkx} to define a population topology and attributes for each population, and then we call \py{mold.Demography.evolve} to compute the expected statistics.
 
+In the directory moments/examples/LD, you will find additional example code, including a demographic model for the out of Africa model augmented by Neanderthal introgression into the Eurasian population and a deep split and subsequent migration with an archaic population within Africa (similar to the demographic model inferred in \citet{Ragsdale2019}.
+Also in the examples directory, we use a subset of populations from the publicly available Simons Diversity Project (Mbuti, Punjabi, Dai, and Papuan) \cite{Simons} along with high coverage Neanderthal and Denisovan individuals \cite{Pruefer} to parse LD statistics.
+We then fit a demographic model with recent events (modern human splits, size changes, and migration rates) along with the timing of splits between modern humans, Neanderthal and Denisovans, and a hypothesized archaic African population, the split between Neanderthal and Denisovan populations, and the timing and magnitude of admixture from archaic populations into human lineages.
+The topology of this model is shown in Figure~\ref{fig:archaic_demography}.
+
 \clearpage
 
 \begin{lstlisting}[caption={\textbf{Bottleneck model:} At time \py{T} in the past, an equilibrium population goes through a bottleneck of depth \py{nuB}, recovering to relative size \py{nuF} through exponential growth. In all examples listed here, we need to \py{import numpy as np} and \py{import moments.LD as mold}.}, float, label={lst:bottleneck}]
@@ -517,10 +522,92 @@ def OutOfAfrica_graph(params, rho=None, theta=0.001,
     return y
 \end{lstlisting}
 
-\begin{lstlisting}[caption={\textbf{Archaic Hominin Demography:}}, float, label={lst:archaic_demo}]
-def archaics_demo():
-    return y
-\end{lstlisting}
+%\begin{lstlisting}[caption={\textbf{Archaic Hominin Demography:}}, float, label={lst:archaic_demo}]
+%def archaics_demo(params, rho=None, theta=0.001,
+%    """
+%    Same 13 parameters as the OOA model, augmented by Neanderthal and
+%        Archaic African params.
+%    TAA = time before African expansion AA split off
+%    TN = time before AA split that Neanderthal splits
+%    xAAend = fraction along (TF+TB+TA+TAA) that AA pop goes extinct 
+%    xAAmig = fraction along (1-fAAend)*(TF+TB+TA+TAA) that 
+%             AA and A start exchanging migrants
+%    mAA = symmetric migration rate
+%    nuN = relative size of Neanderthal
+%    xNsplit = fraction of time between Neanderthal split 
+%              and Vindija fixed data (xx kya) (from 0 to 1)
+%    xN_pulse = fraction along TB branch that pulse occurs
+%    fN_pulse = pulse migration proportion from neanderthal 
+%               into Eurasia pop
+%    Ne = reference population size (to scale archaic dates 
+%         and recombination map)
+%    """
+%        pop_ids=['YRI', 'CEU', 'CHB', 'Vindija']):
+%    (nuA, TA, nuB, TB, nuEu0, nuEuF, nuAs0, 
+%        nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs,
+%        TAA, TN, xAAend, xAAmig, mAA,
+%        nuN, xNsplit, xN_pulse, fN_pulse,
+%        Ne) = params
+%    
+%    # Vindija is fixed at xx kya (convert to genetic unites using 29 yrs per gen and Ne)
+%    ya = 55000. # in years. gens = ya/29 (Pruefer et al estimate its age at 50-65 kya)
+%    TVindija = ya / 29 / 2 / Ne # time that this sample is frozen, in genetic units
+%    
+%    TND_pre = (TF+TB+TA+TAA+TN - TVindija)*xNsplit
+%    TND_mig = TB*xN_pulse+TA+TAA+TN-TND_pre # migrating neanderthal ends at pulse during TB
+%    TND_vindija = TF+TB+TA+TAA+TN-TVindija-TND_pre
+%    
+%    TAAtot = (TF+TB+TA+TAA)*xAAend
+%    TAApre = TAAtot*xAAmig
+%    TAAmig = TAAtot*(1-xAAmig)
+%    
+%    TB_pre = TB*xN_pulse
+%    TB_post = TB*(1-xN_pulse)
+%    
+%    nu_func_CEU = lambda t : nuEu0 * np.exp(np.log(nuEuF/nuEu0) * t/TF)
+%    nu_func_CHB = lambda t : nuAs0 * np.exp(np.log(nuAsF/nuAs0) * t/TF)
+%    
+%    G = nx.DiGraph()
+%    # set up populations
+%    G.add_node('root', nu=1, T=0)
+%    G.add_node('ND_pre', nu=nuN, T=TND_pre)
+%    G.add_node('ND_vindija', nu=nuN, T=TND_vindija)
+%    G.add_node('Vindija', nu=nuN, T=TVindija, frozen=True)
+%    G.add_node('ND_mig', nu=nuN, T=TND_mig)
+%    G.add_node('AA_MH', nu=1, T=TN)
+%    G.add_node('AA_nomig', nu=1, T=TAApre)
+%    G.add_node('AA_mig', nu=1, T=TAAmig, 
+%        m={'MH_pre': mAA, 'A': mAA, 'YRI': mAA})
+%    G.add_node('MH_pre', nu=1, T=TAA, 
+%        m={'AA_mig': mAA})
+%    G.add_node('A', nu=nuA, T=TA, 
+%        m={'AA_mig': mAA})
+%    G.add_node('YRI', nu=nuA, T=TB+TF, 
+%        m={'AA_mig': mAA, 'B': mAfB, 'CEU': mAfEu, 'CHB': mAfAs}) 
+%    G.add_node('B_pre', nu=nuB, T=TB_pre, 
+%        m={'YRI': mAfB})
+%    G.add_node('B_post', nu=nuB, T=TB_post, 
+%        m={'YRI': mAfB})
+%    G.add_node('CEU', nu=nu_func_CEU, T=TF, 
+%        m={'YRI': mAfEu, 'CHB': mEuAs})
+%    G.add_node('CHB', nu=nu_func_CHB, T=TF, 
+%        m={'YRI': mAfAs, 'CEU': mAfEu})
+%    
+%    # most edges have weight 1
+%    G.add_edges_from( [ ('root','ND_pre'), ('root','AA_MH'), 
+%        ('AA_MH', 'AA_nomig'), ('AA_MH', 'MH_pre'),
+%        ('AA_nomig', 'AA_mig'), ('MH_pre','A'), 
+%            ('ND_pre','ND_mig'), ('ND_pre','ND_vindija'),
+%        ('ND_vindija','Vindija'), ('A','YRI'), ('A','B_pre'),
+%        ('B_post','CEU'), ('B_post','CHB') ], weight=1 )
+%    # for pulse migration, we use weighted edges
+%    # which need to be added separately
+%    G.add_weighted_edges_from( [ ('B_pre','B_post',1-fN_pulse) ])
+%    G.add_weighted_edges_from( [ ('ND_mig','B_post',fN_pulse) ]) 
+%    
+%    y = moments.LD.Demography.evolve(G, theta=theta, rho=rho, pop_ids=pop_ids)
+%    return y
+%\end{lstlisting}
 
 \clearpage
 
