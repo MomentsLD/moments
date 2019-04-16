@@ -270,7 +270,8 @@ Otherwise, there are a number of options and arguments that can be passes to thi
 \begin{itemize}
 \item \py{bed_file} : default set to \py{None}. To only parse variants in given regions, we specify those regions in a bed file.
 \item \py{rec_map_file} : default set to \py{None}. If we pass a recombination map filename, we can specify the formatting of the recombination map file (see subsection below).
-\item \py{pop_file} : default set to \py{None}. If \py{None}, it uses data from all individuals as a single population. If we pass a population file, we can specify which populations to parse using \py{pops=[pop1, pop2, ...]}.
+\item \py{pop_file} : default set to \py{None}. If \py{None}, it uses data from all individuals as a single population. 
+\item \py{pops} : If we pass a population file, we can specify which populations to parse using \py{pops=[pop1, pop2, ...]}.
 \item \py{bp_bins} : default set to \py{None}. If we do not pass a recombination map, we will parse the data based on base pair distance between SNPs. Here, we pass a list of bin edges. For example, to parse data into bins of $(0,10\text{ kb}]$, $(10\text{ kb},20\text{ kb}]$, and $(20\text{ kb},30\text{ kb}]$, we would set \py{bp_bins = [0, 10000, 20000, 30000]}.
 \item \py{use_genotypes} : default set to \py{True}, which we used with unphased data. Set to \py{False} for phased data.
 \item \py{stats_to_compute} : default set to \py{None}. If \py{None}, computes all statistics in the multi-population H-R basis. We can also specify just a subset of these statistics, if desired.

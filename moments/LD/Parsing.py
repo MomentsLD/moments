@@ -83,12 +83,12 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
         # we check that chroms start with chr
         
         for ii,c in enumerate(chroms):
-            if 'chr' not in c:
-                chroms[ii] = 'chr'+c
+            if 'chr' in c:
+                chroms[ii] = c[3:]
         
         chrom_filter = [False] * len(mask_bed)
         for chrom in chroms:
-            chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0] == chrom, 'chr'+mask_bed[0] == chrom))
+            chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0].values.astype(str) == chrom, mask_bed[0].values.astype(str) == 'chr'+chrom))
         
         mask_bed = mask_bed.loc[chrom_filter]
 
