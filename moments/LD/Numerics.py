@@ -62,9 +62,10 @@ def admix_h(h, num_pops, pop1, pop2, f):
 
 def admix_ld(ys, num_pops, pop1, pop2, f):
     y_new = []
+    Ald = Matrices.admix_ld(num_pops, pop1, pop2, f)
     for y in ys:
-        y_new.append()
-        
+        y_new.append(Ald.dot(y))
+    return y_new
     
 
 def admix(Y, num_pops, pop1, pop2, f):

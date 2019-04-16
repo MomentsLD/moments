@@ -255,25 +255,32 @@ class LDstats(list):
     ## then marginalize pop2, so the new population takes the same position in pop_ids 
     ## that pop2 was previously in
     
-    def admix(self, pop1, pop2, f):
+    def admix(self, pop1, pop2, f, new_pop=None):
+        """
+        
+        
+        """
         if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
             raise ValueError("Improper usage of admix (wrong indices?).")
         else:
             Y_new = Numerics.admix(self, self.num_pops, pop1, pop2, f)
             if self.pop_ids is not None:
-                new_pop_ids = self.pop_ids + ['Adm']
+                if new_pop == None:
+                    new_pop_ids = self.pop_ids + ['Adm']
+                else:
+                    new_pop_ids = self.pop_ids + [new_pop]
             else:
                 new_pop_ids = None
             return LDstats(Y_new, num_pops=self.num_pops+1, pop_ids=new_pop_ids)
     
-    def merge(self, pop1, pop2, f):
+    def merge(self, pop1, pop2, f, new_pop=None):
         """
         Merger of populations 1 and 2, with fraction f from pop1 (1-f from pop2)
         Places new population at the end, then marginalizes pop1 and pop2
         To admix two populations and keep one or both, use pulse migrate or 
             admix, respectively.
         """
-        Y_new = self.admix(pop1, pop2, f)
+        Y_new = self.admix(pop1, pop2, f, new_pop=new_pop)
         Y_new = Y_new.marginalize([pop1,pop2])
         return Y_new
     
