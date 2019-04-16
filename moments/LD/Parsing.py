@@ -648,8 +648,8 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
         ac_subpop = genotypes.count_alleles_subpops(subpops)
     
     Hs = {}
-    for ii,pop1 in enumerate(list(subpops.keys())):
-        for pop2 in list(subpops.keys())[ii:]:
+    for ii,pop1 in enumerate(pops):
+        for pop2 in pops[ii:]:
             if pop1 == pop2:
                 H = np.sum( 2. * ac_subpop[pop1][:,0] * ac_subpop[pop1][:,1] / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1]) / (ac_subpop[pop1][:,0] + ac_subpop[pop1][:,1] - 1) )
             else:
