@@ -707,7 +707,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     for s in stats_to_compute[1]:
         reported_stats['sums'][-1][stats_to_compute[1].index(s)] = Hs[(pops[int(s.split('_')[1])-1],pops[int(s.split('_')[2])-1])]
     reported_stats['stats'] = stats_to_compute
-        
+    reported_stats['pops'] = pops
     return reported_stats
 
 
