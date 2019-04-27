@@ -42,15 +42,15 @@ def sigmaD2(y, normalization=1):
     
     return y
 
-def bin_stats(model_func, params, rho=[], theta=0.001, pop_ids=None):
+def bin_stats(model_func, params, rho=[], theta=0.001):
     if len(rho) < 2:
         raise ValueError("number of recombination rates must be greater than one")
     ## XX check if sorted...
     
-    ## how to pass arbitrary arguments... right now the function needs to accept pop_ids
+    ## how to pass arbitrary arguments... thinking about pop_ids (right now, set pop_ids in model_func)
     rho_mids = (np.array(rho[:-1]) + np.array(rho[1:])) / 2
-    y_edges = model_func(params, rho=rho, theta=theta, pop_ids=pop_ids)
-    y_mids = model_func(params, rho=rho_mids, theta=theta, pop_ids=pop_ids)
+    y_edges = model_func(params, rho=rho, theta=theta)
+    y_mids = model_func(params, rho=rho_mids, theta=theta)
     y = [1./6 * (y_edges[i] + y_edges[i+1] + 4*y_mids[i]) for i in range(len(rho_mids))]
     y.append(y_edges[-1])
     return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
@@ -76,6 +76,16 @@ def remove_normalized_data(means, varcovs, normalization=1, num_pops=1):
     vcs.append(np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1))
     return ms, vcs
 
+def remove_nonpresent_statistics(y, statistics=[['pi2_1_1_1_1'],['H_1_1']]):
+    to_delete = [[],[]]
+    for j in range(2):
+        for i,s in enumerate(y.names()[j]):
+            if s not in statistics[j]:
+                to_delete[j].append(i)
+    for i in range(len(y)-1):
+        y[i] = np.delete(y[i], to_delete[0])
+    y[-1] = np.delete(y[-1], to_delete[1])
+    return y
 
 def multivariate_normal_pdf(x,mu,Sigma):
     p = len(x)
@@ -120,6 +130,7 @@ def _object_func(params, model_func, means, varcovs, fs=None,
                  normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None,
                  use_afs=False, Leff=None, multinom=True, ns=None,
+                 statistics=None, pass_Ne=False,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -144,7 +155,10 @@ def _object_func(params, model_func, means, varcovs, fs=None,
             Ne = params_up[-1]
             theta = 4*Ne*u
             rhos = [4*Ne*r for r in rs]
-            all_args = [all_args[0][:-1]]
+            if pass_Ne == False:
+                all_args = [all_args[0][:-1]]
+            else:
+                all_args = [all_args[0][:]]
         else:
             theta = 4*Ne*u
             rhos = [4*Ne*r for r in rs]
@@ -166,11 +180,13 @@ def _object_func(params, model_func, means, varcovs, fs=None,
             ll_afs = moments.Inference.ll(model,fs)
     
     ## next get ll for LD stats
-    func_kwargs = {'theta':theta, 'rho':rhos, 'pop_ids':pop_ids}
-        
+    func_kwargs = {'theta':theta, 'rho':rhos}
     stats = bin_stats(model_func[0], *all_args, **func_kwargs)
     stats = sigmaD2(stats, normalization=normalization)
-    stats = remove_normalized_lds(stats, normalization=normalization)
+    if statistics == None:
+        stats = remove_normalized_lds(stats, normalization=normalization)
+    else:
+        stats = remove_nonpresent_statistics(stats, statistics=statistics)
     simp_stats = stats[:-1]
     het_stats = stats[-1]
         
@@ -205,7 +221,8 @@ def optimize_log_fmin(p0, data, model_func,
                  verbose=0, flush_delay=0.5,
                  normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
-                 use_afs=False, Leff=None, multinom=False, ns=None):
+                 use_afs=False, Leff=None, multinom=False, ns=None,
+                 statistics=None, pass_Ne=False):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
@@ -230,6 +247,8 @@ def optimize_log_fmin(p0, data, model_func,
     multinom : only relevant if we are using the AFS, likelihood computed for scaled FS 
                vs fixed scale of FS from theta and Leff
     ns : sample size (only needed if we are using the frequency spectrum, as we ns does not affect mean LD stats) 
+    statistics : If None, we only remove the normalizing statistic. Otherwise, we only
+                 compute likelihoods over statistics passed here as [ld_stats (list), het_stats (list)]
     
     We can either pass a fixed mutation rate theta = 4*N*u, or we pass u and Ne (and compute theta),
         or we pass u and Ne is a parameter of our model to fit (which scales both the mutation rate and
@@ -266,15 +285,18 @@ def optimize_log_fmin(p0, data, model_func,
     # remove normalized statistics (or how should we handle the masking?)
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
+    if statistics == None: # if statistics is not None, assume we already filtered out the data
+        ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
     
     # get num_pops
     if Ne == None:
-        y = model_func[0](p0[:-1])
+        if pass_Ne == False:
+            y = model_func[0](p0[:-1])
+        else:
+            y = model_func[0](p0[:])
     else:
         y = model_func[0](p0)
     num_pops = y.num_pops
-    
-    ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
     
     args = (model_func, ms, vcs, fs, 
             rs, theta, u, Ne, 
@@ -282,7 +304,8 @@ def optimize_log_fmin(p0, data, model_func,
             verbose, flush_delay,
             normalization,
             func_args, func_kwargs, fixed_params, 
-            use_afs, Leff, multinom, ns,
+            use_afs, Leff, multinom, ns, 
+            statistics, pass_Ne,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
@@ -299,7 +322,8 @@ def optimize_log_powell(p0, data, model_func,
                  verbose=0, flush_delay=0.5,
                  normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
-                 use_afs=False, Leff=None, multinom=False, ns=None):
+                 use_afs=False, Leff=None, multinom=False, ns=None,
+                 statistics=None, pass_Ne=False):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
@@ -359,16 +383,19 @@ def optimize_log_powell(p0, data, model_func,
     # remove normalized statistics (or how should we handle the masking?)
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
+    if statistics == None: # if statistics is not None, assume we already filtered out the data
+        ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
     
     # get num_pops
     if Ne == None:
-        y = model_func[0](p0[:-1])
+        if pass_Ne == False:
+            y = model_func[0](p0[:-1])
+        else:
+            y = model_func[0](p0[:])
     else:
         y = model_func[0](p0)
     num_pops = y.num_pops
     
-    ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
-
     args = (model_func, ms, vcs, fs, 
             rs, theta, u, Ne, 
             lower_bound, upper_bound, 
@@ -376,6 +403,7 @@ def optimize_log_powell(p0, data, model_func,
             normalization,
             func_args, func_kwargs, fixed_params, 
             use_afs, Leff, multinom, ns,
+            statistics, pass_Ne,
             output_stream)
         
     p0 = _project_params_down(p0, fixed_params)

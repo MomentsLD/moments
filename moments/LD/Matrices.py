@@ -8,8 +8,19 @@ from scipy.sparse import csc_matrix
 
 ### drift
 
-def drift_h(num_pops, nus):
-    if num_pops != len(nus): raise ValueError("number of pops must match length of nus.")
+def drift_h(num_pops, nus, frozen=None):
+    if num_pops != len(nus):
+        raise ValueError("number of pops must match length of nus.")
+    
+    # if any population is frozen, we set that population's size to something 
+    # extremely large, so that drift is effectively zero
+    if frozen is not None:
+        if num_pops != len(frozen):
+            raise ValueError("length of 'frozen' must match number of pops.")
+        for pid in range(num_pops):
+            if frozen[pid] == True:
+                nus[pid] = 1e30
+    
     D = np.zeros( ( int(num_pops*(num_pops+1)/2), int(num_pops*(num_pops+1)/2) ) )
     c = 0
     for ii in range(num_pops):
@@ -17,7 +28,19 @@ def drift_h(num_pops, nus):
         c += (num_pops-ii)
     return D
 
-def drift_ld(num_pops, nus):
+def drift_ld(num_pops, nus, frozen=None):
+    if num_pops != len(nus):
+        raise ValueError("number of pops must match length of nus.")
+    
+    # if any population is frozen, we set that population's size to something 
+    # extremely large, so that drift is effectively zero
+    if frozen is not None:
+        if num_pops != len(frozen):
+            raise ValueError("length of 'frozen' must match number of pops.")
+        for pid in range(num_pops):
+            if frozen[pid] == True:
+                nus[pid] = 1e30
+    
     names = Util.ld_names(num_pops)
     row = []
     col = []
@@ -186,39 +209,94 @@ def mutation_ld(num_pops, theta, frozen=None):
     row = []
     col = []
     data = []
-    for ii, mom in enumerate(names_ld):
-        name = mom.split('_')[0]
-        if name == 'pi2': 
-            hmomp = 'H_' + mom.split('_')[1] +'_' + mom.split('_')[2]
-            hmomq = 'H_' + mom.split('_')[3] +'_' + mom.split('_')[4]
-            if hmomp == hmomq:
-                row.append(ii)
-                col.append(names_h.index(hmomp))
-                data.append(theta/2.)
-            else:
-                row.append(ii)
-                row.append(ii)
-                col.append(names_h.index(hmomp))
-                col.append(names_h.index(hmomq))
-                data.append(theta/4.)
-                data.append(theta/4.)
+    
+    if frozen is None:
+        for ii, mom in enumerate(names_ld):
+            name = mom.split('_')[0]
+            if name == 'pi2': 
+                hmomp = 'H_' + mom.split('_')[1] +'_' + mom.split('_')[2]
+                hmomq = 'H_' + mom.split('_')[3] +'_' + mom.split('_')[4]
+                if hmomp == hmomq:
+                    row.append(ii)
+                    col.append(names_h.index(hmomp))
+                    data.append(theta/2.)
+                else:
+                    row.append(ii)
+                    row.append(ii)
+                    col.append(names_h.index(hmomp))
+                    col.append(names_h.index(hmomq))
+                    data.append(theta/4.)
+                    data.append(theta/4.)
+
+    else:
+        thetas = [theta]*num_pops
+        if frozen is not None:
+            for pid in range(num_pops):
+                if frozen[pid] == True:
+                    thetas[pid] = 0.0
+        
+        for ii, mom in enumerate(names_ld):
+            name = mom.split('_')[0]
+            if name == 'pi2': 
+                i,j,k,l = [int(x) for x in mom.split('_')[1:]]
+                hmomp = 'H_' + str(i) +'_' + str(j)
+                hmomq = 'H_' + str(k) +'_' + str(l)
+                if hmomp == hmomq:
+                    # i=k and j=l
+                    row.append(ii)
+                    col.append(names_h.index(hmomp))
+                    data.append((thetas[i-1] +thetas[j-1])/2.)
+                else:
+                    row.append(ii)
+                    col.append(names_h.index(hmomp)) # check if k and l are frozen
+                    data.append( (thetas[k-1]/2.+thetas[l-1]/2.) / 4. )
+                    row.append(ii)
+                    col.append(names_h.index(hmomq)) # check if i and j are frozen
+                    data.append( (thetas[i-1]/2.+thetas[j-1]/2.) / 4. )
+        
     return csc_matrix((data,(row,col)),shape=(len(names_ld), len(names_h)))
     
 ### recombination
 
-def recombination(num_pops, r):
+def recombination(num_pops, r, frozen=None):
     names = Util.ld_names(num_pops)
     row = list(range(int(num_pops*(num_pops+1)/2 + num_pops**2*(num_pops+1)/2)))
     col = list(range(int(num_pops*(num_pops+1)/2 + num_pops**2*(num_pops+1)/2)))
-    data = [-1.*r]*int(num_pops*(num_pops+1)/2) + [-r/2.]*int(num_pops**2*(num_pops+1)/2)
+    if frozen is None:
+        data = [-1.*r]*int(num_pops*(num_pops+1)/2) + [-r/2.]*int(num_pops**2*(num_pops+1)/2)
+    else:
+        rs = [r]*num_pops
+        for pid in range(num_pops):
+            if frozen[pid] == True:
+                rs[pid] = 0
+
+        data = []
+        for name in names:
+            if name.split('_')[0] == 'DD':
+                pop1 = int(name.split('_')[1])
+                pop2 = int(name.split('_')[2])
+                data.append(-1.*rs[pop1-1] -1.*rs[pop2-1])
+            elif name.split('_')[0] == 'Dz':
+                pop1 = int(name.split('_')[1])
+                data.append(-1./2*rs[pop1-1])
+            else:
+                continue
     return csc_matrix((data,(row,col)),shape=(len(names), len(names)))
+        
 
 ### migration
 
-def migration_h(num_pops, mig_mat):
+def migration_h(num_pops, mig_mat, frozen=None):
     """
     mig_mat has the form [[0, m12, m13, ..., m1n], ..., [mn1, mn2, ..., 0]]
     """
+    if frozen is not None:
+        for pid in range(num_pops):
+            if frozen[pid] == True:
+                for pid2 in range(num_pops):
+                    mig_mat[pid,pid2] = 0
+                    mig_mat[pid2,pid] = 0
+    
     Hs = Util.het_names(num_pops)
     M = np.zeros( ( len(Hs), len(Hs) ) )
     for ii,H in enumerate(Hs):
@@ -246,7 +324,14 @@ def migration_h(num_pops, mig_mat):
     
     return M
 
-def migration_ld(num_pops, m):
+def migration_ld(num_pops, m, frozen=None):
+    if frozen is not None:
+        for pid in range(num_pops):
+            if frozen[pid] == True:
+                for pid2 in range(num_pops):
+                    m[pid,pid2] = 0
+                    m[pid2,pid] = 0
+
     Ys = Util.ld_names(num_pops)
     M = np.zeros( ( len(Ys), len(Ys) ) )
     for ii, mom in enumerate(Ys):

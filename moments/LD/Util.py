@@ -81,3 +81,27 @@ def map_moment(mom):
         mom_map[mom] = mom_out
         return mom_map[mom]
 
+def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
+    """
+    Generate a perturbed set of parameters.
+
+    Each element of params is radomly perturbed <fold> factors of 2 up or down.
+    fold: Number of factors of 2 to perturb by
+    lower_bound: If not None, the resulting parameter set is adjusted to have 
+                 all value greater than lower_bound.
+    upper_bound: If not None, the resulting parameter set is adjusted to have 
+                 all value less than upper_bound.
+    """
+    pnew = params * 2**(fold * (2*np.random.random(len(params))-1))
+    if lower_bound is not None:
+        for ii,bound in enumerate(lower_bound):
+            if bound is None:
+                lower_bound[ii] = -np.inf
+        pnew = np.maximum(pnew, 1.01 * np.asarray(lower_bound))
+    if upper_bound is not None:
+        for ii,bound in enumerate(upper_bound):
+            if bound is None:
+                upper_bound[ii] = np.inf
+        pnew = np.minimum(pnew, 0.99 * np.asarray(upper_bound))
+    return pnew
+    

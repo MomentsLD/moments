@@ -80,9 +80,9 @@ def admix(Y, num_pops, pop1, pop2, f):
 
 ### transition matrices
 
-def drift(num_pops, nus):
-    Dh = Matrices.drift_h(num_pops, nus)
-    Dld = Matrices.drift_ld(num_pops, nus)
+def drift(num_pops, nus, frozen=None):
+    Dh = Matrices.drift_h(num_pops, nus, frozen=frozen)
+    Dld = Matrices.drift_ld(num_pops, nus, frozen=frozen)
     return Dh, Dld
 
 def mutation(num_pops, theta, frozen=None):
@@ -91,16 +91,16 @@ def mutation(num_pops, theta, frozen=None):
     Uld = Matrices.mutation_ld(num_pops, theta, frozen=frozen)
     return Uh, Uld
 
-def recombination(num_pops, rho=0.0):
+def recombination(num_pops, rho=0.0, frozen=None):
     if np.isscalar(rho):
-        R = Matrices.recombination(num_pops, rho)
+        R = Matrices.recombination(num_pops, rho, frozen=frozen)
     else:
-        R = [Matrices.recombination(num_pops, r) for r in rho]
+        R = [Matrices.recombination(num_pops, r, frozen=frozen) for r in rho]
     return R
 
-def migration(num_pops, m):
-    Mh = Matrices.migration_h(num_pops, m)
-    Mld = Matrices.migration_ld(num_pops, m)
+def migration(num_pops, m, frozen=None):
+    Mh = Matrices.migration_h(num_pops, m, frozen=frozen)
+    Mld = Matrices.migration_ld(num_pops, m, frozen=frozen)
     return Mh, Mld
 
 
@@ -128,10 +128,10 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
     
     if rho is not None:
         # if rho is a scalar, return single matrix, if rho is a list, returns list of matrices
-        R = recombination(num_pops, rho=rho)
+        R = recombination(num_pops, rho=rho, frozen=frozen)
     
     if num_pops > 1 and m is not None:
-        Mh, Mld = migration(num_pops, m)
+        Mh, Mld = migration(num_pops, m, frozen=frozen)
     
     
     dt_last = dt
@@ -146,7 +146,7 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
             nus = nu(elapsed_t+dt/2.)
         
         if dt != dt_last or nus != nus_last or elapsed_t == 0:
-            Dh, Dld = drift(num_pops, nus)
+            Dh, Dld = drift(num_pops, nus, frozen=frozen)
             # check if we need migration matrics
             if num_pops > 1 and m is not None: # with migration
                 Ab_h = Dh+Mh
