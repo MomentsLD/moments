@@ -275,7 +275,7 @@ def recombination(num_pops, r, frozen=None):
             if name.split('_')[0] == 'DD':
                 pop1 = int(name.split('_')[1])
                 pop2 = int(name.split('_')[2])
-                data.append(-1.*rs[pop1-1] -1.*rs[pop2-1])
+                data.append(-1./2*rs[pop1-1] -1./2*rs[pop2-1])
             elif name.split('_')[0] == 'Dz':
                 pop1 = int(name.split('_')[1])
                 data.append(-1./2*rs[pop1-1])
