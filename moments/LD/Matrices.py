@@ -245,7 +245,7 @@ def mutation_ld(num_pops, theta, frozen=None):
                     # i=k and j=l
                     row.append(ii)
                     col.append(names_h.index(hmomp))
-                    data.append((thetas[i-1] +thetas[j-1])/2.)
+                    data.append((thetas[i-1]/2. + thetas[j-1]/2.)/2.)
                 else:
                     row.append(ii)
                     col.append(names_h.index(hmomp)) # check if k and l are frozen
