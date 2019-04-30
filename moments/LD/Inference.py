@@ -281,13 +281,6 @@ def optimize_log_fmin(p0, data, model_func,
     if Ne is None:
         print("Warning: using last parameter in list of params as Ne")
     
-    
-    # remove normalized statistics (or how should we handle the masking?)
-    ms = copy.copy(means)
-    vcs = copy.copy(varcovs)
-    if statistics == None: # if statistics is not None, assume we already filtered out the data
-        ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
-    
     # get num_pops
     if Ne == None:
         if pass_Ne == False:
@@ -297,6 +290,12 @@ def optimize_log_fmin(p0, data, model_func,
     else:
         y = model_func[0](p0)
     num_pops = y.num_pops
+    
+    # remove normalized statistics (or how should we handle the masking?)
+    ms = copy.copy(means)
+    vcs = copy.copy(varcovs)
+    if statistics == None: # if statistics is not None, assume we already filtered out the data
+        ms,vcs = remove_normalized_data(ms, vcs, normalization=normalization, num_pops=num_pops)
     
     args = (model_func, ms, vcs, fs, 
             rs, theta, u, Ne, 
