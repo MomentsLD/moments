@@ -292,7 +292,8 @@ class LDstats(list):
         """
         Y_new = self.admix(pop1, pop2, f)
         Y_new = Y_new.swap_pops(pop2, Y_new.num_pops)
-        Y_new.pop_ids[pop2] = Y_new.pop_ids[-1]
+        if self.pop_ids is not None:
+            Y_new.pop_ids[pop2] = Y_new.pop_ids[-1]
         Y_new = Y_new.marginalize(Y_new.num_pops)
         return Y_new
     

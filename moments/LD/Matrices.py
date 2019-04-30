@@ -634,7 +634,6 @@ def admix_h(num_pops, pop1, pop2, f):
 
 
 def admix_ld(num_pops, pop1, pop2, f):
-    # lots of fucking cases. good luck debugging this demon-spawn, you sucker
     moms_from = Util.moment_names(num_pops)[0]
     moms_to = Util.moment_names(num_pops+1)[0]
     A = np.zeros((len(moms_to), len(moms_from)))
@@ -711,7 +710,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
                     A[ii, moms_from.index(Util.map_moment('Dz_{1}_{0}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
                     A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{0}'.format(pop1,pop2)))] += f * (1-f)**2
-                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += f**3
+                    A[ii, moms_from.index(Util.map_moment('Dz_{1}_{1}_{1}'.format(pop1,pop2)))] += (1-f)**3
                     
                     A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += 4 * f**3 * (1-f)
                     A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 4 * f**2 * (1-f) * (1-2*f)
@@ -934,7 +933,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                 elif i2 == i3 == i4 == num_pops+1:
                     if i1 == pop1: # pi2_pop1_new_new_new
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1,pop2)))] += f**3
-                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop2)))] += 2 * f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
@@ -942,7 +941,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     
                     elif i1 == pop2: # pi2_pop2_new_new_new
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**3
-                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] += f * (1-f)**2
                         A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{0}'.format(pop1,pop2)))] += f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{1}_{1}_{0}_{1}'.format(pop1,pop2)))] += 2 * f * (1-f)**2
@@ -950,7 +949,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     
                     else: # pi2_non-source_new_new_new
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**3
-                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)**2
+                        A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,i1)))] += f * (1-f)**2
                         A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,i1)))] += f**2 * (1-f)
                         A[ii, moms_from.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,i1)))] += 2 * f * (1-f)**2

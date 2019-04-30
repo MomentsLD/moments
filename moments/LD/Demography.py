@@ -137,6 +137,10 @@ def dg_split(Y, parent, child1, child2):
     return Y
 
 def dg_merge(Y, pops_to_merge, weights, pop_to):
+    """
+    Two populations (pops_to_merge = [popA, popB]) merge (with given weights)
+    and form new population (pop_to).
+    """
     pop1,pop2 = pops_to_merge
     ids_from = Y.pop_ids
     ids_to = copy.copy(ids_from)
@@ -151,7 +155,18 @@ def dg_merge(Y, pops_to_merge, weights, pop_to):
         Y = Y.merge(pop2_ind+1, pop1_ind+1, weights[1])
     Y.pop_ids = ids_to
     return Y
+
+def dg_pulse(Y, pop_from, pop_to, pulse_weight):
+    """
+    A pulse migration event
+    Different from merger, where the two parental populations are replaced by the 
+    admixed population.
+    Here, 
     
+    Question is how to specify this - as an attribute of the tree?
+    """
+    pass
+
 def rearrange_pops(Y, pop_order):
     current_order = Y.pop_ids
     for i in range(len(pop_order)):
