@@ -223,6 +223,8 @@ def count_genotypes_between(Gs1, Gs2):
     
     if n1 != n2:
         raise ValueError("data must have same number of sequenced individuals")
+    else:
+        n = n1
     
     X = np.empty((L1*L2, n)).astype('int')
     for i in range(L1):
