@@ -48,12 +48,13 @@ def load_h5(vcf_file, report=True):
 
 
 ### genotype function
-def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True):
+def get_genotypes(vcf_file, bed_file=None, chromosome=None, min_bp=None, use_h5=True, report=True):
     """
     Given a vcf file, we extract the biallelic SNP genotypes.
     If bed_file is None, we use all valid variants. Otherwise we filter genotypes
         by the given bed file.
-        Warning!!! make sure that the chromosome labels are consistent (e.g., chr22 vs 22)
+    If chromosome (int) is given, filters to keep snps only in given chrom (useful for vcfs spanning 
+        multiple chromosomes).
     min_bp : only used with bed file, filters out features that are smaller than min_bp
     If use_h5 is True, we try to load the h5 file, which has the same path/name as 
         vcf_file, but with *.h5 instead of *.vcf or *.vcf.gz. If the h5 file does not
@@ -87,8 +88,11 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
                 chroms[ii] = c[3:]
         
         chrom_filter = [False] * len(mask_bed)
-        for chrom in chroms:
-            chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0].values.astype(str) == chrom, mask_bed[0].values.astype(str) == 'chr'+chrom))
+        if chromosome is not None:
+            chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0].values.astype(str) == str(chromosome), mask_bed[0].values.astype(str) == 'chr'+str(chromosome)))
+        else:
+            for chrom in chroms:
+                chrom_filter = np.logical_or(chrom_filter, np.logical_or(mask_bed[0].values.astype(str) == chrom, mask_bed[0].values.astype(str) == 'chr'+chrom))
         
         mask_bed = mask_bed.loc[chrom_filter]
 
@@ -111,7 +115,13 @@ def get_genotypes(vcf_file, bed_file=None, min_bp=None, use_h5=True, report=True
         all_genotypes = all_genotypes.compress(in_mask)
         
         if report is True: print("filtered by bed"); sys.stdout.flush()
-    
+    elif chromosome is not None:
+        # only keep variants that are in the given chromosome number
+        all_chromosomes = callset['variants/CHROM'][:]
+        in_chromosome = (all_chromosomes == str(chromosome))
+        all_positions = all_positions.compress(in_chromosome)
+        all_genotypes = all_genotypes.compress(in_chromosome)
+        
     all_genotypes_012 = all_genotypes.to_n_alt(fill=-1)
     
     # count alleles and only keep biallelic positions
@@ -713,7 +723,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     return reported_stats
 
 
-def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True, report_spacing=1000, use_cache=True):
+def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True, report_spacing=1000, use_cache=True):
     """
     vcf_file : path to vcf file
     bed_file : path to bed file to specify regions over which to compute LD statistics. If None, computes statistics
@@ -741,7 +751,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, rec_map_file=None, map_name=N
     
     check_imports()
     
-    positions, genotypes, counts, sample_ids = get_genotypes(vcf_file, bed_file=bed_file, min_bp=min_bp, use_h5=use_h5, report=report)
+    positions, genotypes, counts, sample_ids = get_genotypes(vcf_file, bed_file=bed_file, chromosome=chromosome, min_bp=min_bp, use_h5=use_h5, report=report)
     
     if report == True:
         print("kept {0} total variants".format(len(positions))); sys.stdout.flush()
