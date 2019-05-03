@@ -355,6 +355,14 @@ def h_tally_counter(h_l, h_r):
     c = Counter(hs)
     return (c[(1,1)], c[(1,0)], c[(0,1)], c[(0,0)])
 
+def h_tally_counter_3(h_l, h_r):
+    hh = h_l*2 + h_r
+    m = hh.shape[0]
+    n = 4
+    A1 = (hh.T + (4*np.arange(m))).T
+    out = np.bincount(A1.ravel(),minlength=n*m).reshape(m,-1)
+    return out[:,::-1]
+
 
 def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None):
     """
@@ -467,7 +475,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
                 #haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
                 temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
                 haplotypes_by_pop[pop] = {}
-                for ii in range(len(temp_genotypes)):
+                for ii in range(len(temp_haplotypes)):
                     haplotypes_by_pop[pop][ii] = temp_haplotypes[ii]
     else: # don't want to use dict caches for genotype arrays, so we have to read from the genotype arrays each time
         if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
@@ -531,7 +539,10 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             else:
                 haplotypes_right = [haplotypes_by_pop[pop][right_start:right_end] for pop in pops]
         
-        cs = [ g_tally_counter_3(genotypes_left[pop_ind], genotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
+        if use_genotypes == True:
+            cs = [ g_tally_counter_3(genotypes_left[pop_ind], genotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
+        else:
+            cs = [ h_tally_counter_3(haplotypes_left[pop_ind], haplotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
                 
         for jj,r_pos in enumerate(r_dists[right_start:right_end]):
             bin_ind = np.where(r_pos >= bins)[0][-1]
