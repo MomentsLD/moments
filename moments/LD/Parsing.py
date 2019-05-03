@@ -392,7 +392,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         
         
         for s in all_samples_to_keep:
-            cols_to_keep[list(sample_ids.value).index(s)] = True
+            cols_to_keep[list(sample_ids).index(s)] = True
         
         # keep only biallelic genotypes from populations in pops, discard the rest
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
