@@ -700,6 +700,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     if use_cache == True:
         type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache)
         
+        if report is True: print("counted genotypes"); sys.stdout.flush()
         statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
         
         sums = {}
@@ -713,6 +714,8 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     else:
         sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute)
     
+    if report is True: print("computed sums\ngetting heterozygosity statistics"); sys.stdout.flush()
+        
     if len(stats_to_compute[1]) == 0:
         Hs = {}
     else:

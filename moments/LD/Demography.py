@@ -5,6 +5,10 @@ import copy
 from . import LDstats_mod
 from . import Numerics
 
+## check nx version (must be >= 2.1)
+def check_nx_version():
+    assert (float(nx.__version__) >= 2.0), "networkx must be version 2.0 or higher to use Demography"
+
 tol = 1e-12
 """
 We define a demography on an acyclic directed graph, where each node is a population
@@ -71,7 +75,7 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
           if scalar, we compute heterozygosity and LD statistics for that rho
           if list or array, we compute heterozygosity and LD statistics for each rho
     """
-    
+    check_nx_version()
 #    # list of rhos, if we compute LD statistics
 #    if rho == None:
 #        continue

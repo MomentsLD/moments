@@ -76,7 +76,10 @@ def remove_normalized_data(means, varcovs, normalization=1, num_pops=1):
     vcs.append(np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1))
     return ms, vcs
 
-def remove_nonpresent_statistics(y, statistics=[['pi2_1_1_1_1'],['H_1_1']]):
+def remove_nonpresent_statistics(y, statistics=[[],[]]):
+    """
+    statistics is a list of lists for two and one locus statistics to keep
+    """
     to_delete = [[],[]]
     for j in range(2):
         for i,s in enumerate(y.names()[j]):
