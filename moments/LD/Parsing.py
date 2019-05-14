@@ -777,6 +777,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file
         pos_rs = assign_recombination_rates(positions, rec_map_file, map_name=map_name, map_sep=map_sep, cM=cM, report=report)
         bins = r_bins
     else:
+        pos_rs = None
         if bp_bins is not None:
             bins = bp_bins
         else:
