@@ -502,10 +502,11 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         
         ## loop through each bin, picking out the positions to the right of the left locus that fall within the given bin
         #for b in bs:
-        r_dists = pos_rs - r
-        
-        #filt = np.logical_and(pos_rs - r >= b[0], pos_rs - r < b[1])
-        filt = np.logical_and(pos_rs - r >= bs[0][0], pos_rs - r < bs[-1][1])
+        if pos_rs is not None:
+            distances = pos_rs - r
+        else:
+            distances = positions - r
+        filt = np.logical_and(distances >= bs[0][0], distances < bs[-1][1])
         filt[ii] = False
         right_indices = np.where(filt == True)[0]
         
@@ -544,7 +545,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         else:
             cs = [ h_tally_counter_3(haplotypes_left[pop_ind], haplotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
                 
-        for jj,r_pos in enumerate(r_dists[right_start:right_end]):
+        for jj,r_pos in enumerate(distances[right_start:right_end]):
             bin_ind = np.where(r_pos >= bins)[0][-1]
             b = bs[bin_ind]
             
