@@ -704,6 +704,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         if report is True: print("counted genotypes"); sys.stdout.flush()
         statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
         
+        if report is True: print("summing over genotype counts and statistics cache"); sys.stdout.flush()
         sums = {}
         for b in bs:
             sums[b] = {}
