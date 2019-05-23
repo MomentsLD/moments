@@ -426,8 +426,38 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             pop_indexes_haps = {}
             for pop in pops:
                 pop_indexes_haps[pop] = np.reshape(list(zip(pop_indexes[pop], pop_indexes[pop])),(2*len(pop_indexes[pop]),))
-
     
+    ## ensure that at least 4 allele counts are present in each population
+    if pop_file is not None:
+        samples = pandas.read_csv(pop_file, sep='\t')
+        populations = np.array(samples['pop'].value_counts().keys())
+        samples.reset_index(drop=True, inplace=True)
+
+        ### should use this above when counting two locus genotypes
+
+        subpops = {
+            # for each population, get the list of samples that belong to the population
+            pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
+        }
+        
+        ac_subpop = genotypes.count_alleles_subpops(subpops)
+    else:
+        subpops = {
+            pop_iter: list(range(len(sample_ids))) for pop_iter in pops
+        }
+        ac_subpop = genotypes.count_alleles_subpops(subpops)
+    
+    min_ac_filter = [True]*len(ac_subpop)
+    for pop in pops:
+        min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 4)
+    
+    genotypes_pops = genotypes_pops.compress(min_ac_filter)
+    if positions is not None:
+        positions = positions.compress(min_ac_filter)
+    if pos_rs is not None:
+        pos_rs = pos_rs.compress(min_ac_filter)
+    
+    ## convert to 0,1,2 format
     if use_genotypes == True:
         genotypes_pops_012 = genotypes_pops.to_n_alt()
     else:
@@ -670,6 +700,13 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
             pop_iter: list(range(len(sample_ids))) for pop_iter in pops
         }
         ac_subpop = genotypes.count_alleles_subpops(subpops)
+    
+    # ensure at least 2 allele counts per pop
+    min_ac_filter = [True]*len(ac_subpop)
+    for pop in pops:
+        min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 2)
+    
+    ac_subpop = ac_subpop.compress(min_ac_filter)
     
     Hs = {}
     for ii,pop1 in enumerate(pops):
