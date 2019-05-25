@@ -1,0 +1,6 @@
+numpy
+cython
+scipy
+mpmath
+matplotlib
+ipython
