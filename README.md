@@ -12,25 +12,28 @@ If you use `moments` in your researh, please cite Jouganous, J., Long, W., Ragsd
 `moments` now supports python 3. Because python is soon discontinuing support for python 2, we do not actively ensure that moments remains fully compatable with python 2, and strongly recommend using python 3.
 
 `moments` requires a number of dependencies. These are
-* numpy
-* scipy
-* cython
-* mpmath
-* matplotlib
+
+- numpy
+
+- scipy
+
+- cython
+
+- mpmath
+
+- matplotlib
 
 Dependencies can be installed using pip. For example to install `cython`,
 
-	pip install cython
+    pip install cython
 
 Depending on the python distribution you use, it may be usefull to add the directory to `cython` in your python path.
 
 We also strongly recommend installing ipython.
 
-If you are using conda, all dependencies can be installed by running
+If you are using conda, all dependencies can be installed by navigating to the moments directory and then running
 
     conda install --file requirements.txt
-
-from the moments directory.
 
 Once dependencies are installed, to install `moments`, run the following command in the moments directory:
 
