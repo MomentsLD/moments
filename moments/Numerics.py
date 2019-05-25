@@ -10,7 +10,10 @@ import numpy
 try:
     from scipy.misc import comb
 except ImportError:
-    from scipy import comb
+    try:
+        from scipy.special import comb
+    except ImportError:
+        from scipy import comb
 from scipy.special import gammaln
 
 def reverse_array(arr):

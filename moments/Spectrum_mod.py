@@ -15,7 +15,10 @@ import scipy.misc as misc
 try:
     from scipy.misc import comb
 except ImportError:
-    from scipy import comb
+    try:
+        from scipy.special import comb
+    except:
+        from scipy import comb
 from scipy.integrate import trapz
 from scipy.special import betainc
 
