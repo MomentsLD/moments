@@ -13,7 +13,7 @@ If you use `moments.LD` in your research, please cite: Ragsdale, A. P. & Gravel,
 
 `moments` now supports python 3. Because python is soon discontinuing support for python 2, we do not actively ensure that moments remains fully compatable with python 2, and strongly recommend using python 3.
 
-`moments` requires a number of dependencies. These are
+`moments` and `moments-LD` requires a number of dependencies. These are
 
 - numpy
 
@@ -24,6 +24,10 @@ If you use `moments.LD` in your research, please cite: Ragsdale, A. P. & Gravel,
 - mpmath
 
 - matplotlib
+
+- networkx
+
+- pandas
 
 Dependencies can be installed using pip. For example to install `cython`,
 
@@ -43,3 +47,8 @@ Once dependencies are installed, to install `moments`, run the following command
 
 You should then be able to import `moments` in your python scripts. Entering an ipython or python session, type `import moments`. If, for any reason, you have trouble installing moments after following these steps, please submit an [Issue](https://bitbucket.org/simongravel/moments/issues).
 
+If you use `Parsing` from `moments-LD`, which reads vcf files and computes LD statistics to compare to predictions from `moments-LD`, you will need to additionall install:
+
+- hdf5
+
+- scikit-allel
