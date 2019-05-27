@@ -4,3 +4,7 @@ scipy
 mpmath
 matplotlib
 ipython
+pandas
+networkx
+scikit-allel
+hdf5

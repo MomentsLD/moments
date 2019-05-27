@@ -3,7 +3,9 @@
 
 `moments` implements methods for demographic history and selection inference from genetic data, based on diffusion approximations to the allele frequency spectrum. `moments` is based on the  [∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open source package developed by Ryan Gutenkunst [http://gutengroup.mcb.arizona.edu]. We largely reuse `∂a∂i`'s interface but introduced a new simulation engine. This new method is based on the direct computation of the frequency spectrum without solving the diffusion system. Consequently we circumvent the numerical PDE approximations and we get rid of the frequency grids used in `∂a∂i`.
 
-If you use `moments` in your researh, please cite Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint demographic history of multiple populations: beyond the diffusion approximation. Genetics, 206(3), 1549-1567.
+If you use `moments` in your research, please cite: Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint demographic history of multiple populations: beyond the diffusion approximation. Genetics, 206(3), 1549-1567.
+
+If you use `moments.LD` in your research, please cite: Ragsdale, A. P. & Gravel, S. (2018). Models of archaic admixture and recent history from two-locus statistics. BioRxiv, doi: 10.1101/489401. 
 
 `moments` is developed in Simon Gravel's group in the Human Genetics department at McGill University [http://simongravel.lab.mcgill.ca/Home.html].
 
