@@ -420,9 +420,9 @@ class Spectrum(numpy.ma.masked_array):
             proj = Numerics._cached_projection(n, proj_from, hits)
             proj_slice[axis] = slice(least, most + 1)
             # Do the multiplications
-            pfs.data[to_slice] += self.data[from_slice] * proj[proj_slice]
-            pfs.mask[to_slice] = numpy.logical_or(pfs.mask[to_slice],
-                                                  self.mask[from_slice])
+            pfs.data[tuple(to_slice)] += self.data[tuple(from_slice)] * proj[tuple(proj_slice)]
+            pfs.mask[tuple(to_slice)] = numpy.logical_or(pfs.mask[tuple(to_slice)],
+                                                  self.mask[tuple(from_slice)])
     
         return pfs
 
