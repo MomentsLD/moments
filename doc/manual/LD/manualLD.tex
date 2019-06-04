@@ -70,7 +70,7 @@ Contact: aaron.ragsdale@mail.mcgill.ca}
 
 \clearpage
 
-\section{Introduction to \mold}
+\section{Introduction to \texttt{moments.LD}}
 
 Welcome to \texttt{moments.LD}, a program for simulating linkage disequilibrium statistics.
 \texttt{moments.LD}, or \mold, can compute a large set of informative LD statistics for many populations, and performs likelihood-based demographic inference using those statistics.
@@ -121,17 +121,17 @@ Because it is difficult to compute expectations for $\E[r^2]$ under even simple 
 
 \subsection{Hill-Robertson statistics}
 
-\citet{Hill1968} introduced a recursion for $\E[D^2]$ that allows for variable recombination rate between loci and population size changes over time.
+Hill and Robertson introduced a recursion for $\E[D^2]$ that allows for variable recombination rate between loci and population size changes over time \cite{Hill1968}.
 To solve for $\E[D^2]$, this system requires additional LD statistics, which we call $Dz = D(1-2p)(1-2q)$ and $\pi_2 = p(1-p)q(1-q)$, where $p$ and $q$ are the allele frequencies at the left and right loci, respectively.
 This system also relies on heterozygosity ($H$), so from this system we can compute the vector of statistics
 $$y=\begin{pmatrix} \E[D^2] \\ \E[Dz] \\ \E[\pi_2] \\ \E[H] \end{pmatrix}.$$
 
-Instead of computing $\E[r^2]$, which is an expectation of ratios, \citet{Hill1968} and \citet{Ohta1971} studied the related statistic $\sigma_D^2 = \frac{\E[D^2]}{\E[\pi_2]}$.
+Instead of computing $\E[r^2]$, which is an expectation of ratios, we use the related statistic $\sigma_D^2 = \frac{\E[D^2]}{\E[\pi_2]}$ \cite{Hill1968,Ohta1971}.
 This statistic has the advantage that its expectation can be computed from the Hill-Robertson recursion, and we can accurately compute it from either phased or unphased data.
 
 \subsection{Multi-population LD statistics}
 
-In \citet{Ragsdale2018}, we extended the Hill-Robertson system to consider LD statistics for multiple populations.
+We extended the Hill-Robertson system to consider LD statistics for multiple populations \cite{Ragsdale2018}.
 Here, we can model population size changes, splits, mergers, and migration events (pulse or continuous).
 The statistics we consider take the form
 $$
@@ -157,32 +157,42 @@ In practice, we work with $\sigma_D^2$-like statistics, which are normalized by 
 
 \section{Getting started}
 
-\subsection{Downloading and installing \mold}
+\subsection{Downloading \py{moments} and \mold}
 
-\mold is packaged and released with \py{moments}, a python program for running analyses based on the allele frequency spectrum.
+\mold is packaged and released with \py{moments}, a python program for running analyses based on the allele frequency spectrum \cite{Jouganous2017}.
 \py{moments} is available at \url{https://bitbucket.org/simongravel/moments}.
 Because \mold continues to be developed and improved, it currently lives on the LD branch of the \py{moments} repository.
 For this reason, I recommend cloning the \py{moments} repository and switching to the LD branch.
-To do this, in the Terminal navigate to the parent directory where you want to copy moments and run
-\py{git clone https://bitbucket.org/simongravel/moments.git}.
-To switch to the LD branch, run
-\py{git checkout LD}.
-And then finally, to install run
-\py{sudo python setup.py install}.
+To do this, in the Terminal navigate to the parent directory where you want to copy moments and run\\
+\py{git clone https://bitbucket.org/simongravel/moments.git}\\
+To switch to the LD branch, run \\
+\py{git checkout LD}\\
+Before installing \py{moments}, we need to ensure that  \py{Python} 
 
 \subsubsection{Dependencies}
 
-\py{moments} and \mold depend on a number of Python libraries. I strongly recommend using Python 3.
+\py{moments} and \mold depend on a number of Python libraries. I strongly recommend using Python 3 (support for Python 2 will be dropped in the near future).
 
 \begin{enumerate}
-\item Absolute dependencies: \py{Python} (version 2.7 or $\geq$ 3.5), \py{numpy} (version $\geq$ 1.2.0), \py{scipy} (version $\geq$ 0.6.0), \py{cython}, \py{pickle}
+\item Absolute dependencies: \py{Python}, \py{numpy}, \py{scipy}, \py{cython}, \py{mpmath}, \py{pickle}
+\item Non-essential dependencies:
+\begin{enumerate}
 \item For Plotting, we use \py{matplotlib} (version $\geq$ 0.98.1)
-\item For Parsing, we take advantage of \py{hdf5} and \py{scikit-allel} (version $\geq$ 1.2.0) \cite{}
+\item For Parsing, we take advantage of \py{pandas}, \py{hdf5}, and \py{scikit-allel} (version $\geq$ 1.2.0) \cite{}
 \item For Demography building, we use \py{networkx}
+\end{enumerate}
 \end{enumerate}
 
 I recommend that you install IPython as well.
 The easiest way to obtain all these dependencies is to use a package manager, such as Conda (\url{https://conda.io/en/latest/}) or Enthought (\url{https://www.enthought.com/product/enthought-python-distribution/}).
+
+To install all required libraries, we can use the requirements.txt file, which lists each of the listed dependencies.
+If you are using Conda, for example, navigate to the \py{moments} directory and run\\
+\py{conda install --file requirements.txt}
+
+\subsubsection{Installing}
+Once the library dependencies are installed, install \py{moments} and \mold by running\\
+\py{python setup.py install}\\
 
 \subsection{Suggested workflow}
 
@@ -250,23 +260,26 @@ If we are interested in data from a subset of the full data (say we want to keep
 To start simply, we might be interested in computing pairwise LD statistics for a given set of genotypes or between two sets of genotypes.
 A genotype array $G$ has size $L\times n$, where $L$ is the number of SNPs and $n$ is the number of sequenced diploid individuals, so that entry $(i,j)$ is the genotype state of individual $j$ at SNP $i$.
 Genotype states are either $0$ (homozygous reference), $1$ (heterozygous), or $2$ (homozygous alternate).
-\py{mold.Parsing} counts and computes statistics from genotype arrays using the approach described in \citet{Ragsdale2019}.
+\py{mold.Parsing} counts and computes statistics from genotype arrays using the approach described in \cite{Ragsdale2019}.
 
-To get pairwise statistics for each possible pair (all $L(L-1)/2$ of them), use \py{mold.Parsing.compute_pairwise_stats(G)}, where \py{G} is the genotype matrix as described above.
+To get pairwise statistics for each possible pair (all $L(L-1)/2$ of them), use \\\py{mold.Parsing.compute_pairwise_stats(G)}, \\
+where \py{G} is the genotype matrix as described above.
 This will output three vectors, each of length $L(L-1)/2$, for $D^2$, $Dz$, and $\pi_2$, in that order.
-To convert to a (symmetric) $L\times L$ matrix of pairwise, we can use \py{numpy}'s \py{triu} function.
+To convert to a (symmetric) $L\times L$ matrix of pairwise statistics, we can use \py{numpy}'s \py{triu} function.
 
-To get the average Hill-Robertson statistics over all pairwise comparisons for a block of SNPs, use \py{mold.Parsing.compute_average_stats(G)}, which returns the mean values of $D^2$, $Dz$, and $\pi_2$, in that order.
+To get the average Hill-Robertson statistics over all pairwise comparisons for a block of SNPs, use \\\py{mold.Parsing.compute_average_stats(G)}, \\which returns the mean values of $D^2$, $Dz$, and $\pi_2$, in that order.
 
-To compute Hill-Robertson statistics between two sets of genotype data, stored in two genotype arrays \py{G1} and \py{G2}, we can similarly call \py{mold.Parsing.compute_pairwise_stats_between(G1, G2)} (which returns vectors of size $L_1L_2$, where $L_i$ is the number of SNPs in genotype array $G_i$) and \py{mold.Parsing.compute_average_stats_between(G1, G2)}.
+To compute Hill-Robertson statistics between two sets of genotype data, stored in two genotype arrays \py{G1} and \py{G2}, we can similarly call\\
+\py{mold.Parsing.compute_pairwise_stats_between(G1, G2)}\\
+(which returns vectors of size $L_1L_2$, where $L_i$ is the number of SNPs in genotype array $G_i$) and \\\py{mold.Parsing.compute_average_stats_between(G1, G2)}.
 
 
-\subsection{Computing statistics from a VCF file}
+\subsection{Computing statistics from a VCF}
 
 In our analyses, we are interested in computing two-locus statistics from genotype data stored in a VCF for pairs of SNPs at varying genetic distances.
 To parse a VCF file and output Hill-Robertson statistics, we use \py{mold.Parsing.compute_ld_statistics}.
 The only required input for this function is the VCF filename.
-Otherwise, there are a number of options and arguments that can be passes to this function.
+Otherwise, there are a number of options and arguments that can be passed to this function.
 \begin{itemize}
 \item \py{bed_file} : default set to \py{None}. To only parse variants in given regions, we specify those regions in a bed file.
 \item \py{rec_map_file} : default set to \py{None}. If we pass a recombination map filename, we can specify the formatting of the recombination map file (see subsection below).
@@ -288,7 +301,8 @@ To parse data for multiple populations, we need to also include a file that tell
 In the population file, each row corresponds to an individual in the VCF file (individual names must match to those labeled in the VCF header).
 In each row, the first column is the individual ID, and the second column is the population name.
 Additional columns are ignored.
-We could then call \py{ld_stats = mold.Parsing.compute_ld_statistics('path/to/vcf/file.vcf.gz', pop_file='path/to/pop/file.txt', pops=[pop1, pop2, pop3], bp_bins=[0, 10000, 20000, 30000])}.
+We could then call \\
+\py{ld_stats = mold.Parsing.compute_ld_statistics('path/to/vcf/file.vcf.gz', pop_file='path/to/pop/file.txt', pops=[pop1, pop2, pop3], bp_bins=[0, 10000, 20000, 30000])}.
 
 \subsection{Using a recombination map}
 
@@ -297,7 +311,7 @@ To use a recombination map to parse data, we specify the file path and name usin
 In the recombination map file, the first column corresponds to physical positions, and other columns correspond to the genetic position in either Morgans or cM.
 If there are multiple maps in the file, we can specify the map we want to use by the map name in the header.
 
-For example, the first and last few lines of a set of recombination maps of chromosome 22 for build 37 (available here: \url{https://www.well.ox.ac.uk/~anjali/AAmap/}) are\\\small
+For example, the first and last few lines of a set of recombination maps of chromosome 22 for human reference genome build hg19 (available here: \url{https://www.well.ox.ac.uk/~anjali/AAmap/}) are\\\small
 \py{
 "Physical_Pos" "deCODE" "COMBINED_LD" "YRI_LD" "CEU_LD" "AA_Map" "African_Enriched" "Shared_Map"}\\\py{
 16051347 0 0 0 0 0 0 0}\\\py{
@@ -313,7 +327,7 @@ For example, the first and last few lines of a set of recombination maps of chro
 51229805 55.5922 73.6088 75.7068 72.5479 68.9516 67.8206 54.8248}\\
 \normalsize
 Cumulative distances are given in cM.
-If we want to use the African American admixutre map (``AA\_Map'', \cite{Hinch2011}) from this file, 
+If we want to use the \cite{Hinch2011} African American admixture map (``AA\_Map'') from this file, 
 setting recombination bins using \py{r_bins} as, for example,\\
 \py{r_bins = [0, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 1e-3]}\\
 we call:\\
@@ -358,24 +372,36 @@ Below, I write out some examples for defining demographic models (a bottleneck m
 
 \subsection{The \texttt{Demography} builder}
 
-Manual specification of demographic functions gets difficult with multiple populations, particularly for more than two or three populations where events in different branches of the demography could switch their order of occurrences.
-\mold introduces an alternative way to define demographic models, through the Demography module.
-\py{mold.Demography} uses \py{networkx} to represent demographic models as directed graphs, with nodes as populations with attributes (such as size functions, migration rates, frozen ancient sample, etc) and edges defining relationships between populations.
+Manual specification of demographic functions becomes increasingly difficult as the number of populations in the model grows.
+With more than two or three populations, events that occur along different branches or lineages can switch their order, so that writing a flexible demographic model requires a host of pesky, bug-prone, if-then statements.
+\mold introduces a more user-friendly method to define demographic models through the \py{Demography} module.
+\py{mold.Demography} uses \py{networkx} to represent demographic models as directed acyclic graphs, where nodes specify populations with attributes (such as size functions, migration rates, frozen ancient sample, etc), and edges define relationships between populations.
 
-To start, we \py{import networkx as nx} and define an empty graph as \py{G = nx.DiGraph()}, which will store nodes (populations) and edges (relationshipships).
+To start, we \py{import networkx as nx} and define an empty graph as \py{G = nx.DiGraph()}, which will store nodes (populations) and edges (relationships).
 To add a population, we use \py{G.add_node}, and specify the population name, the population size or size function, and the time the population persists, either up to the simulation ending, splitting or transitioning to other population(s), or extinction some time before present.
 We can also specify (optional) migration rates \emph{from} this population \emph{to} other populations.
 To specify migration from other populations to this population, we add migration rates to that other population.
 
+
+\subsubsection{Example: a two-population IM model}
 For example, let's set up a model where a single population doubles in size for time $0.1$ before splitting into two populations (pop0 and pop1).
 These split populations have different relative population size (say $3.0$ and $0.5$) and they remain split for time $0.2$ with symmetric migration rate $1.0$.
-We first set the initial `root' population, which starts at equilibrium (set relative size $\nu=1$ and $T=0$): \py{G.add_node('root', nu=1.0, T=0)}.
-We name the pre-split population `pop0', and set \py{G.add_node('pop0', nu=2.0, T=0.1)}.
-We add the two split populations, along with migration rates, as \py{G.add_node('pop1', nu=3.0, T=0.2, m=\{'pop2': 1.0\})} and \py{G.add_node('pop2', nu=0.5, T=0.2, m=\{'pop1': 1.0\})}.
-Finally, we set the graph edges, which defines the topology of the demography: \py{G.add_edges_from([('root', 'pop0'), ('pop0', 'pop1'), ('pop0', 'pop2')])}.
+
+We first set the initial `root' population, which starts at equilibrium (set relative size $\nu=1$ and $T=0$): \\\py{G.add_node('root', nu=1.0, T=0)}\\
+We name the pre-split population `pop0', and set \\
+\py{G.add_node('pop0', nu=2.0, T=0.1)}\\
+We add the two split populations, along with migration rates, as \\
+\py{G.add_node('pop1', nu=3.0, T=0.2, m=\{'pop2': 1.0\})} \\
+and \\
+\py{G.add_node('pop2', nu=0.5, T=0.2, m=\{'pop1': 1.0\})}
+
+Finally, we set the graph edges, which defines the topology of the demography: \\
+\py{G.add_edges_from([('root', 'pop0'), ('pop0', 'pop1'), ('pop0', 'pop2')])}\\
 A similar model (without the pre-split population size change) is given in Example~Code~\ref{lst:IM_demo}.
 
-To simulate LD statistics on this demography for a given set of recombination and mutation rates, we call \py{mold.Demography.evolve(G, rho=[0,1], theta=0.001, pop_ids=['pop1', 'pop2'])}, where \py{pop_ids} specifies the order we would like the statistics to be output.
+To simulate LD statistics on this demography for a given set of recombination and mutation rates, we call \\
+\py{y = mold.Demography.evolve(G, rho=[0,1], theta=0.001, pop_ids=['pop1', 'pop2'])}\\
+ where \py{pop_ids} specifies the order we would like the statistics to be output.
 
 
 \subsection{Units}
@@ -396,7 +422,7 @@ Some are specified by initializing the equilibrium \py{LDstats} object, and then
 Others are specified using the \py{Demography} module.
 Here, we use \py{networkx} to define a population topology and attributes for each population, and then we call \py{mold.Demography.evolve} to compute the expected statistics.
 
-In the directory moments/examples/LD, you will find additional example code, including a demographic model for the out of Africa model augmented by Neanderthal introgression into the Eurasian population and a deep split and subsequent migration with an archaic population within Africa (similar to the demographic model inferred in \citet{Ragsdale2019}.
+In the directory moments/examples/LD, you will find additional example code, including a demographic model for the out of Africa model augmented by Neanderthal introgression into the Eurasian population and a deep split and subsequent migration with an archaic population within Africa (similar to the demographic model inferred in \cite{Ragsdale2019}.
 Also in the examples directory, we use a subset of populations from the publicly available Simons Diversity Project (Mbuti, Punjabi, Dai, and Papuan) \cite{Simons} along with high coverage Neanderthal and Denisovan individuals \cite{Pruefer} to parse LD statistics.
 We then fit a demographic model with recent events (modern human splits, size changes, and migration rates) along with the timing of splits between modern humans, Neanderthal and Denisovans, and a hypothesized archaic African population, the split between Neanderthal and Denisovan populations, and the timing and magnitude of admixture from archaic populations into human lineages.
 The topology of this model is shown in Figure~\ref{fig:archaic_demography}.
@@ -459,7 +485,7 @@ def IM_graph(params, rho=None, theta=0.001, pop_ids=['pop1', 'pop2']):
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={\textbf{Out of Africa model:} The \citet{Gutenkunst2009} Out-of-Africa model, with 13 parameters as originally defined. This model has three representative continental populations (often YRI, CEU, and CHB), with an out of Africa split between Eurasian and African populations, followed by a split between European and East Asian populations, with symmetric migration rates and size changes along each branch.}, float, label={lst:ooa}]
+\begin{lstlisting}[caption={\textbf{Out of Africa model:} The Gutenkunst Out-of-Africa model \cite{Gutenkunst2009}, with 13 parameters as originally defined. This model has three representative continental populations (often YRI, CEU, and CHB), with an out of Africa split between Eurasian and African populations, followed by a split between European and East Asian populations, with symmetric migration rates and size changes along each branch.}, float, label={lst:ooa}]
 def OutOfAfrica(params, rho=None, theta=0.001):
     """
     The 13 parameter out of Africa model introduced in
@@ -619,7 +645,7 @@ def OutOfAfrica_graph(params, rho=None, theta=0.001,
 
 In the Section Specifying the model, we showed two approaches to defining demographic models.
 \mold computes the Hill-Robertson statistics ($\E[D_i^2]$, $\E[D_i D_j]$, etc), which give expectations for any pair of loci separated by a given recombination rate.
-When running inference, we prefer to use statistics normalized by the joint heterozygosity ($\pi_2$) of one of the populations, by default the first population in \py{pop_ids} (as in \citet{Rogers2014} and \citet{Ragsdale2018}).
+When running inference, we prefer to use statistics normalized by the joint heterozygosity ($\pi_2$) of one of the populations, by default the first population in \py{pop_ids} (as in \cite{Rogers2014} and \cite{Ragsdale2018}).
 This has the advantage of removing dependence of the statistics on the underlying mutation rate.
 
 By using the ratio $\E[\text{stat.}]/\E[\pi_2]$, it also makes computing statistics from data much simpler, as we don't need to computing the total number of pairs per recombination bin.
@@ -730,13 +756,11 @@ Bigger issues or difficulties: email
 
 \section{Acknowledgements}
 \py{moments} was originally developed by Julien Jouganous, and based off of Ryan Gutenkunst's \dadi software.
-\py{moments} and \mold (and indeed much of my scientific course and accomplishments) are greatly indebted to Ryan Gutenkunst.
-Not only are these programs modeled off of \dadi's interface and functionality, but also my general approach to writing, testing, and using scientific software has been guided or influenced by Ryan.
-I cannot overstate my gratitude to Ryan for making \dadi open source and accessible, and more personally for his mentorship over the years (if you're reading this Ryan, a gigantic ``Thank you!'').
-
+\py{moments} and \mold (and indeed much of my own scientific development) are greatly indebted to Ryan Gutenkunst.
+Not only are these programs modeled off of \dadi's interface and functionality, but also my general approach to writing, testing, and using scientific software has been guided and influenced by Ryan.
 
 
 \bibliography{manualLD}
-\bibliographystyle{genetics}
+\bibliographystyle{apalike}
 
 \end{document}
