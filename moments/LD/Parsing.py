@@ -461,8 +461,12 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     if use_genotypes == True:
         genotypes_pops_012 = genotypes_pops.to_n_alt()
     else:
-        haplotypes_pops_01 = genotypes_pops.to_haplotypes()
-    
+        try:
+            haplotypes_pops_01 = genotypes_pops.to_haplotypes()
+        except AttributeError:
+            print("warning: attempted to get haplotypes from phased genotypes, returned attribute error. Using input as haplotypes.")
+            haplotypes_pops_01 = genotypes_pops
+            
     ## only keep biallelic positions that are variable in the populations we care about
     
     bs = list(zip(bins[:-1],bins[1:]))
@@ -706,7 +710,8 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     for pop in pops:
         min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 2)
     
-    ac_subpop = ac_subpop.compress(min_ac_filter)
+    for pop in pops:
+        ac_subpop[pop] = ac_subpop[pop].compress(min_ac_filter)
     
     Hs = {}
     for ii,pop1 in enumerate(pops):

@@ -2,7 +2,7 @@ import numpy as np
 from moments.LD import Demography
 from moments.LD.LDstats_mod import LDstats
 
-def snm(rho=None, theta=0.001, pop_ids=None):
+def snm(params=None, rho=None, theta=0.001, pop_ids=None):
     """
     Equilibrium neutral model
     rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
