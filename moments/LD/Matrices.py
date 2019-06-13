@@ -189,28 +189,32 @@ def drift_ld(num_pops, nus, frozen=None):
     return csc_matrix((data,(row,col)),shape=(len(names), len(names)))
 
 ### mutation
-def mutation_h(num_pops, theta, frozen=None):
-    if frozen is None:
+def mutation_h(num_pops, theta, frozen=None, selfing=None):
+    if frozen is None and selfing is None:
         return theta*np.ones(int(num_pops*(num_pops+1)/2))
     else:
         U = np.zeros( int(num_pops*(num_pops+1)/2) )
+        if selfing is None:
+            selfing = [0] * num_pops
+        if frozen is None:
+            frozen = [False] * num_pops
         c = 0
         for ii in range(num_pops):
             for jj in range(ii,num_pops):
                 if frozen[ii] is not True:
-                    U[c] += theta/2.
+                    U[c] += theta/2.*(1-selfing[ii]/2.)
                 if frozen[jj] is not True:
-                    U[c] += theta/2.
+                    U[c] += theta/2.*(1-selfing[jj]/2.)
                 c += 1
         return U
 
-def mutation_ld(num_pops, theta, frozen=None):
+def mutation_ld(num_pops, theta, frozen=None, selfing=None):
     names_ld, names_h = Util.moment_names(num_pops)
     row = []
     col = []
     data = []
     
-    if frozen is None:
+    if frozen is None and selfing is None:
         for ii, mom in enumerate(names_ld):
             name = mom.split('_')[0]
             if name == 'pi2': 
@@ -230,6 +234,11 @@ def mutation_ld(num_pops, theta, frozen=None):
 
     else:
         thetas = [theta]*num_pops
+        
+        if selfing is not None:
+            for i,s in enumerate(selfing):
+                thetas[i] = thetas[i]*(1-s/2.)
+        
         if frozen is not None:
             for pid in range(num_pops):
                 if frozen[pid] == True:
@@ -258,17 +267,23 @@ def mutation_ld(num_pops, theta, frozen=None):
     
 ### recombination
 
-def recombination(num_pops, r, frozen=None):
+def recombination(num_pops, r, frozen=None, selfing=None):
     names = Util.ld_names(num_pops)
     row = list(range(int(num_pops*(num_pops+1)/2 + num_pops**2*(num_pops+1)/2)))
     col = list(range(int(num_pops*(num_pops+1)/2 + num_pops**2*(num_pops+1)/2)))
-    if frozen is None:
+    
+    if frozen is None and selfing is None:
         data = [-1.*r]*int(num_pops*(num_pops+1)/2) + [-r/2.]*int(num_pops**2*(num_pops+1)/2)
     else:
         rs = [r]*num_pops
-        for pid in range(num_pops):
-            if frozen[pid] == True:
-                rs[pid] = 0
+        if selfing is not None:
+            for i,s in enumerate(selfing):
+                rs[i] = rs[i] * (1-s)
+        
+        if frozen is not None:
+            for pid in range(num_pops):
+                if frozen[pid] == True:
+                    rs[pid] = 0
 
         data = []
         for name in names:

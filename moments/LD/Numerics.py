@@ -85,17 +85,17 @@ def drift(num_pops, nus, frozen=None):
     Dld = Matrices.drift_ld(num_pops, nus, frozen=frozen)
     return Dh, Dld
 
-def mutation(num_pops, theta, frozen=None):
+def mutation(num_pops, theta, frozen=None, selfing=None):
     ### mutation for ld also has dependence on H
-    Uh = Matrices.mutation_h(num_pops, theta, frozen=frozen)
-    Uld = Matrices.mutation_ld(num_pops, theta, frozen=frozen)
+    Uh = Matrices.mutation_h(num_pops, theta, frozen=frozen, selfing=selfing)
+    Uld = Matrices.mutation_ld(num_pops, theta, frozen=frozen, selfing=selfing)
     return Uh, Uld
 
-def recombination(num_pops, rho=0.0, frozen=None):
+def recombination(num_pops, rho=0.0, frozen=None, selfing=None):
     if np.isscalar(rho):
-        R = Matrices.recombination(num_pops, rho, frozen=frozen)
+        R = Matrices.recombination(num_pops, rho, frozen=frozen, selfing=selfing)
     else:
-        R = [Matrices.recombination(num_pops, r, frozen=frozen) for r in rho]
+        R = [Matrices.recombination(num_pops, r, frozen=frozen, selfing=selfing) for r in rho]
     return R
 
 def migration(num_pops, m, frozen=None):
@@ -106,7 +106,7 @@ def migration(num_pops, m, frozen=None):
 
 ### integration routines
 
-def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, frozen=None):
+def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, selfing=None, frozen=None):
     """
     
     """
@@ -124,11 +124,11 @@ def integrate(Y, nu, T, dt=0.001, theta=0.001, rho=None, m=None, num_pops=None, 
     else:
         nus = [np.float(nu_pop) for nu_pop in nu]
     
-    Uh, Uld = mutation(num_pops, theta, frozen=frozen)
+    Uh, Uld = mutation(num_pops, theta, frozen=frozen, selfing=selfing)
     
     if rho is not None:
         # if rho is a scalar, return single matrix, if rho is a list, returns list of matrices
-        R = recombination(num_pops, rho=rho, frozen=frozen)
+        R = recombination(num_pops, rho=rho, frozen=frozen, selfing=selfing)
     
     if num_pops > 1 and m is not None:
         Mh, Mld = migration(num_pops, m, frozen=frozen)

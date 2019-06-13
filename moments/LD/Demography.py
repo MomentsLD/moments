@@ -85,11 +85,13 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
     # set y (two locus stats) and h (heterozygosity stats) for ancestral pop
     
     root, parents, children, leaves = get_pcl(demo_graph)
-    present_pops, integration_times, nus, migration_matrices, frozen_pops, events = get_event_times(demo_graph)
+    present_pops, integration_times, nus, migration_matrices, frozen_pops, selfing_rates, events = get_event_times(demo_graph)
     
     Y = LDstats_mod.LDstats(equilibrium(rho=rho, theta=theta), num_pops=1, pop_ids=[present_pops[0][0]])
+    if selfing_rates[0] is not None:
+        Y.integrate([1.], 20, rho=rho, theta=theta, selfing=selfing_rates[0])
     
-    for ii, (pops, T, nu, mig_mat, frozen) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops)):
+    for ii, (pops, T, nu, mig_mat, frozen, selfing) in enumerate(zip(present_pops, integration_times, nus, migration_matrices, frozen_pops, selfing_rates)):
         if np.any([callable(nus[ii][i]) for i in range(len(nus[ii]))]):
             callable_nu = []
             for pop_nu in nu:
@@ -98,9 +100,9 @@ def evolve(demo_graph, theta=0.001, rho=None, pop_ids=None):
                 else:
                     callable_nu.append( lambda t, pop_nu=pop_nu: pop_nu)
             pass_nu = lambda t: [nu_func(t) for nu_func in callable_nu]
-            Y.integrate(pass_nu, T, rho=rho, theta=theta, m=mig_mat, frozen=frozen)
+            Y.integrate(pass_nu, T, rho=rho, theta=theta, m=mig_mat, selfing=selfing, frozen=frozen)
         else:
-            Y.integrate(nu, T, rho=rho, theta=theta, m=mig_mat, frozen=frozen)
+            Y.integrate(nu, T, rho=rho, theta=theta, m=mig_mat, selfing=selfing, frozen=frozen)
         
         if ii < len(events):
             if len(events[ii]) ==  0:
@@ -221,6 +223,10 @@ def get_event_times(demo_graph):
     nus = [[demo_graph.nodes[root]['nu']]]
     migration_matrices = [[0]]
     frozen_pops = [[False]]
+    try:
+        selfing_rates = [[demo_graph.nodes[root]['selfing']]]
+    except KeyError:
+        selfing_rates = [None]
     events = []
     
     time_left = [0.] # tracks time left on each branch to integrate, of present_pops[-1]
@@ -283,20 +289,6 @@ def get_event_times(demo_graph):
             time_left = [pop_time_left - t_epoch for pop_time_left in time_left]
             present_pops.append(new_pops)
             
-            # check if any new_nus are callable, and if so make new_nus callable
-#            nus_callable = 0
-#            for nu in new_nus:
-#                if callable(nu):
-#                    nus_callable = 1
-#            if nus_callable == 0:
-#                nus.append(new_nus)
-#            else:
-#                for ii,nu in enumerate(new_nus):
-#                    if callable( nu ):
-#                        new_nus[ii] = nu 
-#                    else:
-#                        new_nus[ii] = lambda t: nu
-#                nus.append( lambda t: [nu_func(t) for nu_func in new_nus] )
             nus.append(new_nus)
             
             new_m = np.zeros((len(new_pops), len(new_pops)))
@@ -322,9 +314,20 @@ def get_event_times(demo_graph):
                     frozen.append(False)
             frozen_pops.append(frozen)
             
+            selfing = []
+            for pop in new_pops:
+                if 'selfing' in demo_graph.nodes[pop]:
+                    selfing.append(demo_graph.nodes[pop]['selfing'])
+                else:
+                    selfing.append(0)
+            if set(selfing) == {0}:
+                selfing_rates.append(None)
+            else:
+                selfing_rates.append(selfing)
+            
             events.append(new_events)
     
-    return present_pops, integration_times, nus, migration_matrices, frozen_pops, events
+    return present_pops, integration_times, nus, migration_matrices, frozen_pops, selfing_rates, events
     
 
 

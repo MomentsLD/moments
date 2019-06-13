@@ -454,7 +454,7 @@ def %(method)s(self, other):
 """ % {'method':method})
     
     
-    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None, frozen=None):
+    def integrate(self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None, selfing=None, frozen=None):
         """
         Integrates the LD statistics forward in time. The tricky part is 
         combining single population and multi-population integration routines. 
@@ -468,6 +468,9 @@ def %(method)s(self, other):
                locus, implemented in the ISM=True model
         m: migration matrix (num_pops x num_pops, storing m_ij migration rate
            from i to j
+        selfing: list of selfing probabilities, same length as nu.
+        frozen: list of True and False same length as nu. True implies that a lineage
+                is frozen (as in ancient samples). False integrates as normal.
         """
         num_pops = self.num_pops
         
@@ -491,9 +494,18 @@ def %(method)s(self, other):
             if np.shape(m) != (num_pops, num_pops):
                 raise ValueError("migration matrix incorrectly defined for number of pops.")
         
+        if frozen is not None:
+            if len(frozen) != len(nu):
+                raise ValueError("frozen must have same length as number of pops.")
+        
+        if selfing is not None:
+            if len(selfing) != len(nu):
+                raise ValueError("selfing must have same length as number of pops.")
+        
         self[:] = Numerics.integrate(self[:], nu, tf, dt=dt,
                                     rho=rho, theta=theta, m=m,
-                                    num_pops=num_pops, frozen=frozen)
+                                    num_pops=num_pops, 
+                                    selfing=selfing, frozen=frozen)
 
 # Allow LDstats objects to be pickled.
 try:
