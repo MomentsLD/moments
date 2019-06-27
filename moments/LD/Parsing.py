@@ -364,7 +364,7 @@ def h_tally_counter_3(h_l, h_r):
     return out[:,::-1]
 
 
-def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None):
+def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False):
     """
     genotypes : in format of 0,1,2
     bins : bin edges, either recombination distances or bp distances
@@ -447,15 +447,16 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         }
         ac_subpop = genotypes.count_alleles_subpops(subpops)
     
-    min_ac_filter = [True]*len(ac_subpop)
-    for pop in pops:
-        min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 4)
-    
-    genotypes_pops = genotypes_pops.compress(min_ac_filter)
-    if positions is not None:
-        positions = positions.compress(min_ac_filter)
-    if pos_rs is not None:
-        pos_rs = pos_rs.compress(min_ac_filter)
+    if ac_filter == True:
+        min_ac_filter = [True]*len(ac_subpop)
+        for pop in pops:
+            min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 4)
+        
+        genotypes_pops = genotypes_pops.compress(min_ac_filter)
+        if positions is not None:
+            positions = positions.compress(min_ac_filter)
+        if pos_rs is not None:
+            pos_rs = pos_rs.compress(min_ac_filter)
     
     ## convert to 0,1,2 format
     if use_genotypes == True:
@@ -598,7 +599,11 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
         return sums
 
 
-def call_sgc(stat, Cs, use_genotypes):
+def call_sgc(stat, Cs, use_genotypes=True):
+    """
+    stat = 'DD', 'Dz', or 'pi2', with underscore indices (like 'DD_1_1')
+    Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes) 
+    """
     s = stat.split('_')[0]
     pop_nums = [int(p)-1 for p in stat.split('_')[1:]]
     if s == 'DD':
@@ -671,7 +676,7 @@ def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=
     return estimates
 
 
-def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
+def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False):
     """
     Het values are not normalized by sequence length, would need to compute L from bed file.
     """
@@ -706,12 +711,13 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
         ac_subpop = genotypes.count_alleles_subpops(subpops)
     
     # ensure at least 2 allele counts per pop
-    min_ac_filter = [True]*len(ac_subpop)
-    for pop in pops:
-        min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 2)
-    
-    for pop in pops:
-        ac_subpop[pop] = ac_subpop[pop].compress(min_ac_filter)
+    if ac_filter == True:
+        min_ac_filter = [True]*len(ac_subpop)
+        for pop in pops:
+            min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 2)
+        
+        for pop in pops:
+            ac_subpop[pop] = ac_subpop[pop].compress(min_ac_filter)
     
     Hs = {}
     for ii,pop1 in enumerate(pops):
@@ -728,7 +734,7 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None):
     return Hs
 
 
-def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None):
+def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False):
     ### build wrapping function that can take use_cache = True or False
     # now if bins is empty, we only return heterozygosity statistics
     
@@ -741,7 +747,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     bs = list(zip(bins[:-1],bins[1:]))
     
     if use_cache == True:
-        type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache)
+        type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, ac_filter=ac_filter)
         
         if report is True: print("counted genotypes"); sys.stdout.flush()
         statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
@@ -756,14 +762,14 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
                     sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
         
     else:
-        sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute)
+        sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute, ac_filter=ac_filter)
     
     if report is True: print("computed sums\ngetting heterozygosity statistics"); sys.stdout.flush()
         
     if len(stats_to_compute[1]) == 0:
         Hs = {}
     else:
-        Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops)
+        Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops, ac_filter=ac_filter)
     
     reported_stats = {}
     reported_stats['bins'] = bs
@@ -781,7 +787,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     return reported_stats
 
 
-def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, report=True, report_spacing=1000, use_cache=True):
+def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file=None, map_name=None, map_sep='\t', pop_file=None, pops=None, cM=True, r_bins=None, bp_bins=None, min_bp=None, use_genotypes=True, use_h5=True, stats_to_compute=None, ac_filter=False, report=True, report_spacing=1000, use_cache=True):
     """
     vcf_file : path to vcf file
     bed_file : path to bed file to specify regions over which to compute LD statistics. If None, computes statistics
@@ -827,7 +833,7 @@ def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file
         else:
             bins = []
     
-    reported_stats = get_reported_stats(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, stats_to_compute=stats_to_compute, report_spacing=report_spacing, use_cache=use_cache)
+    reported_stats = get_reported_stats(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, stats_to_compute=stats_to_compute, report_spacing=report_spacing, use_cache=use_cache, ac_filter=ac_filter)
     
     return reported_stats
 
