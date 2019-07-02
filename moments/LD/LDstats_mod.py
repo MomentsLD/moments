@@ -490,16 +490,23 @@ def %(method)s(self, other):
         if rho is not None and np.isscalar(rho) == False and len(rho) == 1:
             rho = rho[0]
         
+        if callable(nu):
+            if len(nu(0)) != num_pops:
+                raise ValueError("len of pop size function must equal number of pops.")
+        else:
+            if len(nu) != num_pops:
+                raise ValueError("len of pop sizes must equal number of pops.")
+        
         if m is not None and num_pops > 1:
             if np.shape(m) != (num_pops, num_pops):
                 raise ValueError("migration matrix incorrectly defined for number of pops.")
         
         if frozen is not None:
-            if len(frozen) != len(nu):
+            if len(frozen) != num_pops:
                 raise ValueError("frozen must have same length as number of pops.")
         
         if selfing is not None:
-            if len(selfing) != len(nu):
+            if len(selfing) != num_pops:
                 raise ValueError("selfing must have same length as number of pops.")
         
         self[:] = Numerics.integrate(self[:], nu, tf, dt=dt,
