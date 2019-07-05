@@ -310,7 +310,7 @@ def count_data_dict(data_dict, pop_ids):
     polarized using an ancestral state.
     """
     count_dict = collections.defaultdict(int)
-    for snp, snp_info in data_dict.iteritems():
+    for snp, snp_info in data_dict.items():
         # Skip SNPs that aren't biallelic.
         if len(snp_info['segregating']) != 2:
             continue
@@ -417,6 +417,11 @@ def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True,
     
     data_dict = {}
     for line in vcf_file:
+        # decoding lines for Python 3 - probably a better way to handle this
+        try:
+            line = line.decode()
+        except AttributeError:
+            continue
         # Skip metainformation
         if line.startswith('##'):
             continue
@@ -627,7 +632,7 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
         
         # Sort entries by start position, for easier location of proper region
         start_dict = {}
-        for chrom, bed_info in bed_info_dict.iteritems():
+        for chrom, bed_info in bed_info_dict.items():
             bed_info.sort(key = lambda k: k[0])
             start_dict[chrom] = [region[0] for region in bed_info]
         # Dictionary will map region labels to the SNPs contained in that region
@@ -654,7 +659,7 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
 
     # Each entry of list represents single region, with a tuple 
     # containing the IDs of all SNPs in the region.
-    sample_regions = [tuple(val) for key, val in region_dict.iteritems()]
+    sample_regions = [tuple(val) for key, val in region_dict.items()]
     num_regions = len(sample_regions)
     if save_dir is None:
         new_sfs_list = []

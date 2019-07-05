@@ -209,10 +209,26 @@ These are summarized in a table of misidentification probabilities that can be c
 (It should also be possible to develop a correction using only the single-site transition matrix.
 If this would be helpful, please contact the developers of \textit{Moments}.)
 
-Moreover, \textit{Moments} introduces a new method to build the data dictionary directly from vcf files: 
+\subsection{Importing data from VCFs}
+
+\textit{Moments} introduces a method to build the data dictionary directly from VCF files, which can then be used to create a frequency spectrum.
+To create the data dictionary, we need to specify the path to the VCF file and the population information file.
+The data dictionary is created by running
 \begin{lstlisting}
-dd = Misc.make_data_dict_vcf(vcf_filename, ['YRI', 'CEU']).
+dd = Misc.make_data_dict_vcf(vcf_filename, popinfo_filename).
 \end{lstlisting}
+By default, the filter is set to \py{True}, so that alleles will be skipped if they have not passed all filters (i.e. either `\py{PASS}' or `\py{.}' must be present in \py{FILTER} column.
+If you want to include all sites, whether they pass the filter or not, set the keyword argument \py{filter = False}.
+
+The population information file should be formatted as a table, with columns delimited by whitespace, and rows delimited by new lines. 
+Lines beginning with `\py{#}' are considered comments and will be ignored.
+Each sample must appear on its own line.
+If no header information is provided, the first column will be assumed to be the \py{SAMPLE_NAME} column, while the second column will be assumed to be the \py{POP_NAME} column.
+If a header is present, it must be the first non-comment line of the file. 
+The column positions of the words "SAMPLE" and "POP" (ignoring case) in this header will be used to determine proper positions of the \py{SAMPLE_NAME} and \py{POP_NAME} columns in the table.
+
+Then, to create a frequency spectrum for given populations, we run the \py{Spectrum.from_data_dict} function as described in the previous subsection.
+
 
 \section{Manipulating spectra}\label{sec:manip}
 

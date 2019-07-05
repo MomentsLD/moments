@@ -1203,7 +1203,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         Npops = len(pop_ids)
         fs = numpy.zeros(numpy.asarray(projections) + 1)
-        for snp, snp_info in data_dict.iteritems():
+        for snp, snp_info in data_dict.items():
             # Skip SNPs that aren't biallelic.
             if len(snp_info['segregating']) != 2:
                 continue
@@ -1304,7 +1304,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         result = {}
         genetic_bases = 'ACTG'
-        for snp, snp_info in data_dict.iteritems():
+        for snp, snp_info in data_dict.items():
             # Skip non-diallelic polymorphisms
             if len(snp_info['segregating']) != 2:
                 continue
