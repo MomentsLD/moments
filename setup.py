@@ -49,7 +49,7 @@ setup(
 
 numpy.distutils.core.setup(name='moments',
                            version='1.0.0',
-                           author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
+                           author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous, Aaron Ragsdale',
                            author_email='simon.gravel@mcgill.ca',
                            url='http://simongravel.lab.mcgill.ca/Home.html',
                            packages=['moments', 'moments.Triallele', 'moments.TwoLocus', 'moments.LD'],
