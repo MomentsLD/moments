@@ -421,7 +421,7 @@ def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True,
         try:
             line = line.decode()
         except AttributeError:
-            continue
+            pass
         # Skip metainformation
         if line.startswith('##'):
             continue
