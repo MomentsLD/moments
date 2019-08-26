@@ -23,10 +23,11 @@ def check_imports():
 # later go through and trim the unneeded ones
 import numpy as np
 import pandas
-from collections import Counter
+from collections import Counter,defaultdict
 from . import stats_from_genotype_counts as sgc
 from . import stats_from_haplotype_counts as shc
 import sys
+import itertools
 
 ### does this handle only a single chromosome at a time???
 
@@ -364,7 +365,7 @@ def h_tally_counter_3(h_l, h_r):
     return out[:,::-1]
 
 
-def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False):
+def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False, decompose_cache=False):
     """
     genotypes : in format of 0,1,2
     bins : bin edges, either recombination distances or bp distances
@@ -476,7 +477,14 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     if use_cache == True:
         type_counts = {}
         for b in bs:
-            type_counts[b] = {}
+            if decompose_cache == True:
+                type_counts[b] = {}
+                pop_indices = list(range(len(pops)))
+                #for i in range(1,5):
+                for comb in itertools.combinations(pop_indices,4):
+                    type_counts[b][comb] = defaultdict(int)
+            else:
+                type_counts[b] = defaultdict(int)
     else:
         sums = {}
         for b in bs:
@@ -587,8 +595,12 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             cs_ind = tuple([tuple(cs[pop_ind][jj]) for pop_ind in range(len(pops))])
             
             if use_cache == True:
-                type_counts[b].setdefault(cs_ind,0)
-                type_counts[b][cs_ind] += 1
+                if decompose_cache == False:
+                    type_counts[b][cs_ind] += 1
+                else:
+                    for kk in range(1,5):
+                        for comb in itertools.combinations(pop_indices,kk):
+                            type_counts[b][comb][tuple((cs_ind[x] for x in comb))] += 1
             else:
                 for stat in stats_to_compute[0]:
                     sums[b][stat] += call_sgc(stat, cs_ind, use_genotypes)
@@ -676,6 +688,50 @@ def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=
     return estimates
 
 
+def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=True):
+    """
+    return sums[b][stat]
+    """
+    ### this is super inefficient, just trying to get around memory issues
+    
+    bs = list(zip(bins[:-1],bins[1:]))
+    sums = {}
+    empty_genotypes = tuple([0]*9)
+    
+    for stat in ld_stats:
+        if report is True: print("computing " + stat); sys.stdout.flush()
+        # set counts of non-used stats to zeros, then take set
+        pops_in_stat = sorted(list(set(int(p)-1 for p in stat.split('_')[1:])))
+        stat_counts = {}
+        for b in bs:
+            for cs in type_counts[b].keys():
+                this_count = list(cs)
+                for i in range(len(cs)):
+                    if i not in pops_in_stat:
+                        this_count[i] = empty_genotypes
+                stat_counts.setdefault(tuple(this_count),defaultdict(int))
+                stat_counts[tuple(this_count)][b] += 1
+         
+        all_counts = np.array(list(stat_counts.keys()))
+        all_counts = np.swapaxes(all_counts,0,1)
+        all_counts = np.swapaxes(all_counts,1,2)
+        vals = call_sgc(stat, all_counts, use_genotypes)
+        
+        estimates = {}
+        for v,ii in zip(vals, range(len(all_counts[0,0]))):
+            cs = tuple(tuple(c) for c in all_counts[:,:,ii])
+            estimates[cs] = v
+        
+        for b in bs:
+            sums.setdefault(b,{})
+            sums[b][stat] = 0
+            for cs in stat_counts:
+                sums[b][stat] += stat_counts[cs][b] * estimates[cs]            
+    
+    return sums
+    
+
+
 def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False):
     """
     Het values are not normalized by sequence length, would need to compute L from bed file.
@@ -749,17 +805,19 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     if use_cache == True:
         type_counts = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, ac_filter=ac_filter)
         
-        if report is True: print("counted genotypes"); sys.stdout.flush()
-        statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
+        #if report is True: print("counted genotypes"); sys.stdout.flush()
+        #statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
+        #
+        #if report is True: print("summing over genotype counts and statistics cache"); sys.stdout.flush()
+        #sums = {}
+        #for b in bs:
+        #    sums[b] = {}
+        #    for stat in stats_to_compute[0]:
+        #        sums[b][stat] = 0
+        #        for cs in type_counts[b]:
+        #            sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
         
-        if report is True: print("summing over genotype counts and statistics cache"); sys.stdout.flush()
-        sums = {}
-        for b in bs:
-            sums[b] = {}
-            for stat in stats_to_compute[0]:
-                sums[b][stat] = 0
-                for cs in type_counts[b]:
-                    sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
+        sums = get_ld_stat_sums(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
         
     else:
         sums = count_types(genotypes, bins, sample_ids, positions=positions, pos_rs=pos_rs, pop_file=pop_file, pops=pops, use_genotypes=use_genotypes, report=report, report_spacing=report_spacing, use_cache=use_cache, stats_to_compute=stats_to_compute, ac_filter=ac_filter)
