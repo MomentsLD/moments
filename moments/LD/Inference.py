@@ -252,6 +252,8 @@ def optimize_log_fmin(p0, data, model_func,
     ns : sample size (only needed if we are using the frequency spectrum, as we ns does not affect mean LD stats) 
     statistics : If None, we only remove the normalizing statistic. Otherwise, we only
                  compute likelihoods over statistics passed here as [ld_stats (list), het_stats (list)]
+    pass_Ne : if the function doesn't take Ne as the last parameter (which is used with the recombination
+              map), wet to False. If the function also needs Ne, set to True.
     
     We can either pass a fixed mutation rate theta = 4*N*u, or we pass u and Ne (and compute theta),
         or we pass u and Ne is a parameter of our model to fit (which scales both the mutation rate and

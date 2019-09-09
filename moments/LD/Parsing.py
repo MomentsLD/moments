@@ -365,7 +365,7 @@ def h_tally_counter_3(h_l, h_r):
     return out[:,::-1]
 
 
-def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False, decompose_cache=False):
+def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False):
     """
     genotypes : in format of 0,1,2
     bins : bin edges, either recombination distances or bp distances
@@ -477,14 +477,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
     if use_cache == True:
         type_counts = {}
         for b in bs:
-            if decompose_cache == True:
-                type_counts[b] = {}
-                pop_indices = list(range(len(pops)))
-                #for i in range(1,5):
-                for comb in itertools.combinations(pop_indices,4):
-                    type_counts[b][comb] = defaultdict(int)
-            else:
-                type_counts[b] = defaultdict(int)
+            type_counts[b] = defaultdict(int)
     else:
         sums = {}
         for b in bs:
@@ -595,12 +588,7 @@ def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_fi
             cs_ind = tuple([tuple(cs[pop_ind][jj]) for pop_ind in range(len(pops))])
             
             if use_cache == True:
-                if decompose_cache == False:
-                    type_counts[b][cs_ind] += 1
-                else:
-                    for kk in range(1,5):
-                        for comb in itertools.combinations(pop_indices,kk):
-                            type_counts[b][comb][tuple((cs_ind[x] for x in comb))] += 1
+                type_counts[b][cs_ind] += 1
             else:
                 for stat in stats_to_compute[0]:
                     sums[b][stat] += call_sgc(stat, cs_ind, use_genotypes)
@@ -710,7 +698,7 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
                     if i not in pops_in_stat:
                         this_count[i] = empty_genotypes
                 stat_counts.setdefault(tuple(this_count),defaultdict(int))
-                stat_counts[tuple(this_count)][b] += 1
+                stat_counts[tuple(this_count)][b] += type_counts[b][cs]
          
         all_counts = np.array(list(stat_counts.keys()))
         all_counts = np.swapaxes(all_counts,0,1)

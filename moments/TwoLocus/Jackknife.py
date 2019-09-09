@@ -53,7 +53,7 @@ def closest_ijk(i,j,k,n,jump):
     ## add to list of ordered_set with the following conditions:
     ## - range = exactly 2
     ## - no more than 6 in a given column, row, or depth
-    smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),40)[:40]
+    smallests = np.argpartition(np.sum((np.array([fi,fj,fk]) - possible_ijk/(1.*n))**2,axis=1),min(40,len(possible_ijk))-1)[:min(40,len(possible_ijk))-1]
     smallest_set = np.array([possible_ijk[l] for l in smallests])
     distances = np.sum((np.array(smallest_set)/float(n) - [fi,fj,fk])**2,axis=1)
     order = distances.argsort()
