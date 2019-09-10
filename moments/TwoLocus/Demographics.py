@@ -97,7 +97,7 @@ def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=Non
 
     gamma = make_floats(gamma)
     rho = make_floats(rho)
-    theta = make_floats(rho)
+    theta = make_floats(theta)
     sel_params = make_floats(sel_params)
     
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
@@ -121,7 +121,7 @@ def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=N
     
     gamma = make_floats(gamma)
     rho = make_floats(rho)
-    theta = make_floats(rho)
+    theta = make_floats(theta)
     sel_params = make_floats(sel_params)
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
@@ -148,7 +148,7 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
 
     gamma = make_floats(gamma)
     rho = make_floats(rho)
-    theta = make_floats(rho)
+    theta = make_floats(theta)
     sel_params = make_floats(sel_params)
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
@@ -174,7 +174,7 @@ def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=
 
     gamma = make_floats(gamma)
     rho = make_floats(rho)
-    theta = make_floats(rho)
+    theta = make_floats(theta)
     sel_params = make_floats(sel_params)
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
