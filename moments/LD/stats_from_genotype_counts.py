@@ -28,20 +28,9 @@ def Dhat(counts):
     denom = nd*(nd-1.)
     return 2. * numer / denom
 
-def H(counts): ## to do
-    n1,n2,n3,n4,n5,n6,n7,n8,n9 = counts
-    nd = sum(counts)
-    nAA = n1+n2+n3
-    nAa = n4+n5+n6
-    naa = n7+n8+n9
-    nBB = n1+n4+n7
-    nBb = n2+n5+n8
-    nbb = n3+n6+n9
-    return
-
 def DD(counts, pop_nums):
     if len(pop_nums) != 2:
-        raise ValueError("problem with DD")
+        raise ValueError("Can pass only two population indexes to DD")
     pop1, pop2 = pop_nums
     if pop1 == pop2:
         # compute D^2 for pop in pop_nums
@@ -64,7 +53,7 @@ def DD(counts, pop_nums):
 
 def Dz(counts, pop_nums):
     if len(pop_nums) != 3:
-        raise ValueError("issue here (Dz)")
+        raise ValueError("Must pass three populations to Dz")
     pop1,pop2,pop3 = pop_nums
     if pop1 == pop2 == pop3: # Dz(i,i,i)
         cs = counts[pop1]
@@ -116,7 +105,7 @@ def Dz(counts, pop_nums):
 
 def pi2(counts, pop_nums):
     if len(pop_nums) != 4:
-        raise ValueError("issue (pi2)")
+        raise ValueError("Must pass four populations to pi2")
     pop1,pop2,pop3,pop4 = pop_nums
     if pop1 == pop2 == pop3 == pop4: # pi2(i,i;i,i)
         cs = counts[pop1]

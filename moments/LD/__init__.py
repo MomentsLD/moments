@@ -7,10 +7,12 @@ except ImportError:
     pass
 
 # Protect import of Parsing in case dependencies are not installed
-try:
-    from . import Parsing
-except ImportError:
-    pass
+#try:
+#    from . import Parsing
+#except ImportError:
+#    pass
+
+from . import Parsing
 
 from . import LDstats_mod
 LDstats = LDstats_mod.LDstats
