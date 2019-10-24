@@ -75,7 +75,7 @@ cpdef count_genotypes_between_sparse(dict G_dict1, dict G_dict2, int n, missing=
             Counts[c] = tally_sparse(G_dict1[i], G_dict2[j], n, missing=missing)
             c += 1
     
-    return np.fliplr(Counts)
+    return Counts
 
 
 
