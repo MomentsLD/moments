@@ -64,7 +64,7 @@ cpdef count_genotypes_sparse(dict G_dict, int n, missing=False):
 
 cpdef count_genotypes_between_sparse(dict G_dict1, dict G_dict2, int n, missing=False):
     cdef int L1 = len(G_dict1)
-    cdef int L2 = len(G_dict1)
+    cdef int L2 = len(G_dict2)
     
     cdef np.ndarray[np.int32_t, ndim=2] Counts = np.empty((L1*L2, 9), dtype=np.int32)
     cdef int c = 0

@@ -390,8 +390,9 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         for pop in pops:
             all_samples_to_keep += list(samples[samples['pop'] == pop]['sample'])
         
+        sample_list = list(sample_ids)
         for s in all_samples_to_keep:
-            cols_to_keep[list(sample_ids).index(s)] = True
+            cols_to_keep[sample_list.index(s)] = True
         
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
         sample_ids_pops = list(np.array(list(samples['sample'])).compress(cols_to_keep))
@@ -489,7 +490,7 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
                 sums[b][stat] = 0
     
     ## loop through left positions and pair with positions to the right within the bin windows
-    ## can this loop be cythonized?
+    ## very inefficient, naive approach
     for ii,r in enumerate(rs[:-1]):
         if report is True:
             if ii%report_spacing == 0:
