@@ -83,9 +83,10 @@ def plot_ld_curves(ld_stats, stats_to_plot=[], rows=None, cols=None,
     else:
         return fig
 
-def plot_ld_curves_comp(y, ms, vcs, stats_to_plot=[], rows=None, cols=None,
+def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=None,
                    statistics=None, fig_size=(6,6), dpi=150, r_edges=None,
-                   numfig=1, cM=False, output=None):
+                   numfig=1, cM=False, output=None, show=False,
+                   plot_means=True, plot_vcs=True):
     """
     Plot comparison between expected stats (y) and data (ms, vcs)
     
@@ -113,6 +114,10 @@ def plot_ld_curves_comp(y, ms, vcs, stats_to_plot=[], rows=None, cols=None,
     if rows == None and cols == None:
         cols = len(stats_to_plot)
         rows = 1
+    elif cols == None:
+        cols = int(np.ceil(len(stats_to_plot)/rows))
+    elif rows == None:
+        rows = int(np.ceil(len(stats_to_plot)/cols))
     
     if statistics == None:
         statistics = ld_stats.names()
@@ -131,25 +136,27 @@ def plot_ld_curves_comp(y, ms, vcs, stats_to_plot=[], rows=None, cols=None,
     # loop through stats_to_plot, update axis, and plot
     for i,stats in enumerate(stats_to_plot):
         axes[i] = plt.subplot(rows,cols,i+1)
-        for stat in stats:
-            k = statistics[0].index(stat)
-            data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
-            data_error = np.array([vcs[j][k][k]**.5 * 1.96 for j in range(len(r_centers))])
-            axes[i].fill_between(r_centers, data_to_plot-data_error, data_to_plot+data_error,
-                            alpha=.25, label=None)
+        if plot_vcs:
+            for stat in stats:
+                k = statistics[0].index(stat)
+                data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
+                data_error = np.array([vcs[j][k][k]**.5 * 1.96 for j in range(len(r_centers))])
+                axes[i].fill_between(r_centers, data_to_plot-data_error, data_to_plot+data_error,
+                                alpha=.25, label=None)
+        
+        # reset color cycle
+        plt.gca().set_prop_cycle(None)
+        if plot_means:
+            for stat in stats:
+                k = statistics[0].index(stat)
+                data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
+                axes[i].plot(r_centers, data_to_plot, '--', label=None)
         
         # reset color cycle
         plt.gca().set_prop_cycle(None)
         for stat in stats:
             k = statistics[0].index(stat)
-            data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
-            axes[i].plot(r_centers, data_to_plot, '--', label=None)
-        
-        # reset color cycle
-        plt.gca().set_prop_cycle(None)
-        for stat in stats:
-            k = statistics[0].index(stat)
-            exp_to_plot = [y[j][k] for j in range(len(r_centers))]
+            exp_to_plot = [ld_stats[j][k] for j in range(len(r_centers))]
             axes[i].plot(r_centers, exp_to_plot, label=stat)
         
         axes[i].set_xscale('log')
