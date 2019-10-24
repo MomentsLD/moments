@@ -9,18 +9,9 @@ def snm(rho=None, theta=0.001, pop_ids=None):
     theta: population-scaled mutation rate (4Nu)
     """
     Y = Demography.equilibrium(rho=rho, theta=theta)
-    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
-    return Y
-
-def snm(rho=None, theta=0.001, pop_ids=None):
-    """
-    Equilibrium neutral model
-    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
-    theta: population-scaled mutation rate (4Nu)
-    """
-    Y = Demography.equilibrium(rho=rho, theta=theta)
-    Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
+    Y = LDstats(Y, num_pops=1)
     Y = Y.split(1)
+    Y.pop_ids = pop_ids
     return Y
 
 def split_mig(params, rho=None, theta=0.001, pop_ids=None):
@@ -36,8 +27,8 @@ def split_mig(params, rho=None, theta=0.001, pop_ids=None):
     """
     nu1, nu2, T, m = params
     
-    Y = snm(rho=rho, theta=theta, pop_ids=pop_ids)
+    Y = snm(rho=rho, theta=theta)
     Y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]])
-    
+    Y.pop_ids = pop_ids
     return Y
 

@@ -1053,13 +1053,14 @@ def compute_ld_statistics(vcf_file, bed_file=None, chromosome=None, rec_map_file
     if report == True:
         print("kept {0} total variants".format(len(positions))); sys.stdout.flush()
     
-    if report is True: 
-        print("assigning recombination rates to positions, if recombination map is passed"); sys.stdout.flush()
-    
     if rec_map_file is not None and r_bins is not None:
+        if report is True: 
+            print("assigning recombination rates to positions"); sys.stdout.flush()
         pos_rs = assign_recombination_rates(positions, rec_map_file, map_name=map_name, map_sep=map_sep, cM=cM, report=report)
         bins = r_bins
     else:
+        if report is True:
+            print("no recombination map provided, using physical distance"); sys.stdout.flush()
         pos_rs = None
         if bp_bins is not None:
             bins = bp_bins

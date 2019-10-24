@@ -297,128 +297,181 @@ class LDstats(list):
         Y_new = Y_new.marginalize(Y_new.num_pops)
         return Y_new
     
-#    # Make from_file a static method, so we can use it without an instance.
-#    @staticmethod
-#    def from_file(fid, return_comments=False):
-#        """
-#        Read LD statistics from file
-#        
-#        fid: string with file name to read from or an open file object.
-#        return_comments: If true, the return value is (y, comments), where
-#                         comments is a list of strings containing the comments
-#                         from the file (without #'s).
-#        """
-#        newfile = False
-#        # Try to read from fid. If we can't, assume it's something that we can
-#        # use to open a file.
-#        if not hasattr(fid, 'read'):
-#            newfile = True
-#            fid = file(fid, 'r')
-#        
-#        line = fid.readline()
-#        # Strip out the comments
-#        comments = []
-#        while line.startswith('#'):
-#            comments.append(line[1:].strip())
-#            line = fid.readline()
-#        
-#        # Read the order, model type of the data
-#        line_spl = line.split()
-#        order = int(line_spl[0])
-#        model_type = line_spl[1]
-#        num_pops = int(line_spl[2])
-#        if len(line_spl) > 3:
-#            # get the pop_ids
-#            pop_ids = line_spl[3:]
-#        else:
-#            pop_ids = None
-#        
-#        data = numpy.fromstring(fid.readline().strip(), sep=' ')
-#
-#        maskline = fid.readline().strip()
-#        mask = numpy.fromstring(maskline, sep=' ')
-#
-#        # If we opened a new file, clean it up.
-#        if newfile:
-#            fid.close()
-#
-#        y = LDstats(data, mask, order=order, num_pops=num_pops, pop_ids=pop_ids)
-#
-#        if not return_comments:
-#            return y
-#        else:
-#            return y,comments
-#        
-#        
-#    
-#    def to_file(self, fid, precision=16, comment_lines=[]):
-#        """
-#        Write LD statistics to file.
-#        
-#        fid: string with file name to write to or an open file object.
-#        precision: precision with which to write out entries of the LD stats. 
-#                   (They are formated via %.<p>g, where <p> is the precision.)
-#        comment lines: list of strings to be used as comment lines in the header
-#                       of the output file.
-#        foldmaskinfo: If False, folding and mask and population label
-#                      information will not be saved. 
-#
-#        The file format is:
-#            # Any number of comment lines beginning with a '#'
-#            A single line containing an integer giving the order of LD 
-#              statistics. So this line would be '4' if we have modeled
-#              the order D^4 system.
-#            On the *same line*, the string 'onepop' or 'multipop' denoting 
-#              whether we have a single or multipop object.
-#            On the *same line*, number of populations (must be '1' if we have
-#              written 'onepop', and can be any integer for 'multipop').
-#            On the *same line*, optional strings each containing the population
-#              labels in quotes separated by spaces, e.g. "pop 1" "pop 2"
-#            A single line giving the array elements. The order of elements is 
-#              given by order in Numerics.moment_names...
-#            A single line giving the elements of the mask in the same order as
-#              the data line. '1' indicates masked, '0' indicates unmasked.
-#        """
-#        # Open the file object.
-#        newfile = False
-#        if not hasattr(fid, 'write'):
-#            newfile = True
-#            fid = file(fid, 'w')
-#
-#        # Write comments
-#        for line in comment_lines:
-#            fid.write('# ')
-#            fid.write(line.strip())
-#            fid.write(os.linesep)
-#
-#        # Write out the order of the LDstats
-#        fid.write('%i ' % self.order)
-#        
-#        # Write out model type (onepop or multipop) and number of populations
-#        if len(self) == 5:
-#            fid.write('onepop %i' % self.num_pops)
-#        else:
-#            fid.write('multipop %i' % self.num_pops)
-#        
-#        if self.pop_ids is not None:
-#            for label in self.pop_ids:
-#                fid.write(' "%s"' % label)
-#        
-#        fid.write(os.linesep)
-#
-#        # Write the data to the file
-#        self.tofile(fid, ' ', '%%.%ig' % precision)
-#        fid.write(os.linesep)
-#
-#        # Write the mask to the file
-#        numpy.asarray(self.mask,int).tofile(fid, ' ')
-#        fid.write(os.linesep)
-#
-#        # Close file
-#        if newfile:
-#            fid.close()
-#
-#    tofile = to_file
+    # Make from_file a static method, so we can use it without an instance.
+    @staticmethod
+    def from_file(fid, return_comments=False):
+        """
+        Read LD statistics from file
+        
+        fid: string with file name to read from or an open file object.
+        return_statistics: If true, returns statistics writen to file.
+        return_comments: If true, the return value is (y, comments), where
+                         comments is a list of strings containing the comments
+                         from the file (without #'s).
+        """
+        newfile = False
+        # Try to read from fid. If we can't, assume it's something that we can
+        # use to open a file.
+        if not hasattr(fid, 'read'):
+            newfile = True
+            fid = open(fid, 'r')
+        
+        line = fid.readline()
+        # Strip out the comments
+        comments = []
+        while line.startswith('#'):
+            comments.append(line[1:].strip())
+            line = fid.readline()
+        
+        # Read the num pops and pop_ids, if given
+        line_spl = line.split()
+        num_pops = int(line_spl[0])
+        if len(line_spl) > 1:
+            # get the pop_ids
+            pop_ids = line_spl[1:]
+            if num_pops != len(pop_ids):
+                print('Warning: num_pops does not match number of pop_ids.')
+        else:
+            pop_ids = None
+        
+        # Get the statistic names
+        ld_stats = fid.readline().split()
+        het_stats = fid.readline().split()
+        if ld_stats == ['ALL']:
+            ld_stats = Util.moment_names(num_pops)[0]
+        if het_stats == ['ALL']:
+            het_stats = Util.moment_names(num_pops)[1]
+        statistics = [ld_stats, het_stats]
+        
+        # Get the number of LD statistic rows and read LD data
+        num_ld_rows = int(fid.readline().strip())
+        data = []
+        for r in range(num_ld_rows):
+            data.append(numpy.fromstring(fid.readline().strip(), sep=' '))
+        
+        # Read heterozygosity data
+        data.append(numpy.fromstring(fid.readline().strip(), sep=' '))
+        
+        # If we opened a new file, clean it up.
+        if newfile:
+            fid.close()
+
+        y = LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
+
+        if not return_comments:
+            return y, statistics
+        else:
+            return y, statistics, comments
+
+
+    def to_file(self, fid, precision=16, statistics='ALL', comment_lines=[]):
+        """
+        Write LD statistics to file.
+        
+        fid: string with file name to write to or an open file object.
+        precision: precision with which to write out entries of the LD stats. 
+                   (They are formated via %.<p>g, where <p> is the precision.)
+        statistics: defaults to 'ALL', meaning all statistics are given in the
+                    LDstats object. Otherwise, list of two lists, first giving
+                    present LD stats, and the second giving present het stats.
+        comment lines: list of strings to be used as comment lines in the header
+                       of the output file.
+                       I use comment lines mainly to record the recombination 
+                       bins or distances given in the LDstats (something like
+                       "'edges = ' + str(r_edges)".
+
+        The file format is:
+            # Any number of comment lines beginning with a '#'
+            A single line containing an integer giving the number of
+              populations.
+            On the *same line*, optional, the names of those populations. If
+              names are given, there needs to be the same number of pop_ids
+              as the integer number of populations. For example, the line could
+              be '3 YRI CEU CHB'.
+            A single line giving the names of the *LD* statistics, in the order
+              they appear for each recombination rate distance or bin.
+              Optionally, this line could read ALL, indicating that every 
+              statistic in the basis is given, and in the 'correct' order.
+            A single line giving the names of the *heterozygosity* statistics,
+              in the order they appear in the final row of data. Optionally,
+              this line could read ALL.
+            A line giving the number of recombination rate bins/distances we 
+              have data for (so we know how many to read)
+            One line for each row of LD statistics.
+            A single line for the heterozygosity statistics.
+        """
+        
+        # if statistics is ALL, check to make sure the lengths are correct
+        if statistics != 'ALL':
+            ld_stat_names, het_stat_names = statistics
+        else:
+            ld_stat_names, het_stat_names = Util.moment_names(self.num_pops)
+        
+        all_correct_length = 1
+        for ld_stats in self.LD():
+            if len(ld_stats) != len(ld_stat_names):
+                all_correct_length = 0
+                break
+        if len(self.H()) != len(het_stat_names):
+            all_correct_length = 0
+        
+        if all_correct_length == 0:
+            raise ValueError('Length of data arrays does not match expected \
+                              length of statistics.')
+        
+        
+        # Open the file object.
+        newfile = False
+        if not hasattr(fid, 'write'):
+            newfile = True
+            fid = open(fid, 'w')
+
+        # Write comments
+        for line in comment_lines:
+            fid.write('# ')
+            fid.write(line.strip())
+            fid.write(os.linesep)
+
+        # Write out the number of populations and pop_ids if given
+        fid.write('%i' % self.num_pops)
+        if self.pop_ids is not None:
+            for pop in self.pop_ids:
+                fid.write(' %s' % pop)
+        fid.write(os.linesep)
+        
+        # Write out LD statistics
+        if statistics == 'ALL':
+            fid.write(statistics)
+        else:
+            for stat in statistics[0]:
+                fid.write('%s ' % stat)
+        fid.write(os.linesep)
+        
+        # Write out het statistics
+        if statistics == 'ALL':
+            fid.write(statistics)
+        else:
+            for stat in statistics[1]:
+                fid.write('%s ' % stat)
+        fid.write(os.linesep)
+
+        # Write the LD data to the file
+        fid.write('%i' % len(self.LD()))
+        fid.write(os.linesep)
+        for ld_stats in self.LD():
+            for stat in ld_stats:
+                fid.write('%%.%ig ' % precision % stat)
+            fid.write(os.linesep)
+        
+        # Write the het data to the file
+        for stat in self.H():
+            fid.write('%%.%ig ' % precision % stat)
+        
+        # Close file
+        if newfile:
+            fid.close()
+
+    tofile = to_file
         
     
     # Ensures that when arithmetic is done with LDstats objects,
