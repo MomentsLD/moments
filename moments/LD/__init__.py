@@ -6,7 +6,13 @@ try:
 except ImportError:
     pass
 
-# Protect import of Parsing in case dependencies are not installed
+# Protect import of Plotting in case matplotlib is not installed.
+try:
+    from . import Plotting
+except ImportError:
+    pass
+
+# Protect import of Parsing in case dependencies are not installed.
 #try:
 #    from . import Parsing
 #except ImportError:
