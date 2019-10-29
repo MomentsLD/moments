@@ -513,6 +513,14 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         right_start = right_indices[0]
         right_end = right_indices[-1]+1
         
+        if use_cache == False:
+            # create counts for each bin, call stats from gentoype counts from here
+            # format to pass to call_sgc, for each bin, is
+            # 
+            counts_ii = {}
+            for b in bs:
+                counts_ii[b] = [[] for pop_ind in range(len(pops))]
+        
         ## loop through right loci and count two-locus genotypes
         for jj in range(right_start, right_end):
             # get the bin that this pair belongs to
@@ -529,8 +537,16 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
             if use_cache == True:
                 type_counts[b][cs] += 1
             else:
+                for pop_ind in range(len(pops)):
+                    counts_ii[b][pop_ind].append(cs[pop_ind])
+                    
+        if use_cache == False:
+            for b in bs:
+                these_counts = np.array(counts_ii[b])
+                if these_counts.shape[1] == 0:
+                    continue
                 for stat in stats_to_compute[0]:
-                    sums[b][stat] += call_sgc(stat, cs, use_genotypes)
+                    sums[b][stat] += call_sgc(stat, these_counts.swapaxes(1,2), use_genotypes).sum()
     
     if use_cache == True:
         return type_counts
