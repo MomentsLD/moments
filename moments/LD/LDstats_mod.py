@@ -1,5 +1,9 @@
 """
 Contains LD statistics object
+
+XXX I made a stupid decision early on to index populations from 1 instead of 0.
+    At some point I need to go through and fix all that, perhaps...
+
 """
 import logging
 logging.basicConfig()
@@ -152,7 +156,8 @@ class LDstats(list):
     def swap_pops(self, pop1, pop2):
         """
         like swapaxes for switching population ordering
-        pop1 and pop2 are indexes of 
+        pop1 and pop2 are indexes of the two populations to swap, and also swaps
+        their population id names in self.pop_ids
         """
         if pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
             raise ValueError("Invalid population number specified.")
@@ -257,8 +262,10 @@ class LDstats(list):
     
     def admix(self, pop1, pop2, f, new_pop=None):
         """
-        
-        
+        Admixture between pop1 and pop2, given by indexes. f is the fraction 
+            contributed by pop1, so pop2 contributes 1-f.
+        If new_pop is left as 'None', the admixed population's name is 'Adm'.
+            Otherwise, we can set it with new_pop=new_pop_name.
         """
         if self.num_pops < 2 or pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
             raise ValueError("Improper usage of admix (wrong indices?).")
@@ -275,8 +282,9 @@ class LDstats(list):
     
     def merge(self, pop1, pop2, f, new_pop=None):
         """
-        Merger of populations 1 and 2, with fraction f from pop1 (1-f from pop2)
-        Places new population at the end, then marginalizes pop1 and pop2
+        Merger of populations pop1 and pop22, with fraction f from pop1 
+            and 1-f from pop2.
+        Places new population at the end, then marginalizes pop1 and pop2.
         To admix two populations and keep one or both, use pulse migrate or 
             admix, respectively.
         """
@@ -286,14 +294,18 @@ class LDstats(list):
     
     def pulse_migrate(self, pop1, pop2, f):
         """
-        pulse migration from pop1 to pop2, with fraction f replacement
-        we admix pop1 and pop2 with fraction f and 1-f, then swap the new
-        admixed population with pop2, then marginalize the old un-pulsed pop2
+        Pulse migration/admixure event from pop1 to pop2, with fraction f 
+            replacement. We use the admix function above. We want to keep the 
+            original population names the same, if they are given in the LDstats
+            object, so we use new_pop=self.pop_ids[pop2].
+        We admix pop1 and pop2 with fraction f and 1-f, then swap the new
+            admixed population with pop2, then marginalize the original pop2.
         """
-        Y_new = self.admix(pop1, pop2, f)
-        Y_new = Y_new.swap_pops(pop2, Y_new.num_pops)
         if self.pop_ids is not None:
-            Y_new.pop_ids[pop2] = Y_new.pop_ids[-1]
+            Y_new = self.admix(pop1, pop2, f, new_pop=self.pop_ids[pop2-1])
+        else:
+            Y_new = self.admix(pop1, pop2, f)
+        Y_new = Y_new.swap_pops(pop2, Y_new.num_pops)
         Y_new = Y_new.marginalize(Y_new.num_pops)
         return Y_new
     

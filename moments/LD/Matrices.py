@@ -309,8 +309,8 @@ def migration_h(num_pops, mig_mat, frozen=None):
         for pid in range(num_pops):
             if frozen[pid] == True:
                 for pid2 in range(num_pops):
-                    mig_mat[pid,pid2] = 0
-                    mig_mat[pid2,pid] = 0
+                    mig_mat[pid][pid2] = 0
+                    mig_mat[pid2][pid] = 0
     
     Hs = Util.het_names(num_pops)
     M = np.zeros( ( len(Hs), len(Hs) ) )
@@ -344,8 +344,8 @@ def migration_ld(num_pops, m, frozen=None):
         for pid in range(num_pops):
             if frozen[pid] == True:
                 for pid2 in range(num_pops):
-                    m[pid,pid2] = 0
-                    m[pid2,pid] = 0
+                    m[pid][pid2] = 0
+                    m[pid2][pid] = 0
 
     Ys = Util.ld_names(num_pops)
     M = np.zeros( ( len(Ys), len(Ys) ) )
