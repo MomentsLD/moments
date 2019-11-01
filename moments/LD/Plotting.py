@@ -84,9 +84,9 @@ def plot_ld_curves(ld_stats, stats_to_plot=[], rows=None, cols=None,
         return fig
 
 def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=None,
-                   statistics=None, fig_size=(6,6), dpi=150, r_edges=None,
+                   statistics=None, fig_size=(6,6), dpi=150, rs=None,
                    numfig=1, cM=False, output=None, show=False,
-                   plot_means=True, plot_vcs=True):
+                   plot_means=True, plot_vcs=False, binned_data=True):
     """
     Plot comparison between expected stats (y) and data (ms, vcs)
     
@@ -95,6 +95,11 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
     rows and cols tells us how to arrange the panes, if there are more than one 
         sets of statistics to plot
     if statistics is None, we use the statistics as listed in ld_stats.names()
+    
+    if binned_data is True, then rs defines the edges of bins, so that ld_stats,
+        ms, and vcs have length of ld stats equal to rs-1, while if 
+        binned data is False, ld_stats and ms is plotted at values of rs,
+        and have equal length to rs.
     
     For example, to plot four panes, two on each of two rows, with the D^2
         statistics, the between-population cov(D) statistics, the non-cross
@@ -106,6 +111,10 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
     """
     
     # Check that all the data has the correct dimensions
+    if binned_data and (len(ld_stats.LD()) != len(rs)-1):
+        raise ValueError("binned_data True, but incorrect length for given rs.")
+    if (binned_data == False) and (len(ld_stats.LD()) != len(rs)):
+        raise ValueError("binned_data False, incorrect length for given rs.")
     
     num_axes = len(stats_to_plot)
     if num_axes == 0:
@@ -123,11 +132,14 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
         statistics = ld_stats.names()
     
     # make sure all stats are named properly
+    if binned_data:
+        rs_to_plot = np.array((rs[:-1]+rs[1:])/2)
+    else:
+        rs_to_plot = rs
     
-    r_centers = np.array((r_edges[:-1]+r_edges[1:])/2)
     x_label = '$r$'
     if cM == True:
-        r_centers *= 100
+        rs_to_plot *= 100
         x_label = 'cM'
     
     fig = plt.figure(numfig, figsize=fig_size, dpi=dpi)
@@ -139,9 +151,9 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
         if plot_vcs:
             for stat in stats:
                 k = statistics[0].index(stat)
-                data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
-                data_error = np.array([vcs[j][k][k]**.5 * 1.96 for j in range(len(r_centers))])
-                axes[i].fill_between(r_centers, data_to_plot-data_error, data_to_plot+data_error,
+                data_to_plot = np.array([ms[j][k] for j in range(len(rs_to_plot))])
+                data_error = np.array([vcs[j][k][k]**.5 * 1.96 for j in range(len(rs_to_plot))])
+                axes[i].fill_between(rs_to_plot, data_to_plot-data_error, data_to_plot+data_error,
                                 alpha=.25, label=None)
         
         # reset color cycle
@@ -149,15 +161,15 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
         if plot_means:
             for stat in stats:
                 k = statistics[0].index(stat)
-                data_to_plot = np.array([ms[j][k] for j in range(len(r_centers))])
-                axes[i].plot(r_centers, data_to_plot, '--', label=None)
+                data_to_plot = np.array([ms[j][k] for j in range(len(rs_to_plot))])
+                axes[i].plot(rs_to_plot, data_to_plot, '--', label=None)
         
         # reset color cycle
         plt.gca().set_prop_cycle(None)
         for stat in stats:
             k = statistics[0].index(stat)
-            exp_to_plot = [ld_stats[j][k] for j in range(len(r_centers))]
-            axes[i].plot(r_centers, exp_to_plot, label=stat)
+            exp_to_plot = [ld_stats[j][k] for j in range(len(rs_to_plot))]
+            axes[i].plot(rs_to_plot, exp_to_plot, label=stat)
         
         axes[i].set_xscale('log')
         axes[i].set_yscale('log')

@@ -1152,6 +1152,68 @@ def bootstrap_data(all_data, normalization=['pi2_1_1_1_1','H_1_1']):
 
 
 
+def subset_data(data, pops_to, normalization=1, r_min=None, r_max=None, remove_Dz=False):
+    """
+    to take the pickled data output by ... and get r_edges, ms, vcs, and stats 
+        to pass to inference machinery
+    Notes: Up to user to make sure that the order is preserved 
+        (have a catch in future)
+    """
+    pops_from = data['pops']
+    if np.all([p in pops_from for p in pops_to]) == False:
+        raise ValueError("All pops in pops_to must be in data")
+    
+    new_pop_ids = {}
+    for pop in pops_to:
+        new_pop_ids[pops_from.index(pop)+1] = pops_to.index(pop)+1
+    
+    stats = data['stats']
+    
+    to_remove = [[],[]]
+    new_stats = [[],[]]
+    
+    for j in [0,1]:
+        for i,stat in enumerate(stats[j]):
+            if stat in ['pi2_{0}_{0}_{0}_{0}'.format(normalization), 
+                        'H_{0}_{0}'.format(normalization)]:
+                to_remove[j].append(i)
+            else:
+                if remove_Dz == True:
+                    if stat.split('_')[0] == 'Dz':
+                        to_remove[j].append(i)
+                        continue
+                p_inds = [int(x) for x in stat.split('_')[1:]]
+                if len(set(p_inds) - set(new_pop_ids)) == 0:
+                    new_stat = '_'.join([stat.split('_')[0]] + 
+                        [str(new_pop_ids[x]) for x in p_inds])
+                    new_stats[j].append(new_stat)
+                else:
+                    to_remove[j].append(i)
+    
+    
+    means = []
+    varcovs = []
+    
+    for i,b in enumerate(data['bins']):
+        if r_min is not None:
+            if b[0] < r_min:
+                continue
+        if r_max is not None:
+            if b[1] > r_max:
+                continue
+        means.append(np.delete(data['means'][i], to_remove[0]))
+        varcovs.append(np.delete(np.delete(data['varcovs'][0], to_remove[0], axis=0), to_remove[0], axis=1))
+    
+    means.append(np.delete(data['means'][-1], to_remove[1]))
+    varcovs.append(np.delete(np.delete(data['varcovs'][-1], to_remove[1], axis=0), to_remove[1], axis=1))
+            
+    r_edges = np.array(sorted(list(set( np.array(data['bins']).flatten() ))))
+    if r_min is not None:
+        r_edges = r_edges[r_edges >= r_min]
+    if r_max is not None:
+        r_edges = r_edges[r_edges <= r_max]
+    
+    return r_edges, means, varcovs, new_stats
 
 
 
