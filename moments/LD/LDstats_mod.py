@@ -574,7 +574,13 @@ def %(method)s(self, other):
             if len(selfing) != num_pops:
                 raise ValueError("selfing must have same length as number of pops.")
         
-        self[:] = Numerics.integrate(self[:], nu, tf, dt=dt,
+        # enforce minimum 10 time steps per integration
+        if tf < dt*10:
+            dt_adj = tf / 10
+        else:
+            dt_adj = dt * 1.0
+        
+        self[:] = Numerics.integrate(self[:], nu, tf, dt=dt_adj,
                                     rho=rho, theta=theta, m=m,
                                     num_pops=num_pops, 
                                     selfing=selfing, frozen=frozen)

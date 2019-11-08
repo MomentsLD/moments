@@ -283,8 +283,8 @@ def optimize_log_fmin(p0, data, model_func,
     if rs is None:
         raise ValueError("need to pass rs as bin edges")
     
-    if Ne is None:
-        print("Warning: using last parameter in list of params as Ne")
+    #if Ne is None:
+    #    print("Warning: using last parameter in list of params as Ne")
     
     # get num_pops
     if Ne == None:
@@ -381,8 +381,8 @@ def optimize_log_powell(p0, data, model_func,
     if rs is None:
         raise ValueError("need to pass rs as bin edges")
     
-    if Ne is None:
-        print("Warning: using last parameter in list of params as Ne")
+    #if Ne is None:
+    #    print("Warning: using last parameter in list of params as Ne")
     
     # remove normalized statistics (or how should we handle the masking?)
     ms = copy.copy(means)
