@@ -35,6 +35,7 @@ from Cython.Build import cythonize
 from Cython.Distutils import build_ext
 import numpy as np
 
+# cython extensions for moments
 extensions = [
               Extension("Jackknife", ["moments/Jackknife.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
               Extension("LinearSystem_1D", ["moments/LinearSystem_1D.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
@@ -47,12 +48,24 @@ setup(
       ext_modules = cythonize(extensions),
       )
 
+# cython extensions for moments.LD
+extensions = [
+              Extension("genotype_calculations", ["moments/LD/genotype_calculations.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+              Extension("genotype_calculations_multipop", ["moments/LD/genotype_calculations_multipop.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+              Extension("sparse_tallying", ["moments/LD/sparse_tallying.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
+              ]
+
+setup(
+      cmdclass = {'build_ext':build_ext},
+      ext_modules = cythonize(extensions),
+      )
+
 numpy.distutils.core.setup(name='moments',
                            version='1.0.0',
-                           author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous',
+                           author='Simon Gravel, Ryan Gutenkunst, Julien Jouganous, Aaron Ragsdale',
                            author_email='simon.gravel@mcgill.ca',
                            url='http://simongravel.lab.mcgill.ca/Home.html',
-                           packages=['moments', 'moments.Triallele', 'moments.TwoLocus'],
+                           packages=['moments', 'moments.Triallele', 'moments.TwoLocus', 'moments.LD'],
                            package_data = {'tests':['IM.fs']},
                            license='BSD'
                            )

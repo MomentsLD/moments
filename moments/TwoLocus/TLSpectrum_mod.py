@@ -9,6 +9,7 @@ import os
 import numpy, numpy as np
 import moments.TwoLocus.Numerics
 import moments.TwoLocus.Integration
+import scipy.special
 
 class TLSpectrum(numpy.ma.masked_array):
     """
@@ -89,23 +90,13 @@ class TLSpectrum(numpy.ma.masked_array):
         Mask any infeasible entries.
         """
         ns = len(self)-1
-        # mask fixed entries
-        self.mask[0,0,0] = True
-        self.mask[0,0,-1] = True
-        self.mask[0,-1,0] = True
-        self.mask[-1,0,0] = True
         # mask entries with i+j+k > ns
         for ii in range(len(self)):
             for jj in range(len(self)):
                 for kk in range(len(self)):
                     if ii+jj+kk > ns:
                         self.mask[ii,jj,kk] = True
-        
-        # mask fA = 0 and fB = 0
-        for ii in range(len(self)):
-            self.mask[ii,ns-ii,0] = True
-            self.mask[ii,0,ns-ii] = True
-        
+                
         return self
     
     def mask_fixed(self):
@@ -145,7 +136,126 @@ class TLSpectrum(numpy.ma.masked_array):
         return np.asarray(self.shape)[0] - 1
     sample_size = property(_get_sample_size)
     
-    # Make from_file a static method, so we can use it without an instance.
+    def left(self):
+        """
+        The marginal allele frequency spectrum at the left locus
+        index in new AFS is ii+jj
+        """
+        n = len(self)-1
+        fl = np.zeros(n+1)
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    fl[ii+jj] += self[ii,jj,kk]
+        return fl
+    
+    def right(self):
+        """
+        The marginal AFS at the right locus
+        """
+        n = len(self)-1
+        fr = np.zeros(n+1)
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    fr[ii+kk] += self[ii,jj,kk]
+        return fr
+    
+    def D(self, proj=True):
+        n = len(self)-1
+        DD = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            DD += self.data[ii,jj,kk] * ( ii*(n-ii-jj-kk)/float(n*(n-1)) - jj*kk/float(n*(n-1)) )
+                        else:
+                            DD += self.data[ii,jj,kk] * ( ii*(n-ii-jj-kk)/float(n**2) - jj*kk/float(n**2) )
+        return DD
+        
+    def D2(self, proj=True):
+        n = len(self)-1
+        DD2 = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            DD2 += self.data[ii,jj,kk] * 1./3 * ( scipy.special.binom(ii,2)*scipy.special.binom(n-ii-jj-kk,2)/scipy.special.binom(n,4) + scipy.special.binom(jj,2)*scipy.special.binom(kk,2)/scipy.special.binom(n,4) - 1./2 * ii*jj*kk*(n-ii-jj-kk)/scipy.special.binom(n,4) )
+                        else:
+                            DD2 += self.data[ii,jj,kk] * 2./n**4 * ( ii**2 * (n-ii-jj-kk)**2 + jj**2 * kk**2 - 2*ii * jj * kk * (n-ii-jj-kk) )
+        return DD2
+
+    def pi2(self, proj=True):
+        n = len(self)-1
+        stat = 0
+        for ii in range(n+1):
+            for jj in range(n+1-ii):
+                for kk in range(n+1-ii-jj):
+                    if self.mask[ii,jj,kk] == True:
+                        continue
+                    ll = n-ii-jj-kk
+                    if ii+jj == 0 or ii+kk == 0 or ii+jj == n or ii+kk == n:
+                        continue
+                    else:
+                        if proj == True:
+                            stat += self.data[ii,jj,kk] * 2./scipy.special.binom(n,4) * (
+                                        ii*(ii-1)/2*jj*kk / 12. + 
+                                        ii*jj*(jj-1)/2*kk / 12. + 
+                                        ii*jj*kk*(kk-1)/2 / 12. + 
+                                        jj*(jj-1)/2*kk*(kk-1)/2 / 6. + 
+                                        ii*(ii-1)/2*jj*ll / 12. + 
+                                        ii*jj*(jj-1)/2*ll / 12. + 
+                                        ii*(ii-1)/2*kk*ll / 12. + 
+                                        2 * ii*jj*kk*ll / 24. + 
+                                        jj*(jj-1)/2*kk*ll / 12. + 
+                                        ii*kk*(kk-1)/2*ll / 12. + 
+                                        jj*kk*(kk-1)/2*ll / 12. + 
+                                        ii*(ii-1)/2*ll*(ll-1)/2 / 6. + 
+                                        ii*jj*ll*(ll-1)/2 / 12. + 
+                                        ii*kk*ll*(ll-1)/2 / 12. + 
+                                        jj*kk*ll*(ll-1)/2 / 12.
+                                        )
+                        else:
+                            stat += self.data[ii,jj,kk] * 2./n**4 * (
+                                        ii**2*jj*kk + 
+                                        ii*jj**2*kk + 
+                                        ii*jj*kk**2 + 
+                                        jj**2*kk**2 + 
+                                        ii**2*jj*ll + 
+                                        ii*jj**2*ll + 
+                                        ii**2*kk*ll + 
+                                        2 * ii*jj*kk*ll + 
+                                        jj**2*kk*ll + 
+                                        ii*kk**2*ll + 
+                                        jj*kk**2*ll + 
+                                        ii**2*ll**2 + 
+                                        ii*jj*ll**2 + 
+                                        ii*kk*ll**2 + 
+                                        jj*kk*ll**2
+                                        )
+        return stat
+    
+    def Dz(self, proj=True):
+        n = len(self)-1
+        if proj == False:
+            print("not implemented with proj=False")
+            return
+        else:
+            F_proj = self.project(4)
+            stat = 1./4*F_proj[3,0,0] - 1./3*F_proj[2,0,0] + 1./4*F_proj[1,0,0] - 1./12*F_proj[2,1,1] - 1./12*F_proj[1,2,0] - 1./12*F_proj[1,0,2] - 1./12*F_proj[0,1,1] + 1./4*F_proj[0,3,1] - 1./3*F_proj[0,2,2] + 1./4*F_proj[0,1,3] + 1./6*F_proj[1,1,1]
+            return 2*stat
+    
+# Make from_file a static method, so we can use it without an instance.
     @staticmethod
     def from_file(fid, mask_infeasible=True, return_comments=False):
         """
@@ -278,17 +388,18 @@ class TLSpectrum(numpy.ma.masked_array):
                     q = ii + kk
                     if p > ns/2 and q > ns/2:
                         # Switch A/a and B/b, so AB becomes ab, Ab becomes aB, etc
-                        folded[ns-ii-jj-kk,kk,jj] = self[ns-ii-jj-kk,kk,jj] + self[ii,jj,kk]
+                        folded[ns-ii-jj-kk,kk,jj] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
                     elif p > ns/2:
                         # Switch A/a, so AB -> aB, Ab -> ab, aB -> AB, and ab -> Ab
-                        folded[kk,ns-ii-jj-kk,ii] = self[kk,ns-ii-jj-kk,ii] + self[ii,jj,kk]
+                        folded[kk,ns-ii-jj-kk,ii] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
                     elif q > ns/2:
                         # Switch B/b, so AB -> Ab, Ab -> AB, aB -> ab, and ab -> aB
-                        folded[jj,ii,ns-ii-jj-kk] = self[jj,ii,ns-ii-jj-kk] + self[ii,jj,kk]
+                        folded[jj,ii,ns-ii-jj-kk] += self.data[ii,jj,kk]
                         folded.mask[ii,jj,kk] = True
-        
+                    else:
+                        folded[ii,jj,kk] += self.data[ii,jj,kk]
         folded.folded = True
         return folded
     
@@ -346,7 +457,7 @@ def %(method)s(self, other):
             raise ValueError('Cannot operate with a folded Spectrum and an '
                              'unfolded one.')
     
-    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, sel_params=None, theta=1.0):
+    def integrate(self, nu, tf, dt=0.01, rho=None, gamma=None, h=None, sel_params=None, theta=1.0, finite_genome=False, u=None, v=None, alternate_fg=None):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
@@ -366,9 +477,11 @@ def %(method)s(self, other):
             print('Warning: rho was not specified. Simulating with rho = 0.')
         
         self.data[:] = moments.TwoLocus.Integration.integrate(self.data, nu, tf, rho=rho, dt=dt, theta=theta,
-                                    gamma=gamma, h=h, sel_params=sel_params)
+                                    gamma=gamma, h=h, sel_params=sel_params,
+                                    finite_genome=finite_genome, u=u, v=v,
+                                    alternate_fg=alternate_fg)
         
-        return self
+        #return self # comment out (returned for testing earlier)
 
 # Allow TLSpectrum objects to be pickled. 
 # See http://effbot.org/librarybook/copy-reg.htm

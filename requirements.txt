@@ -4,3 +4,5 @@ scipy
 mpmath
 matplotlib
 ipython
+pandas
+networkx

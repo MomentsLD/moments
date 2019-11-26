@@ -26,20 +26,15 @@ from . import Reversible
 #-----------------------------------
 # Mutations
 def _calcB(dims, u):
-    """
-    dims : List containing the pop sizes
-
-    u : scalar mutation rate
-
-    Returns a mutation matrix
-    """ 
+    # u is a list of mutation rates in each population
+    # allows for different mutation rates in different pops
     B = np.zeros(dims)
     for k in range(len(dims)):
         ind = np.zeros(len(dims), dtype='int')
         ind[k] = int(1)
         tp = tuple(ind)
-        B[tp] = dims[k] - 1
-    return u * B
+        B[tp] = (dims[k] - 1) * u[k]
+    return B
 
 
 # Finite genome mutation model
@@ -563,7 +558,7 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 
 
 def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1.0, adapt_dt=False,
-                 finite_genome=False, theta_fd=None, theta_bd=None):
+                 finite_genome=False, theta_fd=None, theta_bd=None, frozen=[False]):
     """
     N : total population size (vector N = (N1,...,Np))
     tf : final simulation time (/2N1 generations)
@@ -584,6 +579,58 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     if gamma is None: gamma = np.zeros(len(n))
     if h is None: h = 0.5 * np.ones(len(n))
     if m is None: m = np.zeros([len(n), len(n)])
+    s = np.array(gamma)
+    h = np.array(h)
+    
+    Tmax = tf * 2.0
+    dt = Tmax * dt_fac
+
+    # dimensions of the sfs
+    dims = np.array(n + np.ones(len(n)), dtype=int)
+    d = int(np.prod(dims))
+
+    # if theta is single value, mutation rate is same in each population
+    if finite_genome == False:
+        if hasattr(theta, "__len__"):
+            u = np.array(theta) / 4.0
+        else:
+            u = np.array([theta / 4.0] * len(dims))
+    else:
+        if hasattr(theta_fd, "__len__"):
+            u = np.array(theta_fd) / 4.0
+        else:
+            u = np.array([theta_fd/4.] * len(dims))
+        if hasattr(theta_bd, "__len__"):
+            v = np.array(theta_bd) / 4.0
+        else:
+            v = np.array([theta_bd/4.] * len(dims))
+    
+    mm = np.array(m) / 2.0
+    
+    # if any populations are frozen, we set their population extremely large,
+    # selection to zero, and mutations to zero in those pops
+    frozen = np.array(frozen)
+    if np.any(frozen):
+        frozen_pops = np.where(frozen==True)[0]
+        # fix selection
+        for pop_num in frozen_pops:
+            s[pop_num] = 0.0
+        # fix population sizes
+        if callable(Npop):
+            Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
+        else:
+            for pop_num in frozen_pops:
+                Npop[pop_num] = 1e40
+        # fix mutation to zero in frozen populations
+        if finite_genome == False:
+            u *= (1-frozen)
+        else:
+            u *= (1-frozen)
+            v *= (1-frozen)
+        # fix migration to zero to and from frozen populations    
+        for pop_num in frozen_pops:
+            mm[:,pop_num] = 0.0
+            mm[pop_num,:] = 0.0
     
     # parameters of the equation
     if callable(Npop): 
@@ -593,15 +640,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     
     Nold = N.copy()
     Neff = N
-    mm = np.array(m) / 2.0
-    s = np.array(gamma)
-    h = np.array(h)
-    Tmax = tf * 2.0
-    dt = Tmax * dt_fac
-    u = theta / 4.0
-    # dimensions of the sfs
-    dims = np.array(n + np.ones(len(n)), dtype=int)
-    d = int(np.prod(dims))
+
     # number of "directions" for the splitting
     nbp = int(len(n) * (len(n)-1) / 2)
     if len(n) == 1: nbp = 1
@@ -629,7 +668,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, theta_fd/4., theta_bd/4.)
+        B = _calcB_FB(dims, u, v)
     
     # indexes for the permutation trick
     order = list(range(nbp))
