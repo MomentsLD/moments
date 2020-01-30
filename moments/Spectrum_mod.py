@@ -476,6 +476,19 @@ class Spectrum(numpy.ma.masked_array):
         else:
             return output
 
+    def swap_axes(self, ax1, ax2):
+        """
+        Uses numpy's swapaxes function, but also swaps pop_ids as appropriate
+        if pop_ids are given.
+        Note that `fs.swapaxes(ax1, ax2)` will still work, but if population
+        ids are given, it won't swap the pop_ids entries as expected.
+        """
+        output = numpy.swapaxes(self, ax1, ax2)
+        if output.pop_ids is not None:
+            pop1, pop2 = output.pop_ids[ax1], output.pop_ids[ax2]
+            output.pop_ids[ax1], output.pop_ids[ax2] = pop2, pop1
+        return output
+
     def _counts_per_entry(self):
         """
         Counts per population for each entry in the fs.
@@ -760,7 +773,7 @@ class Spectrum(numpy.ma.masked_array):
                     this_snp = chromos[snp::segsites+1]
                     # Count SNPs per population, and record them.
                     if dimension == 1:
-                        data[this_snp.count('1')] += 1
+                        data[this_snumpy.count('1')] += 1
                     elif dimension == 2:
                         data[this_snp[bottom0:top0].count('1'), 
                              this_snp[bottom1:top1].count('1')] += 1

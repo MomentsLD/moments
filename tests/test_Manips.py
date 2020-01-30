@@ -16,6 +16,7 @@ class ManipsTestCase(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_split_with_pop_ids(self):
+        # tests that having pop_ids on a spectrum doesn't cause an error when splitting
         fs = moments.Demographics1D.snm([20])
         fs.pop_ids = ['pop0']
         fs = moments.Manips.split_1D_to_2D(fs, 10, 10)
@@ -37,5 +38,11 @@ class ManipsTestCase(unittest.TestCase):
         self.assertTrue(fs4.pop_ids == None)
         self.assertTrue(fs4.shape == (11,6,2,3,3))
 
+    def test_swap_axes_pop_ids(self):
+        fs = moments.Demographics2D.snm([10,10])
+        fs.pop_ids = ['A','B']
+        self.assertTrue(fs.pop_ids == ['A','B'])
+        fs = fs.swap_axes(0,1)
+        self.assertTrue(fs.pop_ids == ['B','A'])
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ManipsTestCase)
