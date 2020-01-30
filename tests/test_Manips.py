@@ -44,5 +44,7 @@ class ManipsTestCase(unittest.TestCase):
         self.assertTrue(fs.pop_ids == ['A','B'])
         fs = fs.swap_axes(0,1)
         self.assertTrue(fs.pop_ids == ['B','A'])
+    
+        
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ManipsTestCase)

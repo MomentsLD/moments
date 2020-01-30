@@ -432,7 +432,7 @@ def __migrate_1__(sfs, source_population_index, target_population_index):
     
     new_ns[source_population_index] -= 1
     new_ns[target_population_index] += 1
-    new_sfs = Spectrum_mod.Spectrum(np.zeros(new_ns))
+    new_sfs = Spectrum_mod.Spectrum(np.zeros(new_ns), pop_ids=sfs.pop_ids)
     
     # We first suppose that we pick a reference allele. 
     
@@ -639,15 +639,12 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     # sequentially. This will give us a range of distributions, which we will use to 
     # compute the correct distribution below.
     
-    
     max_replacements = M - keep_1 
     
-    current_sfs = sfs[:]   
-
+    current_sfs = sfs[:]
     
     list_sfs = [sfs.project(target_dimensions)]  # Remember the SFSs we computed
     list_replacements = [0]  # The number of replacements in the corresponding sfs
-    
     
     for num_replacements in range(1,max_replacements+1):
         # The shape of the sfs is (n1+1, n2+1,...). We want to extract 
@@ -660,6 +657,7 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
         # first remove one sample from population 2, then migrate one from pop 1 to pop 2
         current_sfs = __migrate_1__(Spectrum_mod.Spectrum.project(current_sfs, project_dimensions),
                                     source_population_index, target_population_index)
+
         keeper_function = True #  Eventually we may want to only keep a subset -- 
                                #  but don't want to optimize too early. 
         if keeper_function:
@@ -687,6 +685,6 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     new_sfs=0
     for i in range(len(weights[0])):
         new_sfs+=list_sfs[i]*weights[0][i]
-    
+
     return new_sfs
 
