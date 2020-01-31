@@ -159,11 +159,14 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
     if ax is None:
         ax = pylab.gca()
 
+    # this fails with entries of zero, so we mask those:
+    sfs.mask[sfs == 0] = True
+
     if vmin is None:
         vmin = sfs.min()
     if vmax is None:
         vmax = sfs.max()
-
+    
     pylab.cm.hsv.set_under('w')
     if vmax / vmin > 10:
         # Under matplotlib 1.0.1, default LogFormatter omits some tick lines.
@@ -328,6 +331,10 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
     if data.folded and not model.folded:
         model = model.fold()
 
+    # errors if there are zero entries in the data or model, mask them:
+    model.mask[model == 0] = True
+    data.mask[data == 0] = True
+
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
     if fig_num is None:
@@ -395,7 +402,7 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
     ax = pylab.subplot(2,2,4)
     flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), 
                                resid.ravel())
-    ax.hist(flatresid, bins=20, normed=True)
+    ax.hist(flatresid, bins=20, density=True)
     ax.set_title('residuals')
     ax.set_yticks([])
     if show:
@@ -456,6 +463,10 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
     """
     if data.folded and not model.folded:
         model = model.fold()
+
+    # errors if there are zero entries in the data or model, mask them:
+    model.mask[model == 0] = True
+    data.mask[data == 0] = True
 
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
@@ -551,7 +562,7 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
         ax = pylab.subplot(4, 3, sax + 10)
         flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), 
                                    resid.ravel())
-        ax.hist(flatresid, bins=20, normed=True)
+        ax.hist(flatresid, bins=20, density=True)
         ax.set_yticks([])
     if show:
         pylab.show()
@@ -789,6 +800,10 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
     if data.folded and not model.folded:
         model = model.fold()
 
+    # errors if there are zero entries in the data or model, mask them:
+    model.mask[model == 0] = True
+    data.mask[data == 0] = True
+
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
     if fig_num is None:
@@ -888,7 +903,7 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
             ax = pylab.subplot(4, 6, cptr + 19)
             flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()),
                                        resid.ravel())
-            ax.hist(flatresid, bins=20, normed=True)
+            ax.hist(flatresid, bins=20, density=True)
             ax.set_yticks([])
             cptr += 1
 
