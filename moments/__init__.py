@@ -37,6 +37,7 @@ except ImportError:
 from . import Spectrum_mod
 Spectrum = Spectrum_mod.Spectrum
 
+from moments._version import __version__
 
 # When doing arithmetic with Spectrum objects (which are masked arrays), we
 # often have masked values which generate annoying arithmetic warnings. Here
