@@ -15,6 +15,8 @@ Usefull functions for Spectra manipulations:
 """
 
 # population splits
+# all split functions leave one population in place and put the new
+# population at the end of the population index list
 
 def _log_comb(n, k):
     return gammaln(n+1) - gammaln(n-k+1) - gammaln(k+1)
@@ -53,7 +55,7 @@ def split_1D_to_2D(sfs, n1, n2):
     assert(len(data_1D) >= n1 + n2 + 1)
     # if the sample size before split is too large, we project
     if len(data_1D) > n1 + n2 + 1:
-        data_1D = data_1D.project([n1 + n2 + 1])
+        data_1D = data_1D.project([n1 + n2])
     data_1D.unmask_all()
     
     # then we compute the joint fs resulting from the split
@@ -106,7 +108,7 @@ def split_2D_to_3D_2(sfs, n2new, n3):
     assert(n2 >= n2new + n3)
     # if the sample size before split is too large, we project
     if n2 > n2new + n3:
-        data_2D = data_2D.project([n1, n2new + n3 + 1])
+        data_2D = data_2D.project([n1, n2new + n3])
     data_2D.unmask_all()
     
     # then we compute the joint fs resulting from the split
@@ -159,7 +161,7 @@ def split_2D_to_3D_1(sfs, n1new, n3):
     assert(n1 >= n1new + n3)
     # if the sample size before split is too large, we project
     if n1 > n1new + n3:
-        data_2D = data_2D.project([n1new + n3 + 1, n2])
+        data_2D = data_2D.project([n1new + n3, n2])
     data_2D.unmask_all()
     
     # then we compute the joint fs resulting from the split
@@ -213,7 +215,7 @@ def split_3D_to_4D_3(sfs, n3new, n4):
     assert(n3 >= n3new + n4)
     # if the sample size before split is too large, we project
     if n3 > n3new + n4:
-        data_3D = data_3D.project([n1, n2, n3new + n4 + 1])
+        data_3D = data_3D.project([n1, n2, n3new + n4])
     data_3D.unmask_all()
     
     # then we compute the joint fs resulting from the split
@@ -268,7 +270,7 @@ def split_4D_to_5D_4(sfs, n4new, n5):
     assert(n4 >= n4new + n5)
     # if the sample size before split is too large, we project
     if n4 > n4new + n5:
-        data_4D = data_4D.project([n1, n2, n3, n4new + n5 + 1])
+        data_4D = data_4D.project([n1, n2, n3, n4new + n5])
     data_4D.unmask_all()
     
     # then we compute the joint fs resulting from the split
@@ -285,7 +287,7 @@ def split_4D_to_5D_4(sfs, n4new, n5):
         data_5D.mask[-1,-1,-1,-1,-1] = True
     return data_5D
 
-def split_4D_to_5D_3(sfs, n3new, n4):
+def split_4D_to_5D_3(sfs, n3new, n5):
     """
     Four-to-five population split for the spectrum,
     n3 >= n3new+n4.
@@ -294,7 +296,7 @@ def split_4D_to_5D_3(sfs, n3new, n4):
     
     n3new : sample size for resulting pop 3
 
-    n4 : sample size for resulting pop 4
+    n5 : sample size for resulting pop 4
     
     Returns a new 5D spectrum
     """
@@ -312,26 +314,26 @@ def split_4D_to_5D_3(sfs, n3new, n4):
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
     if model is not None:
-        model.split(2, (2,3))
+        model.split(2, (2,4))
     
     data_4D = copy.copy(sfs)
     assert(len(data_4D.shape) == 4)
     n1 = data_4D.shape[0] - 1
     n2 = data_4D.shape[1] - 1
     n3 = data_4D.shape[2] - 1
-    n5 = data_4D.shape[3] - 1
-    assert(n3 >= n3new + n4)
+    n4 = data_4D.shape[3] - 1
+    assert(n3 >= n3new + n5)
     # if the sample size before split is too large, we project
-    if n3 > n3new + n4:
-        data_4D = data_4D.project([n1, n2, n3new + n4 + 1, n5])
+    if n3 > n3new + n5:
+        data_4D = data_4D.project([n1, n2, n3new + n5, n4])
     data_4D.unmask_all()
     
     # then we compute the joint fs resulting from the split
     data_5D = np.zeros((n1 + 1, n2 + 1, n3new + 1, n4 + 1, n5 + 1))
     for i in range(n3new + 1):
-        for j in range(n4 + 1):
-            log_entry_weight = _log_comb(n3new, i) + _log_comb(n4, j) - _log_comb(n3new + n4, i + j)
-            data_5D[:, :, i, j, :] = data_4D.data[:, :, i + j, :] * np.exp(log_entry_weight)
+        for j in range(n5 + 1):
+            log_entry_weight = _log_comb(n3new, i) + _log_comb(n5, j) - _log_comb(n3new + n5, i + j)
+            data_5D[:, :, i, :, j] = data_4D.data[:, :, i + j, :] * np.exp(log_entry_weight)
 
     data_5D = Spectrum_mod.Spectrum(data_5D, mask_corners=False)
     if mask_lost == True:
