@@ -124,5 +124,24 @@ class ManipsTestCase(unittest.TestCase):
         self.assertTrue(numpy.all(fs1.sample_sizes == fs2.sample_sizes))
         self.assertTrue(numpy.all(fs1.data == fs2.data))
 
+    def test_split_3D_to_4D_1(self):
+        fs = moments.Spectrum(numpy.random.rand(11*7*9).reshape((11,7,9)))
+        fs = moments.Manips.split_3D_to_4D_1(fs, 3, 7)
+        self.assertTrue(numpy.all(fs.sample_sizes == [3, 6, 8, 7]))
+        
+    def test_split_3D_to_4D_2(self):
+        fs = moments.Spectrum(numpy.random.rand(7*11*9).reshape((7,11,9)))
+        fs = moments.Manips.split_3D_to_4D_2(fs, 3, 7)
+        self.assertTrue(numpy.all(fs.sample_sizes == [6, 3, 8, 7]))
+
+    def test_split_4D_to_5D_1(self):
+        fs = moments.Spectrum(numpy.random.rand(11*7*9*5).reshape((11,7,9,5)))
+        fs = moments.Manips.split_4D_to_5D_1(fs, 3, 7)
+        self.assertTrue(numpy.all(fs.sample_sizes == [3, 6, 8, 4, 7]))
+
+    def test_split_4D_to_5D_2(self):
+        fs = moments.Spectrum(numpy.random.rand(11*7*9*5).reshape((7,11,9,5)))
+        fs = moments.Manips.split_4D_to_5D_2(fs, 3, 7)
+        self.assertTrue(numpy.all(fs.sample_sizes == [6, 3, 8, 4, 7]))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ManipsTestCase)

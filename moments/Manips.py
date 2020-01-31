@@ -348,16 +348,44 @@ split functions above.
 """
 
 def split_3D_to_4D_1(sfs, n1new, n4):
-    pass
+    """
+    Uses split_3D_to_4D_3,
+    swap 1st and 3rd population, split, and then swap back
+    """
+    fs = sfs.swapaxes(0, 2)
+    fs = split_3D_to_4D_3(fs, n1new, n4)
+    fs = fs.swapaxes(0, 2)
+    return fs
 
 def split_3D_to_4D_2(sfs, n2new, n4):
-    pass
+    """
+    Uses split_3D_to_4D_3,
+    swap 2nd and 3rd population, split, and then swap back
+    """
+    fs = sfs.swapaxes(1, 2)
+    fs = split_3D_to_4D_3(fs, n2new, n4)
+    fs = fs.swapaxes(1, 2)
+    return fs
 
 def split_4D_to_5D_1(sfs, n1new, n5):
-    pass
+    """
+    Uses split_3D_to_4D_3,
+    swap 1st and 3rd population, split, and then swap back
+    """
+    fs = sfs.swapaxes(0, 3)
+    fs = split_4D_to_5D_4(fs, n1new, n5)
+    fs = fs.swapaxes(0, 3)
+    return fs
 
 def split_4D_to_5D_2(sfs, n2new, n5):
-    pass
+    """
+    Uses split_3D_to_4D_3,
+    swap 1st and 3rd population, split, and then swap back
+    """
+    fs = sfs.swapaxes(1, 3)
+    fs = split_4D_to_5D_4(fs, n2new, n5)
+    fs = fs.swapaxes(1, 3)
+    return fs
 
 
 # merge two populations into one population
