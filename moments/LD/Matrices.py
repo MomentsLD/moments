@@ -304,6 +304,8 @@ def recombination(num_pops, r, frozen=None, selfing=None):
 def migration_h(num_pops, mig_mat, frozen=None):
     """
     mig_mat has the form [[0, m12, m13, ..., m1n], ..., [mn1, mn2, ..., 0]]
+    Note that m12 is the probability that a lineage in deme 1 had its parent 
+    in deme 2, to be consisten with moments (fs).
     """
     if frozen is not None:
         for pid in range(num_pops):
@@ -321,31 +323,31 @@ def migration_h(num_pops, mig_mat, frozen=None):
                 if jj == pop1:
                     continue
                 else:
-                    M[ii,ii] -= 2*mig_mat[jj-1][pop1-1]
-                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop1,jj)))] += 2*mig_mat[jj-1][pop1-1]
+                    M[ii,ii] -= 2*mig_mat[pop1-1][jj-1]
+                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop1,jj)))] += 2*mig_mat[pop1-1][jj-1]
         else:
             for jj in range(1,num_pops+1):
                 if jj == pop1:
                     continue
                 else:
-                    M[ii,ii] -= mig_mat[jj-1][pop1-1]
-                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop2,jj)))] += mig_mat[jj-1][pop1-1]
+                    M[ii,ii] -= mig_mat[pop1-1][jj-1]
+                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop2,jj)))] += mig_mat[pop1-1][jj-1]
             for jj in range(1,num_pops+1):
                 if jj == pop2:
                     continue
                 else:
-                    M[ii,ii] -= mig_mat[jj-1][pop2-1]
-                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop1,jj)))] += mig_mat[jj-1][pop2-1]
+                    M[ii,ii] -= mig_mat[pop2-1][jj-1]
+                    M[ii,Hs.index(Util.map_moment('H_{0}_{1}'.format(pop1,jj)))] += mig_mat[pop2-1][jj-1]
     
     return M
 
-def migration_ld(num_pops, m, frozen=None):
+def migration_ld(num_pops, mig_mat, frozen=None):
     if frozen is not None:
         for pid in range(num_pops):
             if frozen[pid] == True:
                 for pid2 in range(num_pops):
-                    m[pid][pid2] = 0
-                    m[pid2][pid] = 0
+                    mig_mat[pid][pid2] = 0
+                    mig_mat[pid2][pid] = 0
 
     Ys = Util.ld_names(num_pops)
     M = np.zeros( ( len(Ys), len(Ys) ) )
@@ -357,264 +359,264 @@ def migration_ld(num_pops, m, frozen=None):
             if pop1 == pop2:
                 for jj in range(1,num_pops+1):
                     if jj != pop1:
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{0}'.format(pop1)))] -= 2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,jj)))] += 2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1)))] += 1./2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,jj)))] -= 1./2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,jj)))] -= 1./2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,jj)))] += 1./2 * m[jj-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{0}'.format(pop1)))] -= 2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,jj)))] += 2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1)))] += 1./2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,jj)))] -= 1./2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,jj)))] -= 1./2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,jj)))] += 1./2 * mig_mat[pop1-1][jj-1]
                         
             else:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] -= m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(kk,pop2)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop2,pop1)))] += 1./4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop2,pop1,kk)))] -= 1./4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop2,kk,pop1)))] -= 1./4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop2,kk)))] += 1./4 * m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] -= mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(kk,pop2)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop2,pop1)))] += 1./4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop2,pop1,kk)))] -= 1./4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop2,kk,pop1)))] -= 1./4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop2,kk)))] += 1./4 * mig_mat[pop1-1][kk-1]
                         
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] -= m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,kk)))] += m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += 1./4 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] -= 1./4 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,kk,pop2)))] -= 1./4 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,kk)))] += 1./4 * m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,pop2)))] -= mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('DD_{0}_{1}'.format(pop1,kk)))] += mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] += 1./4 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] -= 1./4 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,kk,pop2)))] -= 1./4 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,kk)))] += 1./4 * mig_mat[pop2-1][kk-1]
 
         elif name == 'Dz':
             pop1, pop2, pop3 = pops
             if pop1 == pop2 == pop3:
                 for jj in range(1,num_pops+1):
                     if jj != pop1:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1)))] -= 3 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,jj)))] += m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,jj)))] += m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,jj)))] += m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1)))] += 4 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,jj)))] -= 4 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,jj)))] -= 4 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,jj)))] += 4 * m[jj-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{0}'.format(pop1)))] -= 3 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,jj)))] += mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,jj)))] += mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{1}_{0}_{0}'.format(pop1,jj)))] += mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1)))] += 4 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,jj)))] -= 4 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,jj)))] -= 4 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,jj)))] += 4 * mig_mat[pop1-1][jj-1]
                         
             elif pop1 == pop2:
                  for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(kk,pop1,pop3)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,kk,pop3)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop3)))] += 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop3,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop3,kk)))] += 4 * m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop3)))] -= 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(kk,pop1,pop3)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,kk,pop3)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop3)))] += 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop3,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{2}'.format(pop1,pop3,kk)))] += 4 * mig_mat[pop1-1][kk-1]
                     if kk != pop3:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop3)))] -= m[kk-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,kk)))] += m[kk-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,pop3)))] -= mig_mat[pop3-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{0}_{1}'.format(pop1,kk)))] += mig_mat[pop3-1][kk-1]
                         
             elif pop1 == pop3:
                  for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] -= 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(kk,pop2,pop1)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,kk)))] += 4 * m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] -= 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(kk,pop2,pop1)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] += 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{2}'.format(pop1,pop2,kk)))] += 4 * mig_mat[pop1-1][kk-1]
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] -= m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,pop2)))] -= mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{0}'.format(pop1,kk)))] += mig_mat[pop2-1][kk-1]
                         
             elif pop2 == pop3:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] -= m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] -= 4 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,kk)))] += 4 * m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] -= mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] += 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] -= 4 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{1}_{2}'.format(pop1,pop2,kk)))] += 4 * mig_mat[pop1-1][kk-1]
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] -= 2 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{2}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{1}'.format(pop1,pop2)))] -= 2 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{2}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
                         
             else:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(ll,pop2,pop3)))] += m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop3)))] += 4 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] -= 4 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{0}_{2}'.format(pop1,pop2,pop3,ll)))] -= 4 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += 4 * m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(ll,pop2,pop3)))] += mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop3)))] += 4 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] -= 4 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{0}_{2}'.format(pop1,pop2,pop3,ll)))] -= 4 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += 4 * mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,ll,pop3)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,ll,pop3)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop3:
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,ll)))] += m[ll-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,pop3)))] -= mig_mat[pop3-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('Dz_{0}_{1}_{2}'.format(pop1,pop2,ll)))] += mig_mat[pop3-1][ll-1]
                         
         elif name == 'pi2':
             pop1, pop2, pop3, pop4 = pops
             if pop1 == pop2 == pop3 == pop4:
                 for jj in range(1,num_pops+1):
                     if jj != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1)))] -= 4 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,jj)))] += 2 * m[jj-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,jj)))] += 2 * m[jj-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{0}'.format(pop1)))] -= 4 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,jj)))] += 2 * mig_mat[pop1-1][jj-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,jj)))] += 2 * mig_mat[pop1-1][jj-1]
                         
             elif pop1 == pop2 == pop3:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop4)))] -= 3 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop4,kk)))] += 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop4,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop4)))] -= 3 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop4,kk)))] += 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop4,kk)))] += mig_mat[pop1-1][kk-1]
                     if kk != pop4:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop4)))] -= m[kk-1][pop4-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop4,kk)))] += m[kk-1][pop4-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{1}'.format(pop1,pop4)))] -= mig_mat[pop4-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{0}_{2}'.format(pop1,pop4,kk)))] += mig_mat[pop4-1][kk-1]
                         
             elif pop1 == pop2 == pop4:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{0}'.format(pop1,pop3)))] -= 3 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{0}'.format(pop1,pop3,kk)))] += 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{0}'.format(pop1,pop3)))] -= 3 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{0}'.format(pop1,pop3,kk)))] += 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += mig_mat[pop1-1][kk-1]
                     if kk != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{0}'.format(pop1,pop3)))] -= m[kk-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{2}_{0}'.format(pop1,pop3,kk)))] += m[kk-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{0}'.format(pop1,pop3)))] -= mig_mat[pop3-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{2}_{0}'.format(pop1,pop3,kk)))] += mig_mat[pop3-1][kk-1]
                         
             elif pop1 == pop2 and pop3 == pop4:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop3,kk)))] += 2 * m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop3,kk)))] += 2 * mig_mat[pop1-1][kk-1]
                     if kk != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * m[kk-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += 2 * m[kk-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{1}'.format(pop1,pop3)))] -= 2 * mig_mat[pop3-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,kk)))] += 2 * mig_mat[pop3-1][kk-1]
            
             elif pop1 == pop2:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= 2 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{1}_{2}'.format(pop1,pop3,pop4,ll)))] += 2 * m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= 2 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{1}_{2}'.format(pop1,pop3,pop4,ll)))] += 2 * mig_mat[pop1-1][ll-1]
                     if ll != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= m[ll-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{2}_{3}'.format(pop1,pop3,pop4,ll)))] += m[ll-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= mig_mat[pop3-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{2}_{3}'.format(pop1,pop3,pop4,ll)))] += mig_mat[pop3-1][ll-1]
                     if ll != pop4:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= m[ll-1][pop4-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{3}'.format(pop1,pop3,pop4,ll)))] += m[ll-1][pop4-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{2}'.format(pop1,pop3,pop4)))] -= mig_mat[pop4-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{0}_{1}_{3}'.format(pop1,pop3,pop4,ll)))] += mig_mat[pop4-1][ll-1]
                     
             elif pop1 == pop3 == pop4:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] -= 3 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] += 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] -= 3 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] += 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] -= m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{0}'.format(pop1,pop2)))] -= mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{0}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
                         
             elif pop2 == pop3 == pop4:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] -= m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] -= mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] -= 3 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] += 2 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{1}'.format(pop1,pop2)))] -= 3 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] += 2 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{1}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
                         
             elif pop1 == pop3 and pop2 == pop4:
                 for kk in range(1,num_pops+1):
                     if kk != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] -= 2 * m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] -= 2 * mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop1-1][kk-1]
                     if kk != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] -= 2 * m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] += m[kk-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{1}'.format(pop1,pop2)))] -= 2 * mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{2}_{0}_{1}'.format(pop1,pop2,kk)))] += mig_mat[pop2-1][kk-1]
                     
             elif pop1 == pop3:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= 2 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{0}_{2}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= 2 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{0}_{2}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{0}_{2}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{0}_{2}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop4:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= m[ll-1][pop4-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{3}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop4-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{2}'.format(pop1,pop2,pop4)))] -= mig_mat[pop4-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{0}_{3}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop4-1][ll-1]
                         
             elif pop1 == pop4:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= 2 * m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{0}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= 2 * mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{0}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{0}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{0}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{3}_{0}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{0}'.format(pop1,pop2,pop3)))] -= mig_mat[pop3-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{3}_{0}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop3-1][ll-1]
                         
             elif pop2 == pop3:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{1}_{2}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{1}_{2}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= 2 * m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{1}_{2}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= 2 * mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{1}_{2}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop4:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= m[ll-1][pop4-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{3}'.format(pop1,pop2,pop4,ll)))] += m[ll-1][pop4-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{2}'.format(pop1,pop2,pop4)))] -= mig_mat[pop4-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{1}_{3}'.format(pop1,pop2,pop4,ll)))] += mig_mat[pop4-1][ll-1]
                     
             elif pop2 == pop4:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{1}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{1}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= 2 * m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{1}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= 2 * mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{1}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{3}_{1}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{1}'.format(pop1,pop2,pop3)))] -= mig_mat[pop3-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{3}_{1}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop3-1][ll-1]
                     
             elif pop3 == pop4:
                 for ll in range(1,num_pops+1):
                     if ll != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{2}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= mig_mat[pop1-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{1}_{3}_{2}_{2}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop1-1][ll-1]
                     if ll != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= m[ll-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{2}'.format(pop1,pop2,pop3,ll)))] += m[ll-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= mig_mat[pop2-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{3}_{2}_{2}'.format(pop1,pop2,pop3,ll)))] += mig_mat[pop2-1][ll-1]
                     if ll != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= 2 * m[ll-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += 2 * m[ll-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{2}'.format(pop1,pop2,pop3)))] -= 2 * mig_mat[pop3-1][ll-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,ll)))] += 2 * mig_mat[pop3-1][ll-1]
                     
             else:
                 if len(set([pop1,pop2,pop3,pop4])) != 4:
                     print("fucked up again")
                 for ss in range(1,num_pops+1):
                     if ss != pop1:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= m[ss-1][pop1-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{4}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += m[ss-1][pop1-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= mig_mat[pop1-1][ss-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{4}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += mig_mat[pop1-1][ss-1]
                     if ss != pop2:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= m[ss-1][pop2-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{4}_{2}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += m[ss-1][pop2-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= mig_mat[pop2-1][ss-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{4}_{2}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += mig_mat[pop2-1][ss-1]
                     if ss != pop3:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= m[ss-1][pop3-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{4}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += m[ss-1][pop3-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= mig_mat[pop3-1][ss-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{4}_{3}'.format(pop1,pop2,pop3,pop4,ss)))] += mig_mat[pop3-1][ss-1]
                     if ss != pop4:
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= m[ss-1][pop4-1]
-                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{4}'.format(pop1,pop2,pop3,pop4,ss)))] += m[ss-1][pop4-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{3}'.format(pop1,pop2,pop3,pop4)))] -= mig_mat[pop4-1][ss-1]
+                        M[ii, Ys.index(Util.map_moment('pi2_{0}_{1}_{2}_{4}'.format(pop1,pop2,pop3,pop4,ss)))] += mig_mat[pop4-1][ss-1]
                 
     return csc_matrix(M)
 

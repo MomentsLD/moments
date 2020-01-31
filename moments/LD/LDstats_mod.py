@@ -531,8 +531,9 @@ def %(method)s(self, other):
         theta: per base population-scaled mutation rate (4N*mu)
                if we pass [theta1, theta2], differing mutation rates at left and right 
                locus, implemented in the ISM=True model
-        m: migration matrix (num_pops x num_pops, storing m_ij migration rate
-           from i to j
+        m: migration matrix (num_pops x num_pops, storing m_ij migration rates
+           where m_ij is probability that a lineage in i had parent in j
+           m_ii is unused, and found by summing off diag elements in the ith row
         selfing: list of selfing probabilities, same length as nu.
         frozen: list of True and False same length as nu. True implies that a lineage
                 is frozen (as in ancient samples). False integrates as normal.
