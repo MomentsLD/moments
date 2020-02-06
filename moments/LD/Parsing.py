@@ -419,7 +419,8 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
             pos_rs = pos_rs.compress(is_biallelic)
         
     else:
-        print("No populations given, using all samples as one population."); sys.stdout.flush()
+        if report == True:
+            print("No populations given, using all samples as one population."); sys.stdout.flush()
         pops = ['ALL']
         pop_indexes['ALL'] = np.array([True]*np.shape(genotypes)[1])
         genotypes_pops = genotypes
@@ -924,13 +925,14 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
     
 
 
-def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False):
+def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False, report=True):
     """
     Het values are not normalized by sequence length, would need to compute L from bed file.
     """
     
     if pop_file == None and pops == None:
-        print("No population file or population names given, assuming all samples as single pop."); sys.stdout.flush()
+        if report == True:
+            print("No population file or population names given, assuming all samples as single pop."); sys.stdout.flush()
     elif pops == None:
         raise ValueError("pop_file given, but not population names..."); sys.stdout.flush()
     elif pop_file == None:
@@ -1019,7 +1021,7 @@ def get_reported_stats(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     if len(stats_to_compute[1]) == 0:
         Hs = {}
     else:
-        Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops, ac_filter=ac_filter)
+        Hs = get_H_statistics(genotypes, sample_ids, pop_file=pop_file, pops=pops, ac_filter=ac_filter, report=report)
     
     reported_stats = {}
     reported_stats['bins'] = bs

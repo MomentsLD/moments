@@ -822,7 +822,7 @@ For more complex scenarios, see \cite{Self1987}.
 
 \textit{Moments} depends on a number of Python libraries. The absolute dependencies are
 \begin{itemize}
-\item Python, version $\geq$ 2.5 (but not Python 3)
+\item Python, version $\geq$ 3.4 (Python 2.7 is no longer actively supported)
 \item NumPy, version $\geq$ 1.2.0
 \item SciPy, version $\geq$ 0.6.0
 \end{itemize}
@@ -831,12 +831,16 @@ It is also recommended that you install
 \item matplotlib, version $\geq$ 0.98.1
 \item IPython, version $\geq$ 0.10
 \end{itemize}
-For 3D plotting, it is also suggested that you install
-\begin{itemize}
-\item MayaVi2
-\end{itemize}
+%For 3D plotting, it is also suggested that you install
+%\begin{itemize}
+%\item MayaVi2
+%\end{itemize}
 
-The easiest way to obtain all these dependencies is to install \href{http://www.enthought.com/products/epd.php}{Enthought's Python Distribution}, which is \href{http://www.enthought.com/products/edudownload.php}{free for academic use}.
+If you are using Conda or pip, the easiest way to obtain the dependencies required by \textit{moments} is to use the \py{requirements.txt} file in the \textit{moments} directory.
+For example, using Conda you would run \py{conda install --file requirements.txt} from within the \textit{moments} directory.
+\textit{Moments} can then be installed from source.
+
+%The easiest way to obtain all these dependencies is to install \href{http://www.enthought.com/products/epd.php}{Enthought's Python Distribution}, which is \href{http://www.enthought.com/products/edudownload.php}{free for academic use}.
 
 %\subsection{Binary packages}
 
