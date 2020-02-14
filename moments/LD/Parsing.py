@@ -1,6 +1,8 @@
 imported_h5py = 0
 imported_allel = 0
+import os
 try:
+    os.environ["NUMEXPR_MAX_THREADS"]="272"
     import allel
     imported_allel = 1
 except ImportError:
