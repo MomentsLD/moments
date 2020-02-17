@@ -386,7 +386,7 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
-        samples = pandas.read_csv(pop_file, sep='\t')
+        samples = pandas.read_csv(pop_file, delim_whitespace=True)
         cols_to_keep = np.array([False]*np.shape(genotypes)[1])
         all_samples_to_keep = []
         for pop in pops:
