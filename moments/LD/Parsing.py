@@ -30,9 +30,14 @@ from collections import Counter,defaultdict
 from . import stats_from_haplotype_counts as shc
 import sys
 import itertools
-import genotype_calculations as gcs
-import genotype_calculations_multipop as gcs_mp
-import sparse_tallying as spt
+ld_extensions = 0
+try:
+    import genotype_calculations as gcs
+    import genotype_calculations_multipop as gcs_mp
+    import sparse_tallying as spt
+    ld_extensions = 1
+except ImportError:
+    pass
 
 ### does this handle only a single chromosome at a time???
 
@@ -289,6 +294,8 @@ def compute_pairwise_stats(Gs):
     two-locus genotype configurations from that, from which
     we compute two-locus statistics
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+    
     L,n = np.shape(Gs)
     
     G_dict, any_missing = sparsify_genotype_matrix(Gs)
@@ -326,6 +333,8 @@ def compute_pairwise_stats_between(Gs1, Gs2):
     two-locus genotype configurations from that, from which
     we compute two-locus statistics
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     L1, n1 = np.shape(Gs1)
     L2, n2 = np.shape(Gs1)
     
@@ -383,6 +392,8 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         If we set to None, then we should be sure that we won't run into this issue,
         for example if we know that we don't have missing data.
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
@@ -811,6 +822,8 @@ def call_sgc(stat, Cs, use_genotypes=True):
     stat = 'DD', 'Dz', or 'pi2', with underscore indices (like 'DD_1_1')
     Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes) 
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     s = stat.split('_')[0]
     pop_nums = [int(p)-1 for p in stat.split('_')[1:]]
     if s == 'DD':

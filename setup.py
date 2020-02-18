@@ -10,6 +10,12 @@ import os,sys
 
 import numpy.distutils.core as core
 
+if '--ld_extensions' in sys.argv:
+    build_ld_extensions = True
+    sys.argv.remove('--ld_extensions')
+else:
+    build_ld_extensions = False
+
 #
 # Microsoft Visual C++ only supports C up to the version iso9899:1990 (C89).
 # gcc by default supports much more. To ensure MSVC++ compatibility when using
@@ -29,7 +35,7 @@ if compiler in ['unix','mingw32','cygwin']:
 else:
     extra_compile_args = []
 
-from distutils.core import setup
+from distutils.core import setup, Command
 from distutils.extension import Extension
 from Cython.Build import cythonize
 from Cython.Distutils import build_ext
@@ -49,16 +55,17 @@ setup(
       )
 
 # cython extensions for moments.LD
-extensions = [
-              Extension("genotype_calculations", ["moments/LD/genotype_calculations.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
-              Extension("genotype_calculations_multipop", ["moments/LD/genotype_calculations_multipop.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
-              Extension("sparse_tallying", ["moments/LD/sparse_tallying.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
-              ]
+if build_ld_extensions is True:
+    extensions = [
+                  Extension("genotype_calculations", ["moments/LD/genotype_calculations.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+                  Extension("genotype_calculations_multipop", ["moments/LD/genotype_calculations_multipop.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"]),
+                  Extension("sparse_tallying", ["moments/LD/sparse_tallying.pyx"], include_dirs=[np.get_include()], extra_compile_args=["-w"])
+                  ]
 
-setup(
-      cmdclass = {'build_ext':build_ext},
-      ext_modules = cythonize(extensions),
-      )
+    setup(
+          cmdclass = {'build_ext':build_ext},
+          ext_modules = cythonize(extensions),
+          )
 
 numpy.distutils.core.setup(name='moments',
                            #version='1.0.1',
