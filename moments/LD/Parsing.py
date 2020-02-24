@@ -39,6 +39,12 @@ try:
 except ImportError:
     pass
 
+# turn off UserWarnings from allel
+import warnings
+if imported_allel:
+    warnings.filterwarnings(action='ignore', category=UserWarning)
+
+
 ### does this handle only a single chromosome at a time???
 
 def load_h5(vcf_file, report=True):
