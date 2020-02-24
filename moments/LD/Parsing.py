@@ -185,10 +185,11 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
     except:
         raise ValueError("Error loading map."); sys.stdout.flush()
     
+    map_positions = rec_map[rec_map.keys()[0]]
     if map_name == None: # we use the first map column
         print("No recombination map name given, using first column."); sys.stdout.flush()
+        map_values = rec_map[rec_map.keys()[1]]
     else:
-        map_positions = rec_map[rec_map.keys()[0]]
         try:
             map_values = rec_map[map_name]
         except KeyError:
