@@ -187,7 +187,7 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
     
     map_positions = rec_map[rec_map.keys()[0]]
     if map_name == None: # we use the first map column
-        print("No recombination map name given, using first column."); sys.stdout.flush()
+        if report is True: print("No recombination map name given, using first column."); sys.stdout.flush()
         map_values = rec_map[rec_map.keys()[1]]
     else:
         try:
