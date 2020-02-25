@@ -523,8 +523,8 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         else:
             distances = positions - r
         
-        filt = np.logical_and(distances >= bs[0][0], distances < bs[-1][1])
-        filt[ii] = False # don't compare to self
+        filt = np.logical_and( np.logical_and(distances >= bs[0][0], distances < bs[-1][1]), positions != positions[ii] )
+        filt[ii] = False # don't compare to mutations at same base pair position
         right_indices = np.where(filt == True)[0]
         
         ## if there are no variants within the bin's distance to the right, continue to next bin 
