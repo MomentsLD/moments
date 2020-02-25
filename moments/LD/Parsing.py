@@ -415,7 +415,7 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
             cols_to_keep[sample_list.index(s)] = True
         
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
-        sample_ids_pops = list(np.array(list(sample_ids)).compress(cols_to_keep))
+        sample_ids_pops = list(np.array(sample_list).compress(cols_to_keep))
         
         ## keep only biallelic genotypes from populations in pops, discard the rest
         allele_counts_pops = genotypes_pops.count_alleles()
