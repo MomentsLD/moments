@@ -415,7 +415,7 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
             cols_to_keep[sample_list.index(s)] = True
         
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
-        sample_ids_pops = list(np.array(list(samples['sample'])).compress(cols_to_keep))
+        sample_ids_pops = list(np.array(list(sample_ids)).compress(cols_to_keep))
         
         ## keep only biallelic genotypes from populations in pops, discard the rest
         allele_counts_pops = genotypes_pops.count_alleles()
@@ -969,10 +969,10 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=
         samples.reset_index(drop=True, inplace=True)
 
         ### should use this above when counting two locus genotypes
-
+        sample_ids_list = list(sample_ids)
         subpops = {
             # for each population, get the list of samples that belong to the population
-            pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
+            pop_iter: [sample_ids_list.index(ind) for ind in samples[samples['pop'] == pop_iter]['sample']] for pop_iter in pops
         }
         
         ac_subpop = genotypes.count_alleles_subpops(subpops)
