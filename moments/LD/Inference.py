@@ -42,15 +42,15 @@ def sigmaD2(y, normalization=1):
     
     return y
 
-def bin_stats(model_func, params, rho=[], theta=0.001):
+def bin_stats(model_func, params, rho=[], theta=0.001, kwargs={}):
     if len(rho) < 2:
         raise ValueError("number of recombination rates must be greater than one")
     ## XX check if sorted...
     
     ## how to pass arbitrary arguments... thinking about pop_ids (right now, set pop_ids in model_func)
     rho_mids = (np.array(rho[:-1]) + np.array(rho[1:])) / 2
-    y_edges = model_func(params, rho=rho, theta=theta)
-    y_mids = model_func(params, rho=rho_mids, theta=theta)
+    y_edges = model_func(params, rho=rho, theta=theta, **kwargs)
+    y_mids = model_func(params, rho=rho_mids, theta=theta, **kwargs)
     y = [1./6 * (y_edges[i] + y_edges[i+1] + 4*y_mids[i]) for i in range(len(rho_mids))]
     y.append(y_edges[-1])
     return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
@@ -102,9 +102,12 @@ def ll(x,mu,Sigma):
     mu = model function output
     Sigma = variance-covariance matrix
     """
-    return -1./2 * np.dot( np.dot( (x-mu).transpose() , 
-                            np.linalg.inv(Sigma) ) , x-mu ) 
-                            #- len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma)) 
+    if len(x) == 0:
+        return 0
+    else:
+        return -1./2 * np.dot( np.dot( (x-mu).transpose() , 
+                               np.linalg.inv(Sigma) ) , x-mu ) 
+                               #- len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma)) 
 
 def ll_over_bins(xs,mus,Sigmas):
     """
