@@ -589,6 +589,17 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
     note that this doesn't matter for integration, but to more naturally plot the
     model using ModelPlot
     """
+    # Check if corners are masked - if they are, keep corners masked after event
+    # If they are unmasked, keep spectrum corners unmasked after event
+    if sfs.mask[tuple([0 for d in sfs.shape])] is True:
+        mask_lost = True
+    else:
+        mask_lost = False
+    if sfs.mask[tuple([-1 for d in sfs.shape])] is True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
+
     dimensions = sfs.shape
     new_dimensions = list(dimensions)+[1] 
     M = dimensions[dimension1]-1
@@ -624,6 +635,12 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
         # we need to place the new (last) dimension at given dimension, swapping population indices
         new_sfs = np.moveaxis(new_sfs, -1, new_dimension)
     
+    # Set masking in corners based on mask_lost and mask_fixed
+    if mask_lost is False:
+        new_sfs[tuple([0 for d in new_sfs.shape])] = False
+    if mask_fixed is False:
+        new_sfs[tuple([-1 for d in new_sfs.shape])] = False
+    
     return new_sfs
 
 
@@ -642,6 +659,17 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     keep_1: number of lineages from the source population that we want to keep tracking 
         after admixture.
     """
+    # Check if corners are masked - if they are, keep corners masked after event
+    # If they are unmasked, keep spectrum corners unmasked after event
+    if sfs.mask[tuple([0 for d in sfs.shape])] is True:
+        mask_lost = True
+    else:
+        mask_lost = False
+    if sfs.mask[tuple([-1 for d in sfs.shape])] is True:
+        mask_fixed = True
+    else:
+        mask_fixed = False
+
     dimensions = sfs.shape
     M = dimensions[source_population_index] - 1 # number of haploid samples is size of sfs - 1
     N = dimensions[target_population_index] - 1
@@ -715,6 +743,12 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     new_sfs=0
     for i in range(len(weights[0])):
         new_sfs+=list_sfs[i]*weights[0][i]
+
+    # Set masking in corners based on mask_lost and mask_fixed
+    if mask_lost is False:
+        new_sfs[tuple([0 for d in new_sfs.shape])] = False
+    if mask_fixed is False:
+        new_sfs[tuple([-1 for d in new_sfs.shape])] = False
 
     return new_sfs
 

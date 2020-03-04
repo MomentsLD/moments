@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 from scipy.sparse import linalg
-
+import copy
 import moments.Spectrum_mod
 from . import Numerics
 import Jackknife as jk
@@ -617,6 +617,7 @@ def integrate_nD(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, m=None, theta=1
             s[pop_num] = 0.0
         # fix population sizes
         if callable(Npop):
+            nu_func = copy.copy(Npop)
             Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
         else:
             for pop_num in frozen_pops:
