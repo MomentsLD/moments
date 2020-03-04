@@ -715,7 +715,8 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
         # first remove one sample from population 2, then migrate one from pop 1 to pop 2
         current_sfs = __migrate_1__(Spectrum_mod.Spectrum.project(current_sfs, project_dimensions),
                                     source_population_index, target_population_index)
-
+        current_sfs.unmask_all()
+        
         keeper_function = True #  Eventually we may want to only keep a subset -- 
                                #  but don't want to optimize too early. 
         if keeper_function:
