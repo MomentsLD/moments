@@ -9,6 +9,7 @@ import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 import Tridiag_solve as ts
 from . import Integration
+import copy
 #------------------------------------------------------------------------------
 # Functions for the computation of the Phi-moments for multidimensional models
 # without migrations:
@@ -442,6 +443,7 @@ def integrate_nomig(sfs0, Npop, tf, dt_fac=0.1, gamma=None, h=None, theta=1.0, a
             s[pop_num] = 0.0
         # fix population sizes
         if callable(Npop):
+            nu_func = copy.copy(Npop)
             Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
         else:
             for pop_num in frozen_pops:
@@ -608,6 +610,7 @@ def integrate_neutral(sfs0, Npop, tf, dt_fac=0.1, theta=1.0, adapt_tstep=False,
         frozen_pops = np.where(frozen==True)[0]
         # fix population sizes
         if callable(Npop):
+            nu_func = copy.copy(Npop)
             Npop = lambda t: list( np.array(nu_func(t)) * (1-frozen) + 1e40*frozen )
         else:
             for pop_num in frozen_pops:
