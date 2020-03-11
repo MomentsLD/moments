@@ -747,9 +747,9 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
 
     # Set masking in corners based on mask_lost and mask_fixed
     if mask_lost is False:
-        new_sfs[tuple([0 for d in new_sfs.shape])] = False
+        new_sfs.mask[tuple([0 for d in new_sfs.shape])] = False
     if mask_fixed is False:
-        new_sfs[tuple([-1 for d in new_sfs.shape])] = False
+        new_sfs.mask[tuple([-1 for d in new_sfs.shape])] = False
 
     return new_sfs
 
