@@ -495,11 +495,7 @@ class SpectrumTestCase(unittest.TestCase):
         # Test that projecting a multi-dimensional Spectrum succeeds
         ns = (25,8,6)
         m_12 = 0.5 # 1 towards 2
-        m_21 = .0
-        gamma = [0, 0, 0]
-        h=[0.5]*3
         nu = 17
-        
         
         target_n1 = 7
         target_n2 = 7
@@ -507,29 +503,23 @@ class SpectrumTestCase(unittest.TestCase):
         
         n1_sequential = target_n1+nu
         n1_exact = target_n1+target_n2
-        n1_sequential = target_n1+nu
         
-        
-        n1, n2 = max(n1_exact,n1_sequential), target_n2
-        
-        project_dp = [target_n1+target_n2,target_n2, target_n3]
-        project_seq = [n1_sequential,target_n2, target_n3]
+        project_dp = [target_n1+target_n2, target_n2, target_n3]
+        project_seq = [n1_sequential, target_n2, target_n3]
         
         fs = moments.Spectrum(numpy.random.uniform(size=ns))
         
+        # admix 
+        fs_1_into_2 = moments.Manips.admix_into_new(fs.project(project_dp),
+            dimension1=0, dimension2=1, n_lineages=target_n2, m1=m_12)
         
-        fs_1_into_2 = moments.Manips.admix_into_new(fs.project(project_dp) ,
-         dimension1=0, dimension2=1, n_lineages = n2, m1=m_12)
-        
+        # 
         fs = fs.project(project_seq)
         fs_sequential = moments.Manips.admix_inplace(fs, 
-                                        source_population_index=0, target_population_index=1, keep_1=target_n1, 
-                                        m1=m_12)
+            source_population_index=0, target_population_index=1,
+            keep_1=target_n1, m1=m_12)
                                                 
         # Also that we don't lose any data
         self.assertTrue(numpy.allclose(fs_1_into_2, fs_sequential.transpose((0,2,1))))   
-        
-        
-        
 
 suite = unittest.TestLoader().loadTestsFromTestCase(SpectrumTestCase)
