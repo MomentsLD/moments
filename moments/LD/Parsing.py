@@ -30,9 +30,20 @@ from collections import Counter,defaultdict
 from . import stats_from_haplotype_counts as shc
 import sys
 import itertools
-import genotype_calculations as gcs
-import genotype_calculations_multipop as gcs_mp
-import sparse_tallying as spt
+ld_extensions = 0
+try:
+    import genotype_calculations as gcs
+    import genotype_calculations_multipop as gcs_mp
+    import sparse_tallying as spt
+    ld_extensions = 1
+except ImportError:
+    pass
+
+# turn off UserWarnings from allel
+import warnings
+if imported_allel:
+    warnings.filterwarnings(action='ignore', category=UserWarning)
+
 
 ### does this handle only a single chromosome at a time???
 
@@ -180,10 +191,11 @@ def assign_recombination_rates(positions, map_file, map_name=None, map_sep='\t',
     except:
         raise ValueError("Error loading map."); sys.stdout.flush()
     
+    map_positions = rec_map[rec_map.keys()[0]]
     if map_name == None: # we use the first map column
-        print("No recombination map name given, using first column."); sys.stdout.flush()
+        if report is True: print("No recombination map name given, using first column."); sys.stdout.flush()
+        map_values = rec_map[rec_map.keys()[1]]
     else:
-        map_positions = rec_map[rec_map.keys()[0]]
         try:
             map_values = rec_map[map_name]
         except KeyError:
@@ -289,6 +301,8 @@ def compute_pairwise_stats(Gs):
     two-locus genotype configurations from that, from which
     we compute two-locus statistics
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+    
     L,n = np.shape(Gs)
     
     G_dict, any_missing = sparsify_genotype_matrix(Gs)
@@ -326,6 +340,8 @@ def compute_pairwise_stats_between(Gs1, Gs2):
     two-locus genotype configurations from that, from which
     we compute two-locus statistics
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     L1, n1 = np.shape(Gs1)
     L2, n2 = np.shape(Gs1)
     
@@ -383,6 +399,8 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         If we set to None, then we should be sure that we won't run into this issue,
         for example if we know that we don't have missing data.
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
@@ -397,7 +415,7 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
             cols_to_keep[sample_list.index(s)] = True
         
         genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
-        sample_ids_pops = list(np.array(list(samples['sample'])).compress(cols_to_keep))
+        sample_ids_pops = list(np.array(sample_list).compress(cols_to_keep))
         
         ## keep only biallelic genotypes from populations in pops, discard the rest
         allele_counts_pops = genotypes_pops.count_alleles()
@@ -505,8 +523,8 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         else:
             distances = positions - r
         
-        filt = np.logical_and(distances >= bs[0][0], distances < bs[-1][1])
-        filt[ii] = False # don't compare to self
+        filt = np.logical_and( np.logical_and(distances >= bs[0][0], distances < bs[-1][1]), positions != positions[ii] )
+        filt[ii] = False # don't compare to mutations at same base pair position
         right_indices = np.where(filt == True)[0]
         
         ## if there are no variants within the bin's distance to the right, continue to next bin 
@@ -555,255 +573,6 @@ def count_types_sparse(genotypes, bins, sample_ids, positions=None, pos_rs=None,
         return type_counts
     else:
         return sums
-    
-#
-#def g_tally_counter(g_l, g_r):
-#    #### Counter on iterable
-#    #gs = list(zip(g_l,g_r))
-#    c = Counter(zip(g_l,g_r))
-#    return (c[(2,2)], c[(2,1)], c[(2,0)], 
-#            c[(1,2)], c[(1,1)], c[(1,0)], 
-#            c[(0,2)], c[(0,1)], c[(0,0)])
-#
-#def g_tally_counter_2(g_l,g_r):
-#    return tuple(np.bincount(3*g_l + g_r, minlength=9)[::-1]) ### could save more time by figuring out how not to switch between tuples and lists and arrays all the time...
-#
-#def g_tally_counter_3(g_l, g_r):
-#    gg = g_l*3 + g_r
-#    m = gg.shape[0]
-#    n = 9
-#    A1 = (gg.T + (n*np.arange(m))).T
-#    out = np.bincount(A1.ravel(),minlength=n*m).reshape(m,-1)
-#    return out[:,::-1]
-#
-#def h_tally_counter(h_l, h_r):
-#    #### Counter on iterable
-#    hs = list(zip(h_l, h_r))
-#    c = Counter(hs)
-#    return (c[(1,1)], c[(1,0)], c[(0,1)], c[(0,0)])
-#
-#def h_tally_counter_3(h_l, h_r):
-#    hh = h_l*2 + h_r
-#    m = hh.shape[0]
-#    n = 4
-#    A1 = (hh.T + (4*np.arange(m))).T
-#    out = np.bincount(A1.ravel(),minlength=n*m).reshape(m,-1)
-#    return out[:,::-1]
-
-
-#def count_types(genotypes, bins, sample_ids, positions=None, pos_rs=None, pop_file=None, pops=None, use_genotypes=True, report=True, report_spacing=1000, use_cache=True, stats_to_compute=None, ac_filter=False):
-#    pop_indexes = {}
-#    if pops is not None:
-#        samples = pandas.read_csv(pop_file, sep='\t')
-#        cols_to_keep = np.array([False]*np.shape(genotypes)[1])
-#        all_samples_to_keep = []
-#        for pop in pops:
-#            all_samples_to_keep += list(samples[samples['pop'] == pop]['sample'])
-#        
-#        
-#        for s in all_samples_to_keep:
-#            cols_to_keep[list(sample_ids).index(s)] = True
-#        
-#        # keep only biallelic genotypes from populations in pops, discard the rest
-#        genotypes_pops = genotypes.compress(cols_to_keep, axis=1)
-#        allele_counts_pops = genotypes_pops.count_alleles()
-#        is_biallelic = allele_counts_pops.is_biallelic_01()
-#        genotypes_pops = genotypes_pops.compress(is_biallelic)
-#        
-#        sample_ids_pops = list(np.array(list(samples['sample'])).compress(cols_to_keep))
-#        
-#        for pop in pops:
-#            pop_indexes[pop] = np.array([False]*np.shape(genotypes_pops)[1])
-#            for s in samples[samples['pop'] == pop]['sample']:
-#                pop_indexes[pop][sample_ids_pops.index(s)] = True
-#        
-#        if use_genotypes == False:
-#            pop_indexes_haps = {}
-#            for pop in pops:
-#                pop_indexes_haps[pop] = np.reshape(list(zip(pop_indexes[pop], pop_indexes[pop])),(2*len(pop_indexes[pop]),))
-#        
-#        if positions is not None:
-#            positions = positions.compress(is_biallelic)
-#        if pos_rs is not None:
-#            pos_rs = pos_rs.compress(is_biallelic)
-#        
-#    else:
-#        print("No populations given, using all samples as one population."); sys.stdout.flush()
-#        pops = ['ALL']
-#        pop_indexes['ALL'] = np.array([True]*np.shape(genotypes)[1])
-#        genotypes_pops = genotypes
-#        if use_genotypes == False:
-#            pop_indexes_haps = {}
-#            for pop in pops:
-#                pop_indexes_haps[pop] = np.reshape(list(zip(pop_indexes[pop], pop_indexes[pop])),(2*len(pop_indexes[pop]),))
-#    
-#    ## ensure that at least 4 allele counts are present in each population
-#    if pop_file is not None:
-#        samples = pandas.read_csv(pop_file, sep='\t')
-#        populations = np.array(samples['pop'].value_counts().keys())
-#        samples.reset_index(drop=True, inplace=True)
-#
-#        ### should use this above when counting two locus genotypes
-#
-#        subpops = {
-#            # for each population, get the list of samples that belong to the population
-#            pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
-#        }
-#        
-#        ac_subpop = genotypes.count_alleles_subpops(subpops)
-#    else:
-#        subpops = {
-#            pop_iter: list(range(len(sample_ids))) for pop_iter in pops
-#        }
-#        ac_subpop = genotypes.count_alleles_subpops(subpops)
-#    
-#    if ac_filter == True:
-#        min_ac_filter = [True]*len(ac_subpop)
-#        for pop in pops:
-#            min_ac_filter = np.logical_and(min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 4)
-#        
-#        genotypes_pops = genotypes_pops.compress(min_ac_filter)
-#        if positions is not None:
-#            positions = positions.compress(min_ac_filter)
-#        if pos_rs is not None:
-#            pos_rs = pos_rs.compress(min_ac_filter)
-#    
-#    ## convert to 0,1,2 format
-#    if use_genotypes == True:
-#        genotypes_pops_012 = genotypes_pops.to_n_alt()
-#    else:
-#        try:
-#            haplotypes_pops_01 = genotypes_pops.to_haplotypes()
-#        except AttributeError:
-#            print("warning: attempted to get haplotypes from phased genotypes, returned attribute error. Using input as haplotypes.")
-#            haplotypes_pops_01 = genotypes_pops
-#    
-#    bs = list(zip(bins[:-1],bins[1:]))
-#    
-#    ## type_counts will store the number of times we see each genotype count configuration, within each bin
-#    if use_cache == True:
-#        type_counts = {}
-#        for b in bs:
-#            type_counts[b] = defaultdict(int)
-#    else:
-#        sums = {}
-#        for b in bs:
-#            sums[b] = {}
-#            for stat in stats_to_compute[0]:
-#                sums[b][stat] = 0
-#        
-#    if pos_rs is not None:
-#        rs = pos_rs
-#    elif positions is not None:
-#        rs = positions
-#    
-#    ns = np.array([2 * sum(pop_indexes[pop]) for pop in pops])
-#    
-#    bins = np.array(bins)
-#    
-#    ## here, we split our genotype array into sub-genotype arrays for each population
-#    if use_cache == True: # if we use caches, it's faster to look up genotype arrays
-#        if report==True: print("creating look-up dict for genotypes"); sys.stdout.flush()
-#        if use_genotypes == True:        
-#            genotypes_by_pop = {}
-#            for pop in pops:
-#                #genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#                temp_genotypes = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#                genotypes_by_pop[pop] = {}
-#                for ii in range(len(temp_genotypes)):
-#                    genotypes_by_pop[pop][ii] = temp_genotypes[ii]
-#        else:
-#            haplotypes_by_pop = {}
-#            for pop in pops:
-#                #haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-#                temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-#                haplotypes_by_pop[pop] = {}
-#                for ii in range(len(temp_haplotypes)):
-#                    haplotypes_by_pop[pop][ii] = temp_haplotypes[ii]
-#    else: # don't want to use dict caches for genotype arrays, so we have to read from the genotype arrays each time
-#        if report==True: print("pre-compressing for variant loci"); sys.stdout.flush()
-#        if use_genotypes == True:        
-#            genotypes_by_pop = {}
-#            for pop in pops:
-#                genotypes_by_pop[pop] = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-#        else:
-#            haplotypes_by_pop = {}
-#            for pop in pops:
-#                haplotypes_by_pop[pop] = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-#    
-#    # loop through 'left' positions, paired with positions to the right
-#    for ii,r in enumerate(rs[:-1]):
-#        if report is True:
-#            if ii%report_spacing == 0:
-#                print("tallied two locus counts {0} of {1} positions".format(ii, len(rs))); sys.stdout.flush()
-#        
-#        ## extract the genotypes at the left locus just once
-#        if use_genotypes == True:
-#            genotypes_left = [genotypes_by_pop[pop][ii] for pop in pops]
-#        else:
-#            haplotypes_left = [haplotypes_by_pop[pop][ii] for pop in pops]
-#        
-#        ## loop through each bin, picking out the positions to the right of the left locus that fall within the given bin
-#        #for b in bs:
-#        if pos_rs is not None:
-#            distances = pos_rs - r
-#        else:
-#            distances = positions - r
-#        filt = np.logical_and(distances >= bs[0][0], distances < bs[-1][1])
-#        filt[ii] = False
-#        right_indices = np.where(filt == True)[0]
-#        
-#        ## if there are no variants within the bin's distance to the right, continue to next bin 
-#        if len(right_indices) == 0:
-#            continue
-#        
-#        right_start = right_indices[0]
-#        right_end = right_indices[-1]+1
-#        
-#        if use_cache == True:
-#            # we stored genotypes in a dictionary
-#            if use_genotypes == True:
-#                genotypes_right = []
-#                for pop_ind,pop in enumerate(pops):
-#                    genotypes_right_pop = np.empty((right_end-right_start, int(ns[pop_ind]/2))).astype('int')
-#                    for right_ind in range(right_start,right_end):
-#                        genotypes_right_pop[right_ind-right_start] = genotypes_by_pop[pop][right_ind]
-#                    genotypes_right.append(genotypes_right_pop)
-#            else:
-#                haplotypes_right = []
-#                for pop_ind,pop in enumerate(pops):
-#                    haplotypes_right_pop = np.empty((right_end-right_start, ns[pop_ind])).astype('int')
-#                    for right_ind in range(right_start,right_end):
-#                        haplotypes_right_pop[right_ind-right_start] = haplotypes_by_pop[pop][right_ind]
-#                    haplotypes_right.append(haplotypes_right_pop)
-#        else:
-#            # we read from a slice of the genotype arrays (which for some reason is slower)
-#            if use_genotypes == True:
-#                genotypes_right = [genotypes_by_pop[pop][right_start:right_end] for pop in pops]
-#            else:
-#                haplotypes_right = [haplotypes_by_pop[pop][right_start:right_end] for pop in pops]
-#        
-#        if use_genotypes == True:
-#            cs = [ g_tally_counter_3(genotypes_left[pop_ind], genotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
-#        else:
-#            cs = [ h_tally_counter_3(haplotypes_left[pop_ind], haplotypes_right[pop_ind]) for pop_ind in range(len(pops)) ]
-#                
-#        for jj,r_pos in enumerate(distances[right_start:right_end]):
-#            bin_ind = np.where(r_pos >= bins)[0][-1]
-#            b = bs[bin_ind]
-#            
-#            cs_ind = tuple([tuple(cs[pop_ind][jj]) for pop_ind in range(len(pops))])
-#            
-#            if use_cache == True:
-#                type_counts[b][cs_ind] += 1
-#            else:
-#                for stat in stats_to_compute[0]:
-#                    sums[b][stat] += call_sgc(stat, cs_ind, use_genotypes)
-#                
-#    if use_cache == True:
-#        return type_counts
-#    else:
-#        return sums
 
 
 def call_sgc(stat, Cs, use_genotypes=True):
@@ -811,6 +580,8 @@ def call_sgc(stat, Cs, use_genotypes=True):
     stat = 'DD', 'Dz', or 'pi2', with underscore indices (like 'DD_1_1')
     Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes) 
     """
+    assert ld_extensions == 1, "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
     s = stat.split('_')[0]
     pop_nums = [int(p)-1 for p in stat.split('_')[1:]]
     if s == 'DD':
@@ -949,10 +720,10 @@ def get_H_statistics(genotypes, sample_ids, pop_file=None, pops=None, ac_filter=
         samples.reset_index(drop=True, inplace=True)
 
         ### should use this above when counting two locus genotypes
-
+        sample_ids_list = list(sample_ids)
         subpops = {
             # for each population, get the list of samples that belong to the population
-            pop_iter: samples[samples['pop'] == pop_iter].index.tolist() for pop_iter in pops
+            pop_iter: [sample_ids_list.index(ind) for ind in samples[samples['pop'] == pop_iter]['sample']] for pop_iter in pops
         }
         
         ac_subpop = genotypes.count_alleles_subpops(subpops)

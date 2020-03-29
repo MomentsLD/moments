@@ -193,5 +193,5 @@ def calc_FB_5pop(dims, u, v):
             coo_matrix((data2, (row2, col2)), shape=(d, d), dtype='float').tocsc(),
             coo_matrix((data3, (row3, col3)), shape=(d, d), dtype='float').tocsc(),
             coo_matrix((data4, (row4, col4)), shape=(d, d), dtype='float').tocsc(),
-            coo_matrix((data4, (row5, col5)), shape=(d, d), dtype='float').tocsc()]
+            coo_matrix((data5, (row5, col5)), shape=(d, d), dtype='float').tocsc()]
 

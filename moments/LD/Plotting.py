@@ -86,7 +86,8 @@ def plot_ld_curves(ld_stats, stats_to_plot=[], rows=None, cols=None,
 def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=None,
                    statistics=None, fig_size=(6,6), dpi=150, rs=None,
                    numfig=1, cM=False, output=None, show=False,
-                   plot_means=True, plot_vcs=False, binned_data=True):
+                   plot_means=True, plot_vcs=False, binned_data=True,
+                   ax=None, labels=None):
     """
     Plot comparison between expected stats (y) and data (ms, vcs)
     
@@ -108,6 +109,10 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
             ['DD_1_2','DD_1_3','DD_2_3'],['Dz_1_1_1','Dz_2_2_2','Dz_3_3_3'],
             ['pi2_2_2_2_2','pi2_3_3_3_3']], rows=2, cols=2, 
             statistics=statistics)
+    
+    Otherwise we can pass an ax object in a fig that already exists, in which
+        case stats_to_plot must have length 1 (with as many statistics you want
+        to plot within that axis).
     """
     
     # Check that all the data has the correct dimensions
@@ -116,17 +121,34 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
     if (binned_data == False) and (len(ld_stats.LD()) != len(rs)):
         raise ValueError("binned_data False, incorrect length for given rs.")
     
-    num_axes = len(stats_to_plot)
-    if num_axes == 0:
-        return
+    if labels is not None:
+        assert len(labels) == len(stats_to_plot)
+    if labels is None:
+        labels = stats_to_plot
     
-    if rows == None and cols == None:
-        cols = len(stats_to_plot)
-        rows = 1
-    elif cols == None:
-        cols = int(np.ceil(len(stats_to_plot)/rows))
-    elif rows == None:
-        rows = int(np.ceil(len(stats_to_plot)/cols))
+    # set up fig and axes
+    if ax is None:
+        num_axes = len(stats_to_plot)
+        if num_axes == 0:
+            return
+        
+        if rows == None and cols == None:
+            cols = len(stats_to_plot)
+            rows = 1
+        elif cols == None:
+            cols = int(np.ceil(len(stats_to_plot)/rows))
+        elif rows == None:
+            rows = int(np.ceil(len(stats_to_plot)/cols))
+    
+        fig = plt.figure(numfig, figsize=fig_size, dpi=dpi)
+        fig.clf()
+        axes = {}
+   
+        for i,stats in enumerate(stats_to_plot):
+            axes[i] = plt.subplot(rows,cols,i+1)
+    
+    else:
+        axes = [ax]
     
     if statistics == None:
         statistics = ld_stats.names()
@@ -142,12 +164,9 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
         rs_to_plot *= 100
         x_label = 'cM'
     
-    fig = plt.figure(numfig, figsize=fig_size, dpi=dpi)
-    fig.clf()
-    axes = {}
     # loop through stats_to_plot, update axis, and plot
-    for i,stats in enumerate(stats_to_plot):
-        axes[i] = plt.subplot(rows,cols,i+1)
+    for i,(stats,label) in enumerate(zip(stats_to_plot,labels)):
+        axes[i].set_prop_cycle(None)
         if plot_vcs:
             for stat in stats:
                 k = statistics[0].index(stat)
@@ -157,7 +176,7 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
                                 alpha=.25, label=None)
         
         # reset color cycle
-        plt.gca().set_prop_cycle(None)
+        axes[i].set_prop_cycle(None)
         if plot_means:
             for stat in stats:
                 k = statistics[0].index(stat)
@@ -165,24 +184,23 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
                 axes[i].plot(rs_to_plot, data_to_plot, '--', label=None)
         
         # reset color cycle
-        plt.gca().set_prop_cycle(None)
-        for stat in stats:
+        axes[i].set_prop_cycle(None)
+        for ind,stat in enumerate(stats):
             k = statistics[0].index(stat)
             exp_to_plot = [ld_stats[j][k] for j in range(len(rs_to_plot))]
-            axes[i].plot(rs_to_plot, exp_to_plot, label=stat)
+            axes[i].plot(rs_to_plot, exp_to_plot, label=label[ind])
         
         axes[i].set_xscale('log')
         axes[i].set_yscale('log')
         axes[i].set_xlabel(x_label)
         axes[i].legend(frameon=False)
     
-    fig.tight_layout()
-    
-    if output != None:
-        plt.savefig(output)
-    
-    if show == True:
-        fig.show()
-    else:
-        return fig
+    if ax is None:
+        fig.tight_layout()
+        if output != None:
+            plt.savefig(output)
+        if show == True:
+            fig.show()
+        else:
+            return fig
 

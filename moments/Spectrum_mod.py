@@ -1563,9 +1563,14 @@ def %(method)s(self, other):
             raise ValueError('Forward and backward mutation rates must be '
                              'specified in the finite genome model.')
         
-        if numpy.any(frozen) and len(Npop) != len(frozen):
-            raise ValueError('If one or more populations are frozen, length '
-                             'of frozen must match number of simulated pops.')
+        if hasattr(Npop, '__len__'):
+            if numpy.any(frozen) and len(Npop) != len(frozen):
+                raise ValueError('If one or more populations are frozen, length '
+                                 'of frozen must match number of simulated pops.')
+        else:
+            if numpy.any(frozen) and len(Npop(0)) != len(frozen):
+                raise ValueError('If one or more populations are frozen, length '
+                                 'of frozen must match number of simulated pops.')
         
         if plotting:
             model = moments.ModelPlot._get_model()
