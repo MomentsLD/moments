@@ -34,37 +34,50 @@ _ctf = matplotlib.ticker.FuncFormatter(lambda x,pos: '%i' % (x-0.4))
 
 from moments import Numerics, Inference
 
-def plot_1d_fs(fs, fig_num=None, show=True):
+def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None,
+               markersize=2, lw=1):
     """
     Plot a 1-dimensional frequency spectrum.
 
     fs: 1-dimensional Spectrum
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
+    fig_num: Clear and use figure fig_num for display. If None, a new figure
              window is created.
     show: If True, execute pylab.show command to make sure plot displays.
+    ax: If None, uses new or specified figure. Otherwise plots in axes object
+        that is given.
+    out: If file name is given, saves before showing.
 
     Note that all the plotting is done with pylab. To see additional pylab
     methods: "import pylab; help(pylab)". Pylab's many functions are documented
     at http://matplotlib.sourceforge.net/contents.html
     """
 
-    if fig_num is None:
-        fig = pylab.gcf()
-    else:
-        fig = pylab.figure(fig_num, figsize=(7, 7))
-    fig.clear()
+    if ax is None:
+        if fig_num is None:
+            fig = pylab.gcf()
+        else:
+            fig = pylab.figure(fig_num, figsize=(7, 7))
+        fig.clear()
+        ax = fig.add_subplot(1, 1, 1)
 
-    ax = fig.add_subplot(1, 1, 1)
-    ax.semilogy(fs, '-ob')
+    ax.semilogy(fs, '-o', markersize=markersize, lw=lw)
 
     ax.set_xlim(0, fs.sample_sizes[0])
-    if show:
-        fig.show()
+    
+    ax.set_xlabel('Allele frequency')
+    
+    ax.set_ylabel('Count')
+    
+    if ax is None:
+        if out is not None:
+            fig.savefig(out)
+        if show:
+            fig.show()
 
 def plot_1d_comp_multinom(model, data, fig_num=None, residual='Anscombe',
-                          plot_masked=False):
+                          plot_masked=False, out=None, show=True):
     """
-    Mulitnomial comparison between 1d model and data.
+    Multinomial comparison between 1d model and data.
 
 
     model: 1-dimensional model SFS
@@ -76,6 +89,8 @@ def plot_1d_comp_multinom(model, data, fig_num=None, residual='Anscombe',
               residuals, which can be less biased.
     plot_masked: Additionally plots (in open circles) results for points in the 
                  model or data that were masked.
+    out: Output filename to save figure, if given.
+    show: If True, displays figure. Set to False to supress.
 
     This comparison is multinomial in that it rescales the model to optimally
     fit the data.
@@ -83,10 +98,10 @@ def plot_1d_comp_multinom(model, data, fig_num=None, residual='Anscombe',
     model = Inference.optimally_scaled_sfs(model, data)
 
     plot_1d_comp_Poisson(model, data, fig_num, residual,
-                         plot_masked)
+                         plot_masked, out, show)
 
 def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
-                         plot_masked=False, show=True):
+                         plot_masked=False, out=None, show=True):
     """
     Poisson comparison between 1d model and data.
 
@@ -100,6 +115,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
               residuals, which can be less biased.
     plot_masked: Additionally plots (in open circles) results for points in the 
                  model or data that were masked.
+    out: Output filename to save figure, if given.
     show: If True, execute pylab.show command to make sure plot displays.
     """
     if fig_num is None:
@@ -133,6 +149,9 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
         pylab.plot(resid.data, '--og', mfc='w', zorder=-100)
 
     ax.set_xlim(0, data.shape[0] - 1)
+    if out is not None:
+        f.tight_layout()
+        pylab.savefig(out)
     if show:
         pylab.show()
 
