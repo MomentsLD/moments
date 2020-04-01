@@ -66,45 +66,48 @@ moments version 1.0.3"
         ax = plt.subplot(1, 1, 1)
         moments.Plotting.plot_1d_fs(fs, ax=ax)
         fig.tight_layout()
-        fig.show()
+        plt.show()
     elif fs.ndim == 2:
         # three axes (two marginal SFS and the joint SFS heatmap)
         fig = plt.figure()
         ax1 = plt.subplot(1, 3, 1)
         moments.Plotting.plot_1d_fs(fs.marginalize([1]), ax=ax1)
         ax1.set_title(pop_ids[0])
-        ax2 = plt.subplot(2, 3, 2)
+        ax2 = plt.subplot(2, 3, 2, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0]), ax=ax2)
         ax2.set_title(pop_ids[1], fontsize=8)
         # plot heatmap SFS
         ax3 = plt.subplot(2, 3, 3)
         moments.Plotting.plot_single_2d_sfs(
             fs.marginalize([2]), ax=ax3, cmap=cmap)
-        fig.show()
+        plt.show()
     elif fs.ndim == 3:
         # six axes (three marginal SFS, and three marg joint SFS heatmaps)
         fig = plt.figure(1, figsize=(6, 3))
         ax1 = plt.subplot(2, 3, 1)
         moments.Plotting.plot_1d_fs(fs.marginalize([1, 2]), ax=ax1)
         ax1.set_title(pop_ids[0], fontsize=8)
-        ax2 = plt.subplot(2, 3, 2)
+        ax2 = plt.subplot(2, 3, 2, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0, 2]), ax=ax2)
         ax2.set_title(pop_ids[1], fontsize=8)
-        ax3 = plt.subplot(2, 3, 3)
+        ax3 = plt.subplot(2, 3, 3, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0, 1]), ax=ax3)
         ax3.set_title(pop_ids[2], fontsize=8)
         # plot heatmaps of pairwise joint frequency spectra
+        joint_margins = [fs.marginalize([i]) for i in range(3)]
+        min_ = min(*(m.min() for m in joint_margins))
+        max_ = max(*(m.max() for m in joint_margins))
         ax4 = plt.subplot(2, 3, 4)
         moments.Plotting.plot_single_2d_sfs(
-            fs.marginalize([2]), ax=ax4, cmap=cmap)
+            joint_margins[2], ax=ax4, cmap=cmap, vmin=min_, vmax=max_)
         ax5 = plt.subplot(2, 3, 5)
         moments.Plotting.plot_single_2d_sfs(
-            fs.marginalize([1]), ax=ax5, cmap=cmap)
+            joint_margins[1], ax=ax5, cmap=cmap, vmin=min_, vmax=max_)
         ax6 = plt.subplot(2, 3, 6)
         moments.Plotting.plot_single_2d_sfs(
-            fs.marginalize([0]), ax=ax6, cmap=cmap)
+            joint_margins[0], ax=ax6, cmap=cmap, vmin=min_, vmax=max_)
         fig.tight_layout()
-        fig.show()
+        plt.show()
     else:
         print("plotting only available for up to three dimensional sfs")
 
@@ -132,7 +135,7 @@ if __name__ == "__main__":
 
     # check that the length of data matches the number of bins in the SFS
     assert np.prod([n+1 for n in ns]
-                   ) == len(data), "data does not sample sizes"
+                   ) == len(data), "data does not match sample sizes"
 
     data = np.reshape(data, [n+1 for n in ns])
 
@@ -140,7 +143,7 @@ if __name__ == "__main__":
     fs = moments.Spectrum(
         data, mask_corners=args.mask_corners, pop_ids=pop_ids)
 
-    # save the file if an outpute filename is given
+    # save the file if an output filename is given
     if args.out_file is not None:
         fs.to_file(args.out_file)
 
