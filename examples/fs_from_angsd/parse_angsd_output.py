@@ -72,10 +72,10 @@ moments version 1.0.3"
         fig = plt.figure()
         ax1 = plt.subplot(1, 3, 1)
         moments.Plotting.plot_1d_fs(fs.marginalize([1]), ax=ax1)
-        ax1.set_title(pop_ids[0])
+        ax1.set_title(fs.pop_ids[0])
         ax2 = plt.subplot(2, 3, 2, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0]), ax=ax2)
-        ax2.set_title(pop_ids[1], fontsize=8)
+        ax2.set_title(fs.pop_ids[1], fontsize=8)
         # plot heatmap SFS
         ax3 = plt.subplot(2, 3, 3)
         moments.Plotting.plot_single_2d_sfs(
@@ -86,13 +86,13 @@ moments version 1.0.3"
         fig = plt.figure(1, figsize=(6, 3))
         ax1 = plt.subplot(2, 3, 1)
         moments.Plotting.plot_1d_fs(fs.marginalize([1, 2]), ax=ax1)
-        ax1.set_title(pop_ids[0], fontsize=8)
+        ax1.set_title(fs.pop_ids[0], fontsize=8)
         ax2 = plt.subplot(2, 3, 2, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0, 2]), ax=ax2)
-        ax2.set_title(pop_ids[1], fontsize=8)
+        ax2.set_title(fs.pop_ids[1], fontsize=8)
         ax3 = plt.subplot(2, 3, 3, sharey=ax1)
         moments.Plotting.plot_1d_fs(fs.marginalize([0, 1]), ax=ax3)
-        ax3.set_title(pop_ids[2], fontsize=8)
+        ax3.set_title(fs.pop_ids[2], fontsize=8)
         # plot heatmaps of pairwise joint frequency spectra
         joint_margins = [fs.marginalize([i]) for i in range(3)]
         min_ = min(*(m.min() for m in joint_margins))
@@ -112,21 +112,18 @@ moments version 1.0.3"
         print("plotting only available for up to three dimensional sfs")
 
 
-if __name__ == "__main__":
-    parser = make_parser()
-    args = parser.parse_args(sys.argv[1:])
-
-    assert args.folded is True, "At the moment, this only supports parsing an unfolded SFS"
-
-    # first get the sample sizes (if folded or unfolded)
+def get_fs_from_angsd(sfs_file, pop_file, pop_ids, fold):
+    """
+    Get sample sizes from the pop_file, then import the ANGSD data and reshape
+    the spectrum to the correct dimensions.
+    """
     pop_ids = args.pop_ids
     ns = [0 for _ in pop_ids]
     with open(args.pop_file) as f_pop:
         for line in f_pop:
             pop_id = line.split()[1]
             if pop_id in pop_ids:
-                ns[pop_ids.index(pop_id)] += 1+args.folded
-
+                ns[pop_ids.index(pop_id)] += 2
     # get the SFS data
     with open(args.sfs_file) as f_data:
         data_line = f_data.readline()
@@ -142,6 +139,20 @@ if __name__ == "__main__":
     # turn into moments object
     fs = moments.Spectrum(
         data, mask_corners=args.mask_corners, pop_ids=pop_ids)
+    
+    if fold is True:
+        fs = fs.fold()
+    
+    return fs
+
+if __name__ == "__main__":
+    parser = make_parser()
+    args = parser.parse_args(sys.argv[1:])
+
+    if args.folded is True:
+        print("The output SFS is folded, but we assume the input ANGSD file is unfolded")
+    
+    fs = get_fs_from_angsd(args.sfs_file, args.pop_file, args.pop_ids, args.folded)
 
     # save the file if an output filename is given
     if args.out_file is not None:
