@@ -1,4 +1,4 @@
-from . import Numerics, Util, Matrices, Demographics1D, Demographics2D, Inference #, Demographics3D, Corrections, Godambe
+from . import Numerics, Util, Matrices, Demographics1D, Demographics2D, Inference, Godambe #, Demographics3D, Corrections
 
 # Protect import of Demography in case networkx is not installed.
 try:
