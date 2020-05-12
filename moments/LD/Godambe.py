@@ -179,6 +179,7 @@ def get_grad(func, p0, eps, args=()):
     return grad
 
 ld_cache = {}
+cache_calls = 0
 def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
                 just_hess=False):
     """
@@ -198,11 +199,16 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
     # Cache evaluations of the LDstats inside our hessian/J 
     # evaluation function
     def func(params, m, v):
+        global cache_calls
+        cache_calls += 1
         key = tuple(params)
         if key not in ld_cache:
             ld_cache[key] = func_ex(params, statistics)
         y = ld_cache[key]
-        return Inference.ll_over_bins(y, m, v)
+        ll = Inference.ll_over_bins(y, m, v)
+        print("number of cache calls:", cache_calls)
+        print("ll = ", ll)
+        return ll
 
     def log_func(logparams, ms, vcs):
         return func(numpy.exp(logparams), m, v)
