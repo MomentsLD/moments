@@ -179,7 +179,6 @@ def get_grad(func, p0, eps, args=()):
     return grad
 
 ld_cache = {}
-cache_calls = 0
 def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
                 just_hess=False):
     """
@@ -199,15 +198,11 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
     # Cache evaluations of the LDstats inside our hessian/J 
     # evaluation function
     def func(params, m, v):
-        global cache_calls
-        cache_calls += 1
         key = tuple(params)
         if key not in ld_cache:
             ld_cache[key] = func_ex(params, statistics)
         y = ld_cache[key]
         ll = Inference.ll_over_bins(y, m, v)
-        print("number of cache calls:", cache_calls)
-        print("ll = ", ll)
         return ll
 
     def log_func(logparams, ms, vcs):
@@ -298,3 +293,32 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
     else:
         return uncerts, GIM
 
+
+def FIM_uncert(model_func, p0, ms, vcs, log=False, eps=0.01,
+               r_edges=None, normalization=1, pass_Ne=False,
+               statistics=None):
+    """
+    Parameter uncertainties from Fisher Information Matrix
+
+    Returns standard deviations of parameter values.
+    """
+
+    assert statistics is not None, "need to pass statistics = ..."
+        
+    def pass_func(params, statistics):
+        global func_calls
+        func_calls += 1
+        print(f"called {func_calls} times")
+        print(params)
+        rho = 4*params[-1]*r_edges
+        if pass_Ne:
+            y = Inference.bin_stats(model_func, params, rho=rho)
+        else:
+            y = Inference.bin_stats(model_func, params[:-1], rho=rho)
+        y = Inference.sigmaD2(y, normalization=normalization)
+        y = Inference.remove_nonpresent_statistics(y, statistics)
+        return y
+
+    H = get_godambe(pass_func, 0, p0, ms, vcs, eps, statistics, log=log, just_hess=True)
+    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
+    return uncerts
