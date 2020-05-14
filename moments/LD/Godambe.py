@@ -251,7 +251,7 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
     Returns standard deviations of parameter values.
 
     model_func: Model function
-    all_boot: List of bootstrap LD stats [[m0, m1, m2], [v0, v1, v2]]
+    all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
     p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
     ms, vcs: Original means and covariances of statistics from data.
