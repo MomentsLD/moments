@@ -221,13 +221,13 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
     J = numpy.zeros((len(p0), len(p0)))
     # cU is a column vector
     cU = numpy.zeros((len(p0),1))
-    for ii, (m, v) in enumerate(zip(all_boot[0], all_boot[1])):
+    for bs_ms in all_boot:
         #boot = LDstats(boot)
         if not log:
-            grad_temp = get_grad(func, p0, eps, args=[m, v])
+            grad_temp = get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
             grad_temp = get_grad(log_func, numpy.log(p0), eps,
-                                 args=[m, v])
+                                 args=[bs_ms, vcs])
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
