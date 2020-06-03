@@ -977,7 +977,7 @@ def subset_data(data, pops_to, normalization=1, r_min=None, r_max=None, remove_D
             if b[1] > r_max:
                 continue
         means.append(np.delete(data['means'][i], to_remove[0]))
-        varcovs.append(np.delete(np.delete(data['varcovs'][0], to_remove[0], axis=0), to_remove[0], axis=1))
+        varcovs.append(np.delete(np.delete(data['varcovs'][i], to_remove[0], axis=0), to_remove[0], axis=1))
     
     means.append(np.delete(data['means'][-1], to_remove[1]))
     varcovs.append(np.delete(np.delete(data['varcovs'][-1], to_remove[1], axis=0), to_remove[1], axis=1))

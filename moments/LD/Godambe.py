@@ -269,13 +269,13 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
     normalization:
     pass_Ne: 
     """    
-    assert statistics is not None, "need to pass statistics = ..."
+    assert statistics is not None, "need to pass statistics"
         
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
-        print(f"called {func_calls} times")
-        print(params)
+        #print(f"called {func_calls} times")
+        #print(params)
         rho = 4*params[-1]*r_edges
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
@@ -308,8 +308,8 @@ def FIM_uncert(model_func, p0, ms, vcs, log=False, eps=0.01,
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
-        print(f"called {func_calls} times")
-        print(params)
+        #print(f"called {func_calls} times")
+        #print(params)
         rho = 4*params[-1]*r_edges
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
