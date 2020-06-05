@@ -104,4 +104,52 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
                 upper_bound[ii] = np.inf
         pnew = np.minimum(pnew, 0.99 * np.asarray(upper_bound))
     return pnew
+
+
+def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
+    """
+    Times in params must be specified so that earlier epochs are earlier in the
+    param list, because we return rescaled cumulative times.
+    """
+    if Ne is not None and 'Ne' in types:
+        raise ValueError("Ne must be passed as a keywork argument or specified in types, but not both.")
+    
+    if Ne is None:
+        Ne = params[types.index('Ne')]
+    
+    assert len(params) == len(types), "types and params must have same length"
+    if uncerts is not None:
+        assert len(params) == len(uncerts)
+    
+    # rescale the params
+    # go backwards to add times in reverse
+    elapsed_t = 0
+    rescaled_params = [0 for _ in params]
+    for ii, p in reversed(list(enumerate(params))):
+        if types[ii] == 'T':
+            elapsed_t += p * 2 * Ne * gens
+            rescaled_params[ii] = elapsed_t
+        elif types[ii] == 'm':
+            rescaled_params[ii] = p / 2 / Ne
+        elif types[ii] == 'nu':
+            rescaled_params[ii] = p * Ne
+        else:
+            rescaled_params[ii] = p
+    
+    if uncerts is None:
+        return rescaled_params
+    else:
+        ## if uncerts are given
+        # rescale the uncerts
+        rescaled_uncerts = [0 for _ in params]
+        for ii, p in enumerate(uncerts):
+            if types[ii] == 'T':
+                rescaled_uncerts[ii] = p * 2 * Ne * gens
+            elif types[ii] == 'm':
+                rescaled_uncerts[ii] = p / 2 / Ne
+            elif types[ii] == 'nu':
+                rescaled_uncerts[ii] = p * Ne
+            else:
+                rescaled_uncerts[ii] = p
+        return rescaled_params, rescaled_uncerts
     
