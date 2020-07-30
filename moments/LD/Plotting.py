@@ -1,16 +1,21 @@
+# Methods to plot LD decay curves from moments.LD
+#
+#
+#
+
 import matplotlib.pylab as plt, matplotlib
 import numpy as np
 import sys,os
 
 
-# Set fontsize to 10
+# Set fontsize to 8
 matplotlib.rc('font',**{'family':'sans-serif',
                         'sans-serif':['Helvetica'],
                         'style':'normal',
-                        'size':10 })
-# Set label tick sizes to 8
-matplotlib.rc('xtick', labelsize=8)
-matplotlib.rc('ytick', labelsize=8)
+                        'size':8 })
+# Set label tick sizes to 7
+matplotlib.rc('xtick', labelsize=7)
+matplotlib.rc('ytick', labelsize=7)
 
 
 def plot_ld_curves(ld_stats, stats_to_plot=[], rows=None, cols=None,
@@ -69,9 +74,14 @@ def plot_ld_curves(ld_stats, stats_to_plot=[], rows=None, cols=None,
             axes[i].plot(r_centers, to_plot, label=stat)
         
         axes[i].set_xscale('log')
-        axes[i].set_yscale('log')
+        # don't log scale y axis for pi stats
+        if statistics is not None:
+            if statistics[0][i].startswith('pi2') is False:
+                axes[i].set_yscale('log')
+        else:
+            axes[i].set_yscale('log')
         axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False)
+        axes[i].legend(frameon=False, fontsize=6)
     
     fig.tight_layout()
     
@@ -191,9 +201,14 @@ def plot_ld_curves_comp(ld_stats, ms, vcs, stats_to_plot=[], rows=None, cols=Non
             axes[i].plot(rs_to_plot, exp_to_plot, label=label[ind])
         
         axes[i].set_xscale('log')
-        axes[i].set_yscale('log')
+        # don't log scale y axis for pi stats
+        if statistics is not None:
+            if statistics[0][i].startswith('pi2') is False:
+                axes[i].set_yscale('log')
+        else:
+            axes[i].set_yscale('log')
         axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False)
+        axes[i].legend(frameon=False, fontsize=6)
     
     if ax is None:
         fig.tight_layout()

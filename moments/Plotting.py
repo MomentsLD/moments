@@ -69,6 +69,7 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None,
     ax.set_ylabel('Count')
     
     if ax is None:
+        fig.tight_layout()
         if out is not None:
             fig.savefig(out)
         if show:
@@ -157,7 +158,7 @@ def plot_1d_comp_Poisson(model, data, fig_num=None, residual='Anscombe',
 
 def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None, 
                        pop_ids=None, extend='neither', colorbar=True,
-                       cmap=pylab.cm.hsv):
+                       cmap=pylab.cm.hsv, out=None, show=True):
     """
     Heatmap of single 2d SFS. 
     
@@ -174,8 +175,11 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
             help(pylab.colorbar) for more details.
     colorbar: Should we plot a colorbar?
     cmap: Pylab colormap to use for plotting.
+    out: Output filename to save figure, if given.
+    show: If True, execute pylab.show command to make sure plot displays.
     """
     if ax is None:
+        fig = pylab.gcf()
         ax = pylab.gca()
 
     # this fails with entries of zero, so we mask those:
@@ -229,11 +233,16 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
     ax.set_xlim(0, sfs.shape[1])
     ax.set_ylim(0, sfs.shape[0])
 
-    return cb
+    if ax is None:
+        fig.tight_layout()
+        if out is not None:
+            fig.savefig(out)
+        if show:
+            fig.show()
 
 
 def plot_2d_resid(resid, resid_range=None, ax=None, pop_ids=None,
-                  extend='neither', colorbar=True):
+                  extend='neither', colorbar=True, out=None, show=True):
     """
     Linear heatmap of 2d residual array.
 
@@ -245,8 +254,11 @@ def plot_2d_resid(resid, resid_range=None, ax=None, pop_ids=None,
     extend: Whether the colorbar should have 'extension' arrows. See
             help(pylab.colorbar) for more details.
     colorbar: Should we plot a colorbar?
+    out: Output filename to save figure, if given.
+    show: If True, execute pylab.show command to make sure plot displays.
     """
     if ax is None:
+        fig = pylab.gcf()
         ax = pylab.gca()
 
     if resid_range is None:
@@ -287,6 +299,13 @@ def plot_2d_resid(resid, resid_range=None, ax=None, pop_ids=None,
     ax.set_xlim(0, resid.shape[1])
     ax.set_ylim(0, resid.shape[0])
 
+    if ax is None:
+        fig.tight_layout()
+        if out is not None:
+            fig.savefig(out)
+        if show:
+            fig.show()
+
 # Used to determine whether colorbars should have 'extended' arrows
 _extend_mapping = {(True, True): 'neither',
                    (False, True): 'min',
@@ -296,7 +315,7 @@ _extend_mapping = {(True, True): 'neither',
 def plot_2d_comp_multinom(model, data, vmin=None, vmax=None,
                           resid_range=None, fig_num=None,
                           pop_ids=None, residual='Anscombe',
-                          adjust=True):
+                          adjust=True, out=None, show=True):
     """
     Mulitnomial comparison between 2d model and data.
 
@@ -317,18 +336,20 @@ def plot_2d_comp_multinom(model, data, vmin=None, vmax=None,
 
     This comparison is multinomial in that it rescales the model to optimally
     fit the data.
+    out: Output filename to save figure, if given.
+    show: If True, execute pylab.show command to make sure plot displays.
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
     plot_2d_comp_Poisson(model, data, vmin=vmin, vmax=vmax,
                          resid_range=resid_range, fig_num=fig_num,
                          pop_ids=pop_ids, residual=residual,
-                         adjust=adjust)
+                         adjust=adjust, out=out, show=show)
     
 def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
                          resid_range=None, fig_num=None,
                          pop_ids=None, residual='Anscombe',
-                         adjust=True, show=True):
+                         adjust=True, out=None, show=True):
     """
     Poisson comparison between 2d model and data.
 
@@ -346,6 +367,8 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
               residuals, which can be less biased.
     adjust: Should method use automatic 'subplots_adjust'? For advanced
             manipulation of plots, it may be useful to make this False.
+    out: Output filename to save figure, if given.
+    show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
         model = model.fold()
@@ -424,12 +447,17 @@ def plot_2d_comp_Poisson(model, data, vmin=None, vmax=None,
     ax.hist(flatresid, bins=20, density=True)
     ax.set_title('residuals')
     ax.set_yticks([])
+
+    f.tight_layout()
+    if out is not None:
+        f.savefig(out)
     if show:
         pylab.show()
 
 def plot_3d_comp_multinom(model, data, vmin=None, vmax=None,
                           resid_range=None, fig_num=None,
-                          pop_ids=None, residual='Anscombe', adjust=True):
+                          pop_ids=None, residual='Anscombe', adjust=True,
+                          out=None, show=True):
     """
     Multinomial comparison between 3d model and data.
 
@@ -447,6 +475,8 @@ def plot_3d_comp_multinom(model, data, vmin=None, vmax=None,
               residuals, which can be less biased.
     adjust: Should method use automatic 'subplots_adjust'? For advanced
             manipulation of plots, it may be useful to make this False.
+    out: Output filename to save figure, if given.
+    show: If True, execute pylab.show command to make sure plot displays.
 
     This comparison is multinomial in that it rescales the model to optimally
     fit the data.
@@ -456,11 +486,12 @@ def plot_3d_comp_multinom(model, data, vmin=None, vmax=None,
     plot_3d_comp_Poisson(model, data, vmin=vmin, vmax=vmax,
                          resid_range=resid_range, fig_num=fig_num,
                          pop_ids=pop_ids, residual=residual,
-                         adjust=adjust)
+                         adjust=adjust, out=out, show=show)
 
 def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
                          resid_range=None, fig_num=None, pop_ids=None, 
-                         residual='Anscombe', adjust=True, show=True):
+                         residual='Anscombe', adjust=True,
+                         out=None, show=True):
     """
     Poisson comparison between 3d model and data.
 
@@ -478,6 +509,7 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
               residuals, which can be less biased.
     adjust: Should method use automatic 'subplots_adjust'? For advanced
             manipulation of plots, it may be useful to make this False.
+    out: Output filename to save figure, if given.
     show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
@@ -583,11 +615,15 @@ def plot_3d_comp_Poisson(model, data, vmin=None, vmax=None,
                                    resid.ravel())
         ax.hist(flatresid, bins=20, density=True)
         ax.set_yticks([])
+
+    f.tight_layout()
+    if out is not None:
+        f.savefig(out)
     if show:
         pylab.show()
 
 def plot_3d_spectrum(fs, fignum=None, vmin=None, vmax=None, pop_ids=None,
-                     show=True):
+                     out=None, show=True):
     """
     Logarithmic heatmap of single 3d FS.
 
@@ -599,6 +635,7 @@ def plot_3d_spectrum(fs, fignum=None, vmin=None, vmax=None, pop_ids=None,
     vmax: Values in fs above vmax saturate the color spectrum.
     fignum: Figure number to plot into. If None, a new figure will be created.
     pop_ids: If not None, override pop_ids stored in Spectrum.
+    out: Output filename to save figure, if given.
     show: If True, execute pylab.show command to make sure plot displays.
     """
     import mpl_toolkits.mplot3d as mplot3d
@@ -693,6 +730,9 @@ def plot_3d_spectrum(fs, fignum=None, vmin=None, vmax=None, pop_ids=None,
 
     # XXX: I can't set the axis ticks to be just the endpoints.
 
+    fig.tight_layout()
+    if out is not None:
+        fig.savefig(out)
     if show:
         pylab.show()
 
@@ -714,7 +754,7 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
             Note that these are MayaVi figures, which are separate from
             matplotlib figures.
     pop_ids: If not None, override pop_ids stored in Spectrum.
-    show: If True, execute mlab.show command to make sure plot displays.
+    show: If True, execute pylab.show command to make sure plot displays.
     """
     from enthought.mayavi import mlab
 
@@ -767,7 +807,8 @@ def plot_3d_spectrum_mayavi(fs, fignum=None, vmin=None, vmax=None,
 
 def plot_4d_comp_multinom(model, data, vmin=None, vmax=None,
                           resid_range=None, fig_num=None,
-                          pop_ids=None, residual='Anscombe', adjust=True):
+                          pop_ids=None, residual='Anscombe', adjust=True,
+                          out=None, show=True):
     """
     Multinomial comparison between 3d model and data.
     
@@ -793,11 +834,12 @@ def plot_4d_comp_multinom(model, data, vmin=None, vmax=None,
     plot_4d_comp_Poisson(model, data, vmin=vmin, vmax=vmax,
                          resid_range=resid_range, fig_num=fig_num,
                          pop_ids=pop_ids, residual=residual,
-                         adjust=adjust)
+                         adjust=adjust, out=out, show=show)
 
 def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
                          resid_range=None, fig_num=None, pop_ids=None,
-                         residual='Anscombe', adjust=True, show=True):
+                         residual='Anscombe', adjust=True, out=None,
+                         show=True):
     """
     Poisson comparison between 4d model and data.
     
@@ -814,6 +856,7 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
         residuals, which can be less biased.
     adjust: Should method use automatic 'subplots_adjust'? For advanced
         manipulation of plots, it may be useful to make this False.
+    out: Output filename to save figure, if given.
     show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
@@ -926,5 +969,8 @@ def plot_4d_comp_Poisson(model, data, vmin=None, vmax=None,
             ax.set_yticks([])
             cptr += 1
 
+    f.tight_layout()
+    if out is not None:
+        f.savefig(out)
     if show:
         pylab.show()
