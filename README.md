@@ -52,3 +52,16 @@ If you use `Parsing` from `moments-LD`, which reads vcf files and computes LD st
 - hdf5
 
 - scikit-allel
+
+
+**Changelog**
+
+***1.0.3***
+
+- Options in plotting scripts for showing and saving output
+
+- Add confidence interval computation for LD
+
+- Add parsing script for ANGSD frequency spectrum output
+
+Started tracking changes between versions with version 1.0.2.
