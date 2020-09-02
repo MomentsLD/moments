@@ -42,9 +42,15 @@ def sigmaD2(y, normalization=1):
     
     return y
 
-def bin_stats(model_func, params, rho=[], theta=0.001, kwargs={}):
+def bin_stats(model_func, params, rho=[], theta=0.001, spread=None, kwargs={}):
+    """
+    rho: the scaled recombination rate bin edges
+    spread: list of length rho-1 (number of bins), where each entry is an array of
+            length rho+1 (number of bins plus amount outside bin range to each side).
+            each array must sum to one.
+    """
     if len(rho) < 2:
-        raise ValueError("number of recombination rates must be greater than one")
+        raise ValueError("number of recombination rates (bin edges) must be greater than one")
     ## XX check if sorted...
     
     ## how to pass arbitrary arguments... thinking about pop_ids (right now, set pop_ids in model_func)
@@ -52,8 +58,27 @@ def bin_stats(model_func, params, rho=[], theta=0.001, kwargs={}):
     y_edges = model_func(params, rho=rho, theta=theta, **kwargs)
     y_mids = model_func(params, rho=rho_mids, theta=theta, **kwargs)
     y = [1./6 * (y_edges[i] + y_edges[i+1] + 4*y_mids[i]) for i in range(len(rho_mids))]
-    y.append(y_edges[-1])
-    return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
+    if spread is None:
+        y.append(y_edges[-1])
+        return LDstats(y, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
+    else:
+        if len(spread) != len(rho) - 1:
+            raise ValueError("spread must be length of bins")
+        y_spread = []
+        for distr in spread:
+            if len(distr) != len(rho) + 1:
+                raise ValueError("spread distr is not the correct length (len(bins) + 2)")
+            if not np.isclose(np.sum(distr), 1):
+                raise ValueError("spread distributions must sum to one")
+            y_spread.append(
+                (
+                    distr[0] * y_edges[0] +
+                    distr[1:-1].dot(y) +
+                    distr[-1] * y_edges[-2]
+                )
+            )
+        y_spread.append(y_edges[-1])
+        return LDstats(y_spread, num_pops=y_edges.num_pops, pop_ids=y_edges.pop_ids)
 
 def remove_normalized_lds(y, normalization=1):
     to_delete_ld = y.names()[0].index('pi2_1_1_1_1')
@@ -109,7 +134,7 @@ def ll(x,mu,Sigma):
                                np.linalg.inv(Sigma) ) , x-mu ) 
                                #- len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma)) 
 
-def ll_over_bins(xs,mus,Sigmas):
+def ll_over_bins(xs, mus, Sigmas):
     """
     xs = list of data arrays
     mus = list of model function output arrays
@@ -118,13 +143,13 @@ def ll_over_bins(xs,mus,Sigmas):
     Each bin is assumed to be independent, so we call ll(x,mu,Sigma) 
       for each bin
     """
-    it = iter([xs,mus,Sigmas])
+    it = iter([xs, mus, Sigmas])
     the_len = len(next(it))
     if not all(len(l) == the_len for l in it):
         raise ValueError('Lists of data, means, and varcov matrices must be the same length')
     ll_vals = []
     for ii in range(len(xs)):
-        ll_vals.append(ll(xs[ii],mus[ii],Sigmas[ii]))
+        ll_vals.append(ll(xs[ii], mus[ii], Sigmas[ii]))
     ll_val = np.sum(ll_vals)
     return ll_val
 
@@ -137,6 +162,7 @@ def _object_func(params, model_func, means, varcovs, fs=None,
                  func_args=[], func_kwargs={}, fixed_params=None,
                  use_afs=False, Leff=None, multinom=True, ns=None,
                  statistics=None, pass_Ne=False,
+                 spread=None,
                  output_stream=sys.stdout):
     global _counter
     _counter += 1
@@ -186,7 +212,7 @@ def _object_func(params, model_func, means, varcovs, fs=None,
             ll_afs = moments.Inference.ll(model,fs)
     
     ## next get ll for LD stats
-    func_kwargs = {'theta':theta, 'rho':rhos}
+    func_kwargs = {'theta':theta, 'rho':rhos, 'spread': spread}
     stats = bin_stats(model_func[0], *all_args, **func_kwargs)
     stats = sigmaD2(stats, normalization=normalization)
     if statistics == None:
@@ -228,7 +254,8 @@ def optimize_log_fmin(p0, data, model_func,
                  normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  use_afs=False, Leff=None, multinom=False, ns=None,
-                 statistics=None, pass_Ne=False):
+                 statistics=None, pass_Ne=False,
+                 spread=None):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
@@ -313,6 +340,7 @@ def optimize_log_fmin(p0, data, model_func,
             func_args, func_kwargs, fixed_params, 
             use_afs, Leff, multinom, ns, 
             statistics, pass_Ne,
+            spread,
             output_stream)
     
     p0 = _project_params_down(p0, fixed_params)
@@ -330,7 +358,8 @@ def optimize_log_powell(p0, data, model_func,
                  normalization=1,
                  func_args=[], func_kwargs={}, fixed_params=None, 
                  use_afs=False, Leff=None, multinom=False, ns=None,
-                 statistics=None, pass_Ne=False):
+                 statistics=None, pass_Ne=False,
+                 spread=None):
     """
     p0 : initial guess (demography parameters + theta)
     data : [means, varcovs, fs (optional, use if use_afs=True)]
@@ -411,6 +440,7 @@ def optimize_log_powell(p0, data, model_func,
             func_args, func_kwargs, fixed_params, 
             use_afs, Leff, multinom, ns,
             statistics, pass_Ne,
+            spread,
             output_stream)
         
     p0 = _project_params_down(p0, fixed_params)
