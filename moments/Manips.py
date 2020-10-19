@@ -3,7 +3,7 @@ import scipy.misc as misc
 
 from . import ModelPlot
 from . import Spectrum_mod
-from scipy.optimize import _nnls
+from scipy.optimize import __nnls
 import scipy as sp
 from scipy import stats
 from numpy import asarray_chkfinite, zeros, double
@@ -533,9 +533,9 @@ def __nnls_mod__(A, b):
     zz = zeros((m,), dtype=double)
     index = zeros((n,), dtype=int)
     try:
-        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
+        x, rnorm, mode = __nnls.nnls(A, m, n, b, w, zz, index, -1)
     except:
-        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
+        x, rnorm, mode = __nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
         print("Warning: too many iterations in nnls") #SG my modification
 
