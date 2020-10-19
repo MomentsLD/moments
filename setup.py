@@ -68,7 +68,7 @@ if build_ld_extensions is True:
           )
 
 numpy.distutils.core.setup(name='moments',
-                           #version='1.0.3',
+                           #version='1.0.4',
                            # this is ugly, and might want to change, but version number is now stored in
                            # moments/_version.py and read from there
                            version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),

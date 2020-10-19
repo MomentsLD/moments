@@ -56,6 +56,12 @@ If you use `Parsing` from `moments-LD`, which reads vcf files and computes LD st
 
 **Changelog**
 
+***1.0.4***
+
+- Stable importing of scipy.optimize nnls function
+
+- Fixes a plotting bug when ax was set to None (from noscode)
+
 ***1.0.3***
 
 - Options in plotting scripts for showing and saving output
