@@ -58,15 +58,17 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None,
         else:
             fig = pylab.figure(fig_num, figsize=(7, 7))
         fig.clear()
-        ax = fig.add_subplot(1, 1, 1)
+        axes = fig.add_subplot(1, 1, 1)
+    else:
+        axes = ax
 
-    ax.semilogy(fs, '-o', markersize=markersize, lw=lw)
+    axes.semilogy(fs, '-o', markersize=markersize, lw=lw)
 
-    ax.set_xlim(0, fs.sample_sizes[0])
+    axes.set_xlim(0, fs.sample_sizes[0])
     
-    ax.set_xlabel('Allele frequency')
+    axes.set_xlabel('Allele frequency')
     
-    ax.set_ylabel('Count')
+    axes.set_ylabel('Count')
     
     if ax is None:
         fig.tight_layout()
@@ -180,7 +182,9 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
     """
     if ax is None:
         fig = pylab.gcf()
-        ax = pylab.gca()
+        axes = pylab.gca()
+    else:
+        axes = ax
 
     # this fails with entries of zero, so we mask those:
     sfs.mask[sfs == 0] = True
@@ -200,38 +204,38 @@ def plot_single_2d_sfs(sfs, vmin=None, vmax=None, ax=None,
         norm = matplotlib.colors.Normalize(vmin=vmin * (1-1e-3), 
                                            vmax=vmax * (1+1e-3))
         format = None
-    mappable=ax.pcolor(numpy.ma.masked_where(sfs < vmin, sfs), 
+    mappable=axes.pcolor(numpy.ma.masked_where(sfs < vmin, sfs), 
                        cmap=cmap, edgecolors='none',
                        norm=norm)
-    cb = ax.figure.colorbar(mappable, extend=extend, format=format)
+    cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:
-        ax.figure.delaxes(ax.figure.axes[-1])
+        axes.figure.delaxes(axes.figure.axes[-1])
     else:
         # A hack so we can manually work around weird ticks in some colorbars
         try:
-            ax.figure.moments_colorbars.append(cb)
+            axes.figure.moments_colorbars.append(cb)
         except AttributeError:
-            ax.figure.moments_colorbars = [cb]
+            axes.figure.moments_colorbars = [cb]
 
-    ax.plot([0,sfs.shape[1]],[0, sfs.shape[0]], '-k', lw=0.2)
+    axes.plot([0,sfs.shape[1]],[0, sfs.shape[0]], '-k', lw=0.2)
 
     if pop_ids is None:
         if sfs.pop_ids is not None:
             pop_ids = sfs.pop_ids
         else:
             pop_ids = ['pop0','pop1']
-    ax.set_ylabel(pop_ids[0], verticalalignment='top')
-    ax.set_xlabel(pop_ids[1], verticalalignment='bottom')
+    axes.set_ylabel(pop_ids[0], verticalalignment='top')
+    axes.set_xlabel(pop_ids[1], verticalalignment='bottom')
 
-    ax.xaxis.set_major_formatter(_ctf)
-    ax.xaxis.set_major_locator(_sfsTickLocator())
-    ax.yaxis.set_major_formatter(_ctf)
-    ax.yaxis.set_major_locator(_sfsTickLocator())
-    for tick in ax.xaxis.get_ticklines() + ax.yaxis.get_ticklines():
+    axes.xaxis.set_major_formatter(_ctf)
+    axes.xaxis.set_major_locator(_sfsTickLocator())
+    axes.yaxis.set_major_formatter(_ctf)
+    axes.yaxis.set_major_locator(_sfsTickLocator())
+    for tick in axes.xaxis.get_ticklines() + axes.yaxis.get_ticklines():
         tick.set_visible(False)
 
-    ax.set_xlim(0, sfs.shape[1])
-    ax.set_ylim(0, sfs.shape[0])
+    axes.set_xlim(0, sfs.shape[1])
+    axes.set_ylim(0, sfs.shape[0])
 
     if ax is None:
         fig.tight_layout()
@@ -259,45 +263,47 @@ def plot_2d_resid(resid, resid_range=None, ax=None, pop_ids=None,
     """
     if ax is None:
         fig = pylab.gcf()
-        ax = pylab.gca()
+        axes = pylab.gca()
+    else:
+        axes = ax
 
     if resid_range is None:
         resid_range = abs(resid).max()
 
-    mappable=ax.pcolor(resid, cmap=pylab.cm.RdBu_r, vmin=-resid_range, 
+    mappable=axes.pcolor(resid, cmap=pylab.cm.RdBu_r, vmin=-resid_range, 
                        vmax=resid_range, edgecolors='none')
 
     cbticks = [-resid_range, 0, resid_range]
     format = matplotlib.ticker.FormatStrFormatter('%.2g')
-    cb = ax.figure.colorbar(mappable, ticks=cbticks, format=format,
+    cb = axes.figure.colorbar(mappable, ticks=cbticks, format=format,
                             extend=extend)
     if not colorbar:
-        ax.figure.delaxes(ax.figure.axes[-1])
+        axes.figure.delaxes(axes.figure.axes[-1])
     else:
         try:
-            ax.figure.moments_colorbars.append(cb)
+            axes.figure.moments_colorbars.append(cb)
         except AttributeError:
-            ax.figure.moments_colorbars = [cb]
+            axes.figure.moments_colorbars = [cb]
 
-    ax.plot([0, resid.shape[1]],[0, resid.shape[0]], '-k', lw=0.2)
+    axes.plot([0, resid.shape[1]],[0, resid.shape[0]], '-k', lw=0.2)
 
     if pop_ids is None:
         if resid.pop_ids is not None:
             pop_ids = resid.pop_ids
         else:
             pop_ids = ['pop0','pop1']
-    ax.set_ylabel(pop_ids[0], verticalalignment='top')
-    ax.set_xlabel(pop_ids[1], verticalalignment='bottom')
+    axes.set_ylabel(pop_ids[0], verticalalignment='top')
+    axes.set_xlabel(pop_ids[1], verticalalignment='bottom')
 
-    ax.xaxis.set_major_formatter(_ctf)
-    ax.xaxis.set_major_locator(_sfsTickLocator())
-    ax.yaxis.set_major_formatter(_ctf)
-    ax.yaxis.set_major_locator(_sfsTickLocator())
-    for tick in ax.xaxis.get_ticklines() + ax.yaxis.get_ticklines():
+    axes.xaxis.set_major_formatter(_ctf)
+    axes.xaxis.set_major_locator(_sfsTickLocator())
+    axes.yaxis.set_major_formatter(_ctf)
+    axes.yaxis.set_major_locator(_sfsTickLocator())
+    for tick in axes.xaxis.get_ticklines() + axes.yaxis.get_ticklines():
         tick.set_visible(False)
 
-    ax.set_xlim(0, resid.shape[1])
-    ax.set_ylim(0, resid.shape[0])
+    axes.set_xlim(0, resid.shape[1])
+    axes.set_ylim(0, resid.shape[0])
 
     if ax is None:
         fig.tight_layout()
