@@ -5,6 +5,7 @@ import numpy
 
 import moments
 
+
 def snm(ns):
     """
     ns = [n1, n2]
@@ -15,6 +16,7 @@ def snm(ns):
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     return fs
+
 
 def bottlegrowth(params, ns):
     """
@@ -34,6 +36,7 @@ def bottlegrowth(params, ns):
     nuB, nuF, T = params
     return bottlegrowth_split_mig((nuB, nuF, 0, T, 0), ns)
 
+
 def bottlegrowth_split(params, ns):
     """
     params = (nuB, nuF, T, Ts)
@@ -51,6 +54,7 @@ def bottlegrowth_split(params, ns):
     """
     nuB, nuF, T, Ts = params
     return bottlegrowth_split_mig((nuB, nuF, 0.0, T, Ts), ns)
+
 
 def bottlegrowth_split_mig(params, ns):
     """
@@ -71,17 +75,18 @@ def bottlegrowth_split_mig(params, ns):
     """
     nuB, nuF, m, T, Ts = params
 
-    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF / nuB) * t / T)]
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs.integrate(nu_func, T - Ts, dt_fac=0.01)
     # we split the population
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
     nu0 = nu_func(T - Ts)[0]
-    nu_func = lambda t: 2 * [nu0 * numpy.exp(numpy.log(nuF/nu0) * t / Ts)]
-    fs.integrate(nu_func, Ts, m = numpy.array([[0, m], [m, 0]]))
-    
+    nu_func = lambda t: 2 * [nu0 * numpy.exp(numpy.log(nuF / nu0) * t / Ts)]
+    fs.integrate(nu_func, Ts, m=numpy.array([[0, m], [m, 0]]))
+
     return fs
+
 
 def split_mig(params, ns):
     """
@@ -100,9 +105,10 @@ def split_mig(params, ns):
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    fs.integrate([nu1, nu2], T, m = numpy.array([[0, m], [m, 0]]))
+    fs.integrate([nu1, nu2], T, m=numpy.array([[0, m], [m, 0]]))
 
     return fs
+
 
 def IM(params, ns):
     """
@@ -124,14 +130,15 @@ def IM(params, ns):
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    
-    nu1_func = lambda t: s * (nu1/s)**(t/T)
-    nu2_func = lambda t: (1-s) * (nu2/(1-s))**(t/T)
+
+    nu1_func = lambda t: s * (nu1 / s) ** (t / T)
+    nu2_func = lambda t: (1 - s) * (nu2 / (1 - s)) ** (t / T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
 
     fs.integrate(nu_func, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
 
     return fs
+
 
 def IM_pre(params, ns):
     """
@@ -157,13 +164,13 @@ def IM_pre(params, ns):
     fs = moments.Spectrum(sts)
     fs.integrate([nuPre], TPre, dt_fac=0.01)
     fs = moments.Manips.split_1D_to_2D(fs, ns[0], ns[1])
-    
+
     nu1_0 = nuPre * s
-    nu2_0 = nuPre * (1-s)
-    nu1_func = lambda t: nu1_0 * (nu1/nu1_0)**(t/T)
-    nu2_func = lambda t: nu2_0 * (nu2/nu2_0)**(t/T)
+    nu2_0 = nuPre * (1 - s)
+    nu1_func = lambda t: nu1_0 * (nu1 / nu1_0) ** (t / T)
+    nu2_func = lambda t: nu2_0 * (nu2 / nu2_0) ** (t / T)
     nu_func = lambda t: [nu1_func(t), nu2_func(t)]
-    
+
     fs.integrate(nu_func, T, dt_fac=0.01, m=numpy.array([[0, m12], [m21, 0]]))
-    
+
     return fs

@@ -2,7 +2,7 @@
 Miscellaneous utility functions. Including ms simulation.
 """
 
-import bisect,collections,operator,os,sys,time
+import bisect, collections, operator, os, sys, time
 
 import numpy
 import scipy.linalg
@@ -10,11 +10,14 @@ import scipy.linalg
 from . import Numerics
 from . import Spectrum_mod
 import functools
+
 # Nucleotide order assumed in Q matrices.
-code = 'CGTA'
+code = "CGTA"
 
 #: Storage for times at which each stream was flushed.
 __times_last_flushed = {}
+
+
 def delayed_flush(stream=sys.stdout, delay=1):
     """
     Flush a stream, ensuring that it is only flushed every 'delay' *minutes*.
@@ -41,6 +44,7 @@ def delayed_flush(stream=sys.stdout, delay=1):
         stream.flush()
         __times_last_flushed[stream] = curr_time
 
+
 def ensure_1arg_func(var):
     """
     Ensure that var is actually a one-argument function.
@@ -56,13 +60,13 @@ def ensure_1arg_func(var):
     else:
         var_f = var
     if not callable(var_f):
-        raise ValueError('Argument is not a constant or a function.')
+        raise ValueError("Argument is not a constant or a function.")
     try:
         var_f(0.0)
     except TypeError:
-        raise ValueError('Argument is not a constant or a one-argument '
-                         'function.')
+        raise ValueError("Argument is not a constant or a one-argument " "function.")
     return var_f
+
 
 def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
     """
@@ -78,26 +82,36 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
            Otherwise, three integers should be passed. Example: (132, 435, 123)
     """
     if len(ns) > 1:
-        ms_command = "ms %(total_chrom)i %(iter)i -t %(theta)f -I %(numpops)i "\
-                "%(sample_sizes)s %(core)s"
+        ms_command = (
+            "ms %(total_chrom)i %(iter)i -t %(theta)f -I %(numpops)i "
+            "%(sample_sizes)s %(core)s"
+        )
     else:
         ms_command = "ms %(total_chrom)i %(iter)i -t %(theta)f  %(core)s"
 
     if recomb:
         ms_command = ms_command + " -r %(recomb)f %(rsites)i"
         if not rsites:
-            rsites = theta*10
-    sub_dict = {'total_chrom': numpy.sum(ns), 'iter': iter, 'theta': theta,
-                'numpops': len(ns), 'sample_sizes': ' '.join(map(str, ns)),
-                'core': core, 'recomb': recomb, 'rsites': rsites}
+            rsites = theta * 10
+    sub_dict = {
+        "total_chrom": numpy.sum(ns),
+        "iter": iter,
+        "theta": theta,
+        "numpops": len(ns),
+        "sample_sizes": " ".join(map(str, ns)),
+        "core": core,
+        "recomb": recomb,
+        "rsites": rsites,
+    }
 
     ms_command = ms_command % sub_dict
 
     if seeds is not None:
         seed_command = " -seeds %i %i %i" % (seeds[0], seeds[1], seeds[2])
         ms_command = ms_command + seed_command
-    
+
     return ms_command
+
 
 def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     """
@@ -110,18 +124,19 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     upper_bound: If not None, the resulting parameter set is adjusted to have 
                  all value less than upper_bound.
     """
-    pnew = params * 2**(fold * (2*numpy.random.random(len(params))-1))
+    pnew = params * 2 ** (fold * (2 * numpy.random.random(len(params)) - 1))
     if lower_bound is not None:
-        for ii,bound in enumerate(lower_bound):
+        for ii, bound in enumerate(lower_bound):
             if bound is None:
                 lower_bound[ii] = -numpy.inf
         pnew = numpy.maximum(pnew, 1.01 * numpy.asarray(lower_bound))
     if upper_bound is not None:
-        for ii,bound in enumerate(upper_bound):
+        for ii, bound in enumerate(upper_bound):
             if bound is None:
                 upper_bound[ii] = numpy.inf
         pnew = numpy.minimum(pnew, 0.99 * numpy.asarray(upper_bound))
     return pnew
+
 
 def make_fux_table(fid, ts, Q, tri_freq):
     """
@@ -145,26 +160,26 @@ def make_fux_table(fid, ts, Q, tri_freq):
         s = Q[:, ii].sum() - Q[ii, ii]
         Q[ii, ii] = -s
 
-    eQhalf = scipy.linalg.matfuncs.expm(Q * ts / 2.)
-    if not hasattr(fid, 'write'):
+    eQhalf = scipy.linalg.matfuncs.expm(Q * ts / 2.0)
+    if not hasattr(fid, "write"):
         newfile = True
-        fid = open(fid, 'w')
+        fid = open(fid, "w")
 
     outlines = []
     for first_ii, first in enumerate(code):
         for x_ii, x in enumerate(code):
             for third_ii, third in enumerate(code):
                 # This the index into Q and eQ
-                xind = 16*first_ii + 4*x_ii + 1*third_ii
+                xind = 16 * first_ii + 4 * x_ii + 1 * third_ii
                 for u_ii, u in enumerate(code):
                     # This the index into Q and eQ
-                    uind = 16*first_ii + 4*u_ii + 1*third_ii
+                    uind = 16 * first_ii + 4 * u_ii + 1 * third_ii
 
                     ## Note that the Q terms factor out in our final
                     ## calculation, because for both PMuUu and PMuUx the final
                     ## factor in Eqn 2 is P(S={u,x}|M=u).
-                    #Qux = Q[uind,xind]
-                    #denomu = Q[uind].sum() - Q[uind,uind]
+                    # Qux = Q[uind,xind]
+                    # denomu = Q[uind].sum() - Q[uind,uind]
 
                     PMuUu, PMuUx = 0, 0
                     # Equation 2 in HWB. We have to generalize slightly to
@@ -176,7 +191,7 @@ def make_fux_table(fid, ts, Q, tri_freq):
                     # ingroup). Note that the mutation to x condition cancels
                     # in fux, so we don't bother to calculate it.
                     for aa, alpha in enumerate(code):
-                        aind = 16*first_ii + 4*aa + 1*third_ii
+                        aind = 16 * first_ii + 4 * aa + 1 * third_ii
 
                         pia = tri_freq[first + alpha + third]
                         Pau = eQhalf[aind, uind]
@@ -189,16 +204,17 @@ def make_fux_table(fid, ts, Q, tri_freq):
                     # u and derived allele x, this is 1 minus the probability
                     # that the outgroup will have u.
                     # Eqn 3 in HWB.
-                    res = 1 - PMuUu/(PMuUu+PMuUx)
+                    res = 1 - PMuUu / (PMuUu + PMuUx)
                     # These aren't SNPs, so we can arbitrarily set them to 0
                     if u == x:
                         res = 0
-                    
-                    outlines.append('%c%c%c %c %.6f' % (first, x, third, u, res))
+
+                    outlines.append("%c%c%c %c %.6f" % (first, x, third, u, res))
 
     fid.write(os.linesep.join(outlines))
     if newfile:
         fid.close()
+
 
 def zero_diag(Q):
     """
@@ -209,6 +225,7 @@ def zero_diag(Q):
         Q_nodiag[ii, ii] = 0
     return Q_nodiag
 
+
 def tri_freq_dict_to_array(tri_freq_dict):
     """
     Convert dictionary of trinucleotide frequencies to array in correct order.
@@ -217,9 +234,10 @@ def tri_freq_dict_to_array(tri_freq_dict):
     for ii, left in enumerate(code):
         for jj, center in enumerate(code):
             for kk, right in enumerate(code):
-                row = ii*16 + jj*4 + kk
+                row = ii * 16 + jj * 4 + kk
                 tripi[row] = tri_freq_dict[left + center + right]
     return tripi
+
 
 def total_instantaneous_rate(Q, pi):
     """
@@ -227,6 +245,7 @@ def total_instantaneous_rate(Q, pi):
     """
     Qzero = zero_diag(Q)
     return numpy.dot(pi, Qzero).sum()
+
 
 def make_data_dict(filename):
     """
@@ -238,16 +257,19 @@ def make_data_dict(filename):
     The file can be zipped (extension .zip) or gzipped (extension .gz). If 
     zipped, there must be only a single file in the zip archive.
     """
-    if os.path.splitext(filename)[1] == '.gz':
+    if os.path.splitext(filename)[1] == ".gz":
         import gzip
+
         f = gzip.open(filename)
-    elif os.path.splitext(filename)[1] == '.zip':
+    elif os.path.splitext(filename)[1] == ".zip":
         import zipfile
+
         archive = zipfile.ZipFile(filename)
         namelist = archive.namelist()
         if len(namelist) != 1:
-            raise ValueError('Must be only a single data file in zip '
-                             'archive: %s' % filename)
+            raise ValueError(
+                "Must be only a single data file in zip " "archive: %s" % filename
+            )
         f = archive.open(namelist[0])
     else:
         f = open(filename)
@@ -255,10 +277,10 @@ def make_data_dict(filename):
     # Skip to the header
     while True:
         header = f.readline()
-        if not header.startswith('#'):
+        if not header.startswith("#"):
             break
 
-    allele2_index = header.split().index('Allele2')
+    allele2_index = header.split().index("Allele2")
 
     # Pull out our pop ids
     pops = header.split()[3:allele2_index]
@@ -268,7 +290,7 @@ def make_data_dict(filename):
 
     # Now walk down the file
     for SNP_ii, line in enumerate(f):
-        if line.startswith('#'):
+        if line.startswith("#"):
             continue
         # Split the into fields by whitespace
         spl = line.split()
@@ -277,24 +299,25 @@ def make_data_dict(filename):
 
         # We convert to upper case to avoid any issues with mixed case between
         # SNPs.
-        data_this_snp['context'] = spl[0].upper()
-        data_this_snp['outgroup_context'] = spl[1].upper()
-        data_this_snp['outgroup_allele'] = spl[1][1].upper()
-        data_this_snp['segregating'] = spl[2].upper(),spl[allele2_index].upper()
+        data_this_snp["context"] = spl[0].upper()
+        data_this_snp["outgroup_context"] = spl[1].upper()
+        data_this_snp["outgroup_allele"] = spl[1][1].upper()
+        data_this_snp["segregating"] = spl[2].upper(), spl[allele2_index].upper()
 
         calls_dict = {}
-        for ii,pop in enumerate(pops):
+        for ii, pop in enumerate(pops):
             calls_dict[pop] = int(spl[3 + ii]), int(spl[allele2_index + 1 + ii])
-        data_this_snp['calls'] = calls_dict
+        data_this_snp["calls"] = calls_dict
 
         # We name our SNPs using the final columns
-        snp_id = '_'.join(spl[allele2_index + 1 + len(pops):])
-        if snp_id == '':
-            snp_id = 'SNP_{0}'.format(SNP_ii)
+        snp_id = "_".join(spl[allele2_index + 1 + len(pops) :])
+        if snp_id == "":
+            snp_id = "SNP_{0}".format(SNP_ii)
 
         data_dict[snp_id] = data_this_snp
 
     return data_dict
+
 
 def count_data_dict(data_dict, pop_ids):
     """
@@ -312,21 +335,24 @@ def count_data_dict(data_dict, pop_ids):
     count_dict = collections.defaultdict(int)
     for snp, snp_info in data_dict.items():
         # Skip SNPs that aren't biallelic.
-        if len(snp_info['segregating']) != 2:
+        if len(snp_info["segregating"]) != 2:
             continue
 
-        allele1,allele2 = snp_info['segregating']
-        if 'outgroup_allele' in snp_info and snp_info['outgroup_allele'] != '-'\
-            and snp_info['outgroup_allele'] in snp_info['segregating']:
-            outgroup_allele = snp_info['outgroup_allele']
+        allele1, allele2 = snp_info["segregating"]
+        if (
+            "outgroup_allele" in snp_info
+            and snp_info["outgroup_allele"] != "-"
+            and snp_info["outgroup_allele"] in snp_info["segregating"]
+        ):
+            outgroup_allele = snp_info["outgroup_allele"]
             this_snp_polarized = True
         else:
             outgroup_allele = allele1
             this_snp_polarized = False
 
         # Extract the allele calls for each population.
-        allele1_calls = [snp_info['calls'][pop][0] for pop in pop_ids]
-        allele2_calls = [snp_info['calls'][pop][1] for pop in pop_ids]
+        allele1_calls = [snp_info["calls"][pop][0] for pop in pop_ids]
+        allele2_calls = [snp_info["calls"][pop][1] for pop in pop_ids]
         # How many chromosomes did we call successfully in each population?
         successful_calls = [a1 + a2 for (a1, a2) in zip(allele1_calls, allele2_calls)]
 
@@ -337,12 +363,15 @@ def count_data_dict(data_dict, pop_ids):
             derived_calls = allele1_calls
 
         # Update count_dict
-        count_dict[tuple(successful_calls),tuple(derived_calls),
-                   this_snp_polarized] += 1
+        count_dict[
+            tuple(successful_calls), tuple(derived_calls), this_snp_polarized
+        ] += 1
     return count_dict
 
-def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True, 
-                       flanking_info=[None, None]):
+
+def make_data_dict_vcf(
+    vcf_filename, popinfo_filename, filter=True, flanking_info=[None, None]
+):
     """
     Parse a VCF file containing genomic sequence information, along with a file
     identifying the population of each sample, and store the information in 
@@ -383,16 +412,20 @@ def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True,
                     last base-pair is the one immediately following the SNP.
     """
     # Read population information from file based on extension
-    if os.path.splitext(popinfo_filename)[1] == '.gz':
+    if os.path.splitext(popinfo_filename)[1] == ".gz":
         import gzip
+
         popinfo_file = gzip.open(popinfo_filename)
-    elif os.path.splitext(popinfo_filename)[1] == '.zip':
+    elif os.path.splitext(popinfo_filename)[1] == ".zip":
         import zipfile
+
         archive = zipfile.ZipFile(popinfo_filename)
         namelist = archive.namelist()
         if len(namelist) != 1:
-            raise ValueError("Must be only a single popinfo file in zip "
-                             "archive: {}".format(popinfo_filename))
+            raise ValueError(
+                "Must be only a single popinfo file in zip "
+                "archive: {}".format(popinfo_filename)
+            )
         popinfo_file = archive.open(namelist[0])
     else:
         popinfo_file = open(popinfo_filename)
@@ -401,20 +434,24 @@ def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True,
     popinfo_file.close()
 
     # Open VCF file
-    if os.path.splitext(vcf_filename)[1] == '.gz':
+    if os.path.splitext(vcf_filename)[1] == ".gz":
         import gzip
+
         vcf_file = gzip.open(vcf_filename)
-    elif os.path.splitext(vcf_filename)[1] == '.zip':
+    elif os.path.splitext(vcf_filename)[1] == ".zip":
         import zipfile
+
         archive = zipfile.ZipFile(vcf_filename)
         namelist = archive.namelist()
         if len(namelist) != 1:
-            raise ValueError("Must be only a single vcf file in zip "
-                             "archive: {}".format(vcf_filename))
+            raise ValueError(
+                "Must be only a single vcf file in zip "
+                "archive: {}".format(vcf_filename)
+            )
         vcf_file = archive.open(namelist[0])
     else:
         vcf_file = open(vcf_filename)
-    
+
     data_dict = {}
     for line in vcf_file:
         # decoding lines for Python 3 - probably a better way to handle this
@@ -423,100 +460,103 @@ def make_data_dict_vcf(vcf_filename, popinfo_filename, filter=True,
         except AttributeError:
             pass
         # Skip metainformation
-        if line.startswith('##'):
+        if line.startswith("##"):
             continue
         # Read header
-        if line.startswith('#'):
+        if line.startswith("#"):
             header_cols = line.split()
             # Ensure there is at least one sample
             if len(header_cols) <= 9:
                 raise ValueError("No samples in VCF file")
             # Use popinfo_dict to get the order of populations present in VCF
-            poplist = [popinfo_dict[sample] if sample in popinfo_dict else None
-                       for sample in header_cols[9:]] 
+            poplist = [
+                popinfo_dict[sample] if sample in popinfo_dict else None
+                for sample in header_cols[9:]
+            ]
             continue
-            
+
         # Read SNP data
         cols = line.split()
-        snp_id = '_'.join(cols[:2]) # CHROM_POS
+        snp_id = "_".join(cols[:2])  # CHROM_POS
         snp_dict = {}
-        
+
         # Skip SNP if filter is set to True and it fails a filter test
-        if filter and cols[6] != 'PASS' and cols[6] != '.':
+        if filter and cols[6] != "PASS" and cols[6] != ".":
             continue
 
         # Add reference and alternate allele info to dict
         ref, alt = (allele.upper() for allele in cols[3:5])
-        if ref not in ['A', 'C', 'G', 'T'] or alt not in ['A', 'C', 'G', 'T']:
+        if ref not in ["A", "C", "G", "T"] or alt not in ["A", "C", "G", "T"]:
             # Skip line if site is not an SNP
             continue
-        snp_dict['segregating'] = (ref, alt)
-        snp_dict['context'] = '-' + ref + '-'
+        snp_dict["segregating"] = (ref, alt)
+        snp_dict["context"] = "-" + ref + "-"
 
         # Add ancestral allele information if available
-        info = cols[7].split(';')
+        info = cols[7].split(";")
         for field in info:
-            if field.startswith('AA'):
+            if field.startswith("AA"):
                 outgroup_allele = field[3:].upper()
-                if outgroup_allele not in ['A','C','G','T']:    
+                if outgroup_allele not in ["A", "C", "G", "T"]:
                     # Skip if ancestral not single base A, C, G, or T
-                    outgroup_allele = '-'
+                    outgroup_allele = "-"
                 break
         else:
-            outgroup_allele = '-'
-        snp_dict['outgroup_allele'] = outgroup_allele
-        snp_dict['outgroup_context'] = '-' + outgroup_allele + '-'
+            outgroup_allele = "-"
+        snp_dict["outgroup_allele"] = outgroup_allele
+        snp_dict["outgroup_context"] = "-" + outgroup_allele + "-"
 
         # Add flanking info if it is present
         rflank, aflank = flanking_info
         for field in info:
             if rflank and field.startswith(rflank):
-                flank = field[len(rflank+1):].upper()
+                flank = field[len(rflank + 1) :].upper()
                 if not (len(flank) == 2 or len(flank) == 3):
                     continue
                 prevb, nextb = flank[0], flank[-1]
-                if prevb not in ['A','C','T','G']:
-                    prevb = '-'
-                if nextb not in ['A','C','T','G']:
-                    nextb = '-'
-                snp_dict['context'] = prevb + ref + nextb
+                if prevb not in ["A", "C", "T", "G"]:
+                    prevb = "-"
+                if nextb not in ["A", "C", "T", "G"]:
+                    nextb = "-"
+                snp_dict["context"] = prevb + ref + nextb
                 continue
             if aflank and field.startswith(aflank):
-                flank = field[len(aflank+1):].upper()
+                flank = field[len(aflank + 1) :].upper()
                 if not (len(flank) == 2 or len(flank) == 3):
                     continue
                 prevb, nextb = flank[0], flank[-1]
-                if prevb not in ['A','C','T','G']:
-                    prevb = '-'
-                if nextb not in ['A','C','T','G']:
-                    nextb = '-'
-                snp_dict['outgroup_context'] = prevb + outgroup_allele + nextb
-        
+                if prevb not in ["A", "C", "T", "G"]:
+                    prevb = "-"
+                if nextb not in ["A", "C", "T", "G"]:
+                    nextb = "-"
+                snp_dict["outgroup_context"] = prevb + outgroup_allele + nextb
+
         # Add reference and alternate allele calls for each population
         calls_dict = {}
         full_info = True
-        gtindex = cols[8].split(':').index('GT')
+        gtindex = cols[8].split(":").index("GT")
         for pop, sample in zip(poplist, cols[9:]):
             if pop is None:
                 continue
-            gt = sample.split(':')[gtindex]
+            gt = sample.split(":")[gtindex]
             g1, g2 = gt[0], gt[2]
-            if g1 == '.' or g2 == '.':
+            if g1 == "." or g2 == ".":
                 full_info = False
                 break
             if pop not in calls_dict:
-                calls_dict[pop] = (0,0)
+                calls_dict[pop] = (0, 0)
             refcalls, altcalls = calls_dict[pop]
-            refcalls += int(g1 == '0') + int(g2 == '0')
-            altcalls += int(g1 == '1') + int(g2 == '1')
+            refcalls += int(g1 == "0") + int(g2 == "0")
+            altcalls += int(g1 == "1") + int(g2 == "1")
             calls_dict[pop] = (refcalls, altcalls)
         if not full_info:
             continue
-        snp_dict['calls'] = calls_dict
+        snp_dict["calls"] = calls_dict
         data_dict[snp_id] = snp_dict
 
     vcf_file.close()
     return data_dict
+
 
 def _get_popinfo(popinfo_file):
     """
@@ -540,38 +580,47 @@ def _get_popinfo(popinfo_file):
     sample_col = 0
     pop_col = 1
     header = False
-    
+
     # check for header info
     for line in popinfo_file:
-        if line.startswith('#'):
+        if line.startswith("#"):
             continue
         cols = [col.lower() for col in line.split()]
-        if 'sample' in cols:
+        if "sample" in cols:
             header = True
-            sample_col = cols.index('sample')
-        if 'pop' in cols:
+            sample_col = cols.index("sample")
+        if "pop" in cols:
             header = True
-            pop_col = cols.index('pop')
+            pop_col = cols.index("pop")
         break
 
     # read in population information for each sample
     popinfo_file.seek(0)
     for line in popinfo_file:
-        if line.startswith('#'):
+        if line.startswith("#"):
             continue
         cols = line.split()
         sample = cols[sample_col]
         pop = cols[pop_col]
         # avoid adding header to dict
-        if (sample.lower() == 'sample' or pop.lower() == 'pop') and header:
+        if (sample.lower() == "sample" or pop.lower() == "pop") and header:
             header = False
             continue
         popinfo_dict[sample] = pop
-    
+
     return popinfo_dict
 
-def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
-              polarized=True, bed_filename=None, num_boots=100, save_dir=None):
+
+def bootstrap(
+    data_dict,
+    pop_ids,
+    projections,
+    mask_corners=True,
+    polarized=True,
+    bed_filename=None,
+    num_boots=100,
+    save_dir=None,
+):
     """
     Use a non-parametric bootstrap on SNP information contained in a dictionary
     to generate new data sets. The new data is created by sampling with
@@ -622,18 +671,18 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
             end = int(end)
             # Read label info if present, else assign unique label by line number
             label = linenum
-            if len(fields)>=4: 
+            if len(fields) >= 4:
                 label = fields[3]
             # Add information to the appropriate chromosome
             if chrom not in bed_info_dict:
                 bed_info_dict[chrom] = []
             bed_info_dict[chrom].append((start, end, label))
         bed_file.close()
-        
+
         # Sort entries by start position, for easier location of proper region
         start_dict = {}
         for chrom, bed_info in bed_info_dict.items():
-            bed_info.sort(key = lambda k: k[0])
+            bed_info.sort(key=lambda k: k[0])
             start_dict[chrom] = [region[0] for region in bed_info]
         # Dictionary will map region labels to the SNPs contained in that region
         region_dict = {}
@@ -657,7 +706,7 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
                 region_dict[chrom] = []
             region_dict[chrom].append(snp_id)
 
-    # Each entry of list represents single region, with a tuple 
+    # Each entry of list represents single region, with a tuple
     # containing the IDs of all SNPs in the region.
     sample_regions = [tuple(val) for key, val in region_dict.items()]
     num_regions = len(sample_regions)
@@ -677,47 +726,52 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
             for snp_id in sample_regions[choice]:
                 snp_info = data_dict[snp_id]
                 # Skip SNPs that aren't biallelic.
-                if len(snp_info['segregating']) != 2:
+                if len(snp_info["segregating"]) != 2:
                     continue
 
-                allele1, allele2 = snp_info['segregating']
+                allele1, allele2 = snp_info["segregating"]
                 if not polarized:
                     # If not polarizing, derived allele is arbitrary
                     outgroup_allele = allele1
-                elif 'outgroup_allele' in snp_info\
-                     and snp_info['outgroup_allele'] != '-'\
-                     and snp_info['outgroup_allele'] in snp_info['segregating']:
+                elif (
+                    "outgroup_allele" in snp_info
+                    and snp_info["outgroup_allele"] != "-"
+                    and snp_info["outgroup_allele"] in snp_info["segregating"]
+                ):
                     # Otherwise check that it is a useful outgroup
-                    outgroup_allele = snp_info['outgroup_allele']
-                else: 
+                    outgroup_allele = snp_info["outgroup_allele"]
+                else:
                     # If polarized and without good outgroup, skip SNP
                     continue
-                
+
                 # Extract allele calls for each population.
-                allele1_calls = [snp_info['calls'][pop][0] for pop in pop_ids]
-                allele2_calls = [snp_info['calls'][pop][1] for pop in pop_ids]
-                successful_calls = [a1 + a2 for (a1, a2) in 
-                                    zip(allele1_calls, allele2_calls)]
-                derived_calls = allele2_calls if allele1 == outgroup_allele\
-                                              else allele1_calls
-                
+                allele1_calls = [snp_info["calls"][pop][0] for pop in pop_ids]
+                allele2_calls = [snp_info["calls"][pop][1] for pop in pop_ids]
+                successful_calls = [
+                    a1 + a2 for (a1, a2) in zip(allele1_calls, allele2_calls)
+                ]
+                derived_calls = (
+                    allele2_calls if allele1 == outgroup_allele else allele1_calls
+                )
+
                 # Slicing allows handling of arbitray population numbers
                 slices = [[numpy.newaxis] * npops for i in range(npops)]
                 for i in range(npops):
                     slices[i][i] = slice(None, None, None)
-                
+
                 # Do projections for this SNP
                 pop_contribs = []
                 call_iter = zip(projections, successful_calls, derived_calls)
                 for pop_index, (p_to, p_from, hits) in enumerate(call_iter):
-                    contrib = Numerics._cached_projection(
-                                      p_to, p_from, hits)[slices[pop_index]]
+                    contrib = Numerics._cached_projection(p_to, p_from, hits)[
+                        slices[pop_index]
+                    ]
                     pop_contribs.append(contrib)
                 new_sfs += functools.reduce(operator.mul, pop_contribs)
-            
-        new_sfs = Spectrum_mod.Spectrum(new_sfs,
-                                                mask_corners=mask_corners,
-                                                pop_ids=pop_ids)
+
+        new_sfs = Spectrum_mod.Spectrum(
+            new_sfs, mask_corners=mask_corners, pop_ids=pop_ids
+        )
         if not polarized:
             new_sfs.fold()
         if save_dir is None:
@@ -725,5 +779,5 @@ def bootstrap(data_dict, pop_ids, projections, mask_corners=True,
         else:
             filename = "{}/SFS_{}".format(save_dir, bootnum)
             new_sfs.to_file(filename)
-    
+
     return new_sfs_list if save_dir is None else None

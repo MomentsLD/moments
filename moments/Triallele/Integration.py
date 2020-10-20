@@ -26,35 +26,39 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 """
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
-def integrate_cn(F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2**-6, gammas=None, theta=1.0):
+
+def integrate_cn(
+    F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2 ** -6, gammas=None, theta=1.0
+):
     if tf <= 0:
-        print('Integration time should be positive.')
+        print("Integration time should be positive.")
         return F
-    
+
     ns = len(F) - 1
-    
+
     if callable(nu):
         N = nu(0)
     else:
         N = nu
-    
+
     N_old = 1.0
-    
+
     D = moments.Triallele.Numerics.drift(ns)
     B_bi, B_tri = moments.Triallele.Numerics.mutation(ns, theta, theta, theta)
-    
+
     Phi = moments.Triallele.Numerics.flatten(F)
-    
+
     negs = False
-    
+
     if gammas is None:
-        gammas = (0,0,0,0,0)
-    
+        gammas = (0, 0, 0, 0, 0)
+
     dt0 = copy.copy(dt)
     dt_old = dt
-    
+
     if np.any(gammas) == False:
         t_elapsed = 0
         while t_elapsed < tf:
@@ -63,39 +67,38 @@ def integrate_cn(F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2**-6, gam
                 Phi = Phi_last
                 t_elapsed = last_t
                 negs = False
-            
+
             # so that dt doesn't push us past final time
             if t_elapsed + dt > tf:
                 dt = tf - t_elapsed
-            
-            
+
             if callable(nu):
-                N = nu(t_elapsed + dt/2.)
-            
+                N = nu(t_elapsed + dt / 2.0)
+
             # if integration has just started, population has changed size, or dt has change, update matrices
             if t_elapsed == 0 or N_old != N or dt != dt_old:
-                Ab = B_tri+D/(2.*N)
-                Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-                slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
-            
+                Ab = B_tri + D / (2.0 * N)
+                Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
+                slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+
             Phi_last = Phi
-            Phi = slv(Ab1.dot(Phi)+dt*B_bi)
-            
+            Phi = slv(Ab1.dot(Phi) + dt * B_bi)
+
             N_old = N
             dt_old = dt
-            
+
             # check if any entries are negative or nan
-            if np.any(Phi < 0) and dt > dt0*dt_adjust_factor:
+            if np.any(Phi < 0) and dt > dt0 * dt_adjust_factor:
                 negs = True
-                dt *= 1./2
+                dt *= 1.0 / 2
             else:
                 negs = False
                 dt = dt0
-            
+
             last_t = t_elapsed
             t_elapsed += dt
-            
-        return moments.Triallele.Numerics.reform(Phi,ns)
+
+        return moments.Triallele.Numerics.reform(Phi, ns)
     else:
         S = moments.Triallele.Numerics.selection(ns, gammas)
         J = moments.Triallele.Jackknife.calcJK_2(ns)
@@ -106,38 +109,37 @@ def integrate_cn(F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2**-6, gam
                 Phi = Phi_last
                 t_elapsed = last_t
                 negs = False
-            
+
             # so that dt doesn't push us past final time
             if t_elapsed + dt > tf:
                 dt = tf - t_elapsed
-            
+
             if callable(nu):
-                N = nu(t_elapsed + dt/2.)
-            
+                N = nu(t_elapsed + dt / 2.0)
+
             # if integration has just started, population has changed size, or dt has change, update matrices
             # can we fix this to work with C-N?
             if t_elapsed == 0 or N_old != N or dt != dt_old:
-                Ab = D/(2.*N) + S.dot(J) + B_tri
-                #Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
-                #slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
-                Ab_fd = identity(Ab.shape[0]) + dt*Ab
-            
+                Ab = D / (2.0 * N) + S.dot(J) + B_tri
+                # Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
+                # slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
+                Ab_fd = identity(Ab.shape[0]) + dt * Ab
+
             Phi_last = Phi
-            Phi = Ab_fd.dot(Phi) + dt*B_bi
-            #Phi = slv(Ab1.dot(Phi)+dt*B_bi)
-            
+            Phi = Ab_fd.dot(Phi) + dt * B_bi
+            # Phi = slv(Ab1.dot(Phi)+dt*B_bi)
+
             N_old = N
             dt_old = dt
-            
+
             # check if any entries are negative or nan
-            if np.any(Phi < 0) and dt > dt0*dt_adjust_factor:
+            if np.any(Phi < 0) and dt > dt0 * dt_adjust_factor:
                 negs = True
-                dt *= 1./2
+                dt *= 1.0 / 2
             else:
                 negs = False
                 dt = dt0
-            
+
             last_t = t_elapsed
             t_elapsed += dt
-        return moments.Triallele.Numerics.reform(Phi,ns)
-    
+        return moments.Triallele.Numerics.reform(Phi, ns)

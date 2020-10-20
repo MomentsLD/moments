@@ -2,6 +2,7 @@ import numpy as np
 from moments.LD import Demography
 from moments.LD.LDstats_mod import LDstats
 
+
 def snm(rho=None, theta=0.001, pop_ids=None):
     """
     Equilibrium neutral model
@@ -13,6 +14,7 @@ def snm(rho=None, theta=0.001, pop_ids=None):
     Y = Y.split(1)
     Y.pop_ids = pop_ids
     return Y
+
 
 def split_mig(params, rho=None, theta=0.001, pop_ids=None):
     """
@@ -26,9 +28,8 @@ def split_mig(params, rho=None, theta=0.001, pop_ids=None):
     m: Migration rate between populations (2*Na*m)
     """
     nu1, nu2, T, m = params
-    
+
     Y = snm(rho=rho, theta=theta)
-    Y.integrate([nu1,nu2], T, rho=rho, theta=theta, m=[[0,m],[m,0]])
+    Y.integrate([nu1, nu2], T, rho=rho, theta=theta, m=[[0, m], [m, 0]])
     Y.pop_ids = pop_ids
     return Y
-

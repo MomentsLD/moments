@@ -6,6 +6,7 @@ import numpy
 from . import Inference
 from .Spectrum_mod import Spectrum
 
+
 def hessian_elem(func, f0, p0, ii, jj, eps, args=()):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
@@ -25,60 +26,61 @@ def hessian_elem(func, f0, p0, ii, jj, eps, args=()):
         if pwork[ii] != 0:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
-            
+
             pwork[ii] = p0[ii] - eps[ii]
             fm = func(pwork, *args)
-            
-            element = (fp - 2*f0 + fm)/eps[ii]**2
+
+            element = (fp - 2 * f0 + fm) / eps[ii] ** 2
         if pwork[ii] == 0:
-            pwork[ii] = p0[ii] + 2*eps[ii]
+            pwork[ii] = p0[ii] + 2 * eps[ii]
             fpp = func(pwork, *args)
-            
+
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
-            element = (fpp - 2*fp + f0)/eps[ii]**2
+            element = (fpp - 2 * fp + f0) / eps[ii] ** 2
     else:
         if pwork[ii] != 0 and pwork[jj] != 0:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fpp = func(pwork, *args)
-            
+
             # f(xi + hi, xj - hj)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] - eps[jj]
             fpm = func(pwork, *args)
-            
+
             # f(xi - hi, xj + hj)
             pwork[ii] = p0[ii] - eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fmp = func(pwork, *args)
-            
+
             # f(xi - hi, xj - hj)
             pwork[ii] = p0[ii] - eps[ii]
             pwork[jj] = p0[jj] - eps[jj]
             fmm = func(pwork, *args)
 
-            element = (fpp - fpm - fmp + fmm)/(4 * eps[ii]*eps[jj])
+            element = (fpp - fpm - fmp + fmm) / (4 * eps[ii] * eps[jj])
         else:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fpp = func(pwork, *args)
-            
+
             # f(xi + hi, xj)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj]
             fpm = func(pwork, *args)
-            
+
             # f(xi, xj + hj)
             pwork[ii] = p0[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fmp = func(pwork, *args)
-            
-            element = (fpp - fpm - fmp + f0)/(eps[ii]*eps[jj])
+
+            element = (fpp - fpm - fmp + f0) / (eps[ii] * eps[jj])
     return element
+
 
 def get_hess(func, p0, eps, args=()):
     """
@@ -95,7 +97,7 @@ def get_hess(func, p0, eps, args=()):
     eps = numpy.empty([len(p0)])
     for i, pval in enumerate(p0):
         if pval != 0:
-            eps[i] = eps_in*pval
+            eps[i] = eps_in * pval
         else:
             # Account for parameters equal to zero
             eps[i] = eps_in
@@ -107,6 +109,7 @@ def get_hess(func, p0, eps, args=()):
             hess[ii][jj] = hessian_elem(func, f0, p0, ii, jj, eps, args=args)
             hess[jj][ii] = hess[ii][jj]
     return hess
+
 
 def get_grad(func, p0, eps, args=()):
     """
@@ -138,20 +141,20 @@ def get_grad(func, p0, eps, args=()):
             pwork[ii] = p0[ii] - eps[ii]
             fm = func(pwork, *args)
 
-            grad[ii] = (fp - fm)/(2*eps[ii])
+            grad[ii] = (fp - fm) / (2 * eps[ii])
         else:
-            # Do one-sided finite-difference 
+            # Do one-sided finite-difference
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
             pwork[ii] = p0[ii]
             fm = func(pwork, *args)
 
-            grad[ii] = (fp - fm)/eps[ii]
+            grad[ii] = (fp - fm) / eps[ii]
     return grad
 
-def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
-                just_hess=False):
+
+def get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
     """
     Godambe information and Hessian matrices
 
@@ -167,15 +170,17 @@ def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
     """
     ns = data.sample_sizes
 
-    # Cache evaluations of the frequency spectrum inside our hessian/J 
+    # Cache evaluations of the frequency spectrum inside our hessian/J
     # evaluation function
     cache = {}
+
     def func(params, data):
         key = (tuple(params), tuple(ns))
         if key not in cache:
             cache[key] = func_ex(params, ns)
-        fs = cache[key] 
+        fs = cache[key]
         return Inference.ll(fs, data)
+
     def log_func(logparams, data):
         return func(numpy.exp(logparams), data)
 
@@ -210,8 +215,10 @@ def get_godambe(func_ex, all_boot, p0, data, eps, log=False,
     godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
     return godambe, hess, J, cU
 
-def GIM_uncert(func_ex, all_boot, p0, data, log=False,
-               multinom=True, eps=0.01, return_GIM=False):
+
+def GIM_uncert(
+    func_ex, all_boot, p0, data, log=False, multinom=True, eps=0.01, return_GIM=False
+):
     """
     Parameter uncertainties from Godambe Information Matrix (GIM)
 
@@ -238,13 +245,14 @@ def GIM_uncert(func_ex, all_boot, p0, data, log=False,
         model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+        func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
     GIM, H, J, cU = get_godambe(func_ex, all_boot, p0, data, eps, log)
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(GIM)))
     if not return_GIM:
         return uncerts
     else:
         return uncerts, GIM
+
 
 def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
     """
@@ -272,12 +280,12 @@ def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
         model = func_multi(p0, data.sample_sizes)
         theta_opt = Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [theta_opt]
-        func_ex = lambda p, ns: p[-1]*func_multi(p[:-1], ns)
+        func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
     H = get_godambe(func_ex, [], p0, data, eps, log, just_hess=True)
     return numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
 
-def LRT_adjust(func_ex, all_boot, p0, data, nested_indices,
-               multinom=True, eps=0.01):
+
+def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0.01):
     """
     First-order moment matching adjustment factor for likelihood ratio test
 
@@ -315,13 +323,13 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices,
         return func_ex(full_params, ns)
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
-                                eps, log=False)
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data, eps, log=False)
 
-    adjust = len(nested_indices)/numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
+    adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
     return adjust
 
-def sum_chi2_ppf(x, weights=(0,1)):
+
+def sum_chi2_ppf(x, weights=(0, 1)):
     """
     Percent point function (inverse of cdf) of weighted sum of chi^2
     distributions.
@@ -334,9 +342,10 @@ def sum_chi2_ppf(x, weights=(0,1)):
              be weights=(0.5,0.5).
     """
     import scipy.stats.distributions as ssd
+
     # Ensure that weights are valid
     if abs(numpy.sum(weights) - 1) > 1e-6:
-        raise ValueError('Weights must sum to 1.')
+        raise ValueError("Weights must sum to 1.")
     # A little clunky, but we want to handle x = 0.5, and x = [2, 3, 4]
     # correctly. So if x is a scalar, we record that fact so we can return a
     # scalar on output.
@@ -346,8 +355,9 @@ def sum_chi2_ppf(x, weights=(0,1)):
     x = numpy.atleast_1d(x)
     # Calculate total cdf of all chi^2 dists with dof > 1.
     # (ssd.chi2.cdf(x,0) is always nan, so we avoid that.)
-    cdf = numpy.sum([w * ssd.chi2.cdf(x, d+1) for (d, w)
-                     in enumerate(weights[1:])], axis=0)
+    cdf = numpy.sum(
+        [w * ssd.chi2.cdf(x, d + 1) for (d, w) in enumerate(weights[1:])], axis=0
+    )
     # Add in contribution from 0 d.o.f.
     cdf[x > 0] += weights[0]
     # Convert to ppf
@@ -358,8 +368,18 @@ def sum_chi2_ppf(x, weights=(0,1)):
     else:
         return ppf
 
-def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
-              full_params, multinom=True, eps=0.01, adj_and_org=False):
+
+def Wald_stat(
+    func_ex,
+    all_boot,
+    p0,
+    data,
+    nested_indices,
+    full_params,
+    multinom=True,
+    eps=0.01,
+    adj_and_org=False,
+):
     """
     Calculate test stastic from wald test
              
@@ -386,36 +406,34 @@ def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
                  return unadjusted statistic as second return value.
     """
     if multinom:
-         func_multi = func_ex
-         model = func_multi(p0, data.sample_sizes)
-         theta_opt = Inference.optimal_sfs_scaling(model, data)
-         # Also need to extend full_params
-         if len(full_params) == len(p0):
-             full_params = numpy.concatenate((full_params, [theta_opt]))
-         p0 = list(p0) + [theta_opt]
-         func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
-         
+        func_multi = func_ex
+        model = func_multi(p0, data.sample_sizes)
+        theta_opt = Inference.optimal_sfs_scaling(model, data)
+        # Also need to extend full_params
+        if len(full_params) == len(p0):
+            full_params = numpy.concatenate((full_params, [theta_opt]))
+        p0 = list(p0) + [theta_opt]
+        func_ex = lambda p, ns: p[-1] * func_multi(p[:-1], ns)
+
     # We only need to take derivatives with respect to the parameters in the
     # complex model that have been set to specified values in the simple model
     def diff_func(diff_params, ns):
-         # diff_params argument is only the nested parameters. All the rest
-         # should come from p0
-         full_params = numpy.array(p0, copy=True, dtype=float)
-         # Use numpy indexing to set relevant parameters
-         full_params[nested_indices] = diff_params
-         return func_ex(full_params, ns)
-    
+        # diff_params argument is only the nested parameters. All the rest
+        # should come from p0
+        full_params = numpy.array(p0, copy=True, dtype=float)
+        # Use numpy indexing to set relevant parameters
+        full_params[nested_indices] = diff_params
+        return func_ex(full_params, ns)
+
     # Reduce full params list to be same length as nested indices
     if len(full_params) == len(p0):
         full_params = numpy.asarray(full_params)[nested_indices]
     if len(full_params) != len(nested_indices):
-        raise KeyError('Full parameters not equal in length to p0 or nested '
-                       'indices')
+        raise KeyError("Full parameters not equal in length to p0 or nested " "indices")
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
-                                eps, log=False)
-    param_diff = full_params-p_nested
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data, eps, log=False)
+    param_diff = full_params - p_nested
 
     wald_adj = numpy.dot(numpy.dot(numpy.transpose(param_diff), GIM), param_diff)
     wald_org = numpy.dot(numpy.dot(numpy.transpose(param_diff), H), param_diff)
@@ -424,8 +442,17 @@ def Wald_stat(func_ex, all_boot, p0, data, nested_indices,
         return wald_adj, wald_org
     return wald_adj
 
-def score_stat(func_ex, all_boot, p0, data, nested_indices,
-               multinom=True, eps=0.01, adj_and_org=False):
+
+def score_stat(
+    func_ex,
+    all_boot,
+    p0,
+    data,
+    nested_indices,
+    multinom=True,
+    eps=0.01,
+    adj_and_org=False,
+):
     """
     Calculate test stastic from score test
         
@@ -464,15 +491,11 @@ def score_stat(func_ex, all_boot, p0, data, nested_indices,
         return func_ex(full_params, ns)
 
     p_nested = numpy.asarray(p0)[nested_indices]
-    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data,
-                                eps, log=False)
-    
-    score_org = numpy.dot(numpy.dot(numpy.transpose(cU),
-                                    numpy.linalg.inv(H)), cU)[0,0]
-    score_adj = numpy.dot(numpy.dot(numpy.transpose(cU),
-                                    numpy.linalg.inv(J)), cU)[0,0]
+    GIM, H, J, cU = get_godambe(diff_func, all_boot, p_nested, data, eps, log=False)
+
+    score_org = numpy.dot(numpy.dot(numpy.transpose(cU), numpy.linalg.inv(H)), cU)[0, 0]
+    score_adj = numpy.dot(numpy.dot(numpy.transpose(cU), numpy.linalg.inv(J)), cU)[0, 0]
 
     if adj_and_org:
         return score_adj, score_org
     return score_adj
-

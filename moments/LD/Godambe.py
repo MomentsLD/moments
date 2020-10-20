@@ -11,6 +11,7 @@ import numpy as np, numpy
 from moments.LD import Inference
 from moments.LD.LDstats_mod import LDstats
 
+
 def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
@@ -28,67 +29,73 @@ def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
     if one_sided is None:
-        one_sided = [False]*len(p0)
+        one_sided = [False] * len(p0)
 
     pwork = numpy.array(p0, copy=True, dtype=float)
     if ii == jj:
         if pwork[ii] != 0 and not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
-            
+
             pwork[ii] = p0[ii] - eps[ii]
             fm = func(pwork, *args)
-            
-            element = (fp - 2*f0 + fm)/eps[ii]**2
+
+            element = (fp - 2 * f0 + fm) / eps[ii] ** 2
         else:
-            pwork[ii] = p0[ii] + 2*eps[ii]
+            pwork[ii] = p0[ii] + 2 * eps[ii]
             fpp = func(pwork, *args)
-            
+
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
-            element = (fpp - 2*fp + f0)/eps[ii]**2
+            element = (fpp - 2 * fp + f0) / eps[ii] ** 2
     else:
-        if pwork[ii] != 0 and pwork[jj] != 0 and not one_sided[ii] and not one_sided[jj]:
+        if (
+            pwork[ii] != 0
+            and pwork[jj] != 0
+            and not one_sided[ii]
+            and not one_sided[jj]
+        ):
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fpp = func(pwork, *args)
-            
+
             # f(xi + hi, xj - hj)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] - eps[jj]
             fpm = func(pwork, *args)
-            
+
             # f(xi - hi, xj + hj)
             pwork[ii] = p0[ii] - eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fmp = func(pwork, *args)
-            
+
             # f(xi - hi, xj - hj)
             pwork[ii] = p0[ii] - eps[ii]
             pwork[jj] = p0[jj] - eps[jj]
             fmm = func(pwork, *args)
 
-            element = (fpp - fpm - fmp + fmm)/(4 * eps[ii]*eps[jj])
+            element = (fpp - fpm - fmp + fmm) / (4 * eps[ii] * eps[jj])
         else:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fpp = func(pwork, *args)
-            
+
             # f(xi + hi, xj)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj]
             fpm = func(pwork, *args)
-            
+
             # f(xi, xj + hj)
             pwork[ii] = p0[ii]
             pwork[jj] = p0[jj] + eps[jj]
             fmp = func(pwork, *args)
-            
-            element = (fpp - fpm - fmp + f0)/(eps[ii]*eps[jj])
+
+            element = (fpp - fpm - fmp + f0) / (eps[ii] * eps[jj])
     return element
+
 
 def get_hess(func, p0, eps, args=()):
     """
@@ -106,15 +113,15 @@ def get_hess(func, p0, eps, args=()):
     # Calculate step sizes for finite-differences.
     eps_in = eps
     eps = numpy.empty([len(p0)])
-    one_sided = [False]*len(p0)
+    one_sided = [False] * len(p0)
     for i, pval in enumerate(p0):
         if pval != 0:
             # Account for floating point arithmetic issues
-            if pval*eps_in < 1e-6:
+            if pval * eps_in < 1e-6:
                 eps[i] = eps_in
                 one_sided[i] = True
             else:
-                eps[i] = eps_in*pval
+                eps[i] = eps_in * pval
         else:
             # Account for parameters equal to zero
             eps[i] = eps_in
@@ -123,9 +130,12 @@ def get_hess(func, p0, eps, args=()):
     hess = numpy.empty((len(p0), len(p0)))
     for ii in range(len(p0)):
         for jj in range(ii, len(p0)):
-            hess[ii][jj] = hessian_elem(func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided)
+            hess[ii][jj] = hessian_elem(
+                func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided
+            )
             hess[jj][ii] = hess[ii][jj]
     return hess
+
 
 def get_grad(func, p0, eps, args=()):
     """
@@ -142,15 +152,15 @@ def get_grad(func, p0, eps, args=()):
     # Calculate step sizes for finite-differences.
     eps_in = eps
     eps = numpy.empty([len(p0)])
-    one_sided = [False]*len(p0)
+    one_sided = [False] * len(p0)
     for i, pval in enumerate(p0):
         if pval != 0:
             # Account for floating point arithmetic issues
-            if pval*eps_in < 1e-6:
+            if pval * eps_in < 1e-6:
                 eps[i] = eps_in
                 one_sided[i] = True
             else:
-                eps[i] = eps_in*pval
+                eps[i] = eps_in * pval
         else:
             # Account for parameters equal to zero
             eps[i] = eps_in
@@ -166,21 +176,25 @@ def get_grad(func, p0, eps, args=()):
             pwork[ii] = p0[ii] - eps[ii]
             fm = func(pwork, *args)
 
-            grad[ii] = (fp - fm)/(2*eps[ii])
+            grad[ii] = (fp - fm) / (2 * eps[ii])
         else:
-            # Do one-sided finite-difference 
+            # Do one-sided finite-difference
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
             pwork[ii] = p0[ii]
             fm = func(pwork, *args)
 
-            grad[ii] = (fp - fm)/eps[ii]
+            grad[ii] = (fp - fm) / eps[ii]
     return grad
 
+
 ld_cache = {}
-def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
-                just_hess=False):
+
+
+def get_godambe(
+    func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False, just_hess=False
+):
     """
     Godambe information and Hessian matrices
 
@@ -195,7 +209,7 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
     log: If True, calculate derivatives in terms of log-parameters
     just_hess: If True, only evaluate and return the Hessian matrix
     """
-    # Cache evaluations of the LDstats inside our hessian/J 
+    # Cache evaluations of the LDstats inside our hessian/J
     # evaluation function
     def func(params, m, v):
         key = tuple(params)
@@ -220,19 +234,18 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
     # Now the expectation of J over the bootstrap data
     J = numpy.zeros((len(p0), len(p0)))
     # cU is a column vector
-    cU = numpy.zeros((len(p0),1))
+    cU = numpy.zeros((len(p0), 1))
     for bs_ms in all_boot:
-        #boot = LDstats(boot)
+        # boot = LDstats(boot)
         if not log:
             grad_temp = get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
-            grad_temp = get_grad(log_func, numpy.log(p0), eps,
-                                 args=[bs_ms, vcs])
+            grad_temp = get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
-    J = J/len(all_boot[0])
-    cU = cU/len(all_boot[0])
+    J = J / len(all_boot[0])
+    cU = cU / len(all_boot[0])
 
     # G = H*J^-1*H
     J_inv = numpy.linalg.inv(J)
@@ -241,10 +254,22 @@ def get_godambe(func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False,
 
 
 func_calls = 0
-def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
-               eps=0.01, return_GIM=False,
-               r_edges=None, normalization=1, pass_Ne=False,
-               statistics=None):
+
+
+def GIM_uncert(
+    model_func,
+    all_boot,
+    p0,
+    ms,
+    vcs,
+    log=False,
+    eps=0.01,
+    return_GIM=False,
+    r_edges=None,
+    normalization=1,
+    pass_Ne=False,
+    statistics=None,
+):
     """
     Parameter uncertainties from Godambe Information Matrix (GIM)
 
@@ -268,15 +293,15 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
     r_edges: 
     normalization:
     pass_Ne: 
-    """    
+    """
     assert statistics is not None, "need to pass statistics"
-        
+
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
-        #print(f"called {func_calls} times")
-        #print(params)
-        rho = 4*params[-1]*r_edges
+        # print(f"called {func_calls} times")
+        # print(params)
+        rho = 4 * params[-1] * r_edges
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:
@@ -285,7 +310,9 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
-    GIM, H, J, cU = get_godambe(pass_func, all_boot, p0, ms, vcs, eps, statistics, log=log)
+    GIM, H, J, cU = get_godambe(
+        pass_func, all_boot, p0, ms, vcs, eps, statistics, log=log
+    )
 
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(GIM)))
     if not return_GIM:
@@ -294,9 +321,18 @@ def GIM_uncert(model_func, all_boot, p0, ms, vcs, log=False,
         return uncerts, GIM
 
 
-def FIM_uncert(model_func, p0, ms, vcs, log=False, eps=0.01,
-               r_edges=None, normalization=1, pass_Ne=False,
-               statistics=None):
+def FIM_uncert(
+    model_func,
+    p0,
+    ms,
+    vcs,
+    log=False,
+    eps=0.01,
+    r_edges=None,
+    normalization=1,
+    pass_Ne=False,
+    statistics=None,
+):
     """
     Parameter uncertainties from Fisher Information Matrix
 
@@ -304,13 +340,13 @@ def FIM_uncert(model_func, p0, ms, vcs, log=False, eps=0.01,
     """
 
     assert statistics is not None, "need to pass statistics = ..."
-        
+
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
-        #print(f"called {func_calls} times")
-        #print(params)
-        rho = 4*params[-1]*r_edges
+        # print(f"called {func_calls} times")
+        # print(params)
+        rho = 4 * params[-1] * r_edges
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:

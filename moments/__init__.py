@@ -6,6 +6,7 @@ Documentation of all methods can be found in doc/api/index.html of the source
 distribution.
 """
 import logging
+
 logging.basicConfig()
 
 from . import Demographics1D
@@ -35,6 +36,7 @@ except ImportError:
 
 # We do it this way so it's easier to reload.
 from . import Spectrum_mod
+
 Spectrum = Spectrum_mod.Spectrum
 
 from moments._version import __version__
@@ -44,4 +46,5 @@ from moments._version import __version__
 # we tell numpy to ignore such warnings. This puts greater onus on the user to
 # check results, but for our use case I think it's the better default.
 import numpy
-numpy.seterr(all='ignore')
+
+numpy.seterr(all="ignore")

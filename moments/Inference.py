@@ -2,9 +2,10 @@
 Comparison and optimization of model spectra to data.
 """
 import logging
-logger = logging.getLogger('Inference')
 
-import os,sys
+logger = logging.getLogger("Inference")
+
+import os, sys
 
 import numpy
 from numpy import logical_and, logical_not
@@ -19,11 +20,24 @@ _theta_store = {}
 _counter = 0
 #: Returned when object_func is passed out-of-bounds params or gets a NaN ll.
 _out_of_bounds_val = -1e8
-def _object_func(params, data, model_func, 
-                 lower_bound=None, upper_bound=None, 
-                 verbose=0, multinom=True, flush_delay=0,
-                 func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-                 output_stream=sys.stdout, store_thetas=False):
+
+
+def _object_func(
+    params,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    multinom=True,
+    flush_delay=0,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_stream=sys.stdout,
+    store_thetas=False,
+):
     """
     Objective function for optimization.
     """
@@ -35,15 +49,15 @@ def _object_func(params, data, model_func,
 
     # Check our parameter bounds
     if lower_bound is not None:
-        for pval,bound in zip(params_up, lower_bound):
+        for pval, bound in zip(params_up, lower_bound):
             if bound is not None and pval < bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val / ll_scale
     if upper_bound is not None:
-        for pval,bound in zip(params_up, upper_bound):
+        for pval, bound in zip(params_up, upper_bound):
             if bound is not None and pval > bound:
-                return -_out_of_bounds_val/ll_scale
+                return -_out_of_bounds_val / ll_scale
 
-    ns = data.sample_sizes 
+    ns = data.sample_sizes
     all_args = [params_up, ns] + list(func_args)
 
     func_kwargs = func_kwargs.copy()
@@ -62,12 +76,14 @@ def _object_func(params, data, model_func,
         result = _out_of_bounds_val
 
     if (verbose > 0) and (_counter % verbose == 0):
-        param_str = 'array([%s])' % (', '.join(['%- 12g'%v for v in params_up]))
-        output_stream.write('%-8i, %-12g, %s%s' % (_counter, result, param_str,
-                                                   os.linesep))
+        param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params_up]))
+        output_stream.write(
+            "%-8i, %-12g, %s%s" % (_counter, result, param_str, os.linesep)
+        )
         Misc.delayed_flush(delay=flush_delay)
 
-    return -result/ll_scale
+    return -result / ll_scale
+
 
 def _object_func_log(log_params, *args, **kwargs):
     """
@@ -75,11 +91,26 @@ def _object_func_log(log_params, *args, **kwargs):
     """
     return _object_func(numpy.exp(log_params), *args, **kwargs)
 
-def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
-                 verbose=0, flush_delay=0.5, epsilon=1e-3, 
-                 gtol=1e-5, multinom=True, maxiter=None, full_output=False,
-                 func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-                 output_file=None):
+
+def optimize_log(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    epsilon=1e-3,
+    gtol=1e-5,
+    multinom=True,
+    maxiter=None,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_file=None,
+):
     """
     Optimize log(params) to fit model to data using the BFGS method.
 
@@ -146,21 +177,36 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
               re-optimize with ll_scale=1.
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
+    args = (
+        data,
+        model_func,
+        lower_bound,
+        upper_bound,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        ll_scale,
+        output_stream,
+    )
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_bfgs(_object_func_log, 
-                                       numpy.log(p0), epsilon=epsilon,
-                                       args = args, gtol=gtol, 
-                                       full_output=True,
-                                       disp=False,
-                                       maxiter=maxiter)
+    outputs = scipy.optimize.fmin_bfgs(
+        _object_func_log,
+        numpy.log(p0),
+        epsilon=epsilon,
+        args=args,
+        gtol=gtol,
+        full_output=True,
+        disp=False,
+        maxiter=maxiter,
+    )
     xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
 
@@ -172,13 +218,26 @@ def optimize_log(p0, data, model_func, lower_bound=None, upper_bound=None,
     else:
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
-def optimize_log_lbfgsb(p0, data, model_func,
-                        lower_bound=None, upper_bound=None,
-                        verbose=0, flush_delay=0.5, epsilon=1e-3, 
-                        pgtol=1e-5, multinom=True, maxiter=1e5, 
-                        full_output=False,
-                        func_args=[], func_kwargs={}, fixed_params=None, 
-                        ll_scale=1, output_file=None):
+
+def optimize_log_lbfgsb(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    epsilon=1e-3,
+    pgtol=1e-5,
+    multinom=True,
+    maxiter=1e5,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_file=None,
+):
     """
     Optimize log(params) to fit model to data using the L-BFGS-B method.
 
@@ -249,13 +308,24 @@ def optimize_log_lbfgsb(p0, data, model_func,
     
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, None, None, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
+    args = (
+        data,
+        model_func,
+        None,
+        None,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        ll_scale,
+        output_stream,
+    )
 
     # Make bounds list. For this method it needs to be in terms of log params.
     if lower_bound is None:
@@ -270,15 +340,21 @@ def optimize_log_lbfgsb(p0, data, model_func,
         upper_bound = numpy.log(upper_bound)
         upper_bound[numpy.isnan(upper_bound)] = None
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound,upper_bound))
+    bounds = list(zip(lower_bound, upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 
-    outputs = scipy.optimize.fmin_l_bfgs_b(_object_func_log, 
-                                           numpy.log(p0), bounds = bounds,
-                                           epsilon=epsilon, args = args,
-                                           iprint = -1, pgtol=pgtol,
-                                           maxfun=maxiter, approx_grad=True)
+    outputs = scipy.optimize.fmin_l_bfgs_b(
+        _object_func_log,
+        numpy.log(p0),
+        bounds=bounds,
+        epsilon=epsilon,
+        args=args,
+        iprint=-1,
+        pgtol=pgtol,
+        maxfun=maxiter,
+        approx_grad=True,
+    )
     xopt, fopt, info_dict = outputs
 
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
@@ -291,11 +367,13 @@ def optimize_log_lbfgsb(p0, data, model_func,
     else:
         return xopt, fopt, info_dict
 
+
 def minus_ll(model, data):
     """
     The negative of the log-likelihood of the data given the model sfs.
     """
     return -ll(model, data)
+
 
 def ll(model, data):
     """
@@ -311,6 +389,7 @@ def ll(model, data):
     """
     ll_arr = ll_per_bin(model, data)
     return ll_arr.sum()
+
 
 def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     """
@@ -330,7 +409,7 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     # Note: Using .data attributes directly saves a little computation time. We
     # use model and data as a whole at least once, to ensure masking is done
     # properly.
-    result = -model.data + data.data*model.log() - gammaln(data + 1.)
+    result = -model.data + data.data * model.log() - gammaln(data + 1.0)
     if numpy.all(result.mask == data.mask):
         return result
 
@@ -338,35 +417,39 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     data_sum = data.sum()
 
     missing = logical_and(model < 0, not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum()/data.sum() > missing_model_cutoff:
-        logger.warn('Model is < 0 where data is not masked.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+    if numpy.any(missing) and data[missing].sum() / data.sum() > missing_model_cutoff:
+        logger.warn("Model is < 0 where data is not masked.")
+        logger.warn(
+            "Number of affected entries is %i. Sum of data in those "
+            "entries is %g:" % (missing.sum(), data[missing].sum())
+        )
 
     # If the data is 0, it's okay for the model to be 0. In that case the ll
     # contribution is 0, which is fine.
     missing = logical_and(model == 0, logical_and(data > 0, not_data_mask))
-    if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
-        logger.warn('Model is 0 where data is neither masked nor 0.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+    if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
+        logger.warn("Model is 0 where data is neither masked nor 0.")
+        logger.warn(
+            "Number of affected entries is %i. Sum of data in those "
+            "entries is %g:" % (missing.sum(), data[missing].sum())
+        )
 
     missing = numpy.logical_and(model.mask, not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
+    if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
         print(data[missing].sum(), data_sum)
-        logger.warn('Model is masked in some entries where data is not.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+        logger.warn("Model is masked in some entries where data is not.")
+        logger.warn(
+            "Number of affected entries is %i. Sum of data in those "
+            "entries is %g:" % (missing.sum(), data[missing].sum())
+        )
 
     missing = numpy.logical_and(numpy.isnan(model), not_data_mask)
-    if numpy.any(missing)\
-       and data[missing].sum()/data_sum > missing_model_cutoff:
-        logger.warn('Model is nan in some entries where data is not masked.')
-        logger.warn('Number of affected entries is %i. Sum of data in those '
-                    'entries is %g:' % (missing.sum(), data[missing].sum()))
+    if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
+        logger.warn("Model is nan in some entries where data is not masked.")
+        logger.warn(
+            "Number of affected entries is %i. Sum of data in those "
+            "entries is %g:" % (missing.sum(), data[missing].sum())
+        )
 
     return result
 
@@ -378,7 +461,8 @@ def ll_multinom_per_bin(model, data):
     Scales the model sfs to have the optimal theta for comparison with the data.
     """
     theta_opt = optimal_sfs_scaling(model, data)
-    return ll_per_bin(theta_opt*model, data)
+    return ll_per_bin(theta_opt * model, data)
+
 
 def ll_multinom(model, data):
     """
@@ -397,6 +481,7 @@ def ll_multinom(model, data):
     ll_arr = ll_multinom_per_bin(model, data)
     return ll_arr.sum()
 
+
 def minus_ll_multinom(model, data):
     """
     The negative of the log-likelihood of the data given the model sfs.
@@ -404,6 +489,7 @@ def minus_ll_multinom(model, data):
     Return a double that is -(log-likelihood)
     """
     return -ll_multinom(model, data)
+
 
 def linear_Poisson_residual(model, data, mask=None):
     """
@@ -420,11 +506,12 @@ def linear_Poisson_residual(model, data, mask=None):
     if data.folded and not model.folded:
         model = model.fold()
 
-    resid = (model - data)/numpy.ma.sqrt(model)
+    resid = (model - data) / numpy.ma.sqrt(model)
     if mask is not None:
         tomask = numpy.logical_and(model <= mask, data <= mask)
         resid = numpy.ma.masked_where(tomask, resid)
     return resid
+
 
 def Anscombe_Poisson_residual(model, data, mask=None):
     """
@@ -456,9 +543,9 @@ def Anscombe_Poisson_residual(model, data, mask=None):
     # on masked arrays, because otherwise the mask on the input itself can be
     # changed. Subtle and annoying. If we need to create our own functions, we
     # can use numpy.ma.core._MaskedUnaryOperation.
-    datatrans = data**(2./3) - numpy.ma.power(data,-1./3)/9
-    modeltrans = model**(2./3) - numpy.ma.power(model,-1./3)/9
-    resid = 1.5*(datatrans - modeltrans)/model**(1./6)
+    datatrans = data ** (2.0 / 3) - numpy.ma.power(data, -1.0 / 3) / 9
+    modeltrans = model ** (2.0 / 3) - numpy.ma.power(model, -1.0 / 3) / 9
+    resid = 1.5 * (datatrans - modeltrans) / model ** (1.0 / 6)
     if mask is not None:
         tomask = numpy.logical_and(model <= mask, data <= mask)
         tomask = numpy.logical_or(tomask, data == 0)
@@ -468,13 +555,15 @@ def Anscombe_Poisson_residual(model, data, mask=None):
     # Pierce and Schafner convention.
     return -resid
 
+
 def optimally_scaled_sfs(model, data):
     """
     Optimially scale model sfs to data sfs.
 
     Returns a new scaled model sfs.
     """
-    return optimal_sfs_scaling(model,data) * model
+    return optimal_sfs_scaling(model, data) * model
+
 
 def optimal_sfs_scaling(model, data):
     """
@@ -487,15 +576,25 @@ def optimal_sfs_scaling(model, data):
         model = model.fold()
 
     model, data = Numerics.intersect_masks(model, data)
-    return data.sum()/model.sum()
+    return data.sum() / model.sum()
 
-def optimize_log_fmin(p0, data, model_func, 
-                      lower_bound=None, upper_bound=None,
-                      verbose=0, flush_delay=0.5, 
-                      multinom=True, maxiter=None, 
-                      full_output=False, func_args=[], 
-                      func_kwargs={},
-                      fixed_params=None, output_file=None):
+
+def optimize_log_fmin(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    multinom=True,
+    maxiter=None,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    output_file=None,
+):
     """
     Optimize log(params) to fit model to data using Nelder-Mead. 
 
@@ -545,17 +644,34 @@ def optimize_log_fmin(p0, data, model_func,
      fixed_params usage.)
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
-            output_stream)
+    args = (
+        data,
+        model_func,
+        lower_bound,
+        upper_bound,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        1.0,
+        output_stream,
+    )
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin(_object_func_log, numpy.log(p0), args = args,
-                                  disp=False, maxiter=maxiter, full_output=True)
+    outputs = scipy.optimize.fmin(
+        _object_func_log,
+        numpy.log(p0),
+        args=args,
+        disp=False,
+        maxiter=maxiter,
+        full_output=True,
+    )
     xopt, fopt, iter, funcalls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
 
@@ -567,11 +683,28 @@ def optimize_log_fmin(p0, data, model_func,
     else:
         return xopt, fopt, iter, funcalls, warnflag
 
-def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
-                    verbose=0, flush_delay=0.5, xtol=1e-4, ftol=1e-4, 
-                    multinom=True, maxiter=None, maxfunc=None,
-                    full_output=False, func_args=[], func_kwargs={},
-                    fixed_params=None, ll_scale=1, output_file=None, retall=False):
+
+def optimize_powell(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    xtol=1e-4,
+    ftol=1e-4,
+    multinom=True,
+    maxiter=None,
+    maxfunc=None,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_file=None,
+    retall=False,
+):
     """
     Optimize parameters using Powell's conjugate direction method.
 
@@ -632,19 +765,38 @@ def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
     retall: If True, return a list of solutions at each iteration.
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
+    args = (
+        data,
+        model_func,
+        lower_bound,
+        upper_bound,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        ll_scale,
+        output_stream,
+    )
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_powell(_object_func, p0, args=args,
-                                         xtol=xtol, ftol=ftol, maxiter=maxiter,
-                                         maxfun=maxfunc, disp=False,
-                                         full_output=True, retall=retall)
+    outputs = scipy.optimize.fmin_powell(
+        _object_func,
+        p0,
+        args=args,
+        xtol=xtol,
+        ftol=ftol,
+        maxiter=maxiter,
+        maxfun=maxfunc,
+        disp=False,
+        full_output=True,
+        retall=retall,
+    )
     if retall:
         xopt, fopt, direc, iters, funcalls, warnflag, allvecs = outputs
     else:
@@ -661,13 +813,23 @@ def optimize_powell(p0, data, model_func, lower_bound=None, upper_bound=None,
     else:
         return xopt, fopt, direc, iters, funcalls, warnflag
 
-def optimize_log_powell(p0, data, model_func,
-                      lower_bound=None, upper_bound=None,
-                      verbose=0, flush_delay=0.5,
-                      multinom=True, maxiter=None,
-                      full_output=False, func_args=[],
-                      func_kwargs={},
-                      fixed_params=None, output_file=None):
+
+def optimize_log_powell(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    multinom=True,
+    maxiter=None,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    output_file=None,
+):
     """
     Optimize log(params) to fit model to data using Powell's method.
         
@@ -712,20 +874,37 @@ def optimize_log_powell(p0, data, model_func,
         fixed_params usage.)
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
-            output_stream)
+    args = (
+        data,
+        model_func,
+        lower_bound,
+        upper_bound,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        1.0,
+        output_stream,
+    )
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_powell(_object_func_log, numpy.log(p0), args = args,
-                                  disp=False, maxiter=maxiter, full_output=True)
+    outputs = scipy.optimize.fmin_powell(
+        _object_func_log,
+        numpy.log(p0),
+        args=args,
+        disp=False,
+        maxiter=maxiter,
+        full_output=True,
+    )
     xopt, fopt, direc, iter, funcalls, warnflag = outputs
     xopt = _project_params_up(numpy.exp(xopt), fixed_params)
-                                  
+
     if output_file:
         output_stream.close()
 
@@ -734,11 +913,26 @@ def optimize_log_powell(p0, data, model_func,
     else:
         return xopt, fopt, direc, iter, funcalls, warnflag
 
-def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
-             verbose=0, flush_delay=0.5, epsilon=1e-3, 
-             gtol=1e-5, multinom=True, maxiter=None, full_output=False,
-             func_args=[], func_kwargs={}, fixed_params=None, ll_scale=1,
-             output_file=None):
+
+def optimize(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    epsilon=1e-3,
+    gtol=1e-5,
+    multinom=True,
+    maxiter=None,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_file=None,
+):
     """
     Optimize params to fit model to data using the BFGS method.
 
@@ -791,21 +985,36 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
               re-optimize with ll_scale=1.
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, lower_bound, upper_bound, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
+    args = (
+        data,
+        model_func,
+        lower_bound,
+        upper_bound,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        ll_scale,
+        output_stream,
+    )
 
     p0 = _project_params_down(p0, fixed_params)
-    outputs = scipy.optimize.fmin_bfgs(_object_func, p0, 
-                                       epsilon=epsilon,
-                                       args = args, gtol=gtol, 
-                                       full_output=True,
-                                       disp=False,
-                                       maxiter=maxiter)
+    outputs = scipy.optimize.fmin_bfgs(
+        _object_func,
+        p0,
+        epsilon=epsilon,
+        args=args,
+        gtol=gtol,
+        full_output=True,
+        disp=False,
+        maxiter=maxiter,
+    )
     xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag = outputs
     xopt = _project_params_up(xopt, fixed_params)
 
@@ -818,12 +1027,25 @@ def optimize(p0, data, model_func, lower_bound=None, upper_bound=None,
         return xopt, fopt, gopt, Bopt, func_calls, grad_calls, warnflag
 
 
-def optimize_lbfgsb(p0, data, model_func, 
-                    lower_bound=None, upper_bound=None,
-                    verbose=0, flush_delay=0.5, epsilon=1e-3, 
-                    pgtol=1e-5, multinom=True, maxiter=1e5, full_output=False,
-                    func_args=[], func_kwargs={}, fixed_params=None, 
-                    ll_scale=1, output_file=None):
+def optimize_lbfgsb(
+    p0,
+    data,
+    model_func,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    epsilon=1e-3,
+    pgtol=1e-5,
+    multinom=True,
+    maxiter=1e5,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    ll_scale=1,
+    output_file=None,
+):
     """
     Optimize log(params) to fit model to data using the L-BFGS-B method.
 
@@ -890,13 +1112,24 @@ def optimize_lbfgsb(p0, data, model_func,
         ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, None, None, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 
-            ll_scale, output_stream)
+    args = (
+        data,
+        model_func,
+        None,
+        None,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        ll_scale,
+        output_stream,
+    )
 
     # Make bounds list. For this method it needs to be in terms of log params.
     if lower_bound is None:
@@ -905,15 +1138,21 @@ def optimize_lbfgsb(p0, data, model_func,
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     upper_bound = _project_params_down(upper_bound, fixed_params)
-    bounds = list(zip(lower_bound,upper_bound))
+    bounds = list(zip(lower_bound, upper_bound))
 
     p0 = _project_params_down(p0, fixed_params)
 
-    outputs = scipy.optimize.fmin_l_bfgs_b(_object_func, 
-                                           numpy.log(p0), bounds=bounds,
-                                           epsilon=epsilon, args=args,
-                                           iprint=-1, pgtol=pgtol,
-                                           maxfun=maxiter, approx_grad=True)
+    outputs = scipy.optimize.fmin_l_bfgs_b(
+        _object_func,
+        numpy.log(p0),
+        bounds=bounds,
+        epsilon=epsilon,
+        args=args,
+        iprint=-1,
+        pgtol=pgtol,
+        maxfun=maxiter,
+        approx_grad=True,
+    )
     xopt, fopt, info_dict = outputs
 
     xopt = _project_params_up(xopt, fixed_params)
@@ -926,6 +1165,7 @@ def optimize_lbfgsb(p0, data, model_func,
     else:
         return xopt, fopt, info_dict
 
+
 def _project_params_down(pin, fixed_params):
     """
     Eliminate fixed parameters from pin.
@@ -934,15 +1174,17 @@ def _project_params_down(pin, fixed_params):
         return pin
 
     if len(pin) != len(fixed_params):
-        raise ValueError('fixed_params list must have same length as input '
-                         'parameter array.')
+        raise ValueError(
+            "fixed_params list must have same length as input " "parameter array."
+        )
 
     pout = []
-    for ii, (curr_val,fixed_val) in enumerate(zip(pin, fixed_params)):
+    for ii, (curr_val, fixed_val) in enumerate(zip(pin, fixed_params)):
         if fixed_val is None:
             pout.append(curr_val)
 
     return numpy.array(pout)
+
 
 def _project_params_up(pin, fixed_params):
     """
@@ -964,12 +1206,23 @@ def _project_params_up(pin, fixed_params):
             pout[out_ii] = fixed_params[out_ii]
     return pout
 
+
 index_exp = numpy.index_exp
-def optimize_grid(data, model_func, grid,
-                  verbose=0, flush_delay=0.5,
-                  multinom=True, full_output=False,
-                  func_args=[], func_kwargs={}, fixed_params=None,
-                  output_file=None):
+
+
+def optimize_grid(
+    data,
+    model_func,
+    grid,
+    verbose=0,
+    flush_delay=0.5,
+    multinom=True,
+    full_output=False,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    output_file=None,
+):
     """
     Optimize params to fit model to data using brute force search over a grid.
 
@@ -1022,21 +1275,33 @@ def optimize_grid(data, model_func, grid,
     parameter values.
     """
     if output_file:
-        output_stream = open(output_file, 'w')
+        output_stream = open(output_file, "w")
     else:
         output_stream = sys.stdout
 
-    args = (data, model_func, None, None, verbose,
-            multinom, flush_delay, func_args, func_kwargs, fixed_params, 1.0,
-            output_stream, full_output)
+    args = (
+        data,
+        model_func,
+        None,
+        None,
+        verbose,
+        multinom,
+        flush_delay,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        1.0,
+        output_stream,
+        full_output,
+    )
 
     if full_output:
         global _theta_store
         _theta_store = {}
 
-    outputs = scipy.optimize.brute(_object_func, ranges=grid,
-                                   args=args, full_output=full_output,
-                                   finish=False)
+    outputs = scipy.optimize.brute(
+        _object_func, ranges=grid, args=args, full_output=full_output, finish=False
+    )
     if full_output:
         xopt, fopt, grid, fout = outputs
         # Thetas are stored as a dictionary, because we can't guarantee
@@ -1045,7 +1310,7 @@ def optimize_grid(data, model_func, grid,
         thetas = numpy.zeros(fout.shape)
         for indices, temp in numpy.ndenumerate(fout):
             # This is awkward, because we need to access grid[:,indices]
-            grid_indices = tuple([slice(None,None,None)] + list(indices))
+            grid_indices = tuple([slice(None, None, None)] + list(indices))
             thetas[indices] = _theta_store[tuple(grid[grid_indices])]
     else:
         xopt = outputs
@@ -1059,9 +1324,11 @@ def optimize_grid(data, model_func, grid,
     else:
         return xopt, fopt, grid, fout, thetas
 
+
 def add_misid_param(func):
     def misid_func(params, *args, **kwargs):
         misid = params[-1]
         fs = func(params[:-1], *args, **kwargs)
-        return (1-misid)*fs + misid*Numerics.reverse_array(fs)
+        return (1 - misid) * fs + misid * Numerics.reverse_array(fs)
+
     return misid_func

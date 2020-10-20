@@ -5,6 +5,7 @@ import numpy
 
 import moments
 
+
 def snm(ns):
     """
     Standard neutral model.
@@ -14,6 +15,7 @@ def snm(ns):
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
     return fs
+
 
 def two_epoch(params, ns):
     """
@@ -27,11 +29,12 @@ def two_epoch(params, ns):
     ns: Number of samples in resulting Spectrum.
     """
     nu, T = params
-    
+
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
     fs.integrate([nu], T)
     return fs
+
 
 def growth(params, ns):
     """
@@ -53,6 +56,7 @@ def growth(params, ns):
 
     return fs
 
+
 def bottlegrowth(params, ns):
     """
     Instantanous size change followed by exponential growth.
@@ -67,13 +71,14 @@ def bottlegrowth(params, ns):
     ns: Number of samples in resulting Spectrum.
     """
     nuB, nuF, T = params
-    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF/nuB) * t / T)]
+    nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF / nuB) * t / T)]
 
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
     fs.integrate(nu_func, T, 0.01)
 
     return fs
+
 
 def three_epoch(params, ns):
     """
