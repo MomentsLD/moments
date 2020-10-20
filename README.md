@@ -1,17 +1,24 @@
 **moments: tools for demographic inference**
 
-`moments` implements methods for demographic history and selection inference from genetic data, based on diffusion approximations to the allele frequency spectrum. `moments` is based on the  [∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open source package developed by Ryan Gutenkunst [http://gutengroup.mcb.arizona.edu]. We largely reuse `∂a∂i`'s interface but introduced a new simulation engine. This new method is based on the direct computation of the frequency spectrum without solving the diffusion system. Consequently we circumvent the numerical PDE approximations and we get rid of the frequency grids used in `∂a∂i`.
+`moments` implements methods for demographic history and selection inference from genetic data, based on diffusion approximations to the allele frequency spectrum.
+`moments` is based on the  [∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open source package developed by [Ryan Gutenkunst](http://gutengroup.mcb.arizona.edu).
+We largely reuse `∂a∂i`'s interface but introduced a new simulation engine. This new method is based on the direct computation of the frequency spectrum without
+solving the diffusion system. Consequently we circumvent the numerical PDE approximations and we get rid of the frequency grids used in `∂a∂i`.
 
 `moments.LD` implements methods for computing linkage disequilibrium statistics and running multi-population demographic inference using patterns of LD.
 
 If you use `moments` in your research, please cite:
+
 - Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint demographic history of multiple populations: beyond the diffusion approximation. Genetics, 206(3), 1549-1567.
 
 If you use `moments.LD` in your research, please cite:
-- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history from two-locus statistics. PLoS Genetics, 15(6), e1008204. 
+
+- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history from two-locus statistics. PLoS Genetics, 15(6), e1008204.
+
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium from unphased data. Mol Biol Evol, 37(3), 923-932.
 
-`moments` is developed in Simon Gravel's group in the Human Genetics department at McGill University [http://simongravel.lab.mcgill.ca/Home.html], with maintenance and development by the Gravel Lab and Aaron Ragsdale [http://apragsdale.github.io].
+`moments` is developed in [Simon Gravel's group](http://simongravel.lab.mcgill.ca/Home.html) in the Human Genetics department at McGill University,
+with maintenance and development by the Gravel Lab and [Aaron Ragsdale](http://apragsdale.github.io).
 
 **Getting started**
 
