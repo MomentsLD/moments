@@ -83,7 +83,7 @@ if build_ld_extensions is True:
 
 setup(
     name="moments",
-    # version='1.0.5',
+    # version='1.0.6',
     version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),
     author="Aaron Ragsdale, Julien Jouganous, Simon Gravel, Ryan Gutenkunst",
     author_email="aaron.ragsdale@mail.mcgill.ca, simon.gravel@mcgill.ca",

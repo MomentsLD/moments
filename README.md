@@ -38,11 +38,10 @@ python 2, we do not actively ensure that moments remains fully compatable with p
 2, and strongly recommend using python 3.
 
 The simplest way to install `moments` is using `pip`. Note that `numpy` and `cython`
-are install requirements, so if you are in a fresh environment, these will need to
-be installed first:
+are install requirements, but installing `moments` directly from the git repository
+using `pip` should install these dependencies automatically:
 
 ```
-pip install numpy, cython
 pip install git+https://bitbucket.org/simongravel/moments.git
 ```
 
@@ -55,6 +54,7 @@ git clone https://bitbucket.org/simongravel/moments.git
 and then from within the moments directory (`cd moments`), run
 
 ```
+pip install numpy, cython
 pip install .
 ```
 
@@ -123,6 +123,18 @@ additionally install
 - scikit-allel
 
 ## Changelog
+
+### 1.0.6
+
+- Updates to installation, so that `pip` installs dependencies automatically
+
+- Protect against importing `matplotlib` if not installed
+
+- `Triallele` and `TwoLocus` now ensure using CSC format sparse matrix to avoid
+  sparse efficiency warnings
+
+- Streamline test suite, which now works with `pytest`, as
+  `python -m pytests tests`
 
 ### 1.0.5
 
