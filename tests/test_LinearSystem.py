@@ -1,3 +1,4 @@
+import os
 import unittest
 import numpy
 import moments
@@ -20,13 +21,19 @@ class LinearSystemTestCase(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_matrix_drift_1D(self):
-        Dref = dlim = numpy.genfromtxt("test_files/drift_matrix_1D.csv", delimiter=",")
+        Dref = dlim = numpy.genfromtxt(
+            os.path.join(os.path.dirname(__file__), "test_files/drift_matrix_1D.csv"),
+            delimiter=",",
+        )
         d = LinearSystem_1D.calcD(25).todense()
         self.assertTrue(numpy.allclose(d, Dref))
 
     def test_matrix_selection_1_1D(self):
         S1ref = dlim = numpy.genfromtxt(
-            "test_files/selection_matrix_1_1D.csv", delimiter=","
+            os.path.join(
+                os.path.dirname(__file__), "test_files/selection_matrix_1_1D.csv"
+            ),
+            delimiter=",",
         )
         dims = numpy.array([25])
         ljk = jk.calcJK13(int(dims[0] - 1))
@@ -36,7 +43,10 @@ class LinearSystemTestCase(unittest.TestCase):
 
     def test_matrix_selection_2_1D(self):
         S2ref = dlim = numpy.genfromtxt(
-            "test_files/selection_matrix_2_1D.csv", delimiter=","
+            os.path.join(
+                os.path.dirname(__file__), "test_files/selection_matrix_2_1D.csv"
+            ),
+            delimiter=",",
         )
         dims = numpy.array([25])
         ljk = jk.calcJK23(int(dims[0] - 1))
@@ -45,7 +55,10 @@ class LinearSystemTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(S.todense(), S2ref))
 
     def test_matrix_drift_2D(self):
-        Dref = dlim = numpy.genfromtxt("test_files/drift_matrix.csv", delimiter=",")
+        Dref = dlim = numpy.genfromtxt(
+            os.path.join(os.path.dirname(__file__), "test_files/drift_matrix.csv"),
+            delimiter=",",
+        )
         dims = numpy.array([25, 30])
         d1 = LinearSystem_2D.calcD1(dims)
         d2 = LinearSystem_2D.calcD2(dims)
@@ -54,7 +67,10 @@ class LinearSystemTestCase(unittest.TestCase):
 
     def test_matrix_selection_1_2D(self):
         S1ref = dlim = numpy.genfromtxt(
-            "test_files/selection_matrix_1.csv", delimiter=","
+            os.path.join(
+                os.path.dirname(__file__), "test_files/selection_matrix_1.csv"
+            ),
+            delimiter=",",
         )
         dims = numpy.array([25, 30])
         ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(len(dims))]
@@ -65,7 +81,10 @@ class LinearSystemTestCase(unittest.TestCase):
 
     def test_matrix_selection_2_2D(self):
         S2ref = dlim = numpy.genfromtxt(
-            "test_files/selection_matrix_2.csv", delimiter=","
+            os.path.join(
+                os.path.dirname(__file__), "test_files/selection_matrix_2.csv"
+            ),
+            delimiter=",",
         )
         dims = numpy.array([25, 30])
         ljk = [jk.calcJK23(int(dims[i] - 1)) for i in range(len(dims))]
@@ -75,7 +94,10 @@ class LinearSystemTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(S2.todense(), S2ref))
 
     def test_matrix_migration_2D(self):
-        Mref = dlim = numpy.genfromtxt("test_files/migration_matrix.csv", delimiter=",")
+        Mref = dlim = numpy.genfromtxt(
+            os.path.join(os.path.dirname(__file__), "test_files/migration_matrix.csv"),
+            delimiter=",",
+        )
         dims = numpy.array([25, 30])
         m = numpy.array([[1, 5], [10, 1]])
         ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(len(dims))]
@@ -86,7 +108,7 @@ class LinearSystemTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(M.todense(), Mref))
 
     def test_steady_state(self):
-        """test that integrating from steady_state doesn't make us leave steady state"""
+        # test that integrating from steady_state doesn't make us leave steady state
         for gamma in [-10, 1, 10]:
             for h in [-0.1, 0.2, 1]:
                 n = 100

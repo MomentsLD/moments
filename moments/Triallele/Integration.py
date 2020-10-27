@@ -25,10 +25,6 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 
 """
 
-import warnings
-
-warnings.filterwarnings("ignore")
-
 
 def integrate_cn(
     F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2 ** -6, gammas=None, theta=1.0
@@ -78,8 +74,8 @@ def integrate_cn(
             # if integration has just started, population has changed size, or dt has change, update matrices
             if t_elapsed == 0 or N_old != N or dt != dt_old:
                 Ab = B_tri + D / (2.0 * N)
-                Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                slv = factorized(identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab)
 
             Phi_last = Phi
             Phi = slv(Ab1.dot(Phi) + dt * B_bi)
@@ -123,7 +119,7 @@ def integrate_cn(
                 Ab = D / (2.0 * N) + S.dot(J) + B_tri
                 # Ab1 = identity(Ab.shape[0]) + dt/2.*Ab
                 # slv = factorized(identity(Ab.shape[0]) - dt/2.*Ab)
-                Ab_fd = identity(Ab.shape[0]) + dt * Ab
+                Ab_fd = identity(Ab.shape[0], format="csc") + dt * Ab
 
             Phi_last = Phi
             Phi = Ab_fd.dot(Phi) + dt * B_bi

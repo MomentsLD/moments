@@ -388,6 +388,8 @@ class TLSpectrum(numpy.ma.masked_array):
         else:
             return fs, comments
 
+    fromfile = from_file
+
     def to_file(self, fid, precision=16, comment_lines=[], foldmaskinfo=True):
         """
         Write frequency spectrum to file.

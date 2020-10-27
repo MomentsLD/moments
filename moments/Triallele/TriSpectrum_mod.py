@@ -495,8 +495,6 @@ def %(method)s(self, other):
             self.data, nu, tf, dt=dt, gammas=gammas, theta=theta
         )
 
-        return self
-
 
 # Allow TriSpectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm

@@ -63,13 +63,20 @@ class LDTestCase(unittest.TestCase):
         fs_proj = fs.marginalize([0]).project([2])
         self.assertTrue(numpy.allclose(y[-1][2], fs_proj[1], rtol=1e-3))
 
-    def test_equilibrium_ld_tlfs_slow(self):
+    def test_equilibrium_ld_tlfs_cache(self):
         theta = 1
         rhos = [0, 1, 10]
         y = moments.LD.Demographics1D.snm(theta=theta, rho=rhos)
         ns = 50
         for ii, rho in enumerate(rhos):
-            F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho).project(4)
+            # F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho).project(4)
+            F = moments.TwoLocus.TLSpectrum.from_file(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    f"test_files/two_locus_equilibrium_rho_{rho}_theta_{theta}_ns_{ns}.fs",
+                )
+            )
+            F = F.project(4)
             self.assertTrue(numpy.allclose(y[ii], [F.D2(), F.Dz(), F.pi2()], rtol=2e-2))
 
 

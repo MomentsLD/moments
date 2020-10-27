@@ -20,41 +20,38 @@ class FiniteGenomeTestCase(unittest.TestCase):
 
     def test_reversible_neutral(self):
         ns = 30
-        theta_fd = 2e-3
-        theta_bd = 1e-3
+        theta_fd = 1e-3
+        theta_bd = 3e-3
         exact = moments.LinearSystem_1D.steady_state_1D_reversible(
             ns, theta_fd=theta_fd, theta_bd=theta_bd
         )
-        fs = moments.Spectrum(numpy.zeros(ns + 1), mask_corners=False)
-        fs[0] = exact[0]
-        fs[-1] = exact[-1]
-        fs /= numpy.sum(fs)
-        fs.integrate(
-            [1.0], 5000, finite_genome=True, theta_fd=theta_fd, theta_bd=theta_bd
-        )
+        fs = moments.Spectrum(exact)
+        fs.unmask_all()
+        # integrate for T = 2 and check that it's close still
+        fs.integrate([1.0], 2, finite_genome=True, theta_fd=theta_fd, theta_bd=theta_bd)
         self.assertTrue(numpy.allclose(fs, exact))
 
-    def test_reversible_selection_slow(self):
-        gamma = -5.0
+    def test_reversible_selection(self):
+        gammas = [1, -1, -10]
         theta_fd = 2e-3
         theta_bd = 1e-3
-        ns = 30
-        exact = moments.LinearSystem_1D.steady_state_1D_reversible(
-            ns, gamma=gamma, theta_fd=theta_fd, theta_bd=theta_bd
-        )
-        fs = moments.Spectrum(numpy.zeros(ns + 1), mask_corners=False)
-        fs[0] = exact[0]
-        fs[-1] = exact[-1]
-        fs /= numpy.sum(fs)
-        fs.integrate(
-            [1.0],
-            5000,
-            finite_genome=True,
-            gamma=gamma,
-            theta_fd=theta_fd,
-            theta_bd=theta_bd,
-        )
-        self.assertTrue(numpy.allclose(fs, exact, atol=1e-5))
+        for gamma in gammas:
+            ns = 30
+            exact = moments.LinearSystem_1D.steady_state_1D_reversible(
+                ns, gamma=gamma, theta_fd=theta_fd, theta_bd=theta_bd
+            )
+            # integrate for T=1 and check that result stayed close
+            fs = moments.Spectrum(exact)
+            fs.unmask_all()
+            fs.integrate(
+                [1.0],
+                1,
+                finite_genome=True,
+                gamma=gamma,
+                theta_fd=theta_fd,
+                theta_bd=theta_bd,
+            )
+            self.assertTrue(numpy.allclose(fs, exact, atol=1e-5))
 
     def test_two_pop(self):
         ns1 = 30

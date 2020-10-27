@@ -1,13 +1,14 @@
 # Numpy is the numerical library moments is built upon
 from numpy import array
 
-#import dadi
+# import dadi
 import moments
+
 # In demographic_models.py, we've defined a custom model for this problem
 import demographic_models
 
 # Load the data
-data = moments.Spectrum.from_file('YRI_CEU.fs')
+data = moments.Spectrum.from_file("YRI_CEU.fs")
 ns = data.sample_sizes
 
 # The Demographics1D and Demographics2D modules contain a few simple models,
@@ -27,55 +28,63 @@ upper_bound = [100, 100, 100, 10, 3, 3]
 lower_bound = [1e-2, 1e-2, 1e-2, 0, 0, 0]
 
 # This is our initial guess for the parameters, which is somewhat arbitrary.
-p0 = [2,0.1,2,1,0.2,0.2]
+p0 = [2, 0.1, 2, 1, 0.2, 0.2]
 
 # Perturb our parameters before optimization. This does so by taking each
 # parameter a up to a factor of two up or down.
-p0 = moments.Misc.perturb_params(p0, fold=1, upper_bound=upper_bound,
-                              lower_bound=lower_bound)
+p0 = moments.Misc.perturb_params(
+    p0, fold=1, upper_bound=upper_bound, lower_bound=lower_bound
+)
 # Do the optimization. By default we assume that theta is a free parameter,
 # since it's trivial to find given the other parameters. If you want to fix
 # theta, add a multinom=False to the call.
-# The maxiter argument restricts how long the optimizer will run. For real 
+# The maxiter argument restricts how long the optimizer will run. For real
 # runs, you will want to set this value higher (at least 10), to encourage
 # better convergence. You will also want to run optimization several times
 # using multiple sets of intial parameters, to be confident you've actually
 # found the true maximum likelihood parameters.
-print('Beginning optimization ************************************************')
-popt = moments.Inference.optimize_log(p0, data, func,
-                                   lower_bound=lower_bound,
-                                   upper_bound=upper_bound,
-                                   verbose=len(p0), maxiter=100)
+print("Beginning optimization ************************************************")
+popt = moments.Inference.optimize_log(
+    p0,
+    data,
+    func,
+    lower_bound=lower_bound,
+    upper_bound=upper_bound,
+    verbose=len(p0),
+    maxiter=100,
+)
 # The verbose argument controls how often progress of the optimizer should be
 # printed. It's useful to keep track of optimization process.
-print('Finished optimization **************************************************')
+print("Finished optimization **************************************************")
 print(popt)
 
 # These are the actual best-fit model parameters, which we found through
 # longer optimizations and confirmed by running multiple optimizations.
 # We'll work with them through the rest of this script.
 popt = [1.881, 0.0710, 1.845, 0.911, 0.355, 0.111]
-print('Best-fit parameters: {0}'.format(popt))
+print("Best-fit parameters: {0}".format(popt))
 
 # Calculate the best-fit model AFS.
 model = func(popt, ns)
 # Likelihood of the data given the model AFS.
 ll_model = moments.Inference.ll_multinom(model, data)
-print('Maximum log composite likelihood: {0}'.format(ll_model))
+print("Maximum log composite likelihood: {0}".format(ll_model))
 # The optimal value of theta given the model.
 theta = moments.Inference.optimal_sfs_scaling(model, data)
-print('Optimal value of theta: {0}'.format(theta))
+print("Optimal value of theta: {0}".format(theta))
 
 # Plot a comparison of the resulting fs with the data.
 import pylab
+
 pylab.figure(1)
-moments.Plotting.plot_2d_comp_multinom(model, data, vmin=1, resid_range=3,
-                                    pop_ids =('YRI','CEU'))
+moments.Plotting.plot_2d_comp_multinom(
+    model, data, vmin=1, resid_range=3, pop_ids=("YRI", "CEU")
+)
 # This ensures that the figure pops up. It may be unecessary if you are using
 # ipython.
 pylab.show()
 # Save the figure
-pylab.savefig('YRI_CEU.png', dpi=50)
+pylab.savefig("YRI_CEU.png", dpi=50)
 
 # Now that we've found the optimal parameters, we can use ModelPlot to
 # automatically generate a graph of our determined model.
@@ -86,16 +95,21 @@ model = moments.ModelPlot.generate_model(func, popt, ns)
 
 # Next, we plot the model. See ModelPlot.py for more information on the various
 # parameters that can be passed to the plotting function. In this case, we scale
-# the model to have an original starting population of size 11293 and a 
+# the model to have an original starting population of size 11293 and a
 # generation time of 29 years. Results are saved to YRI_CEU_model.png.
-moments.ModelPlot.plot_model(model, save_file='YRI_CEU_model.png',
-                             fig_title='YRI CEU Example Model',
-                             pop_labels=['YRI', 'CEU'], nref=11293,
-                             gen_time=29.0, gen_time_units='Years',
-                             reverse_timeline=True)
+moments.ModelPlot.plot_model(
+    model,
+    save_file="YRI_CEU_model.png",
+    fig_title="YRI CEU Example Model",
+    pop_labels=["YRI", "CEU"],
+    nref=11293,
+    gen_time=29.0,
+    gen_time_units="Years",
+    reverse_timeline=True,
+)
 
 # Let's generate some data using ms, if you have it installed.
-'''
+"""
 mscore = demographic_models.prior_onegrow_mig_mscore(popt)
 # I find that it's most efficient to simulate with theta=1, average over many
 # iterations, and then scale up.
@@ -184,4 +198,4 @@ score_adj = moments.Godambe.score_stat(func, all_boot, p_lrt, data,
                                     nested_indices=[3], multinom=True)
 print('Adjusted score statistic: {0:.4f}'.format(score_adj))
 pval = moments.Godambe.sum_chi2_ppf(score_adj, weights=(0.5,0.5))
-print('p-value for rejecting no-migration model: {0:.4f}'.format(pval))'''
+print('p-value for rejecting no-migration model: {0:.4f}'.format(pval))"""

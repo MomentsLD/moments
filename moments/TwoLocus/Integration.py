@@ -76,8 +76,10 @@ def integrate(
 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
                     Ab = M / 2.0 + S.dot(J1) + D / (2.0 * N)
-                    Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                    slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                    Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                    slv = factorized(
+                        identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                    )
 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -99,8 +101,10 @@ def integrate(
 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
                     Ab = M / 2.0 + D / (2.0 * N)
-                    Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                    slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                    Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                    slv = factorized(
+                        identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                    )
 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -133,8 +137,10 @@ def integrate(
 
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
                         Ab = M / 2.0 + Sa.dot(J1) + D / (2.0 * N)
-                        Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                        slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                        Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                        slv = factorized(
+                            identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                        )
 
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -167,8 +173,10 @@ def integrate(
 
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
                         Ab = M / 2.0 + Sa.dot(J1) + Sd.dot(J2) + D / (2.0 * N)
-                        Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                        slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                        Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                        slv = factorized(
+                            identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                        )
 
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -197,8 +205,10 @@ def integrate(
 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
                     Ab = M / 2.0 + R.dot(J1) + S.dot(J1) + D / (2.0 * N)
-                    Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                    slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                    Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                    slv = factorized(
+                        identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                    )
 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -221,8 +231,10 @@ def integrate(
 
                 if t_elapsed == 0 or N_old != N or dt != dt_old:
                     Ab = D / (2.0 * N) + R.dot(J1) + M / 2.0
-                    Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                    slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                    Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                    slv = factorized(
+                        identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                    )
 
                 if finite_genome is False:
                     Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -251,8 +263,10 @@ def integrate(
 
                     if t_elapsed == 0 or N_old != N or dt != dt_old:
                         Ab = D / (2.0 * N) + R.dot(J1) + Sa.dot(J1) + M / 2.0
-                        Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                        slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                        Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                        slv = factorized(
+                            identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                        )
 
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
@@ -287,8 +301,10 @@ def integrate(
                             + Sd.dot(J2)
                             + M / 2.0
                         )
-                        Ab1 = identity(Ab.shape[0]) + dt / 2.0 * Ab
-                        slv = factorized(identity(Ab.shape[0]) - dt / 2.0 * Ab)
+                        Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
+                        slv = factorized(
+                            identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
+                        )
 
                     if finite_genome is False:
                         Phi = slv(Ab1.dot(Phi) + dt * M_0to1)

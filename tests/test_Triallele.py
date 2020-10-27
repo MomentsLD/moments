@@ -1,6 +1,6 @@
 import os
 import unittest
-
+import copy
 import numpy
 import moments, moments.Triallele
 import time
@@ -77,16 +77,17 @@ class TrialleleTestCase(unittest.TestCase):
         fs.integrate(1.0, 20.0)
         self.assertTrue(numpy.allclose(fs, exact))
 
-    def test_selection_slow(self):
+    def test_selection(self):
         ns = 30
         cached = moments.Triallele.TriSpectrum.from_file(
-            "test_files/triallele_selection.fs"
+            os.path.join(os.path.dirname(__file__), "test_files/triallele_selection.fs")
         )
         sA, hA = -1.0, 0.5
         sB, hB = -1.0, 0.5
+        # from cached, integrate T=1 to make sure stays constant
         gammas = (2 * sA, 2 * sA * hA, 2 * sB, 2 * sB * hB, 2 * sA * hA + 2 * sB * hB)
-        fs = moments.Triallele.TriSpectrum(numpy.zeros((ns + 1, ns + 1)))
-        fs.integrate(1.0, 20.0, gammas=gammas)
+        fs = copy.deepcopy(cached)
+        fs.integrate(1.0, 1.0, gammas=gammas)
         self.assertTrue(numpy.allclose(fs, cached))
 
 
