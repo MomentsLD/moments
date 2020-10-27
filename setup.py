@@ -14,31 +14,21 @@ if "--ld_extensions" in sys.argv:
 else:
     build_ld_extensions = False
 
-#
-# Microsoft Visual C++ only supports C up to the version iso9899:1990 (C89).
-# gcc by default supports much more. To ensure MSVC++ compatibility when using
-# gcc, we need to add extra compiler args. This code tries to ensure such
-# arguments are added *only* when we're using gcc.
-#
-import numpy.distutils
-
-compiler = numpy.distutils.ccompiler.get_default_compiler()
-for arg in sys.argv:
-    if arg.startswith("--compiler"):
-        compiler = arg.split("=")[1]
-if compiler in ["unix", "mingw32", "cygwin"]:
-    extra_compile_args = []
-    # RNG: This seems to cause problems on some machines. To test for
-    # compatibility with VC++, uncomment this line.
-    # extra_compile_args = ['-std="iso9899:1990"', '-pedantic-errors']
-else:
-    extra_compile_args = []
-
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-import numpy as np
+
+try:
+    from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
+except ImportError as e:
+    print("cython not installed, please install cython first")
+    raise e
+
+try:
+    import numpy as np
+except ImportError as e:
+    print("numpy not installed, please install numpy first")
+    raise e
 
 # cython extensions for moments
 extensions = [
@@ -96,10 +86,9 @@ setup(
     # version='1.0.5',
     version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),
     author="Aaron Ragsdale, Julien Jouganous, Simon Gravel, Ryan Gutenkunst",
-    author_email="simon.gravel@mcgill.ca, aaron.ragsdale@mail.mcgill.ca",
+    author_email="aaron.ragsdale@mail.mcgill.ca, simon.gravel@mcgill.ca",
     url="http://bitbucket.org/simongravel/moments",
     packages=["moments", "moments.Triallele", "moments.TwoLocus", "moments.LD"],
-    package_data={"tests": ["IM.fs"]},
     license="MIT",
     cmdclass={"build_ext": build_ext},
     ext_modules=cythonize(extensions, language_level="3"),
