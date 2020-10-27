@@ -103,4 +103,5 @@ setup(
     license="MIT",
     cmdclass={"build_ext": build_ext},
     ext_modules=cythonize(extensions, language_level="3"),
+    install_requires=["numpy >=1.10", "cython >=0.25", "scipy >=1.3", "mpmath >=1.0"],
 )

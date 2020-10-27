@@ -19,11 +19,16 @@ LinearSystem.steady_state
 Manips.split_{1D_to_2D,2D_to_3D_2,2D_to_3D_1,3D_to_4D_3,4D_to_5D_4}
 Spectrum_mod.Spectrum.integrate
 """
-import matplotlib.colors as mcolors
-import matplotlib.offsetbox as mbox
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
+try:
+    import matplotlib.colors as mcolors
+    import matplotlib.offsetbox as mbox
+    import matplotlib.patches as mpatches
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as mticker
+except ImportError:
+    print("matplotlib not found - moments can be used but plotting features "
+          "will not work")
+
 import numpy as np
 
 ## USER FUNCTIONS ##
