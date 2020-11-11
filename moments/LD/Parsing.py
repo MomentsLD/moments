@@ -868,7 +868,10 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
 
     bs = list(zip(bins[:-1], bins[1:]))
     sums = {}
-    empty_genotypes = tuple([0] * 9)
+    if use_genotypes is True:
+        empty_genotypes = tuple([0] * 9)
+    else:
+        empty_genotypes = tuple([0] * 4)
 
     for stat in ld_stats:
         if report is True:
