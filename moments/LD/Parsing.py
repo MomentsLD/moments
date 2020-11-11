@@ -282,7 +282,7 @@ def sparsify_genotype_matrix(G):
             2: set(np.where(G[i, :] == 2)[0]),
         }
         if missing == True:
-            G_dict[i][-1] = set(np.where(G[i, :] == -11)[0])
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
     return G_dict, missing
 
 
