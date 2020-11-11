@@ -188,7 +188,9 @@ def pi2(counts, pop_nums):
         denom = n1 * (n1 - 1) * n2 * (n2 - 1)
         return 1.0 * numer / denom
 
-    elif pop1 == pop3 and pop2 == pop4:  # pi2(i,j;i,j)
+    elif (pop1 == pop3 and pop2 == pop4) or (
+        pop1 == pop4 and pop2 == pop3
+    ):  # pi2(i,j;i,j) or pi2(i,j;j,i)
         cs1, cs2 = counts[pop1], counts[pop2]
         c11, c12, c13, c14 = cs1
         c21, c22, c23, c24 = cs2
@@ -241,9 +243,6 @@ def pi2(counts, pop_nums):
         )
         denom = n1 * (n1 - 1) * n2 * (n2 - 1)
         return 1.0 * numer / denom
-
-    elif pop1 == pop4 and pop2 == pop3:  # pi2(i,j;j,i)
-        print("not in our basis...")
 
     elif pop1 == pop2:  # pi2(i,i;j,k)
         cs1 = counts[pop1]
