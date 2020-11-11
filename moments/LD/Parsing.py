@@ -282,16 +282,27 @@ def sparsify_genotype_matrix(G):
             2: set(np.where(G[i, :] == 2)[0]),
         }
         if missing == True:
-            G_dict[i][-1] = set(np.where(G[i, :] == -11)[0])
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
     return G_dict, missing
 
 
 def sparsify_haplotype_matrix(G):
-    pass
+    G_dict = {}
+    if np.any(G == -1):
+        missing = True
+    else:
+        missing = False
+    for i in range(len(G)):
+        G_dict[i] = {
+            1: set(np.where(G[i, :] == 1)[0]),
+        }
+        if missing == True:
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+    return G_dict, missing
 
 
-def tally_sparse_haplotypes():
-    pass
+#def tally_sparse_haplotypes():
+#    pass
 
 
 # def tally_sparse(G1, G2, n, missing=False):
@@ -575,7 +586,7 @@ def count_types_sparse(
         haplotypes_by_pop = {}
         any_missing = False
         for pop in pops:
-            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes[pop], axis=1)
+            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
             haplotypes_by_pop[pop], this_missing = sparsify_haplotype_matrix(
                 temp_haplotypes
             )
@@ -663,7 +674,7 @@ def count_types_sparse(
             else:
                 cs = tuple(
                     [
-                        tally_sparse_haplotypes(
+                        spt.tally_sparse_haplotypes(
                             haplotypes_by_pop[pop][ii],
                             haplotypes_by_pop[pop][jj],
                             ns[pop],
@@ -868,7 +879,10 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
 
     bs = list(zip(bins[:-1], bins[1:]))
     sums = {}
-    empty_genotypes = tuple([0] * 9)
+    if use_genotypes:
+      empty_genotypes = tuple([0] * 9)
+    else:
+      empty_genotypes = tuple([0] * 4)
 
     for stat in ld_stats:
         if report is True:
@@ -929,7 +943,7 @@ def get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, sep="\t")
+        samples = pandas.read_csv(pop_file, delim_whitespace=True)
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 
