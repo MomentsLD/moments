@@ -193,7 +193,7 @@ def pi2(counts, pop_nums):
         c11, c12, c13, c14 = cs1
         c21, c22, c23, c24 = cs2
         n1 = sum(cs1)
-        ne2 = sum(cs2)
+        n2 = sum(cs2)
         numer = (
             ((c12 + c14) * (c13 + c14) * (c21 + c22) * (c21 + c23)) / 4.0
             + ((c11 + c13) * (c13 + c14) * (c21 + c22) * (c22 + c24)) / 4.0
