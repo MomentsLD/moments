@@ -575,7 +575,7 @@ def count_types_sparse(
         haplotypes_by_pop = {}
         any_missing = False
         for pop in pops:
-            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes[pop], axis=1)
+            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
             haplotypes_by_pop[pop], this_missing = sparsify_haplotype_matrix(
                 temp_haplotypes
             )
