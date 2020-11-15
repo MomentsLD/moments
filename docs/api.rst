@@ -1,0 +1,5 @@
+===
+API
+===
+
+.. autoclass:: moments.Spectrum
