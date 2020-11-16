@@ -8,7 +8,7 @@ import pickle
 import time
 
 
-class SpectrumTestCase(unittest.TestCase):
+class TestLoadDump(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
 
@@ -136,6 +136,14 @@ class SpectrumTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(fsout.data, fsin.data))
         self.assertTrue(numpy.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
+
+class TestFolding(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
 
     def test_folding(self):
         """
@@ -427,6 +435,14 @@ class SpectrumTestCase(unittest.TestCase):
         self.assertTrue(unfolded.mask[1, 1])
         self.assertTrue(unfolded.mask[(ns[0] - 1) - 1, (ns[1] - 1) - 1])
 
+class TestMarginalize(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_marginalize(self):
         ns = (7, 8, 6)
 
@@ -450,6 +466,29 @@ class SpectrumTestCase(unittest.TestCase):
         mf1 = marg1.fold()
         mf2 = folded.marginalize([1])
         self.assertTrue(numpy.allclose(mf1, mf2))
+
+    def test_fold_unmasked(self):
+        fs = moments.Demographics2D.snm([10, 10])
+        fs.mask.flat[0] = False
+        fs_marg = fs.marginalize([0])
+        self.assertEqual(sum(fs_marg.mask), 2)
+
+        fs.mask.flat[0] = True
+        fs.mask.flat[-1] = False
+        fs_marg = fs.marginalize([0])
+        self.assertEqual(sum(fs_marg.mask), 2)
+
+        fs.mask.flat[0] = False
+        fs_marg = fs.marginalize([0])
+        self.assertEqual(sum(fs_marg.mask), 0)
+
+class TestProjection(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
 
     def test_projection(self):
         # Test that projecting a multi-dimensional Spectrum succeeds
@@ -501,6 +540,14 @@ class SpectrumTestCase(unittest.TestCase):
         self.assertTrue(numpy.all(pf1.mask == pf2.mask))
         self.assertTrue(numpy.allclose(pf1.data, pf2.data))
 
+class TestAdmixture(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
     def test_admix(self):
         # Test that projecting a multi-dimensional Spectrum succeeds
         ns = (25, 8, 6)
@@ -541,5 +588,19 @@ class SpectrumTestCase(unittest.TestCase):
         # Also that we don't lose any data
         self.assertTrue(numpy.allclose(fs_1_into_2, fs_sequential.transpose((0, 2, 1))))
 
+class TestSwapAxes(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
 
-suite = unittest.TestLoader().loadTestsFromTestCase(SpectrumTestCase)
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_swap_ids(self):
+        ns = (8, 5)
+        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs.pop_ids = ["A", "B"]
+        fs_swap = fs.swap_axes(0, 1)
+        self.assertTrue(numpy.all(fs_swap.data == fs.data.T))
+        self.assertTrue(fs_swap.pop_ids[0] == "B")
+        self.assertTrue(fs_swap.pop_ids[1] == "A")
