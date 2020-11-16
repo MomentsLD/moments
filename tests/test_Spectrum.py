@@ -137,6 +137,7 @@ class TestLoadDump(unittest.TestCase):
         self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
 
+
 class TestFolding(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -435,6 +436,7 @@ class TestFolding(unittest.TestCase):
         self.assertTrue(unfolded.mask[1, 1])
         self.assertTrue(unfolded.mask[(ns[0] - 1) - 1, (ns[1] - 1) - 1])
 
+
 class TestMarginalize(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -481,6 +483,7 @@ class TestMarginalize(unittest.TestCase):
         fs.mask.flat[0] = False
         fs_marg = fs.marginalize([0])
         self.assertEqual(sum(fs_marg.mask), 0)
+
 
 class TestProjection(unittest.TestCase):
     def setUp(self):
@@ -540,6 +543,7 @@ class TestProjection(unittest.TestCase):
         self.assertTrue(np.all(pf1.mask == pf2.mask))
         self.assertTrue(np.allclose(pf1.data, pf2.data))
 
+
 class TestAdmixture(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -588,6 +592,7 @@ class TestAdmixture(unittest.TestCase):
         # Also that we don't lose any data
         self.assertTrue(np.allclose(fs_1_into_2, fs_sequential.transpose((0, 2, 1))))
 
+
 class TestSwapAxes(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -606,7 +611,7 @@ class TestSwapAxes(unittest.TestCase):
         self.assertTrue(fs_swap.pop_ids[1] == "A")
 
 
-class TestSplitInPlace(unittest.TestCase):
+class TestSplitFunction(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
 
@@ -625,7 +630,14 @@ class TestSplitInPlace(unittest.TestCase):
         fs = fs.fold()
         with self.assertRaises(ValueError):
             fs.split(0, 5, 5)
-    
+        fs = moments.Spectrum(np.ones((5, 5, 5)))
+        with self.assertRaises(ValueError):
+            fs.split(-1, 2, 2)
+        with self.assertRaises(ValueError):
+            fs.split(0, 3, 3)
+        with self.assertRaises(ValueError):
+            fs.split(3, 2, 2)
+
     def test_split_1D(self):
         fs = moments.Spectrum(np.ones(11))
         out = fs.split(0, 5, 5)
@@ -638,3 +650,81 @@ class TestSplitInPlace(unittest.TestCase):
         out = fs.split(0, 5, 5, new_ids=["A", "B"])
         self.assertEqual(out.pop_ids[0], "A")
         self.assertEqual(out.pop_ids[1], "B")
+
+    def test_split_2D(self):
+        fs = moments.Spectrum(np.ones((11, 11)))
+        out = fs.split(0, 5, 5)
+        self.assertTrue(np.all(np.array(out.shape) == [6, 11, 6]))
+        out = fs.split(1, 1, 9)
+        self.assertTrue(np.all(np.array(out.shape) == [11, 2, 10]))
+
+    def test_split_pop_ids(self):
+        fs = moments.Spectrum(np.ones((11, 11, 11)))
+        fs.pop_ids = ["A", "B", "C"]
+        out = fs.split(1, 5, 5, new_ids=["X", "Y"])
+        self.assertTrue(
+            np.all([i == j for i, j in zip(out.pop_ids, ["A", "X", "C", "Y"])])
+        )
+
+
+class TestAdmixFunction(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_admix(self):
+        fs = moments.Spectrum(np.ones((11, 11)))
+        with self.assertRaises(ValueError):
+            fs.admix(0, 1, 20, 0.5)
+        with self.assertRaises(ValueError):
+            fs.admix(0, 1, 10, 1.5)
+        with self.assertRaises(ValueError):
+            fs.admix(0, 1, 5, 0.5, new_id="X")
+        with self.assertRaises(ValueError):
+            fs.admix(0, 0, 5, 0.5)
+        with self.assertRaises(ValueError):
+            fs.admix(1, 2, 5, 0.5)
+
+    def test_admix_2D(self):
+        fs = moments.Spectrum(np.ones((11, 11)))
+        out = fs.admix(0, 1, 10, 0.25)
+        self.assertEqual(out.Npop, 1)
+        self.assertEqual(out.sample_sizes[0], 10)
+        out = fs.admix(0, 1, 4, 0.5)
+        self.assertEqual(out.Npop, 3)
+        self.assertTrue(np.all([i == j for i, j in zip(out.shape, (7, 7, 5))]))
+        fs.pop_ids = ["A", "B"]
+        out = fs.admix(0, 1, 5, 0.25, new_id="C")
+        self.assertTrue(out.pop_ids[2] == "C")
+        fs = moments.Spectrum(np.ones((6, 11)))
+        fs.pop_ids = ["A", "B"]
+        out = fs.admix(0, 1, 5, 0.5, new_id="C")
+        self.assertEqual(out.Npop, 2)
+        self.assertTrue(np.all([i == j for i, j in zip(out.pop_ids, ["B", "C"])]))
+
+class TestPulseMigrateFunction(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_pulse(self):
+        fs = moments.Spectrum(np.ones((11, 11, 11)))
+        with self.assertRaises(ValueError):
+            fs.pulse_migrate(0, 1, 15, 0.1)
+        with self.assertRaises(ValueError):
+            fs.pulse_migrate(0, 3, 5, 0.01)
+        with self.assertRaises(ValueError):
+            fs.pulse_migrate(0, 0, 5, 0.01)
+    
+    def test_pulse_migrate_func(self):
+        fs = moments.Spectrum(np.ones((11, 11, 11)))
+        fs.pop_ids = ["A", "B", "C"]
+        out = fs.pulse_migrate(0, 1, 5, 0.01)
+        self.assertTrue(np.all([i == j for i, j in zip(out.sample_sizes, [5, 10, 10])]))
+        self.assertTrue(np.all([i == j for i, j in zip(out.pop_ids, fs.pop_ids)]))

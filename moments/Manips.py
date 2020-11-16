@@ -33,11 +33,11 @@ def split_1D_to_2D(sfs, n1, n2):
     needs that n >= n1+n2.
 
     sfs : 1D spectrum
-    
+
     n1 : sample size for resulting pop 1
-    
+
     n2 : sample size for resulting pop 2
-    
+
     Returns a new 2D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -83,7 +83,7 @@ def split_1D_to_2D(sfs, n1, n2):
 
 def split_2D_to_3D_2(sfs, n2new, n3):
     """
-    Two-to-three population split for the spectrum, 
+    Two-to-three population split for the spectrum,
     needs that n2 >= n2new+n3.
 
     sfs : 2D spectrum
@@ -141,15 +141,15 @@ def split_2D_to_3D_2(sfs, n2new, n3):
 
 def split_2D_to_3D_1(sfs, n1new, n3):
     """
-    Two-to-three population split for the spectrum, 
+    Two-to-three population split for the spectrum,
     needs that n2 >= n2new+n3.
 
     sfs : 2D spectrum
-    
+
     n1new : sample size for resulting pop 1
 
     n3 : sample size for resulting pop 3
-    
+
     Returns a new 3D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -206,8 +206,8 @@ def split_3D_to_4D_3(sfs, n3new, n4):
 
     n3new : sample size for resulting pop 3
 
-    n4 : sample size for resulting pop 4 
-   
+    n4 : sample size for resulting pop 4
+
     Returns a new 4D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -227,11 +227,13 @@ def split_3D_to_4D_3(sfs, n3new, n4):
         model.split(2, (2, 3))
 
     data_3D = copy.copy(sfs)
-    assert len(data_3D.shape) == 3
+    if len(data_3D.shape) != 3:
+        raise ValueError("SFS is not 3D")
     n1 = data_3D.shape[0] - 1
     n2 = data_3D.shape[1] - 1
     n3 = data_3D.shape[2] - 1
-    assert n3 >= n3new + n4
+    if n3 < n3new + n4:
+        raise ValueError("requested sample sizes are too large")
     # if the sample size before split is too large, we project
     if n3 > n3new + n4:
         data_3D = data_3D.project([n1, n2, n3new + n4])
@@ -260,11 +262,11 @@ def split_4D_to_5D_4(sfs, n4new, n5):
     n4 >= n4new+n5.
 
     sfs : 4D spectrum
-    
+
     n4new : sample size for resulting pop 4
 
     n5 : sample size for resulting pop 5
-    
+
     Returns a new 5D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -284,12 +286,14 @@ def split_4D_to_5D_4(sfs, n4new, n5):
         model.split(3, (3, 4))
 
     data_4D = copy.copy(sfs)
-    assert len(data_4D.shape) == 4
+    if len(data_4D.shape) != 4:
+        raise ValueError("SFS is not 4D")
     n1 = data_4D.shape[0] - 1
     n2 = data_4D.shape[1] - 1
     n3 = data_4D.shape[2] - 1
     n4 = data_4D.shape[3] - 1
-    assert n4 >= n4new + n5
+    if n4 < n4new + n5:
+        raise ValueError("Requested sample sizes are too large")
     # if the sample size before split is too large, we project
     if n4 > n4new + n5:
         data_4D = data_4D.project([n1, n2, n3, n4new + n5])
@@ -320,11 +324,11 @@ def split_4D_to_5D_3(sfs, n3new, n5):
     n3 >= n3new+n4.
 
     sfs : 4D spectrum
-    
+
     n3new : sample size for resulting pop 3
 
     n5 : sample size for resulting pop 4
-    
+
     Returns a new 5D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -344,12 +348,14 @@ def split_4D_to_5D_3(sfs, n3new, n5):
         model.split(2, (2, 4))
 
     data_4D = copy.copy(sfs)
-    assert len(data_4D.shape) == 4
+    if len(data_4D.shape) != 4:
+        raise ValueError("SFS is not 4D")
     n1 = data_4D.shape[0] - 1
     n2 = data_4D.shape[1] - 1
     n3 = data_4D.shape[2] - 1
     n4 = data_4D.shape[3] - 1
-    assert n3 >= n3new + n5
+    if n3 < n3new + n5:
+        raise ValueError("Requested sample sizes are too large")
     # if the sample size before split is too large, we project
     if n3 > n3new + n5:
         data_4D = data_4D.project([n1, n2, n3new + n5, n4])
@@ -432,7 +438,7 @@ def split_by_index(sfs, idx, n0, n1):
     Npop = sfs.Npop
     if idx < 0 or idx + 1 > Npop:
         raise ValueError("Cannot split index {idx} in SFS of size {sfs.Npop}")
-    
+
     if Npop == 1:
         sfs_split = split_1D_to_2D(sfs, n0, n1)
     elif Npop == 2:
@@ -463,9 +469,9 @@ def split_by_index(sfs, idx, n0, n1):
 def merge_2D_to_1D(sfs):
     """
     Two-to-one populations fusion
-    
+
     sfs : 2D spectrum
-    
+
     Returns a new 1D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -534,8 +540,8 @@ def __drop_first_slice__(sfs, dimension):
 
 
 def __migrate_1__(sfs, source_population_index, target_population_index):
-    """Takes SFS , pick one individual from population source_population_index and migrate it to 
-    population target_population_index. If sfs has dimension (m,n), the new sfs will have dimension 
+    """Takes SFS , pick one individual from population source_population_index and migrate it to
+    population target_population_index. If sfs has dimension (m,n), the new sfs will have dimension
     (m-1,n+1)"""
 
     ns = sfs.shape
@@ -571,11 +577,11 @@ def __migrate_1__(sfs, source_population_index, target_population_index):
 
 def __nnls_mod__(A, b):
     """
-    SG: I modified the scipy.optimize.nnls function to return the best-found parameters 
-    even if the nnls algorithm has not converged, and issue a warning rather than crash.  
+    SG: I modified the scipy.optimize.nnls function to return the best-found parameters
+    even if the nnls algorithm has not converged, and issue a warning rather than crash.
     The instructions below are from the original function
-    
-    
+
+
     Solve ``argmin_x || Ax - b ||_2`` for ``x>=0``. This is a wrapper
     for a FORTAN non-negative least squares solver.
 
@@ -631,7 +637,7 @@ def __nnls_mod__(A, b):
 
 
 def __Gamma__(n_draws, n_lineages):
-    """ The gamma matrix element i,j gives the probability that a sequential sample of i 
+    """The gamma matrix element i,j gives the probability that a sequential sample of i
     lineages with replacement gives j distinct lineages
     """
     # the first row is the probability that a sample of 0 lineages gives j distinct
@@ -662,21 +668,21 @@ def __Gamma__(n_draws, n_lineages):
 def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=None):
     """
     creates n_lineages in a new dimension to the SFS by drawing each from
-    populations indexed by dimension1 (with probability m1) and dimension2 
-    (with probability 1-m1).  
-    
-    The resulting frequency spectrum has 
+    populations indexed by dimension1 (with probability m1) and dimension2
+    (with probability 1-m1).
+
+    The resulting frequency spectrum has
     (dimension1 - n_lineages) lineages in dimension 1
     (dimension2 - n_lineages) lineages in dimension 2
     (n_lineages) lineages in new dimension
-    
+
     dimension1: integer index of population 1
     dimension2: integer index of population 2
     m1 proportion of lineages drawn from pop 1
     creates a last dimension in which to insert the new population
-    
+
     by default, the new population is assigned the last dimension
-    we may wish to place the new population between the two admixed groups, and can 
+    we may wish to place the new population between the two admixed groups, and can
     specify the new dimension to place the admixed population
     note that this doesn't matter for integration, but to more naturally plot the
     model using ModelPlot
@@ -692,17 +698,25 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
     else:
         mask_fixed = False
 
+    # remove pop_ids so that we don't get ValueErrors
+    pop_ids = sfs.pop_ids
+    sfs.pop_ids = None
+
     dimensions = sfs.shape
     new_dimensions = list(dimensions) + [1]
     M = dimensions[dimension1] - 1
     N = dimensions[dimension2] - 1
     new_sfs = sfs.reshape(new_dimensions)
 
-    assert n_lineages <= min(M, N), "not enough lineages to produce %d, M=%d,N=%d" % (
-        n_lineages,
-        M,
-        N,
-    )
+    if n_lineages > min(M, N):
+        raise ValueError(
+            "not enough lineages to produce %d, M=%d,N=%d"
+            % (
+                n_lineages,
+                M,
+                N,
+            )
+        )
     project_dimensions = [
         n - 1 for n in new_dimensions
     ]  # projection use number of lineages
@@ -742,6 +756,7 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
         new_sfs.mask[tuple([-1 for d in new_sfs.shape])] = False
     else:
         new_sfs.mask[tuple([-1 for d in new_sfs.shape])] = True
+    sfs.pop_ids = pop_ids
 
     return new_sfs
 
@@ -750,16 +765,16 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
 
 
 def admix_inplace(sfs, source_population_index, target_population_index, keep_1, m1):
-    """admixes from source_population to target_population in place, sending migrants one by one, 
-    and normalizing so that in the end we have approximately the correct distribution of 
-    replaced lineages. 
-    
+    """admixes from source_population to target_population in place, sending migrants one by one,
+    and normalizing so that in the end we have approximately the correct distribution of
+    replaced lineages.
+
     source_population_index: integer index of source population
     target_population_index: integer index of target population
     m1 proportion of offspring in target population drawn from parents in source population
-        Note that the number of tracked lineages in the sample that have migrated is a 
+        Note that the number of tracked lineages in the sample that have migrated is a
         random variable!
-    keep_1: number of lineages from the source population that we want to keep tracking 
+    keep_1: number of lineages from the source population that we want to keep tracking
         after admixture.
     """
     # Check if corners are masked - if they are, keep corners masked after event
@@ -773,6 +788,10 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     else:
         mask_fixed = False
 
+    # remove pop_ids so that we don't get ValueErrors
+    pop_ids = sfs.pop_ids
+    sfs.pop_ids = None
+    
     dimensions = sfs.shape
     M = (
         dimensions[source_population_index] - 1
@@ -786,11 +805,12 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     target_dimensions[source_population_index] = target_M
     target_dimensions[target_population_index] = target_N
 
-    assert keep_1 <= M, (
+    if keep_1 > M:
+        raise ValueError((
         "Cannot keep more lineages than we started with, keep_1=%d,\
     M=%d"
         % (keep_1, M)
-    )
+    ))
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
@@ -867,5 +887,6 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
         new_sfs.mask[tuple([-1 for d in new_sfs.shape])] = False
     else:
         new_sfs.mask[tuple([-1 for d in new_sfs.shape])] = True
+    sfs.pop_ids = pop_ids
 
     return new_sfs
