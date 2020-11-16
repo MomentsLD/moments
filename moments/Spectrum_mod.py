@@ -38,38 +38,47 @@ except ImportError:  # if matplotlib is not present, do not import, and do not r
 
 class Spectrum(numpy.ma.masked_array):
     """
-    Represents a frequency spectrum.
+    Represents a single-locus biallelic frequency spectrum.
 
     Spectra are represented by masked arrays. The masking allows us to ignore
-    specific entries in the spectrum. Most often, these are the absent and fixed
-    categories.
+    specific entries in the spectrum. When simulating under the standard infinite
+    sites model (ISM), the entries we mask are the bins specifying absent or fixed
+    variants. When using a reversible mutation model (i.e. the finite genome model),
+    we track the density of variants in fixed bins, setting ``mask_corners`` to
+    ``False``.
 
-    The constructor has the format:
-        fs = moments.Spectrum(data, mask, mask_corners, data_folded, check_folding,
-                           pop_ids, extrap_x)
-        
-        data: The frequency spectrum data
-        mask: An optional array of the same size as data. 'True' entires in
-              this array are masked in the Spectrum. These represent missing
-              data categories. (For example, you may not trust your singleton
-              SNP calling.)
-        mask_corners: If True (default), the 'observed in none' and 'observed 
-                      in all' entries of the FS will be masked. Typically these
-                      entries are unobservable, and moments cannot reliably
-                      calculate them, so you will almost always want
-                      mask_corners=True.g
-                      The exception is if we are simulating under the finite 
-                      genome model, in which case we track the probability of
-                      a site to be fixed for either allele
-        data_folded: If True, it is assumed that the input data is folded. An
-                     error will be raised if the input data and mask are not
-                     consistent with a folded Spectrum.
-        check_folding: If True and data_folded=True, the data and mask will be
-                       checked to ensure they are consistent with a folded
-                       Spectrum. If they are not, a warning will be printed.
-        pop_ids: Optional list of strings containing the population labels.
-        extrap_x: Optional floating point value specifying x value to use
-                  for extrapolation.
+    To do: check that all optional parameters are functional with tests.
+
+    :param data: An array with dimension equal to the number of populations.
+        Each dimension has length :math:`n_i+1`, where :math:`n_i` is the
+        sample size for the i-th population.
+    :type data: array
+    :param mask: An optional array of the same size as data. 'True' entries in
+        this array are masked in the Spectrum. These represent missing
+        data categories. (For example, you may not trust your singleton
+        SNP calling.)
+    :type maks: array, optional
+    :param mask_corners: If True (default), the 'observed in none' and 'observed
+        in all' entries of the FS will be masked. Typically these
+        entries are masked. In the defaul infinite sites model, moments does
+        not reliably calculate the fixed-bin entries, so you will almost always
+        want ``mask_corners=True``. The exception is if we are simulating under
+        the finite genome model, in which case we track the probability of
+        a site to be fixed for either allele.
+    :type maks_corners: bool, optional
+    :param data_folded: If True, it is assumed that the input data is folded. An
+        error will be raised if the input data and mask are not
+        consistent with a folded Spectrum.
+    :type data_folded: bool, optional
+    :param check_folding: If True and data_folded=True, the data and mask will be
+        checked to ensure they are consistent with a folded
+        Spectrum. If they are not, a warning will be printed.
+    :type check_folding: bool, optional
+    :param pop_ids: Optional list of strings containing the population labels,
+        with length equal to the dimension of ``data``.
+    :type pop_ids: list of strings, optional
+
+    :return: A frequency spectrum object, as a masked array.
     """
 
     def __new__(
@@ -85,7 +94,6 @@ class Spectrum(numpy.ma.masked_array):
         keep_mask=True,
         shrink=True,
         pop_ids=None,
-        extrap_x=None,
     ):
         data = numpy.asanyarray(data)
 
@@ -159,8 +167,6 @@ class Spectrum(numpy.ma.masked_array):
         if mask_corners:
             subarr.mask_corners()
 
-        subarr.extrap_x = extrap_x
-
         return subarr
 
     # See http://www.scipy.org/Subclasses for information on the
@@ -177,14 +183,12 @@ class Spectrum(numpy.ma.masked_array):
         numpy.ma.masked_array.__array_finalize__(self, obj)
         self.folded = getattr(obj, "folded", "unspecified")
         self.pop_ids = getattr(obj, "pop_ids", None)
-        self.extrap_x = getattr(obj, "extrap_x", None)
 
     def __array_wrap__(self, obj, context=None):
         result = obj.view(type(self))
         result = numpy.ma.masked_array.__array_wrap__(self, obj, context=context)
         result.folded = self.folded
         result.pop_ids = self.pop_ids
-        result.extrap_x = self.extrap_x
         return result
 
     def _update_from(self, obj):
@@ -193,8 +197,6 @@ class Spectrum(numpy.ma.masked_array):
             self.folded = obj.folded
         if hasattr(obj, "pop_ids"):
             self.pop_ids = obj.pop_ids
-        if hasattr(obj, "extrap_x"):
-            self.extrap_x = obj.extrap_x
 
     # masked_array has priority 15.
     __array_priority__ = 20
@@ -206,6 +208,7 @@ class Spectrum(numpy.ma.masked_array):
             str(self.pop_ids),
         )
 
+    # Functions for manipulating frequency spectra.
     def mask_corners(self):
         """
         Mask the 'seen in 0 samples' and 'seen in all samples' entries.
@@ -214,7 +217,7 @@ class Spectrum(numpy.ma.masked_array):
 
     def unmask_all(self):
         """
-        Unmask all values.
+        Unmask all entires of the frequency spectrum.
         """
         self.mask[tuple([slice(None)] * self.Npop)] = False
 
@@ -235,20 +238,668 @@ class Spectrum(numpy.ma.masked_array):
         if not self.Npop == Npop:
             raise ValueError("Only compatible with %id spectra." % Npop)
 
+    def project(self, ns):
+        """
+        Project to smaller sample size.
+
+        ``project`` does *not* act in-place, so that the input frequency
+        spectrum is not changed.
+
+        :param ns: Sample sizes for new spectrum.
+        :type ns: list of integers
+        """
+        if len(ns) != self.Npop:
+            raise ValueError(
+                "Requested sample sizes not of same dimension "
+                "as spectrum. Perhaps you need to marginalize "
+                "over some populations first?"
+            )
+        if numpy.any(numpy.asarray(ns) > numpy.asarray(self.sample_sizes)):
+            raise ValueError(
+                "Cannot project to a sample size greater than "
+                "original. Original size is %s and requested size "
+                "is %s." % (self.sample_sizes, ns)
+            )
+
+        original_folded = self.folded
+        # If we started with an folded Spectrum, we need to unfold before
+        # projecting.
+        if original_folded:
+            output = self.unfold()
+        else:
+            output = self.copy()
+
+        # Iterate over each axis, applying the projection.
+        for axis, proj in enumerate(ns):
+            if proj != self.sample_sizes[axis]:
+                output = output._project_one_axis(proj, axis)
+
+        output.pop_ids = self.pop_ids
+
+        # Return folded or unfolded as original.
+        if original_folded:
+            return output.fold()
+        else:
+            return output
+
+    def _project_one_axis(self, n, axis=0):
+        """
+        Project along a single axis.
+        """
+        # This gets a little tricky with fancy indexing to make it work
+        # for fs with arbitrary number of dimensions.
+        if n > self.sample_sizes[axis]:
+            raise ValueError(
+                "Cannot project to a sample size greater than "
+                "original. Called sizes were from %s to %s."
+                % (self.sample_sizes[axis], n)
+            )
+
+        newshape = list(self.shape)
+        newshape[axis] = n + 1
+        # Create a new empty fs that we'll fill in below.
+        pfs = Spectrum(numpy.zeros(newshape), mask_corners=False)
+
+        # Set up for our fancy indexes. These slices are currently like
+        # [:,:,...]
+        from_slice = [slice(None) for ii in range(self.Npop)]
+        to_slice = [slice(None) for ii in range(self.Npop)]
+        proj_slice = [nuax for ii in range(self.Npop)]
+
+        proj_from = self.sample_sizes[axis]
+        # For each possible number of hits.
+        for hits in range(proj_from + 1):
+            # Adjust the slice in the array we're projecting from.
+            from_slice[axis] = slice(hits, hits + 1)
+            # These are the least and most possible hits we could have in the
+            #  projected fs.
+            least, most = max(n - (proj_from - hits), 0), min(hits, n)
+            to_slice[axis] = slice(least, most + 1)
+            # The projection weights.
+            proj = Numerics._cached_projection(n, proj_from, hits)
+            proj_slice[axis] = slice(least, most + 1)
+            # Do the multiplications
+            pfs.data[tuple(to_slice)] += (
+                self.data[tuple(from_slice)] * proj[tuple(proj_slice)]
+            )
+            pfs.mask[tuple(to_slice)] = numpy.logical_or(
+                pfs.mask[tuple(to_slice)], self.mask[tuple(from_slice)]
+            )
+
+        return pfs
+
+    def marginalize(self, over, mask_corners=None):
+        """
+        Reduced dimensionality spectrum summing over the set of populations
+        given by ``over``.
+
+        ``marginalize`` does not act in-place, so the input frequency spectrum
+        will not be altered.
+
+        :param over: List of axes to sum over. For example (0,2) will marginalize
+            populations 0 and 2.
+        :type over: list of integers
+        :param mask_corners: If True, the fixed bins of the resulting spectrum will be
+            masked. The default behavior is to mask the corners only if at least one
+            of the corners of the input frequency spectrum is masked. If either
+            corner is masked, the output frequency spectrum masks the fixed bins.
+        :type mask_corners: bool, optional
+        """
+        if plotting:
+            # Update ModelPlot
+            model = moments.ModelPlot._get_model()
+            if model is not None:
+                model.extinction(over)
+
+        original_folded = self.folded
+        # If we started with an folded Spectrum, we need to unfold before
+        # marginalizing.
+        if original_folded:
+            output = self.unfold()
+        else:
+            output = self.copy()
+
+        orig_mask = output.mask.copy()
+        orig_mask.flat[0] = orig_mask.flat[-1] = False
+        if numpy.any(orig_mask):
+            logger.warn(
+                "Marginalizing a Spectrum with internal masked values. "
+                "This may not be a well-defined operation."
+            )
+
+        # Do the marginalization
+        for axis in sorted(over)[::-1]:
+            output = output.sum(axis=axis)
+        pop_ids = None
+        if self.pop_ids is not None:
+            pop_ids = list(self.pop_ids)
+            for axis in sorted(over)[::-1]:
+                del pop_ids[axis]
+        output.folded = False
+        output.pop_ids = pop_ids
+
+        if mask_corners is None:
+            if self.mask.flat[0] == True or self.mask.flat[-1] == True:
+                mask_corners = True
+            else:
+                mask_corners = False
+        if mask_corners:
+            output.mask_corners()
+
+        # Return folded or unfolded as original.
+        if original_folded:
+            return output.fold()
+        else:
+            return output
+
+    def swap_axes(self, ax1, ax2):
+        """
+        Uses numpy's swapaxes function, but also swaps pop_ids as appropriate
+        if pop_ids are given.
+
+        Note that `fs.swapaxes(ax1, ax2)` will still work, but if population
+        ids are given, it won't swap the pop_ids entries as expected.
+
+        :param ax1: The index of the first population to swap.
+        :type ax1: int
+        :param ax2: The index of the second population to swap.
+        :type ax2: int
+        """
+        output = numpy.swapaxes(self, ax1, ax2)
+        if output.pop_ids is not None:
+            pop1, pop2 = output.pop_ids[ax1], output.pop_ids[ax2]
+            output.pop_ids[ax1], output.pop_ids[ax2] = pop2, pop1
+        return output
+
+    def _counts_per_entry(self):
+        """
+        Counts per population for each entry in the fs.
+        """
+        ind = numpy.indices(self.shape)
+        # Transpose the first access to the last, so ind[ii,jj,kk] = [ii,jj,kk]
+        ind = ind.transpose(list(range(1, self.Npop + 1)) + [0])
+        return ind
+
+    def _total_per_entry(self):
+        """
+        Total derived alleles for each entry in the fs.
+        """
+        return numpy.sum(self._counts_per_entry(), axis=-1)
+
+    def log(self):
+        """
+        Return the natural logarithm of the entries of the frequency spectrum.
+
+        Only necessary because numpy.ma.log now fails to propagate extra
+        attributes after numpy 1.10.
+        """
+        logfs = numpy.ma.log(self)
+        logfs.folded = self.folded
+        logfs.pop_ids = self.pop_ids
+        return logfs
+
+    def fold(self):
+        """
+        Folded frequency spectrum
+
+        The folded fs assumes that information on which allele is ancestral or
+        derived is unavailable. Thus the fs is in terms of minor allele
+        frequency.  Note that this makes the fs into a "triangular" array.
+
+        Note that if a masked cell is folded into non-masked cell, the
+        destination cell is masked as well.
+
+        Note also that folding is not done in-place. The return value is a new
+        Spectrum object.
+        """
+        if self.folded:
+            raise ValueError("Input Spectrum is already folded.")
+
+        # How many samples total do we have? The folded fs can only contain
+        # entries up to total_samples/2 (rounded down).
+        total_samples = numpy.sum(self.sample_sizes)
+
+        total_per_entry = self._total_per_entry()
+
+        # Here's where we calculate which entries are nonsense in the folded fs.
+        where_folded_out = total_per_entry > int(total_samples / 2)
+
+        original_mask = self.mask
+        # Here we create a mask that masks any values that were masked in
+        # the original fs (or folded onto by a masked value).
+        final_mask = numpy.logical_or(
+            original_mask, Numerics.reverse_array(original_mask)
+        )
+
+        # To do the actual folding, we take those entries that would be folded
+        # out, reverse the array along all axes, and add them back to the
+        # original fs.
+        reversed = Numerics.reverse_array(numpy.where(where_folded_out, self, 0))
+        folded = numpy.ma.masked_array(self.data + reversed)
+        folded.data[where_folded_out] = 0
+
+        # Deal with those entries where assignment of the minor allele is
+        # ambiguous.
+        where_ambiguous = total_per_entry == total_samples / 2.0
+        ambiguous = numpy.where(where_ambiguous, self, 0)
+        folded += -0.5 * ambiguous + 0.5 * Numerics.reverse_array(ambiguous)
+
+        # Mask out the remains of the folding operation.
+        final_mask = numpy.logical_or(final_mask, where_folded_out)
+
+        outfs = Spectrum(
+            folded, mask=final_mask, data_folded=True, pop_ids=self.pop_ids
+        )
+        return outfs
+
+    def unfold(self):
+        """
+        Unfolded frequency spectrum
+
+        It is assumed that each state of a SNP is equally likely to be
+        ancestral.
+
+        Note also that unfolding is not done in-place. The return value is a new
+        Spectrum object.
+        """
+        if not self.folded:
+            raise ValueError("Input Spectrum is not folded.")
+
+        # Unfolding the data is easy.
+        reversed_data = Numerics.reverse_array(self.data)
+        newdata = (self.data + reversed_data) / 2.0
+
+        # Unfolding the mask is trickier. We want to preserve masking of entries
+        # that were masked in the original Spectrum.
+        # Which entries in the original Spectrum were masked solely because
+        # they are incompatible with a folded Spectrum?
+        total_samples = numpy.sum(self.sample_sizes)
+        total_per_entry = self._total_per_entry()
+        where_folded_out = total_per_entry > int(total_samples / 2)
+
+        newmask = numpy.logical_xor(self.mask, where_folded_out)
+        newmask = numpy.logical_or(newmask, Numerics.reverse_array(newmask))
+
+        outfs = Spectrum(newdata, mask=newmask, data_folded=False, pop_ids=self.pop_ids)
+        return outfs
+
+    # Functions that apply demographic events, including integration.
+    def split():
+        pass
+
+    def merge():
+        pass
+
+    def admix():
+        pass
+
+    def pulse_migrate():
+        pass
+
+    # spectrum integration
+    # We chose the most efficient solver for each case
+    def integrate(
+        self,
+        Npop,
+        tf,
+        dt_fac=0.02,
+        gamma=None,
+        h=None,
+        m=None,
+        theta=1.0,
+        adapt_dt=False,
+        finite_genome=False,
+        theta_fd=None,
+        theta_bd=None,
+        frozen=[False],
+    ):
+        """
+        Method to simulate the spectrum's evolution for a given set of demographic
+        parameters.
+
+        :param Npop: List of populations' relative effective sizes. Can be given
+            as a list of positive values for constant sizes, or as a function that
+            returns a list of sizes at a given time.
+        :type Npop: list or function that returns a list
+        :param tf: The total integration time in genetic units.
+        :type tf: float
+        :param dt_fac: The timestep factor, default is 0.02
+        :type dt_fac: float, optional
+        :param gamma: The selection coefficient (:math:`2 N_e s`), or list of selection
+            coefficients if more than one population.
+        :type gamma: float or list of floats, optional
+        :param h: The dominance coefficient, or list of dominance coefficients within
+            each population, if more than one population.
+        :type h: float or list of floats, optional
+        :param m: The migration rates matrix as an N-D array, where m[i,j] is the
+            migration rate from pop j to pop i, normalized by :math:`2N_e`.
+        :type m: array-like, optional
+        :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
+        :type theta: float, optional
+        :param adapt_dt: flag to allow dt correction avoiding negative entries.
+        :type adapt_dt: bool, optional
+        :param finite_genome: If True, simulate under the finite-genome model with
+            reversible mutations. If using this model, we specify the forward
+            and backward mutation rates, which are per-base rates that are not
+            scaled by number of mutable loci (different from the standard ISM
+            model). Defaults to False.
+        :type finite_genome: bool, optional
+        :param theta_fd: The forward mutation rate :math:`4 Ne u`.
+        :type theta_fd: float, optional
+        :param theta_bd: The backward mutation rate :math:`4 Ne v`.
+        :type theta_bd: float, optional
+        :param frozen: list of same length as number of pops, with True for frozen
+            populations at the corresponding index.
+        :type frozen: list of bools
+
+        To do: docs for finite genome/reversible mutation model.
+        """
+        n = numpy.array(self.shape) - 1
+
+        if m is not None:
+            m = numpy.array(m)
+
+        if finite_genome == True and (theta_fd == None or theta_bd == None):
+            raise ValueError(
+                "Forward and backward mutation rates must be "
+                "specified in the finite genome model."
+            )
+
+        if hasattr(Npop, "__len__"):
+            if numpy.any(frozen) and len(Npop) != len(frozen):
+                raise ValueError(
+                    "If one or more populations are frozen, length "
+                    "of frozen must match number of simulated pops."
+                )
+        else:
+            if numpy.any(frozen) and len(Npop(0)) != len(frozen):
+                raise ValueError(
+                    "If one or more populations are frozen, length "
+                    "of frozen must match number of simulated pops."
+                )
+
+        if plotting:
+            model = moments.ModelPlot._get_model()
+            if model is not None:
+                model.evolve(tf, Npop, m)
+
+        if len(n) == 1:
+            if gamma is None:
+                gamma = 0.0
+            if h is None:
+                h = 0.5
+            if gamma == 0:
+                self.data[:] = moments.Integration_nomig.integrate_neutral(
+                    self.data,
+                    Npop,
+                    tf,
+                    dt_fac,
+                    theta,
+                    finite_genome=finite_genome,
+                    theta_fd=theta_fd,
+                    theta_bd=theta_bd,
+                    frozen=frozen,
+                )
+            else:
+                # self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
+                self.data[:] = moments.Integration_nomig.integrate_nomig(
+                    self.data,
+                    Npop,
+                    tf,
+                    dt_fac,
+                    gamma,
+                    h,
+                    theta,
+                    finite_genome=finite_genome,
+                    theta_fd=theta_fd,
+                    theta_bd=theta_bd,
+                    frozen=frozen,
+                )
+        else:
+            if gamma is None:
+                gamma = numpy.zeros(len(n))
+            if h is None:
+                h = 0.5 * numpy.ones(len(n))
+            if m is None:
+                m = numpy.zeros([len(n), len(n)])
+            if (m == 0).all():
+                # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
+                if (numpy.array(gamma) == 0).all() and len(n) < 3:
+                    self.data[:] = moments.Integration_nomig.integrate_neutral(
+                        self.data,
+                        Npop,
+                        tf,
+                        dt_fac,
+                        theta,
+                        finite_genome=finite_genome,
+                        theta_fd=theta_fd,
+                        theta_bd=theta_bd,
+                        frozen=frozen,
+                    )
+                else:
+                    self.data[:] = moments.Integration_nomig.integrate_nomig(
+                        self.data,
+                        Npop,
+                        tf,
+                        dt_fac,
+                        gamma,
+                        h,
+                        theta,
+                        finite_genome=finite_genome,
+                        theta_fd=theta_fd,
+                        theta_bd=theta_bd,
+                        frozen=frozen,
+                    )
+            else:
+                self.data[:] = moments.Integration.integrate_nD(
+                    self.data,
+                    Npop,
+                    tf,
+                    dt_fac,
+                    gamma,
+                    h,
+                    m,
+                    theta,
+                    adapt_dt,
+                    finite_genome=finite_genome,
+                    theta_fd=theta_fd,
+                    theta_bd=theta_bd,
+                    frozen=frozen,
+                )
+
+    # Functions for computing statistics from frequency spetra.
+    def Fst(self):
+        """
+        Wright's Fst between the populations represented in the fs.
+
+        This estimate of Fst assumes random mating, because we don't have
+        heterozygote frequencies in the fs.
+
+        Calculation is by the method of Weir and Cockerham _Evolution_ 38:1358
+        (1984).  For a single SNP, the relevant formula is at the top of page
+        1363. To combine results between SNPs, we use the weighted average
+        indicated by equation 10.
+        """
+        # This gets a little obscure because we want to be able to work with
+        # spectra of arbitrary dimension.
+
+        # First quantities from page 1360
+        r = self.Npop
+        ns = self.sample_sizes
+        nbar = numpy.mean(ns)
+        nsum = numpy.sum(ns)
+        nc = (nsum - numpy.sum(ns ** 2) / nsum) / (r - 1)
+
+        # counts_per_pop is an r+1 dimensional array, where the last axis simply
+        # records the indices of the entry.
+        # For example, counts_per_pop[4,19,8] = [4,19,8]
+        counts_per_pop = numpy.indices(self.shape)
+        counts_per_pop = numpy.transpose(
+            counts_per_pop, axes=list(range(1, r + 1)) + [0]
+        )
+
+        # The last axis of ptwiddle is now the relative frequency of SNPs in
+        # that bin in each of the populations.
+        ptwiddle = 1.0 * counts_per_pop / ns
+
+        # Note that pbar is of the same shape as fs...
+        pbar = numpy.sum(ns * ptwiddle, axis=-1) / nsum
+
+        # We need to use 'this_slice' to get the proper aligment between
+        # ptwiddle and pbar.
+        this_slice = [slice(None)] * r + [numpy.newaxis]
+        s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
+            (r - 1) * nbar
+        )
+
+        # Note that this 'a' differs from equation 2, because we've used
+        # equation 3 and b = 0 to solve for hbar.
+        a = (
+            nbar
+            / nc
+            * (s2 - 1 / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2))
+        )
+        d = 2 * nbar / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2)
+
+        # The weighted sum over loci.
+        asum = (self * a).sum()
+        dsum = (self * d).sum()
+
+        return asum / (asum + dsum)
+
+    def S(self):
+        """
+        Returns the number of segregating sites in the frequency spectrum.
+        """
+        oldmask = self.mask.copy()
+        self.mask_corners()
+        S = self.sum()
+        self.mask = oldmask
+        return S
+
+    def Watterson_theta(self):
+        """
+        Returns Watterson's estimator of theta.
+
+        Note that is only sensible for 1-dimensional spectra.
+        """
+        if self.Npop != 1:
+            raise ValueError("Only defined on a one-dimensional fs.")
+
+        n = self.sample_sizes[0]
+        S = self.S()
+        an = numpy.sum(1.0 / numpy.arange(1, n))
+
+        return S / an
+
+    def theta_L(self):
+        """
+        Returns theta_L as defined by Zeng et al. "Statistical Tests for Detecting
+        Positive Selection by Utilizing High-Frequency Variants" (2006)
+        Genetics
+
+        Note that is only sensible for 1-dimensional spectra.
+        """
+        if self.Npop != 1:
+            raise ValueError("Only defined on a one-dimensional fs.")
+
+        n = self.sample_sizes[0]
+        return numpy.sum(numpy.arange(1, n) * self[1:n]) / (n - 1)
+
+    def Zengs_E(self):
+        """
+        Returns Zeng et al.'s E statistic.
+
+        From Zeng et al. "Statistical Tests for Detecting Positive Selection by
+        Utilizing High-Frequency Variants" (2006) Genetics
+        """
+        num = self.theta_L() - self.Watterson_theta()
+
+        n = self.sample_sizes[0]
+
+        # See after Eq. 3
+        an = numpy.sum(1.0 / numpy.arange(1, n))
+        # See after Eq. 9
+        bn = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
+        s = self.S()
+
+        # See immediately after Eq. 12
+        theta = self.Watterson_theta()
+        theta_sq = s * (s - 1.0) / (an ** 2 + bn)
+
+        # Eq. 14
+        var = (n / (2.0 * (n - 1.0)) - 1.0 / an) * theta + (
+            bn / an ** 2
+            + 2.0 * (n / (n - 1.0)) ** 2 * bn
+            - 2 * (n * bn - n + 1.0) / ((n - 1.0) * an)
+            - (3.0 * n + 1.0) / (n - 1.0)
+        ) * theta_sq
+
+        return num / numpy.sqrt(var)
+
+    def pi(self):
+        """
+        Returns the estimated expected number of pairwise differences between two
+        chromosomes in the population.
+
+        Note that this estimate includes a factor of
+        sample_size / (sample_size-1) to make :math:`E(\hat{pi}) = theta`.
+        """
+        if self.ndim != 1:
+            raise ValueError("Only defined for a one-dimensional SFS.")
+
+        n = self.sample_sizes[0]
+        # sample frequencies p
+        p = numpy.arange(0, n + 1, dtype=float) / n
+        # This expression derives from Gillespie's _Population_Genetics:_A
+        # _Concise_Guide_, 2nd edition, section 2.6.
+        return n / (n - 1.0) * 2 * numpy.ma.sum(self * p * (1 - p))
+
+    def Tajima_D(self):
+        """
+        Returns Tajima's D.
+
+        Following Gillespie "Population Genetics: A Concise Guide" pg. 45
+
+        """
+        if not self.Npop == 1:
+            raise ValueError("Only defined on a one-dimensional SFS.")
+
+        S = self.S()
+
+        n = 1.0 * self.sample_sizes[0]
+        pihat = self.pi()
+        theta = self.Watterson_theta()
+
+        a1 = numpy.sum(1.0 / numpy.arange(1, n))
+        a2 = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
+        b1 = (n + 1) / (3 * (n - 1))
+        b2 = 2 * (n ** 2 + n + 3) / (9 * n * (n - 1))
+        c1 = b1 - 1.0 / a1
+        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1 ** 2
+
+        C = numpy.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
+
+        return (pihat - theta) / C
+
+    # Functions for saving and loading frequency spectra.
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
     def from_file(fid, mask_corners=True, return_comments=False):
         """
         Read frequency spectrum from file.
 
-        fid: string with file name to read from or an open file object.
-        mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-                      all samples' entries.
-        return_comments: If true, the return value is (fs, comments), where
-                         comments is a list of strings containing the comments
-                         from the file (without #'s).
+        See ``to_file`` for details on the file format.
 
-        See to_file method for details on the file format.
+        :param fid: string with file name to read from or an open file object.
+        :type fid: string
+        :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
+            all samples' entries.
+        :type mask_corners: bool, optional
+        :param return_comments: If true, the return value is (fs, comments), where
+            comments is a list of strings containing the comments
+            from the file (without #'s).
+        :type return_comments: bool, optional
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -315,28 +966,33 @@ class Spectrum(numpy.ma.masked_array):
     def to_file(self, fid, precision=16, comment_lines=[], foldmaskinfo=True):
         """
         Write frequency spectrum to file.
-    
-        fid: string with file name to write to or an open file object.
-        precision: precision with which to write out entries of the SFS. (They 
-                   are formated via %.<p>g, where <p> is the precision.)
-        comment lines: list of strings to be used as comment lines in the header
-                       of the output file.
-        foldmaskinfo: If False, folding and mask and population label
-                      information will not be saved. 
 
         The file format is:
-            # Any number of comment lines beginning with a '#'
-            A single line containing N integers giving the dimensions of the fs
-              array. So this line would be '5 5 3' for an SFS that was 5x5x3.
-              (That would be 4x4x2 *samples*.)
-            On the *same line*, the string 'folded' or 'unfolded' denoting the
-              folding status of the array
-            On the *same line*, optional strings each containing the population
-              labels in quotes separated by spaces, e.g. "pop 1" "pop 2"
-            A single line giving the array elements. The order of elements is 
-              e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
-            A single line giving the elements of the mask in the same order as
-              the data line. '1' indicates masked, '0' indicates unmasked.
+
+        - Any number of comment lines beginning with a '#'
+        - A single line containing N integers giving the dimensions of the fs
+          array. So this line would be '5 5 3' for an SFS that was 5x5x3.
+          (That would be 4x4x2 *samples*.)
+        - On the *same line*, the string 'folded' or 'unfolded' denoting the
+          folding status of the array
+        - On the *same line*, optional strings each containing the population
+          labels in quotes separated by spaces, e.g. "pop 1" "pop 2"
+        - A single line giving the array elements. The order of elements is
+          e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
+        - A single line giving the elements of the mask in the same order as
+          the data line. '1' indicates masked, '0' indicates unmasked.
+
+        :param fid: string with file name to write to or an open file object.
+        :type fid: string
+        :param precision: precision with which to write out entries of the SFS. (They
+            are formated via %.<p>g, where <p> is the precision.) Defaults to 16.
+        :type precision: int, optional
+        :param comment_lines: list of strings to be used as comment lines in the header
+            of the output file.
+        :type comment_lines: list of strings, optional
+        :param foldmaskinfo: If False, folding and mask and population label
+            information will not be saved.
+        :type foldmaskinfo: bool, optional
         """
         # Open the file object.
         newfile = False
@@ -378,293 +1034,26 @@ class Spectrum(numpy.ma.masked_array):
         if newfile:
             fid.close()
 
+    ## Overide the (perhaps confusing) original numpy tofile method.
     tofile = to_file
 
-    ## Overide the (perhaps confusing) original numpy tofile method.
-    # def tofile(self, *args,**kwargs):
-    #    self.to_file(*args, **kwargs)
-
-    def project(self, ns):
+    def fixed_size_sample(self, nsamples, include_masked=False):
         """
-        Project to smaller sample size.
+        Generate a resampled fs from the current one. Thus, the resampled SFS
+            follows a multinomial distribution given by the proportion of sites
+            in each bin in the original SFS.
 
-        ns: Sample sizes for new spectrum.
-        """
-        if len(ns) != self.Npop:
-            raise ValueError(
-                "Requested sample sizes not of same dimension "
-                "as spectrum. Perhaps you need to marginalize "
-                "over some populations first?"
-            )
-        if numpy.any(numpy.asarray(ns) > numpy.asarray(self.sample_sizes)):
-            raise ValueError(
-                "Cannot project to a sample size greater than "
-                "original. Original size is %s and requested size "
-                "is %s." % (self.sample_sizes, ns)
-            )
-
-        original_folded = self.folded
-        # If we started with an folded Spectrum, we need to unfold before
-        # projecting.
-        if original_folded:
-            output = self.unfold()
-        else:
-            output = self.copy()
-
-        # Iterate over each axis, applying the projection.
-        for axis, proj in enumerate(ns):
-            if proj != self.sample_sizes[axis]:
-                output = output._project_one_axis(proj, axis)
-
-        output.pop_ids = self.pop_ids
-        output.extrap_x = self.extrap_x
-
-        # Return folded or unfolded as original.
-        if original_folded:
-            return output.fold()
-        else:
-            return output
-
-    def _project_one_axis(self, n, axis=0):
-        """
-        Project along a single axis.
-        """
-        # This gets a little tricky with fancy indexing to make it work
-        # for fs with arbitrary number of dimensions.
-        if n > self.sample_sizes[axis]:
-            raise ValueError(
-                "Cannot project to a sample size greater than "
-                "original. Called sizes were from %s to %s."
-                % (self.sample_sizes[axis], n)
-            )
-
-        newshape = list(self.shape)
-        newshape[axis] = n + 1
-        # Create a new empty fs that we'll fill in below.
-        pfs = Spectrum(numpy.zeros(newshape), mask_corners=False)
-
-        # Set up for our fancy indexes. These slices are currently like
-        # [:,:,...]
-        from_slice = [slice(None) for ii in range(self.Npop)]
-        to_slice = [slice(None) for ii in range(self.Npop)]
-        proj_slice = [nuax for ii in range(self.Npop)]
-
-        proj_from = self.sample_sizes[axis]
-        # For each possible number of hits.
-        for hits in range(proj_from + 1):
-            # Adjust the slice in the array we're projecting from.
-            from_slice[axis] = slice(hits, hits + 1)
-            # These are the least and most possible hits we could have in the
-            #  projected fs.
-            least, most = max(n - (proj_from - hits), 0), min(hits, n)
-            to_slice[axis] = slice(least, most + 1)
-            # The projection weights.
-            proj = Numerics._cached_projection(n, proj_from, hits)
-            proj_slice[axis] = slice(least, most + 1)
-            # Do the multiplications
-            pfs.data[tuple(to_slice)] += (
-                self.data[tuple(from_slice)] * proj[tuple(proj_slice)]
-            )
-            pfs.mask[tuple(to_slice)] = numpy.logical_or(
-                pfs.mask[tuple(to_slice)], self.mask[tuple(from_slice)]
-            )
-
-        return pfs
-
-    def marginalize(self, over, mask_corners=True):
-        """
-        Reduced dimensionality spectrum summing over some populations.
-
-        over: sequence of axes to sum over. For example (0,2) will sum over
-              populations 0 and 2.
-        mask_corners: If True, the typical corners of the resulting fs will be
-                      masked
-        """
-        if plotting:
-            # Update ModelPlot
-            model = moments.ModelPlot._get_model()
-            if model is not None:
-                model.extinction(over)
-
-        original_folded = self.folded
-        # If we started with an folded Spectrum, we need to unfold before
-        # marginalizing.
-        if original_folded:
-            output = self.unfold()
-        else:
-            output = self.copy()
-
-        orig_mask = output.mask.copy()
-        orig_mask.flat[0] = orig_mask.flat[-1] = False
-        if numpy.any(orig_mask):
-            logger.warn(
-                "Marginalizing a Spectrum with internal masked values. "
-                "This may not be a well-defined operation."
-            )
-
-        # Do the marginalization
-        for axis in sorted(over)[::-1]:
-            output = output.sum(axis=axis)
-        pop_ids = None
-        if self.pop_ids is not None:
-            pop_ids = list(self.pop_ids)
-            for axis in sorted(over)[::-1]:
-                del pop_ids[axis]
-        output.folded = False
-        output.pop_ids = pop_ids
-        output.extrap_x = self.extrap_x
-
-        if mask_corners:
-            output.mask_corners()
-
-        # Return folded or unfolded as original.
-        if original_folded:
-            return output.fold()
-        else:
-            return output
-
-    def swap_axes(self, ax1, ax2):
-        """
-        Uses numpy's swapaxes function, but also swaps pop_ids as appropriate
-        if pop_ids are given.
-        Note that `fs.swapaxes(ax1, ax2)` will still work, but if population
-        ids are given, it won't swap the pop_ids entries as expected.
-        """
-        output = numpy.swapaxes(self, ax1, ax2)
-        if output.pop_ids is not None:
-            pop1, pop2 = output.pop_ids[ax1], output.pop_ids[ax2]
-            output.pop_ids[ax1], output.pop_ids[ax2] = pop2, pop1
-        return output
-
-    def _counts_per_entry(self):
-        """
-        Counts per population for each entry in the fs.
-        """
-        ind = numpy.indices(self.shape)
-        # Transpose the first access to the last, so ind[ii,jj,kk] = [ii,jj,kk]
-        ind = ind.transpose(list(range(1, self.Npop + 1)) + [0])
-        return ind
-
-    def _total_per_entry(self):
-        """
-        Total derived alleles for each entry in the fs.
-        """
-        return numpy.sum(self._counts_per_entry(), axis=-1)
-
-    def log(self):
-        """
-        Return the natural logarithm of the entries of the frequency spectrum.
-
-        Only necessary because numpy.ma.log now fails to propagate extra
-        attributes after numpy 1.10.
-        """
-        logfs = numpy.ma.log(self)
-        logfs.folded = self.folded
-        logfs.pop_ids = self.pop_ids
-        logfs.extrap_x = self.extrap_x
-        return logfs
-
-    def fold(self):
-        """
-        Folded frequency spectrum
-    
-        The folded fs assumes that information on which allele is ancestral or
-        derived is unavailable. Thus the fs is in terms of minor allele 
-        frequency.  Note that this makes the fs into a "triangular" array.
-    
-        Note that if a masked cell is folded into non-masked cell, the
-        destination cell is masked as well.
-
-        Note also that folding is not done in-place. The return value is a new
-        Spectrum object.
-        """
-        if self.folded:
-            raise ValueError("Input Spectrum is already folded.")
-
-        # How many samples total do we have? The folded fs can only contain
-        # entries up to total_samples/2 (rounded down).
-        total_samples = numpy.sum(self.sample_sizes)
-
-        total_per_entry = self._total_per_entry()
-
-        # Here's where we calculate which entries are nonsense in the folded fs.
-        where_folded_out = total_per_entry > int(total_samples / 2)
-
-        original_mask = self.mask
-        # Here we create a mask that masks any values that were masked in
-        # the original fs (or folded onto by a masked value).
-        final_mask = numpy.logical_or(
-            original_mask, Numerics.reverse_array(original_mask)
-        )
-
-        # To do the actual folding, we take those entries that would be folded
-        # out, reverse the array along all axes, and add them back to the
-        # original fs.
-        reversed = Numerics.reverse_array(numpy.where(where_folded_out, self, 0))
-        folded = numpy.ma.masked_array(self.data + reversed)
-        folded.data[where_folded_out] = 0
-
-        # Deal with those entries where assignment of the minor allele is
-        # ambiguous.
-        where_ambiguous = total_per_entry == total_samples / 2.0
-        ambiguous = numpy.where(where_ambiguous, self, 0)
-        folded += -0.5 * ambiguous + 0.5 * Numerics.reverse_array(ambiguous)
-
-        # Mask out the remains of the folding operation.
-        final_mask = numpy.logical_or(final_mask, where_folded_out)
-
-        outfs = Spectrum(
-            folded, mask=final_mask, data_folded=True, pop_ids=self.pop_ids
-        )
-        outfs.extrap_x = self.extrap_x
-        return outfs
-
-    def unfold(self):
-        """
-        Unfolded frequency spectrum
-    
-        It is assumed that each state of a SNP is equally likely to be
-        ancestral.
-
-        Note also that unfolding is not done in-place. The return value is a new
-        Spectrum object.
-        """
-        if not self.folded:
-            raise ValueError("Input Spectrum is not folded.")
-
-        # Unfolding the data is easy.
-        reversed_data = Numerics.reverse_array(self.data)
-        newdata = (self.data + reversed_data) / 2.0
-
-        # Unfolding the mask is trickier. We want to preserve masking of entries
-        # that were masked in the original Spectrum.
-        # Which entries in the original Spectrum were masked solely because
-        # they are incompatible with a folded Spectrum?
-        total_samples = numpy.sum(self.sample_sizes)
-        total_per_entry = self._total_per_entry()
-        where_folded_out = total_per_entry > int(total_samples / 2)
-
-        newmask = numpy.logical_xor(self.mask, where_folded_out)
-        newmask = numpy.logical_or(newmask, Numerics.reverse_array(newmask))
-
-        outfs = Spectrum(newdata, mask=newmask, data_folded=False, pop_ids=self.pop_ids)
-        outfs.extrap_x = self.extrap_x
-        return outfs
-
-    def fixed_size_sample(self, nsamples, only_nonmasked=False):
-        """
-        Generate a resampled fs from the current one.
-
-        nsamples: Number of samples to include in the new FS.
-        only_nonmasked: If True, only SNPs from non-masked will be resampled. 
-                        Otherwise, all SNPs will be used.
+        :param nsamples: Number of samples to include in the new SFS.
+        :type nsamples: int
+        :param include_masked: If True, use all bins from the SFS. Otherwise,
+            use only non-masked bins. Defaults to False.
+        :type include_masked: bool, optional
         """
         flat = self.flatten()
-        if only_nonmasked:
-            pvals = flat.data / flat.sum()
+        pvals = flat.data
+        if include_masked is False:
             pvals[flat.mask] = 0
-        else:
-            pvals = flat.data / flat.data.sum()
+        pvals /= pvals.sum()
 
         sample = numpy.random.multinomial(int(nsamples), pvals)
         sample = sample.reshape(self.shape)
@@ -676,7 +1065,7 @@ class Spectrum(numpy.ma.masked_array):
         Generate a Poisson-sampled fs from the current one.
 
         Note: Entries where the current fs is masked or 0 will be masked in the
-              output sampled fs.
+            output sampled fs.
         """
         import scipy.stats
 
@@ -712,26 +1101,26 @@ class Spectrum(numpy.ma.masked_array):
         """
         Read frequency spectrum from file of ms output.
 
-        fid: string with file name to read from or an open file object.
-        average: If True, the returned fs is the average over the runs in the ms
-                 file. If False, the returned fs is the sum.
-        mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-                      all samples' entries.
-        return_header: If True, the return value is (fs, (command,seeds), where
-                       command and seeds are strings containing the ms
-                       commandline and the seeds used.
-        pop_assignments: If None, the assignments of samples to populations is
-                         done automatically, using the assignment in the ms
-                         command line. To manually assign populations, pass a
-                         list of the from [6,8]. This example places
-                         the first 6 samples into population 1, and the next 8
-                         into population 2.
-        pop_ids: Optional list of strings containing the population labels.
-                 If pop_ids is None, labels will be "pop0", "pop1", ...
-        bootstrap_segments: If bootstrap_segments is an integer greater than 1,
-                            the data will be broken up into that many segments
-                            based on SNP position. Instead of single FS, a list
-                            of spectra will be returned, one for each segment.
+        :param fid: string with file name to read from or an open file object.
+        :param average: If True, the returned fs is the average over the runs in the ms
+            file. If False, the returned fs is the sum.
+        :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
+            all samples' entries.
+        :param return_header: If True, the return value is (fs, (command,seeds), where
+            command and seeds are strings containing the ms
+            commandline and the seeds used.
+        :param pop_assignments: If None, the assignments of samples to populations is
+            done automatically, using the assignment in the ms
+            command line. To manually assign populations, pass a
+            list of the from [6,8]. This example places
+            the first 6 samples into population 1, and the next 8
+            into population 2.
+        :param pop_ids: Optional list of strings containing the population labels.
+            If pop_ids is None, labels will be "pop0", "pop1", ...
+        :param bootstrap_segments: If bootstrap_segments is an integer greater than 1,
+            the data will be broken up into that many segments
+            based on SNP position. Instead of single FS, a list
+            of spectra will be returned, one for each segment.
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -914,19 +1303,19 @@ class Spectrum(numpy.ma.masked_array):
         """
         Read frequency spectrum from file of sfs_code output.
 
-        fid: string with file name to read from or an open file object.
-        sites: If sites=='all', return the fs of all sites. If sites == 'syn',
-               use only synonymous mutations. If sites == 'nonsyn', use
-               only non-synonymous mutations.
-        average: If True, the returned fs is the average over the runs in the 
-                 file. If False, the returned fs is the sum.
-        mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-                      all samples' entries.
-        return_header: If true, the return value is (fs, (command,seeds), where
-                       command and seeds are strings containing the ms
-                       commandline and the seeds used.
-        pop_ids: Optional list of strings containing the population labels.
-                 If pop_ids is None, labels will be "pop0", "pop1", ...
+        :param fid: string with file name to read from or an open file object.
+        :param sites: If sites=='all', return the fs of all sites. If sites == 'syn',
+            use only synonymous mutations. If sites == 'nonsyn', use
+            only non-synonymous mutations.
+        :param average: If True, the returned fs is the average over the runs in the
+            file. If False, the returned fs is the sum.
+        :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
+            all samples' entries.
+        :param return_header: If true, the return value is (fs, (command,seeds), where
+            command and seeds are strings containing the ms
+            commandline and the seeds used.
+        :param pop_ids: Optional list of strings containing the population labels.
+            If pop_ids is None, labels will be "pop0", "pop1", ...
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -1058,183 +1447,10 @@ class Spectrum(numpy.ma.masked_array):
         else:
             return fs, (command, seeds)
 
-    def Fst(self):
-        """
-        Wright's Fst between the populations represented in the fs.
-    
-        This estimate of Fst assumes random mating, because we don't have
-        heterozygote frequencies in the fs.
-    
-        Calculation is by the method of Weir and Cockerham _Evolution_ 38:1358
-        (1984).  For a single SNP, the relevant formula is at the top of page
-        1363. To combine results between SNPs, we use the weighted average
-        indicated by equation 10.
-        """
-        # This gets a little obscure because we want to be able to work with
-        # spectra of arbitrary dimension.
-
-        # First quantities from page 1360
-        r = self.Npop
-        ns = self.sample_sizes
-        nbar = numpy.mean(ns)
-        nsum = numpy.sum(ns)
-        nc = (nsum - numpy.sum(ns ** 2) / nsum) / (r - 1)
-
-        # counts_per_pop is an r+1 dimensional array, where the last axis simply
-        # records the indices of the entry.
-        # For example, counts_per_pop[4,19,8] = [4,19,8]
-        counts_per_pop = numpy.indices(self.shape)
-        counts_per_pop = numpy.transpose(
-            counts_per_pop, axes=list(range(1, r + 1)) + [0]
-        )
-
-        # The last axis of ptwiddle is now the relative frequency of SNPs in
-        # that bin in each of the populations.
-        ptwiddle = 1.0 * counts_per_pop / ns
-
-        # Note that pbar is of the same shape as fs...
-        pbar = numpy.sum(ns * ptwiddle, axis=-1) / nsum
-
-        # We need to use 'this_slice' to get the proper aligment between
-        # ptwiddle and pbar.
-        this_slice = [slice(None)] * r + [numpy.newaxis]
-        s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
-            (r - 1) * nbar
-        )
-
-        # Note that this 'a' differs from equation 2, because we've used
-        # equation 3 and b = 0 to solve for hbar.
-        a = (
-            nbar
-            / nc
-            * (s2 - 1 / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2))
-        )
-        d = 2 * nbar / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2)
-
-        # The weighted sum over loci.
-        asum = (self * a).sum()
-        dsum = (self * d).sum()
-
-        return asum / (asum + dsum)
-
-    def S(self):
-        """
-        Segregating sites.
-        """
-        oldmask = self.mask.copy()
-        self.mask_corners()
-        S = self.sum()
-        self.mask = oldmask
-        return S
-
-    def Watterson_theta(self):
-        """
-        Watterson's estimator of theta.
-    
-        Note that is only sensible for 1-dimensional spectra.
-        """
-        if self.Npop != 1:
-            raise ValueError("Only defined on a one-dimensional fs.")
-
-        n = self.sample_sizes[0]
-        S = self.S()
-        an = numpy.sum(1.0 / numpy.arange(1, n))
-
-        return S / an
-
-    def theta_L(self):
-        """
-        theta_L as defined by Zeng et al. "Statistical Tests for Detecting
-        Positive Selection by Utilizing High-Frequency Variants" (2006)
-        Genetics
-    
-        Note that is only sensible for 1-dimensional spectra.
-        """
-        if self.Npop != 1:
-            raise ValueError("Only defined on a one-dimensional fs.")
-
-        n = self.sample_sizes[0]
-        return numpy.sum(numpy.arange(1, n) * self[1:n]) / (n - 1)
-
-    def Zengs_E(self):
-        """
-        Zeng et al.'s E statistic.
-
-        From Zeng et al. "Statistical Tests for Detecting Positive Selection by
-        Utilizing High-Frequency Variants" (2006) Genetics
-        """
-        num = self.theta_L() - self.Watterson_theta()
-
-        n = self.sample_sizes[0]
-
-        # See after Eq. 3
-        an = numpy.sum(1.0 / numpy.arange(1, n))
-        # See after Eq. 9
-        bn = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
-        s = self.S()
-
-        # See immediately after Eq. 12
-        theta = self.Watterson_theta()
-        theta_sq = s * (s - 1.0) / (an ** 2 + bn)
-
-        # Eq. 14
-        var = (n / (2.0 * (n - 1.0)) - 1.0 / an) * theta + (
-            bn / an ** 2
-            + 2.0 * (n / (n - 1.0)) ** 2 * bn
-            - 2 * (n * bn - n + 1.0) / ((n - 1.0) * an)
-            - (3.0 * n + 1.0) / (n - 1.0)
-        ) * theta_sq
-
-        return num / numpy.sqrt(var)
-
-    def pi(self):
-        r"""
-        Estimated expected number of pairwise differences between two
-        chromosomes in the population.
-    
-        Note that this estimate includes a factor of sample_size/(sample_size-1)
-        to make E(\hat{pi}) = theta.
-        """
-        if self.ndim != 1:
-            raise ValueError("Only defined for a one-dimensional SFS.")
-
-        n = self.sample_sizes[0]
-        # sample frequencies p
-        p = numpy.arange(0, n + 1, dtype=float) / n
-        # This expression derives from Gillespie's _Population_Genetics:_A
-        # _Concise_Guide_, 2nd edition, section 2.6.
-        return n / (n - 1.0) * 2 * numpy.ma.sum(self * p * (1 - p))
-
-    def Tajima_D(self):
-        """
-        Tajima's D.
-    
-        Following Gillespie "Population Genetics: A Concise Guide" pg. 45
-        """
-        if not self.Npop == 1:
-            raise ValueError("Only defined on a one-dimensional SFS.")
-
-        S = self.S()
-
-        n = 1.0 * self.sample_sizes[0]
-        pihat = self.pi()
-        theta = self.Watterson_theta()
-
-        a1 = numpy.sum(1.0 / numpy.arange(1, n))
-        a2 = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
-        b1 = (n + 1) / (3 * (n - 1))
-        b2 = 2 * (n ** 2 + n + 3) / (9 * n * (n - 1))
-        c1 = b1 - 1.0 / a1
-        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1 ** 2
-
-        C = numpy.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
-
-        return (pihat - theta) / C
-
     def scramble_pop_ids(self, mask_corners=True):
         """
         Spectrum corresponding to scrambling individuals among populations.
-        
+
         This is useful for assessing how diverged populations are.
         Essentially, it pools all the individuals represented in the fs and
         generates new populations of random individuals (without replacement)
@@ -1288,15 +1504,15 @@ class Spectrum(numpy.ma.masked_array):
         """
         Spectrum from a dictionary of polymorphisms.
 
-        pop_ids: list of which populations to make fs for.
-        projections: list of sample sizes to project down to for each
-                     population.
-        polarized: If True, the data are assumed to be correctly polarized by 
-                   `outgroup_allele'. SNPs in which the 'outgroup_allele'
-                   information is missing or '-' or not concordant with the
-                   segregating alleles will be ignored.
-                   If False, any 'outgroup_allele' info present is ignored,
-                   and the returned spectrum is folded.
+        :param pop_ids: list of which populations to make fs for.
+        :param projections: list of sample sizes to project down to for each
+            population.
+        :param polarized: If True, the data are assumed to be correctly polarized by
+            `outgroup_allele'. SNPs in which the 'outgroup_allele'
+            information is missing or '-' or not concordant with the
+            segregating alleles will be ignored.
+            If False, any 'outgroup_allele' info present is ignored,
+            and the returned spectrum is folded.
 
         The data dictionary should be organized as:
             {snp_id:{'segregating': ['A','T'],
@@ -1374,12 +1590,12 @@ class Spectrum(numpy.ma.masked_array):
         """
         Frequency spectrum from data mapping SNP configurations to counts.
 
-        count_dict: Result of Misc.count_data_dict
-        projections: List of sample sizes to project down to for each
-                     population.
-        polarized: If True, only include SNPs that count_dict marks as polarized. 
-                   If False, include all SNPs and fold resulting Spectrum.
-        pop_ids: Optional list of strings containing the population labels.
+        :param count_dict: Result of Misc.count_data_dict
+        :param projections: List of sample sizes to project down to for each
+            population.
+        :param polarized: If True, only include SNPs that count_dict marks as polarized.
+            If False, include all SNPs and fold resulting Spectrum.
+        :param pop_ids: Optional list of strings containing the population labels.
         """
 
         # create slices for projection calculation
@@ -1476,25 +1692,25 @@ class Spectrum(numpy.ma.masked_array):
         Spectrum from a dictionary of polymorphisms, corrected for ancestral
         misidentification.
 
-        The correction is based upon:
-            Hernandez, Williamson & Bustamante _Mol_Biol_Evol_ 24:1792 (2007)
+        The correction is based upon Hernandez, Williamson & Bustamante _Mol_Biol_Evol_
+            24:1792 (2007)
 
-        force_pos: If the correction is too agressive, it may leave some small
-                   entries in the fs less than zero. If force_pos is true,
-                   these entries will be set to zero, in such a way that the
-                   total number of segregating SNPs is conserved.
-        fux_filename: The name of the file containing the 
-                   misidentification probabilities.
-                   The file is of the form:
-                       # Any number of comments lines beginning with #
-                       AAA T 0.001
-                       AAA G 0.02
-                       ...
-                   Where every combination of three + one bases is considered
-                   (order is not important).  The triplet is the context and
-                   putatively derived allele (x) in the reference species. The
-                   single base is the base (u) in the outgroup. The numerical
-                   value is 1-f_{ux} in the notation of the paper.
+        :param force_pos: If the correction is too agressive, it may leave some small
+            entries in the fs less than zero. If force_pos is true,
+            these entries will be set to zero, in such a way that the
+            total number of segregating SNPs is conserved.
+        :param fux_filename: The name of the file containing the
+            misidentification probabilities.
+            The file is of the form:
+            - # Any number of comments lines beginning with #
+            - AAA T 0.001
+            - AAA G 0.02
+            - ...
+            Where every combination of three + one bases is considered
+            (order is not important).  The triplet is the context and
+            putatively derived allele (x) in the reference species. The
+            single base is the base (u) in the outgroup. The numerical
+            value is 1-f_{ux} in the notation of the paper.
 
         The data dictionary should be organized as:
             {snp_id:{'segregating': ['A','T'],
@@ -1583,7 +1799,7 @@ class Spectrum(numpy.ma.masked_array):
     # I set check_folding = False in the constructor because it raises useless
     # warnings when, for example, I do (model + 1).
 
-    # These functions also ensure that the pop_ids and extrap_x attributes
+    # These functions also ensure that the pop_ids
     # get properly copied over.
 
     # This is pretty advanced Python voodoo, so don't fret if you don't
@@ -1623,14 +1839,9 @@ def %(method)s(self, other):
         elif other.pop_ids != self.pop_ids:
             logger.warn('Arithmetic between Spectra with different pop_ids. '
                         'Resulting pop_id may not be correct.')
-    if hasattr(other, 'extrap_x') and self.extrap_x != other.extrap_x:
-        extrap_x = None
-    else:
-        extrap_x = self.extrap_x
     outfs = self.__class__.__new__(self.__class__, newdata, newmask, 
                                    mask_corners=False, data_folded=self.folded,
-                                   check_folding=False, pop_ids=newpop_ids,
-                                   extrap_x=extrap_x)
+                                   check_folding=False, pop_ids=newpop_ids)
     return outfs
 """
             % {"method": method}
@@ -1659,8 +1870,6 @@ def %(method)s(self, other):
              and other.pop_ids != self.pop_ids:
         logger.warn('Arithmetic between Spectra with different pop_ids. '
                     'Resulting pop_id may not be correct.')
-    if hasattr(other, 'extrap_x') and self.extrap_x != other.extrap_x:
-        self.extrap_x = None
     return self
 """
             % {"method": method}
@@ -1675,156 +1884,13 @@ def %(method)s(self, other):
                 "Cannot operate with a folded Spectrum and an " "unfolded one."
             )
 
-    # spectrum integration
-    # We chose the most efficient solver for each case
-    def integrate(
-        self,
-        Npop,
-        tf,
-        dt_fac=0.02,
-        gamma=None,
-        h=None,
-        m=None,
-        theta=1.0,
-        adapt_dt=False,
-        finite_genome=False,
-        theta_fd=None,
-        theta_bd=None,
-        frozen=[False],
-    ):
-        """
-        Method to simulate the spectrum's evolution for a given set of demographic parameters.
-        Npop: Populations effective sizes.
-        n: samples sizes.
-        tf: integration time in genetic units.
-        dt_fac: timestep factor. 
-        gamma: selection parameter (Ns).
-        h: dominance coefficient.
-        m: migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1).
-        theta: theta parameter.
-        adapt_dt: flag to allow dt correction avoiding negative entries.
-        frozen: list of same length as number of pops, with True for frozen populations at the corresponding index.
-        """
-        n = numpy.array(self.shape) - 1
-
-        if m is not None:
-            m = numpy.array(m)
-
-        if finite_genome == True and (theta_fd == None or theta_bd == None):
-            raise ValueError(
-                "Forward and backward mutation rates must be "
-                "specified in the finite genome model."
-            )
-
-        if hasattr(Npop, "__len__"):
-            if numpy.any(frozen) and len(Npop) != len(frozen):
-                raise ValueError(
-                    "If one or more populations are frozen, length "
-                    "of frozen must match number of simulated pops."
-                )
-        else:
-            if numpy.any(frozen) and len(Npop(0)) != len(frozen):
-                raise ValueError(
-                    "If one or more populations are frozen, length "
-                    "of frozen must match number of simulated pops."
-                )
-
-        if plotting:
-            model = moments.ModelPlot._get_model()
-            if model is not None:
-                model.evolve(tf, Npop, m)
-
-        if len(n) == 1:
-            if gamma is None:
-                gamma = 0.0
-            if h is None:
-                h = 0.5
-            if gamma == 0:
-                self.data[:] = moments.Integration_nomig.integrate_neutral(
-                    self.data,
-                    Npop,
-                    tf,
-                    dt_fac,
-                    theta,
-                    finite_genome=finite_genome,
-                    theta_fd=theta_fd,
-                    theta_bd=theta_bd,
-                    frozen=frozen,
-                )
-            else:
-                # self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
-                self.data[:] = moments.Integration_nomig.integrate_nomig(
-                    self.data,
-                    Npop,
-                    tf,
-                    dt_fac,
-                    gamma,
-                    h,
-                    theta,
-                    finite_genome=finite_genome,
-                    theta_fd=theta_fd,
-                    theta_bd=theta_bd,
-                    frozen=frozen,
-                )
-        else:
-            if gamma is None:
-                gamma = numpy.zeros(len(n))
-            if h is None:
-                h = 0.5 * numpy.ones(len(n))
-            if m is None:
-                m = numpy.zeros([len(n), len(n)])
-            if (m == 0).all():
-                # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
-                if (numpy.array(gamma) == 0).all() and len(n) < 3:
-                    self.data[:] = moments.Integration_nomig.integrate_neutral(
-                        self.data,
-                        Npop,
-                        tf,
-                        dt_fac,
-                        theta,
-                        finite_genome=finite_genome,
-                        theta_fd=theta_fd,
-                        theta_bd=theta_bd,
-                        frozen=frozen,
-                    )
-                else:
-                    self.data[:] = moments.Integration_nomig.integrate_nomig(
-                        self.data,
-                        Npop,
-                        tf,
-                        dt_fac,
-                        gamma,
-                        h,
-                        theta,
-                        finite_genome=finite_genome,
-                        theta_fd=theta_fd,
-                        theta_bd=theta_bd,
-                        frozen=frozen,
-                    )
-            else:
-                self.data[:] = moments.Integration.integrate_nD(
-                    self.data,
-                    Npop,
-                    tf,
-                    dt_fac,
-                    gamma,
-                    h,
-                    m,
-                    theta,
-                    adapt_dt,
-                    finite_genome=finite_genome,
-                    theta_fd=theta_fd,
-                    theta_bd=theta_bd,
-                    frozen=frozen,
-                )
-
 
 # Allow spectrum objects to be pickled.
 # See http://effbot.org/librarybook/copy-reg.htm
 try:
     import copy_reg
 
-    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids):
         return moments.Spectrum(
             data,
             mask,
@@ -1832,20 +1898,19 @@ try:
             data_folded=data_folded,
             check_folding=False,
             pop_ids=pop_ids,
-            extrap_x=extrap_x,
         )
 
     def Spectrum_pickler(fs):
         return (
             Spectrum_unpickler,
-            (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x),
+            (fs.data, fs.mask, fs.folded, fs.pop_ids),
         )
 
     copy_reg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
 except:
     import copyreg
 
-    def Spectrum_unpickler(data, mask, data_folded, pop_ids, extrap_x):
+    def Spectrum_unpickler(data, mask, data_folded, pop_ids):
         return moments.Spectrum(
             data,
             mask,
@@ -1853,13 +1918,12 @@ except:
             data_folded=data_folded,
             check_folding=False,
             pop_ids=pop_ids,
-            extrap_x=extrap_x,
         )
 
     def Spectrum_pickler(fs):
         return (
             Spectrum_unpickler,
-            (fs.data, fs.mask, fs.folded, fs.pop_ids, fs.extrap_x),
+            (fs.data, fs.mask, fs.folded, fs.pop_ids),
         )
 
     copyreg.pickle(Spectrum, Spectrum_pickler, Spectrum_unpickler)
