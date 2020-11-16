@@ -10,19 +10,34 @@ Welcome to moments's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. toctree::
+   :caption: Getting started
+
    introduction
    installation
+
+.. toctree::
+   :caption: SFS analysis
+
    sfs
    inference
    visualization
+
+.. toctree::
+   :caption: Extentions
+   
    ld
    two_locus
    triallele
+
+.. toctree::
+   :caption: Demes
+
+   demes
+
+.. toctree::
+   :caption: Data types and functions
+   :maxdepth: 2
+
    api
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
