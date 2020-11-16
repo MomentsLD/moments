@@ -198,7 +198,7 @@ class Spectrum(numpy.ma.masked_array):
         if hasattr(obj, "pop_ids"):
             self.pop_ids = obj.pop_ids
 
-    # masked_array has priority 15.
+    # masked_array has priority 20.
     __array_priority__ = 20
 
     def __repr__(self):
@@ -524,8 +524,33 @@ class Spectrum(numpy.ma.masked_array):
         return outfs
 
     # Functions that apply demographic events, including integration.
-    def split():
-        pass
+    def split(self, idx, n0, n1, new_ids=None):
+        """
+        Splits a population in the SFS into two populations, with the extra
+        population placed at the end.
+
+        :param idx: The index of the population to split.
+        :type idx: int
+        :param n0: The sample size of the first split population.
+        :type n0: int
+        :param n1: The sample size of the second split population.
+        :type n1: int
+        :param new_ids: The population IDs of the split populations. Can only be
+            used if pop_ids are given for the input spectrum.
+        :type new_ids: list of strings, optional
+        """
+        if self.folded:
+            raise ValueError("Cannot perform split on folded spectrum.")
+        if self.pop_ids is None and new_ids is not None:
+            raise ValueError("Trying to assign ids to a SFS with no pop_ids.")
+        if new_ids is not None and len(new_ids) != 2:
+            raise ValueError("new_ids must be a list of two population id strings")
+        fs_split = moments.Manips.split_by_index(self, idx, n0, n1)
+        if new_ids is not None:
+            fs_split.pop_ids = self.pop_ids
+            fs_split.pop_ids[idx] = new_ids[0]
+            fs_split.pop_ids.append(new_ids[1])
+        return fs_split
 
     def merge():
         pass
@@ -843,7 +868,7 @@ class Spectrum(numpy.ma.masked_array):
         chromosomes in the population.
 
         Note that this estimate includes a factor of
-        sample_size / (sample_size-1) to make :math:`E(\hat{pi}) = theta`.
+        sample_size / (sample_size-1) to make :math:`E(pi) = theta`.
         """
         if self.ndim != 1:
             raise ValueError("Only defined for a one-dimensional SFS.")

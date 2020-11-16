@@ -1,7 +1,7 @@
 import os
 import unittest
 
-import numpy
+import numpy as np
 import scipy.special
 import moments
 import pickle
@@ -22,7 +22,7 @@ class TestLoadDump(unittest.TestCase):
         """
         comments = ["comment 1", "comment 2"]
         filename = "test.fs"
-        data = numpy.random.rand(3, 3)
+        data = np.random.rand(3, 3)
 
         fs = moments.Spectrum(data)
 
@@ -38,7 +38,7 @@ class TestLoadDump(unittest.TestCase):
         """
         commentsin = ["comment 1", "comment 2"]
         filename = "test.fs"
-        data = numpy.random.rand(3, 3)
+        data = np.random.rand(3, 3)
 
         fsin = moments.Spectrum(data)
         fsin.to_file(filename, comment_lines=commentsin)
@@ -47,8 +47,8 @@ class TestLoadDump(unittest.TestCase):
         fsout, commentsout = moments.Spectrum.from_file(filename, return_comments=True)
         os.remove(filename)
         # Ensure that fs was read correctly.
-        self.assertTrue(numpy.allclose(fsout.data, fsin.data))
-        self.assertTrue(numpy.all(fsout.mask == fsin.mask))
+        self.assertTrue(np.allclose(fsout.data, fsin.data))
+        self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
         # Ensure comments were read correctly.
         for ii, line in enumerate(commentsin):
@@ -61,8 +61,8 @@ class TestLoadDump(unittest.TestCase):
         fsout, commentsout = moments.Spectrum.from_file(filename, return_comments=True)
         os.remove(filename)
         # Ensure that fs was read correctly.
-        self.assertTrue(numpy.allclose(fsout.data, fsin.data))
-        self.assertTrue(numpy.all(fsout.mask == fsin.mask))
+        self.assertTrue(np.allclose(fsout.data, fsin.data))
+        self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
         # Ensure comments were read correctly.
         for ii, line in enumerate(commentsin):
@@ -79,8 +79,8 @@ class TestLoadDump(unittest.TestCase):
         os.remove(filename)
 
         # Ensure that fs was read correctly.
-        self.assertTrue(numpy.allclose(fsout.data, fsin.data))
-        self.assertTrue(numpy.all(fsout.mask == fsin.mask))
+        self.assertTrue(np.allclose(fsout.data, fsin.data))
+        self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
 
     def test_pickle(self):
@@ -89,7 +89,7 @@ class TestLoadDump(unittest.TestCase):
         """
         comments = ["comment 1", "comment 2"]
         filename = "test.p"
-        data = numpy.random.rand(3, 3)
+        data = np.random.rand(3, 3)
 
         fs = moments.Spectrum(data)
 
@@ -103,7 +103,7 @@ class TestLoadDump(unittest.TestCase):
         """
         commentsin = ["comment 1", "comment 2"]
         filename = "test.p"
-        data = numpy.random.rand(3, 3)
+        data = np.random.rand(3, 3)
 
         fsin = moments.Spectrum(data)
 
@@ -115,8 +115,8 @@ class TestLoadDump(unittest.TestCase):
             fsout = pickle.load(f)
         os.remove(filename)
         # Ensure that fs was read correctly.
-        self.assertTrue(numpy.allclose(fsout.data, fsin.data))
-        self.assertTrue(numpy.all(fsout.mask == fsin.mask))
+        self.assertTrue(np.allclose(fsout.data, fsin.data))
+        self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
 
         #
@@ -133,8 +133,8 @@ class TestLoadDump(unittest.TestCase):
             fsout = pickle.load(f)
         os.remove(filename)
         # Ensure that fs was read correctly.
-        self.assertTrue(numpy.allclose(fsout.data, fsin.data))
-        self.assertTrue(numpy.all(fsout.mask == fsin.mask))
+        self.assertTrue(np.allclose(fsout.data, fsin.data))
+        self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
 
 class TestFolding(unittest.TestCase):
@@ -149,7 +149,7 @@ class TestFolding(unittest.TestCase):
         """
         Folding a 2D spectrum.
         """
-        data = numpy.reshape(numpy.arange(12), (3, 4))
+        data = np.reshape(np.arange(12), (3, 4))
         fs = moments.Spectrum(data)
         ff = fs.fold()
 
@@ -157,17 +157,17 @@ class TestFolding(unittest.TestCase):
         self.assertAlmostEqual(fs.sum(), ff.sum(), 6)
         self.assertAlmostEqual(fs.data.sum(), ff.data.sum(), 6)
         # Ensure that the empty entries are actually empty.
-        self.assertTrue(numpy.all(ff.data[::-1] == numpy.tril(ff.data[::-1])))
+        self.assertTrue(np.all(ff.data[::-1] == np.tril(ff.data[::-1])))
 
         # This turns out to be the correct result.
-        correct = numpy.tri(4)[::-1][-3:] * 11
-        self.assertTrue(numpy.allclose(correct, ff.data))
+        correct = np.tri(4)[::-1][-3:] * 11
+        self.assertTrue(np.allclose(correct, ff.data))
 
     def test_ambiguous_folding(self):
         """
         Test folding when the minor allele is ambiguous.
         """
-        data = numpy.zeros((4, 4))
+        data = np.zeros((4, 4))
         # Both these entries correspond to a an allele seen in 3 of 6 samples.
         # So the minor allele is ambiguous. In this case, we average the two
         # possible assignments.
@@ -176,15 +176,15 @@ class TestFolding(unittest.TestCase):
         fs = moments.Spectrum(data)
         ff = fs.fold()
 
-        correct = numpy.zeros((4, 4))
+        correct = np.zeros((4, 4))
         correct[0, 3] = correct[3, 0] = 2
-        self.assertTrue(numpy.allclose(correct, ff.data))
+        self.assertTrue(np.allclose(correct, ff.data))
 
     def test_masked_folding(self):
         """
         Test folding when the minor allele is ambiguous.
         """
-        data = numpy.zeros((5, 6))
+        data = np.zeros((5, 6))
         fs = moments.Spectrum(data)
         # This folds to an entry that will already be masked.
         fs.mask[1, 2] = True
@@ -197,7 +197,7 @@ class TestFolding(unittest.TestCase):
 
     def test_folded_slices(self):
         ns = (3, 4)
-        fs1 = moments.Spectrum(numpy.random.rand(*ns))
+        fs1 = moments.Spectrum(np.random.rand(*ns))
         folded1 = fs1.fold()
 
         self.assertTrue(fs1[:].folded == False)
@@ -220,8 +220,8 @@ class TestFolding(unittest.TestCase):
         moments.Spectrum_mod.logger.setLevel(logging.ERROR)
 
         ns = (3, 4)
-        fs1 = moments.Spectrum(numpy.random.uniform(size=ns))
-        fs2 = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs1 = moments.Spectrum(np.random.uniform(size=ns))
+        fs2 = moments.Spectrum(np.random.uniform(size=ns))
 
         folded1 = fs1.fold()
         folded2 = fs2.fold()
@@ -247,94 +247,94 @@ class TestFolding(unittest.TestCase):
 
             lst = [add, sub, mul, truediv, floordiv, pow]
 
-        arr = numpy.random.uniform(size=ns)
-        marr = numpy.random.uniform(size=ns)
+        arr = np.random.uniform(size=ns)
+        marr = np.random.uniform(size=ns)
 
-        # I found some difficulties with multiplication by numpy.float64, so I
+        # I found some difficulties with multiplication by np.float64, so I
         # want to explicitly test this case.
-        numpyfloat = numpy.float64(2.0)
+        npfloat = np.float64(2.0)
 
         for op in lst:
             # Check that binary operations propogate folding status.
             # Need to check cases both on right-hand-side of operator and
             # left-hand-side
 
-            # Note that numpy.power(2.0,fs2) does not properly propagate type
+            # Note that np.power(2.0,fs2) does not properly propagate type
             # or status. I'm not sure how to fix this.
 
             result = op(fs1, fs2)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs1.mask))
+            self.assertTrue(np.all(result.mask == fs1.mask))
 
             result = op(fs1, 2.0)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs1.mask))
+            self.assertTrue(np.all(result.mask == fs1.mask))
 
             result = op(2.0, fs2)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs2.mask))
+            self.assertTrue(np.all(result.mask == fs2.mask))
 
-            result = op(fs1, numpyfloat)
+            result = op(fs1, npfloat)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs1.mask))
+            self.assertTrue(np.all(result.mask == fs1.mask))
 
-            result = op(numpyfloat, fs2)
+            result = op(npfloat, fs2)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs2.mask))
+            self.assertTrue(np.all(result.mask == fs2.mask))
 
             result = op(fs1, arr)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs1.mask))
+            self.assertTrue(np.all(result.mask == fs1.mask))
 
             result = op(arr, fs2)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs2.mask))
+            self.assertTrue(np.all(result.mask == fs2.mask))
 
             result = op(fs1, marr)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs1.mask))
+            self.assertTrue(np.all(result.mask == fs1.mask))
 
             result = op(marr, fs2)
             self.assertFalse(result.folded)
-            self.assertTrue(numpy.all(result.mask == fs2.mask))
+            self.assertTrue(np.all(result.mask == fs2.mask))
 
             # Now with folded Spectra
 
             result = op(folded1, folded2)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded1.mask))
+            self.assertTrue(np.all(result.mask == folded1.mask))
 
             result = op(folded1, 2.0)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded1.mask))
+            self.assertTrue(np.all(result.mask == folded1.mask))
 
             result = op(2.0, folded2)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded2.mask))
+            self.assertTrue(np.all(result.mask == folded2.mask))
 
-            result = op(folded1, numpyfloat)
+            result = op(folded1, npfloat)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded1.mask))
+            self.assertTrue(np.all(result.mask == folded1.mask))
 
-            result = op(numpyfloat, folded2)
+            result = op(npfloat, folded2)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded2.mask))
+            self.assertTrue(np.all(result.mask == folded2.mask))
 
             result = op(folded1, arr)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded1.mask))
+            self.assertTrue(np.all(result.mask == folded1.mask))
 
             result = op(arr, folded2)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded2.mask))
+            self.assertTrue(np.all(result.mask == folded2.mask))
 
             result = op(folded1, marr)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded1.mask))
+            self.assertTrue(np.all(result.mask == folded1.mask))
 
             result = op(marr, folded2)
             self.assertTrue(result.folded)
-            self.assertTrue(numpy.all(result.mask == folded2.mask))
+            self.assertTrue(np.all(result.mask == folded2.mask))
 
             # Check that exceptions are properly raised when folding status
             # differs
@@ -358,46 +358,46 @@ class TestFolding(unittest.TestCase):
                 # Check that in-place operations preserve folding status.
                 op(fs1, fs2)
                 self.assertFalse(fs1.folded)
-                self.assertTrue(numpy.all(fs1.mask == fs1origmask))
+                self.assertTrue(np.all(fs1.mask == fs1origmask))
 
                 op(fs1, 2.0)
                 self.assertFalse(fs1.folded)
-                self.assertTrue(numpy.all(fs1.mask == fs1origmask))
+                self.assertTrue(np.all(fs1.mask == fs1origmask))
 
-                op(fs1, numpyfloat)
+                op(fs1, npfloat)
                 self.assertFalse(fs1.folded)
-                self.assertTrue(numpy.all(fs1.mask == fs1origmask))
+                self.assertTrue(np.all(fs1.mask == fs1origmask))
 
                 op(fs1, arr)
                 self.assertFalse(fs1.folded)
-                self.assertTrue(numpy.all(fs1.mask == fs1origmask))
+                self.assertTrue(np.all(fs1.mask == fs1origmask))
 
                 op(fs1, marr)
                 self.assertFalse(fs1.folded)
-                self.assertTrue(numpy.all(fs1.mask == fs1origmask))
+                self.assertTrue(np.all(fs1.mask == fs1origmask))
 
                 # Now folded Spectra
                 folded1origmask = folded1.mask.copy()
 
                 op(folded1, folded2)
                 self.assertTrue(folded1.folded)
-                self.assertTrue(numpy.all(folded1.mask == folded1origmask))
+                self.assertTrue(np.all(folded1.mask == folded1origmask))
 
                 op(folded1, 2.0)
                 self.assertTrue(folded1.folded)
-                self.assertTrue(numpy.all(folded1.mask == folded1origmask))
+                self.assertTrue(np.all(folded1.mask == folded1origmask))
 
-                op(folded1, numpyfloat)
+                op(folded1, npfloat)
                 self.assertTrue(folded1.folded)
-                self.assertTrue(numpy.all(folded1.mask == folded1origmask))
+                self.assertTrue(np.all(folded1.mask == folded1origmask))
 
                 op(folded1, arr)
                 self.assertTrue(folded1.folded)
-                self.assertTrue(numpy.all(folded1.mask == folded1origmask))
+                self.assertTrue(np.all(folded1.mask == folded1origmask))
 
                 op(folded1, marr)
                 self.assertTrue(folded1.folded)
-                self.assertTrue(numpy.all(folded1.mask == folded1origmask))
+                self.assertTrue(np.all(folded1.mask == folded1origmask))
 
                 # Check that exceptions are properly raised.
                 self.assertRaises(ValueError, op, fs1, folded2)
@@ -412,7 +412,7 @@ class TestFolding(unittest.TestCase):
         ns = (3, 4)
 
         # We add some unusual masking.
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
         fs.mask[0, 1] = fs.mask[1, 1] = True
 
         folded = fs.fold()
@@ -446,7 +446,7 @@ class TestMarginalize(unittest.TestCase):
     def test_marginalize(self):
         ns = (7, 8, 6)
 
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
         folded = fs.fold()
 
         marg1 = fs.marginalize([1])
@@ -455,9 +455,9 @@ class TestMarginalize(unittest.TestCase):
 
         # Check that these are equal in the unmasked entries.
         self.assertTrue(
-            numpy.allclose(
-                numpy.where(marg1.mask, 0, marg1.data),
-                numpy.where(manual.mask, 0, manual.data),
+            np.allclose(
+                np.where(marg1.mask, 0, marg1.data),
+                np.where(manual.mask, 0, manual.data),
             )
         )
 
@@ -465,7 +465,7 @@ class TestMarginalize(unittest.TestCase):
         # marginalize then fold, as if I fold then marginalize.
         mf1 = marg1.fold()
         mf2 = folded.marginalize([1])
-        self.assertTrue(numpy.allclose(mf1, mf2))
+        self.assertTrue(np.allclose(mf1, mf2))
 
     def test_fold_unmasked(self):
         fs = moments.Demographics2D.snm([10, 10])
@@ -493,42 +493,42 @@ class TestProjection(unittest.TestCase):
     def test_projection(self):
         # Test that projecting a multi-dimensional Spectrum succeeds
         ns = (7, 8, 6)
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
         p = fs.project([3, 4, 5])
         # Also that we don't lose any data
         self.assertAlmostEqual(fs.data.sum(), p.data.sum())
 
         # Check that when I project an equilibrium spectrum, I get back an
         # equilibrium spectrum
-        fs = moments.Spectrum(1.0 / numpy.arange(100))
+        fs = moments.Spectrum(1.0 / np.arange(100))
         p = fs.project([17])
-        self.assertTrue(numpy.allclose(p[1:-1], 1.0 / numpy.arange(1, len(p) - 1)))
+        self.assertTrue(np.allclose(p[1:-1], 1.0 / np.arange(1, len(p) - 1)))
 
         # Check that masked values are propagated correctly.
-        fs = moments.Spectrum(1.0 / numpy.arange(20))
+        fs = moments.Spectrum(1.0 / np.arange(20))
         # All values with 3 or fewer observed should be masked.
         fs.mask[3] = True
         p = fs.project([10])
-        self.assertTrue(numpy.all(p.mask[:4]))
+        self.assertTrue(np.all(p.mask[:4]))
 
         # Check that masked values are propagated correctly.
-        fs = moments.Spectrum(1.0 / numpy.arange(20))
+        fs = moments.Spectrum(1.0 / np.arange(20))
         fs.mask[-3] = True
         # All values with 3 or fewer observed should be masked.
         p = fs.project([10])
-        self.assertTrue(numpy.all(p.mask[-3:]))
+        self.assertTrue(np.all(p.mask[-3:]))
 
         # A more complicated two dimensional projection problem...
-        fs = moments.Spectrum(numpy.random.uniform(size=(9, 7)))
+        fs = moments.Spectrum(np.random.uniform(size=(9, 7)))
         fs.mask[2, 3] = True
         p = fs.project([4, 4])
-        self.assertTrue(numpy.all(p.mask[:3, 1:4]))
+        self.assertTrue(np.all(p.mask[:3, 1:4]))
 
         # Test that projecting a folded multi-dimensional Spectrum succeeds
         # Should get the same result if I fold then project as if I project
         # then fold.
         ns = (7, 8, 6)
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
         fs.mask[2, 3, 1] = True
         folded = fs.fold()
 
@@ -537,8 +537,8 @@ class TestProjection(unittest.TestCase):
         pf2 = folded.project([3, 4, 5])
 
         # Check equality
-        self.assertTrue(numpy.all(pf1.mask == pf2.mask))
-        self.assertTrue(numpy.allclose(pf1.data, pf2.data))
+        self.assertTrue(np.all(pf1.mask == pf2.mask))
+        self.assertTrue(np.allclose(pf1.data, pf2.data))
 
 class TestAdmixture(unittest.TestCase):
     def setUp(self):
@@ -564,7 +564,7 @@ class TestAdmixture(unittest.TestCase):
         project_dp = [target_n1 + target_n2, target_n2, target_n3]
         project_seq = [n1_sequential, target_n2, target_n3]
 
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
 
         # admix
         fs_1_into_2 = moments.Manips.admix_into_new(
@@ -586,7 +586,7 @@ class TestAdmixture(unittest.TestCase):
         )
 
         # Also that we don't lose any data
-        self.assertTrue(numpy.allclose(fs_1_into_2, fs_sequential.transpose((0, 2, 1))))
+        self.assertTrue(np.allclose(fs_1_into_2, fs_sequential.transpose((0, 2, 1))))
 
 class TestSwapAxes(unittest.TestCase):
     def setUp(self):
@@ -598,9 +598,43 @@ class TestSwapAxes(unittest.TestCase):
 
     def test_swap_ids(self):
         ns = (8, 5)
-        fs = moments.Spectrum(numpy.random.uniform(size=ns))
+        fs = moments.Spectrum(np.random.uniform(size=ns))
         fs.pop_ids = ["A", "B"]
         fs_swap = fs.swap_axes(0, 1)
-        self.assertTrue(numpy.all(fs_swap.data == fs.data.T))
+        self.assertTrue(np.all(fs_swap.data == fs.data.T))
         self.assertTrue(fs_swap.pop_ids[0] == "B")
         self.assertTrue(fs_swap.pop_ids[1] == "A")
+
+
+class TestSplitInPlace(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_split(self):
+        fs = moments.Spectrum(np.ones(11))
+        with self.assertRaises(ValueError):
+            fs.split(0, 5, 6)
+        with self.assertRaises(ValueError):
+            fs.split(1, 5, 5)
+        with self.assertRaises(ValueError):
+            fs.split(0, 5, 5, new_ids=["A", "B"])
+        fs = fs.fold()
+        with self.assertRaises(ValueError):
+            fs.split(0, 5, 5)
+    
+    def test_split_1D(self):
+        fs = moments.Spectrum(np.ones(11))
+        out = fs.split(0, 5, 5)
+        self.assertTrue(np.all(np.array(out.shape) == np.array([6, 6])))
+        out = fs.split(0, 2, 8)
+        self.assertTrue(np.all(np.array(out.shape) == np.array([3, 9])))
+        fs.pop_ids = ["anc"]
+        out = fs.split(0, 5, 5)
+        self.assertTrue(out.pop_ids is None)
+        out = fs.split(0, 5, 5, new_ids=["A", "B"])
+        self.assertEqual(out.pop_ids[0], "A")
+        self.assertEqual(out.pop_ids[1], "B")

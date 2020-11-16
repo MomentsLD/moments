@@ -57,8 +57,10 @@ def split_1D_to_2D(sfs, n1, n2):
         model.split(0, (0, 1))
 
     data_1D = copy.copy(sfs)  # copy to preserve masking of sp
-    assert len(data_1D.shape) == 1
-    assert len(data_1D) >= n1 + n2 + 1
+    if len(data_1D.shape) != 1:
+        raise ValueError("Spectrum is not 1D")
+    if len(data_1D) < n1 + n2 + 1:
+        raise ValueError(f"Sample size is too small to split into {n1} and {n2}")
     # if the sample size before split is too large, we project
     if len(data_1D) > n1 + n2 + 1:
         data_1D = data_1D.project([n1 + n2])
@@ -109,10 +111,12 @@ def split_2D_to_3D_2(sfs, n2new, n3):
         model.split(1, (1, 2))
 
     data_2D = copy.copy(sfs)
-    assert len(data_2D.shape) == 2
+    if len(data_2D.shape) != 2:
+        raise ValueError("Spectrum is not 2D")
     n1 = data_2D.shape[0] - 1
     n2 = data_2D.shape[1] - 1
-    assert n2 >= n2new + n3
+    if n2 < n2new + n3:
+        raise ValueError(f"Sample size is too small to split into {n2new} and {n3}")
     # if the sample size before split is too large, we project
     if n2 > n2new + n3:
         data_2D = data_2D.project([n1, n2new + n3])
@@ -165,10 +169,12 @@ def split_2D_to_3D_1(sfs, n1new, n3):
         model.split(0, (0, 2))
 
     data_2D = copy.copy(sfs)
-    assert len(data_2D.shape) == 2
+    if len(data_2D.shape) != 2:
+        raise ValueError("Spectrum is not 2D")
     n1 = data_2D.shape[0] - 1
     n2 = data_2D.shape[1] - 1
-    assert n1 >= n1new + n3
+    if n1 < n1new + n3:
+        raise ValueError(f"Sample size is to small to split into {n1new} and {n3}")
     # if the sample size before split is too large, we project
     if n1 > n1new + n3:
         data_2D = data_2D.project([n1new + n3, n2])
@@ -416,6 +422,41 @@ def split_4D_to_5D_2(sfs, n2new, n5):
     fs = split_4D_to_5D_4(fs, n2new, n5)
     fs = fs.swapaxes(1, 3)
     return fs
+
+
+def split_by_index(sfs, idx, n0, n1):
+    """
+    Depending on the size of the SFS and the index that is split, we call
+    one of the split functions.
+    """
+    Npop = sfs.Npop
+    if idx < 0 or idx + 1 > Npop:
+        raise ValueError("Cannot split index {idx} in SFS of size {sfs.Npop}")
+    
+    if Npop == 1:
+        sfs_split = split_1D_to_2D(sfs, n0, n1)
+    elif Npop == 2:
+        if idx == 0:
+            sfs_split = split_2D_to_3D_1(sfs, n0, n1)
+        else:
+            sfs_split = split_2D_to_3D_2(sfs, n0, n1)
+    elif Npop == 3:
+        if idx == 0:
+            sfs_split = split_3D_to_4D_1(sfs, n0, n1)
+        elif idx == 1:
+            sfs_split = split_3D_to_4D_2(sfs, n0, n1)
+        else:
+            sfs_split = split_3D_to_4D_3(sfs, n0, n1)
+    elif Npop == 4:
+        if idx == 0:
+            sfs_split = split_4D_to_5D_1(sfs, n0, n1)
+        elif idx == 1:
+            sfs_split = split_4D_to_5D_2(sfs, n0, n1)
+        elif idx == 2:
+            sfs_split = split_4D_to_5D_3(sfs, n0, n1)
+        else:
+            sfs_split = split_4D_to_5D_4(sfs, n0, n1)
+    return sfs_split
 
 
 # merge two populations into one population
