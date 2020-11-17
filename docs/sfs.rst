@@ -144,7 +144,7 @@ or the joint two-population SFS for population indexes 1 and 2:
     fs_marg = fs.marginalize([0])
     fs_marg
 
-Note that the population IDs stay consistent with after marginalizing.
+Note that the population IDs stay consistent after marginalizing.
 
 Resampling
 ==========
@@ -174,14 +174,96 @@ same number of segregating sites:
 Demographic events
 ^^^^^^^^^^^^^^^^^^
 
+When defining demographic models with multiple populations, we need to apply
+demographic events such as population splits, mergers, and admixtures. These
+operations often change the dimension or size of the SFS, so they do not
+act in-place. Instead, they return a new Spectrum object, similar to the
+manipulations in the previous section.
+
 Population splits
 =================
+
+New in ``moments`` version 1.1, the Spectrum class includes functions to
+directly apply demographic events. A population split is called using
+``fs.split(idx, n0, n1)``, where the population indexed by ``idx`` splits
+into ``n0`` and ``n1`` lineages. The ``split`` function also takes a
+``new_ids`` keyword argument, where we can specify the population IDs of
+the two new populations after the split. Note that ``n0`` and ``n1`` cannot
+sum to larger than the current sample size of the population that we are
+splitting.
+
+For example, to split a single population with 6 tracked lineages into
+two populations with 3 lineages in each population:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics1D.snm([6])
+    fs_split = fs.split(0, 3, 3)
+    fs_split
+
+If we use ``new_ids``, we can also keep track of population ids after
+a split event:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics2D.snm([6, 2])
+    fs.pop_ids = ["A", "B"]
+    fs
+
+.. jupyter-execute::
+
+    fs_split = fs.split(0, 4, 2, new_ids=["C", "D"])
+    fs_split
+
+.. note::
+    Previous versions of ``moments`` required calling functions such as
+    ``moments.Manips.split_1D_to_2D(fs, n0, n1)`` or
+    ``moments.Manips.split_3D_to_4D_2(fs, n0, n1)``.
+    The new API (``fs.split(idx, n0, n1)``) wraps the different split functions
+    in ``moments.Manips`` so that we don't need to worry about picking the
+    correct split function.
 
 Admixture and mergers
 =====================
 
-Pulse migration
-===============
+Here, we consider two types of admixture events. First, two populations mix
+with given proportions to form a new population (which we will call an
+"admix" event). And second, one population contributes some proportion to
+another population in the SFS (which we call a "pulse migration" event).
+In both cases, lineages within the SFS are moved from one or more populations
+to another, and its size and possibly dimension can change.
+
+To mix two population with a given proportion, we use
+``fs.admix(idx0, idx1, num_lineages, proportion)``, where ``proportion`` is the
+proportion of the new population that comes from population ``idx0``, and 1-proportion
+comes from population indexed by ``idx1``. The number of lineages is the sample
+size in the new admixed population, and the sample sizes in the source populations
+necessarily decrease by that same amount. Note that if the sample size of a source
+population equals the number of lineages that are moved, that source population
+no longer exists and the dimension decreases by one.
+
+For example, in a two-population SFS, we can look at a few different scenarios of
+admixture and sample sizes:
+
+.. jupyter-execute::
+
+    fs = moments.Spectrum(np.ones((11, 11)))
+    print("original SFS has sample size", fs.sample_sizes)
+    fs_admix = fs.admix(0, 1, 10, 0.25)
+    print("admix SFS has size", fs_admix.sample_sizes, "after moving 10 lineages")
+    fs_admix2 = fs.admix(0, 1, 5, 0.5)
+    print("second admix SFS has size", fs_admix2.sample_sizes, "after moving 5 lineages")
+
+And to account for population IDs after admixture:
+
+.. jupyter-execute::
+
+    fs = moments.Spectrum(np.ones((9, 7)))
+    fs.pop_ids = ["A", "B"]
+    print("original SFS has size", fs.sample_sizes, "and pop ids", fs.pop_ids)
+    fs_admix = fs.admix(0, 1, 4, 0.25, new_id="C")
+    print("admix SFS has size", fs_admix.sample_sizes, "and pop ids", fs_admix.pop_ids,
+        "after moving 4 lineages into new population C")
 
 Integration
 ^^^^^^^^^^^
@@ -203,15 +285,38 @@ Demographic models
 Computing summary statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One-population stats
+``moments`` allows us to compute a handful of summary statistics from the SFS.
+For single populations, we can get Watterson's :math:`\theta`, the diversity
+:math:`\pi`, or Tajima's :math:`D` directly from the SFS:
 
-- Watterson's theta
-- Diversity (pi)
-- Tajima's D
+.. jupyter-execute::
 
-Two-population stats
+    fs = moments.Demographics1D.two_epoch((3.0, 0.2), [20])
+    print("Watterson's theta:", fs.Watterson_theta())
+    print("Diversity:", fs.pi())
+    snm = moments.Demographics1D.snm([20])
+    print("Tajima's D at steady state:", snm.Tajima_D())
+    print("Tajima's D after expansion:", fs.Tajima_D())
 
-- FST
+For multi-population spectra, we can also compute FST using Weir and Cokerham's
+(1984) method, which generalizes to any number of populations greater than one:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics2D.snm([10, 10])
+    print("FST immediately after split:", fs.Fst())
+    fs.integrate([1, 1], 0.05)
+    print("FST after isolation of 0.05*2*Ne gens:", fs.Fst())
+    fs.integrate([1, 1], 0.05)
+    print("FST after isolation of 0.1*2*Ne gens:", fs.Fst())
+
+Note that FST is sensitive to sample sizes: smaller sample sizes artificially
+inflate the "true" divergence.
+
+.. jupyter-execute::
+
+    print("10 samples each:", moments.Demographics2D.snm([10, 10]).Fst())
+    print("100 samples each:", moments.Demographics2D.snm([100, 100]).Fst())
 
 Computing SFS from a VCF
 ^^^^^^^^^^^^^^^^^^^^^^^^
