@@ -944,7 +944,7 @@ class Spectrum(numpy.ma.masked_array):
         chromosomes in the population.
 
         Note that this estimate includes a factor of
-        sample_size / (sample_size-1) to make :math:`E(pi) = theta`.
+        sample_size / (sample_size-1) to make :math:`\\mathbb{E}[\\pi] = \\theta`.
         """
         if self.ndim != 1:
             raise ValueError("Only defined for a one-dimensional SFS.")

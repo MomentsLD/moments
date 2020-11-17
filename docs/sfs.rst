@@ -116,8 +116,60 @@ of equal length to the dimension of the SFS:
 Marginalizing
 =============
 
+If a population goes extinct, or if we want to subset a SFS to some focal
+populations, we use the ``marginalize( )`` function. This function takes
+a list of population indexes as input, and removes those indexes from the
+output SFS. The array operation is simply a sum over those axes, but the
+marginalization function also preserves population IDs if given.
+
+For example, given a three-population spectrum
+
+.. jupyter-execute::
+
+    fs = moments.Spectrum(np.ones((5, 5, 5)))
+    fs.pop_ids = ["A", "B", "C"]
+    fs
+
+we can view the one-population SFS, here the first population:
+
+.. jupyter-execute::
+
+    fs_marg = fs.marginalize([1, 2])
+    fs_marg
+
+or the joint two-population SFS for population indexes 1 and 2:
+
+.. jupyter-execute::
+
+    fs_marg = fs.marginalize([0])
+    fs_marg
+
+Note that the population IDs stay consistent with after marginalizing.
+
 Resampling
 ==========
+
+We can resample a new SFS from a given Spectrum using two approaches. First,
+a standard assumption is that entries in an "expected" SFS give the expectation
+of counts within each bin, and data follows a Poisson distribution with rates
+equal to the bin values. Then ``sample()`` creates a Poisson-sampled SFS:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics1D.snm([10]) * 1000
+    fs_pois = fs.sample()
+    fs_pois
+
+Alternatively, we could resample and enforce that we obtain a SFS with the
+same number of segregating sites:
+
+.. jupyter-execute::
+
+    fs_fixed = fs.fixed_size_sample(np.rint(fs.S()))
+    print(f"number of sites in input:", f"{fs.S():.2f}")
+    print(f"number of sites in resampled SFS:", fs_fixed.S())
+    fs_fixed
+
 
 Demographic events
 ^^^^^^^^^^^^^^^^^^
