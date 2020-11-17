@@ -12,6 +12,7 @@ import sys
 import numpy
 from numpy import newaxis as nuax
 import scipy.misc as misc
+import copy
 
 # Account for difference in scipy installations.
 try:
@@ -198,7 +199,7 @@ class Spectrum(numpy.ma.masked_array):
         if hasattr(obj, "pop_ids"):
             self.pop_ids = obj.pop_ids
 
-    # masked_array has priority 15.
+    # masked_array has priority 20.
     __array_priority__ = 20
 
     def __repr__(self):
@@ -524,17 +525,118 @@ class Spectrum(numpy.ma.masked_array):
         return outfs
 
     # Functions that apply demographic events, including integration.
-    def split():
-        pass
+    def split(self, idx, n0, n1, new_ids=None):
+        """
+        Splits a population in the SFS into two populations, with the extra
+        population placed at the end. Returns a new frequency spectrum.
 
-    def merge():
-        pass
+        :param idx: The index of the population to split.
+        :type idx: int
+        :param n0: The sample size of the first split population.
+        :type n0: int
+        :param n1: The sample size of the second split population.
+        :type n1: int
+        :param new_ids: The population IDs of the split populations. Can only be
+            used if pop_ids are given for the input spectrum.
+        :type new_ids: list of strings, optional
+        """
+        if self.folded:
+            raise ValueError("Cannot perform split on folded spectrum.")
+        if self.pop_ids is None and new_ids is not None:
+            raise ValueError("Trying to assign ids to a SFS with no pop_ids.")
+        if new_ids is not None and len(new_ids) != 2:
+            raise ValueError("new_ids must be a list of two population id strings")
+        fs_split = moments.Manips.split_by_index(self, idx, n0, n1)
+        if new_ids is not None:
+            fs_split.pop_ids = self.pop_ids
+            fs_split.pop_ids[idx] = new_ids[0]
+            fs_split.pop_ids.append(new_ids[1])
+        return fs_split
 
-    def admix():
-        pass
+    def admix(self, idx0, idx1, num_lineages, proportion, new_id=None):
+        """
+        Returns a new frequency spectrum with an admixed population that arose through
+        admixture from indexed populations with given number of lineages and
+        proportions from parental populations. This serves as a wrapper for
+        ``Manips.admix_into_new``, with the added feature of handling pop_ids.
 
-    def pulse_migrate():
-        pass
+        Note that if the number of lineages that move are equal to the number
+        of lineages previously present in a source population, that source
+        population is marginalized.
+
+        :param idx0: Index of first source population.
+        :type idx0: int
+        :param idx1: Index of second source population.
+        :type idx1: int
+        :param num_lineages: Number of lineages in the new population. Cannot be
+            greater than the number of existing lineages in either source
+            populations.
+        :type num_lineages: int
+        :param proportion: The proportion of lineages that come from the first
+            source population (1-proportion acestry comes from the second source
+            population). Must be a number between 0 and 1.
+        :type proportion: float
+        :param new_id: The ID of the new population. Can only be used if the
+            population IDs are specified in the input SFS.
+        :type new_id: str, optional
+        """
+        if new_id is not None and self.pop_ids is None:
+            raise ValueError("Cannot specify new pop ids if input SFS has no pop_ids")
+        if proportion < 0 or proportion > 1:
+            raise ValueError("proportion must be between 0 and 1")
+        if idx0 == idx1:
+            raise ValueError("Cannot admix population with itself")
+        if idx0 < 0 or idx0 >= self.Npop or idx1 < 0 or idx1 >= self.Npop:
+            raise ValueError(f"Population indexes must be between 0 and {self.Npop-1}")
+        fs_admix = moments.Manips.admix_into_new(
+            self, idx0, idx1, num_lineages, proportion
+        )
+        if new_id is not None:
+            new_pop_ids = copy.copy(self.pop_ids)
+            # remove pop ids for marginalized pops
+            for idx in sorted([idx0, idx1])[::-1]:
+                if self.sample_sizes[idx] == num_lineages:
+                    del new_pop_ids[idx]
+            new_pop_ids.append(new_id)
+            fs_admix.pop_ids = new_pop_ids
+        return fs_admix
+
+    def pulse_migrate(self, idx_from, idx_to, keep_from, proportion):
+        """
+        Mass migration (pulse admixture) between two existing populations. The
+        target (destination) population has the same number of lineages in the
+        output SFS, and the source population has ``keep_from`` number of lineages
+        after the pulse event. The proportion is the expected ancestry proportion
+        in the target population that comes from the source population.
+
+        This serves as a wrapper for ``Manips.admix_inplace``.
+
+        Note that depending on the proportion and number of lineages, because this
+        is an approximate operation, we often need a large number of lineages from
+        the source population to maintain accuracy.
+
+        :param idx_from: Index of source population.
+        :type idx_from: int
+        :param idx_to: Index of targeet population.
+        :type idx_to: int
+        :param keep_from: Number of lineages to keep in source population.
+        :type keep_from: int
+        :param proportion: Ancestry proportion of source population that migrates
+            to target population.
+        :type proportion: float
+        """
+        if idx_from < 0 or idx_from >= self.Npop or idx_to < 0 or idx_to >= self.Npop:
+            raise ValueError(f"Invalid population index for {self.Npop}D SFS.")
+        if proportion < 0 or proportion > 1:
+            raise ValueError("proportion must be between 0 and 1")
+        if idx_from == idx_to:
+            raise ValueError("Cannot admix population into itself")
+        fs_pulse = moments.Manips.admix_inplace(
+            self, idx_from, idx_to, keep_from, proportion
+        )
+        if self.pop_ids is not None:
+            fs_pulse.pop_ids = self.pop_ids
+        return fs_pulse
 
     # spectrum integration
     # We chose the most efficient solver for each case
@@ -843,7 +945,7 @@ class Spectrum(numpy.ma.masked_array):
         chromosomes in the population.
 
         Note that this estimate includes a factor of
-        sample_size / (sample_size-1) to make :math:`E(\hat{pi}) = theta`.
+        sample_size / (sample_size-1) to make :math:`E(pi) = theta`.
         """
         if self.ndim != 1:
             raise ValueError("Only defined for a one-dimensional SFS.")
