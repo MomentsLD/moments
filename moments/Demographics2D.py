@@ -97,9 +97,13 @@ def split_mig(params, ns):
     ns = [n1, n2]
 
     :param params: Tuple of length 4.
+
         nu1: Size of population 1 after split.
+        
         nu2: Size of population 2 after split.
+        
         T: Time in the past of split (in units of 2*Na generations) 
+        
         m: Migration rate between populations (2*Na*m)
     :param ns: List of length two specifying sample sizes n1 and n2.
     """
@@ -121,11 +125,17 @@ def IM(params, ns):
     ns = [n1, n2]
 
     :param params: Tuple of length 6.
+        
         s: Size of pop 1 after split. (Pop 2 has size 1-s.)
+        
         nu1: Final size of pop 1.
+        
         nu2: Final size of pop 2.
+        
         T: Time in the past of split (in units of 2*Na generations) 
+        
         m12: Migration from pop 2 to pop 1 (2 * Na * m12)
+        
         m21: Migration from pop 1 to pop 2
     :param ns: List of length two specifying sample sizes n1 and n2.
     """

@@ -63,8 +63,55 @@ the masking and population IDs are updated properly.
 Folding
 =======
 
+Folding a SFS removes information about how SNPs are polarized, so that the
+Spectrum stores counts of mutations with a given minor allele frequency. To
+fold a SFS, we call ``fold()``, which returns a folded Spectrum object.
+
+.. jupyter-execute::
+    :hide-code:
+
+    import moments
+    import numpy as np
+
+For example, the standard neutral model of sample size 10,
+
+.. jupyter-execute::
+    
+    fs = moments.Demographics1D.snm([10])
+    fs
+
+can be folded to the minor allele frequency, which updates the allele counts
+in the minor allele frequency bins and the mask:
+
+.. jupyter-execute::
+
+    fs_folded = fs.fold()
+    fs_folded
+
+When folding multi-dimensional SFS, note that the folding occurs over the global
+minor allele frequency.
+
 Projecting
 ==========
+
+SFS projection takes a Spectrum of some sample size and reduces the sample size
+in one or more populations. The output Spectrum sums over all possible
+down-samplings so that it is equivalent to having sampled a smaller sample size
+to begin with.
+
+.. jupyter-execute::
+    
+    fs_proj = fs.project([6])
+    fs_proj
+
+For multi-dimensional frequency spectra, we must pass a list of sample sizes
+of equal length to the dimension of the SFS:
+
+.. jupyter-execute::
+    
+    fs = moments.Spectrum(np.random.rand(121).reshape((11, 11)))
+    fs_proj = fs.project([6, 4])
+    fs_proj
 
 Marginalizing
 =============
