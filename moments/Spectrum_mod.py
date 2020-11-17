@@ -429,7 +429,7 @@ class Spectrum(numpy.ma.masked_array):
 
     def log(self):
         """
-        Return the natural logarithm of the entries of the frequency spectrum.
+        Returns the natural logarithm of the entries of the frequency spectrum.
 
         Only necessary because numpy.ma.log now fails to propagate extra
         attributes after numpy 1.10.
@@ -441,7 +441,7 @@ class Spectrum(numpy.ma.masked_array):
 
     def fold(self):
         """
-        Folded frequency spectrum
+        Returns a folded frequency spectrum.
 
         The folded fs assumes that information on which allele is ancestral or
         derived is unavailable. Thus the fs is in terms of minor allele
@@ -495,7 +495,7 @@ class Spectrum(numpy.ma.masked_array):
 
     def unfold(self):
         """
-        Unfolded frequency spectrum
+        Returns an unfolded frequency spectrum.
 
         It is assumed that each state of a SNP is equally likely to be
         ancestral.
@@ -1141,9 +1141,9 @@ class Spectrum(numpy.ma.masked_array):
 
     def fixed_size_sample(self, nsamples, include_masked=False):
         """
-        Generate a resampled fs from the current one. Thus, the resampled SFS
-            follows a multinomial distribution given by the proportion of sites
-            in each bin in the original SFS.
+        Generate a resampled SFS from the current one. Thus, the resampled SFS
+        follows a multinomial distribution given by the proportion of sites
+        in each bin in the original SFS.
 
         :param nsamples: Number of samples to include in the new SFS.
         :type nsamples: int
@@ -1167,7 +1167,7 @@ class Spectrum(numpy.ma.masked_array):
         Generate a Poisson-sampled fs from the current one.
 
         Note: Entries where the current fs is masked or 0 will be masked in the
-            output sampled fs.
+        output sampled fs.
         """
         import scipy.stats
 
