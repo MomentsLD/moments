@@ -8,9 +8,10 @@ import moments
 
 def snm(ns):
     """
-    Standard neutral model.
+    Standard neutral model with theta=1.
 
-    ns: Number of samples in resulting Spectrum
+    :param ns: Number of samples in resulting Spectrum. Must be a list
+        of length one.
     """
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0])
     fs = moments.Spectrum(sts)
@@ -23,10 +24,12 @@ def two_epoch(params, ns):
 
     params = (nu,T)
     
-    nu: Ratio of contemporary to ancient population size
-    T: Time in the past at which size change happened (in units of 2*Na 
-       generations) 
-    ns: Number of samples in resulting Spectrum.
+    :param params: Tuple of length two, specifying (nu, T).
+        nu: the ratio of contemporary to ancient population size.
+        T: the time in the past at which size change happened
+        (in units of 2*Ne generations).
+    :param ns: Number of samples in resulting Spectrum. Must be a list of
+        length one.
     """
     nu, T = params
 
@@ -42,10 +45,12 @@ def growth(params, ns):
 
     params = (nu,T)
 
-    nu: Ratio of contemporary to ancient population size
-    T: Time in the past at which growth began (in units of 2*Na 
-       generations) 
-    ns: Number of samples in resulting Spectrum.
+    :param params: Tupe of length two, specifying (nu, t).
+        nu: the final population size.
+        T: the time in the past at which growth began
+        (in units of 2*Ne generations).
+    :param ns: Number of samples in resulting Spectrum. Must be a list of
+        length one.
     """
     nu, T = params
 
@@ -63,12 +68,13 @@ def bottlegrowth(params, ns):
 
     params = (nuB,nuF,T)
 
-    nuB: Ratio of population size after instantanous change to ancient
-         population size
-    nuF: Ratio of contemporary to ancient population size
-    T: Time in the past at which instantaneous change happened and growth began
-       (in units of 2*Na generations) 
-    ns: Number of samples in resulting Spectrum.
+    :param params: Tuple of length three specifying (nuB, nuF, T).
+        nuB: Ratio of population size after instantanous change to ancient
+        population size.
+        nuF: Ratio of contemporary to ancient population size.
+        T: Time in the past at which instantaneous change happened and growth began
+        (in units of 2*Na generations).
+    :param ns: Number of samples in resulting Spectrum.
     """
     nuB, nuF, T = params
     nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF / nuB) * t / T)]
@@ -82,14 +88,16 @@ def bottlegrowth(params, ns):
 
 def three_epoch(params, ns):
     """
-    params = (nuB,nuF,TB,TF)
+    Three epoch model of constant sizes.
+    
+    params = (nuB, nuF, TB, TF)
 
-    nuB: Ratio of bottleneck population size to ancient pop size
-    nuF: Ratio of contemporary to ancient pop size
-    TB: Length of bottleneck (in units of 2*Na generations) 
-    TF: Time since bottleneck recovery (in units of 2*Na generations) 
-
-    ns: Number of samples in resulting Spectrum.
+    :param params: Tuple of length four specifying (nuB, nuF, TB, TF).
+        nuB: Ratio of bottleneck population size to ancient pop size.
+        nuF: Ratio of contemporary to ancient pop size.
+        TB: Length of bottleneck (in units of 2*Na generations).
+        TF: Time since bottleneck recovery (in units of 2*Na generations).
+    :param ns: Number of samples in resulting Spectrum.
     """
     nuB, nuF, TB, TF = params
 

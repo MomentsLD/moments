@@ -90,16 +90,18 @@ def bottlegrowth_split_mig(params, ns):
 
 def split_mig(params, ns):
     """
+    Split into two populations of specifed size, with migration.
+    
     params = (nu1, nu2, T, m)
+
     ns = [n1, n2]
 
-    Split into two populations of specifed size, with migration.
-
-    nu1: Size of population 1 after split.
-    nu2: Size of population 2 after split.
-    T: Time in the past of split (in units of 2*Na generations) 
-    m: Migration rate between populations (2*Na*m)
-    n1, n2: Sample sizes of resulting Spectrum.
+    :param params: Tuple of length 4.
+        nu1: Size of population 1 after split.
+        nu2: Size of population 2 after split.
+        T: Time in the past of split (in units of 2*Na generations) 
+        m: Migration rate between populations (2*Na*m)
+    :param ns: List of length two specifying sample sizes n1 and n2.
     """
     nu1, nu2, T, m = params
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
@@ -112,18 +114,20 @@ def split_mig(params, ns):
 
 def IM(params, ns):
     """
+    Isolation-with-migration model with exponential pop growth.
+    
     params = (s, nu1, nu2, T, m12, m21)
+    
     ns = [n1, n2]
 
-    Isolation-with-migration model with exponential pop growth.
-
-    s: Size of pop 1 after split. (Pop 2 has size 1-s.)
-    nu1: Final size of pop 1.
-    nu2: Final size of pop 2.
-    T: Time in the past of split (in units of 2*Na generations) 
-    m12: Migration from pop 2 to pop 1 (2 * Na * m12)
-    m21: Migration from pop 1 to pop 2
-    n1, n2: Sample sizes of resulting Spectrum.
+    :param params: Tuple of length 6.
+        s: Size of pop 1 after split. (Pop 2 has size 1-s.)
+        nu1: Final size of pop 1.
+        nu2: Final size of pop 2.
+        T: Time in the past of split (in units of 2*Na generations) 
+        m12: Migration from pop 2 to pop 1 (2 * Na * m12)
+        m21: Migration from pop 1 to pop 2
+    :param ns: List of length two specifying sample sizes n1 and n2.
     """
     s, nu1, nu2, T, m12, m21 = params
 

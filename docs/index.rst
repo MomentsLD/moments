@@ -39,5 +39,5 @@ Welcome to moments's documentation!
    :caption: Data types and functions
    :maxdepth: 2
 
-   api
+   api_moments
 
