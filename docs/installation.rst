@@ -2,15 +2,12 @@
 Installation
 ============
 
-Requirements and support
-^^^^^^^^^^^^^^^^^^^^^^^^
-
 ``moments`` now supports Python 3. Because Python is soon discontinuing support for
 Python 2, we do not actively ensure that moments remains fully compatable with Python
 2, and strongly recommend using Python 3.
 
 Using pip
-^^^^^^^^^
+=========
 
 The simplest way to install ``moments`` is via ``pip``. Note that ``numpy`` and ``cython``
 are install requirements, but installing ``moments`` directly from the git repository
@@ -36,7 +33,7 @@ and then from within the moments directory (``cd moments``), run
 
 
 Using bioconda
-^^^^^^^^^^^^^^
+==============
 
 ``moments`` is now available on Bioconda! If you use conda, you can install the most
 recent release of ``moments`` by running
@@ -46,7 +43,7 @@ recent release of ``moments`` by running
    conda install -c bioconda moments
 
 Dependencies and details
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 ``moments`` and ``moments.LD`` requires a number of dependencies. These are
 

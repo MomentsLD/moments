@@ -1605,27 +1605,32 @@ class Spectrum(numpy.ma.masked_array):
         """
         Spectrum from a dictionary of polymorphisms.
 
+        The data dictionary should be organized as:
+        
+        .. code-block::
+
+            {snp_id: {
+                'segregating': ['A','T'],
+                'calls': {
+                    'YRI': (23,3),
+                    'CEU': (7,3)
+                },
+                'outgroup_allele': 'T'
+            }}
+
+        The 'calls' entry gives the successful calls in each population, in the
+        order that the alleles are specified in 'segregating'.
+        Non-diallelic polymorphisms are skipped.
+
         :param pop_ids: list of which populations to make fs for.
         :param projections: list of sample sizes to project down to for each
             population.
         :param polarized: If True, the data are assumed to be correctly polarized by
-            `outgroup_allele'. SNPs in which the 'outgroup_allele'
+            'outgroup_allele'. SNPs in which the 'outgroup_allele'
             information is missing or '-' or not concordant with the
             segregating alleles will be ignored.
             If False, any 'outgroup_allele' info present is ignored,
             and the returned spectrum is folded.
-
-        The data dictionary should be organized as:
-            {snp_id:{'segregating': ['A','T'],
-                     'calls': {'YRI': (23,3),
-                                'CEU': (7,3)
-                                },
-                     'outgroup_allele': 'T'
-                    }
-            }
-        The 'calls' entry gives the successful calls in each population, in the
-        order that the alleles are specified in 'segregating'.
-        Non-diallelic polymorphisms are skipped.
         """
         Npops = len(pop_ids)
         fs = numpy.zeros(numpy.asarray(projections) + 1)

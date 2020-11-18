@@ -10,7 +10,9 @@ The Spectrum object
         split, admix, pulse_migrate, integrate,
         Fst, S, Watterson_theta, theta_L, Zengs_E, pi, Tajima_D,
         from_file, to_file, fixed_size_sample, sample,
-        from_demes
+        from_data_dict, from_demes
+
+.. autofunction:: moments.Misc.make_data_dict_vcf
 
 Demographic functions
 ---------------------

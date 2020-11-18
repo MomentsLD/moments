@@ -12,12 +12,14 @@ Welcome to moments's documentation!
 
 .. toctree::
    :caption: Getting started
+   :maxdepth: 1
 
    introduction
    installation
 
 .. toctree::
    :caption: SFS analysis
+   :maxdepth: 1
 
    sfs
    inference
@@ -25,6 +27,7 @@ Welcome to moments's documentation!
 
 .. toctree::
    :caption: Extentions
+   :maxdepth: 1
    
    ld
    two_locus
@@ -32,12 +35,13 @@ Welcome to moments's documentation!
 
 .. toctree::
    :caption: Demes
+   :maxdepth: 1
 
    demes
 
 .. toctree::
    :caption: Data types and functions
-   :maxdepth: 2
+   :maxdepth: 1
 
    api_moments
 

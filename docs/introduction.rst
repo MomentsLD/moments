@@ -30,8 +30,9 @@ populations.
 Genetics department at McGill University, with maintenance and development by the
 Gravel Lab and `Aaron Ragsdale <http://apragsdale.github.io>`_.
 
+*********
 Citations
-^^^^^^^^^
+*********
 
 If you use ``moments`` in your research, please cite:
 
@@ -47,11 +48,12 @@ If you use ``moments.LD`` in your research, please cite:
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
   from unphased data. Mol Biol Evol, 37(3), 923-932.
 
+**********
 Change log
-^^^^^^^^^^
+**********
 
 1.0.6
------
+=====
 
 - Updates to installation, so that ``pip`` installs dependencies automatically
 
@@ -64,20 +66,20 @@ Change log
   ``python -m pytests tests``
 
 1.0.5
------
+=====
 
 - Fixes install issues using pip: ``pip install .`` or
   ``pip install git+https://bitbucket.org/simongravel/moments.git`` is now functional
 
 1.0.4
------
+=====
 
 - Stable importing of scipy.optimize nnls function
 
 - Fixes a plotting bug when ax was set to None (from @noscode - thanks!)
 
 1.0.3
------
+=====
 
 - Options in plotting scripts for showing and saving output
 

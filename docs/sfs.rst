@@ -12,8 +12,9 @@ its expectation using ``moments``, manipulate spectra, implement demographic
 models using the ``moments`` API, and computing and saving spectra from
 a VCF.
 
+*******
 The SFS
-^^^^^^^
+*******
 
 A site-frequency spectrum is a :math:`p`-dimensional histogram, where :math:`p`
 is the number of populations for which we have data. Thus, the shape of the SFS
@@ -25,8 +26,9 @@ given by the index of that entry. That is, ``fs[j, k, l]`` is the number
 in population 1, and ``l`` in population 2. (Note that all indexing, as is
 typical in Python, is zero-based.)
 
+*******************************
 Spectrum objects in ``moments``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*******************************
 
 SFS are stored as ``moments.Spectrum`` objects. If you are familiar with
 `dadi <https://bitbucket.org/ryangutenkunst/dadi.git>`_'s Spectrum objects,
@@ -53,8 +55,9 @@ A ``Spectrum`` object has a few additional useful attributes:
   allele frequencies by the minor allele frequency. If False, the SFS is
   polarized by the derived allele.
 
+****************
 Manipulating SFS
-^^^^^^^^^^^^^^^^
+****************
 
 Along with standard array manipulations, there are operations specific to SFS.
 Some of these are equivalent to standard array operations, but we ensure that
@@ -170,9 +173,9 @@ same number of segregating sites:
     print(f"number of sites in resampled SFS:", fs_fixed.S())
     fs_fixed
 
-
+******************
 Demographic events
-^^^^^^^^^^^^^^^^^^
+******************
 
 When defining demographic models with multiple populations, we need to apply
 demographic events such as population splits, mergers, and admixtures. These
@@ -265,25 +268,39 @@ And to account for population IDs after admixture:
     print("admix SFS has size", fs_admix.sample_sizes, "and pop ids", fs_admix.pop_ids,
         "after moving 4 lineages into new population C")
 
+***********
 Integration
-^^^^^^^^^^^
+***********
 
-- size functions
-- integration time and time units
-- migration rates
-- scaled mutation rate
-- selection and dominance
-- frozen populations
-- mutation models (ISM vs reversible mutations)
+
+
+Size functions
+==============
+
+Integration time and time units
+===============================
+
+Migration rates
+===============
+
+Mutation rates and mutation model
+=================================
+
+Selection and dominance
+=======================
+
+Ancient samples and frozen populations
+======================================
 
 Demographic models
-^^^^^^^^^^^^^^^^^^
+==================
 
-- IM example
-- see Gallery for more examples of 1-, 2-, and 3-population demographic models
+Head over to the *gallery* to see some examples of single- and multi-population
+demographic models.
 
+****************************
 Computing summary statistics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+****************************
 
 ``moments`` allows us to compute a handful of summary statistics from the SFS.
 For single populations, we can get Watterson's :math:`\theta`, the diversity
@@ -318,14 +335,15 @@ inflate the "true" divergence.
     print("10 samples each:", moments.Demographics2D.snm([10, 10]).Fst())
     print("100 samples each:", moments.Demographics2D.snm([100, 100]).Fst())
 
-Computing SFS from a VCF
-^^^^^^^^^^^^^^^^^^^^^^^^
+********************
+Compute SFS from VCF
+********************
 
-Using ``Misc.make_data_dict_vcf`` and ``Spectrum.from_data_dict``.
+``moments`` supports computing a SFS from files in VCF format, given a
+population information file. This takes two steps. We first parse the VCF
+using and we then pass that data dictionary to the Spectrum class:
 
-Storing and loading data
-^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: python
 
-- The Spectrum file format
-- Writing to file
-- Loading from file
+    data_dict = moments.Misc.make_data_dict_vcf(vcf_filename, popinfo_filename)
+    fs = moments.Spectrum.from_data_dict(data_dict)
