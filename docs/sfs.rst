@@ -348,7 +348,7 @@ Mutation rates and mutation model
 =================================
 
 By default, ``moments`` uses an infinite-sites model (ISM). Then the mutation rate
-:math:`\theta`` is the population-size scaled mutation rate multplied by the number
+:math:`\theta` is the population-size scaled mutation rate multiplied by the number
 of loci: ``theta = 4*Ne*u*L``. By default, ``theta`` is set to 1.
 
 Luckily, we do not often need to worry about setting ``theta``, because the ISM
@@ -383,8 +383,8 @@ To compute a SFS in which we track monomorphic loci, we use a reversible mutatio
 model, which we specify by setting ``finite_genome=True``. When simulating under
 the finite genome model, the mutation rate is no longer scaled by the number of
 loci, ``L``. Instead, the mutation rates are simply `theta_fd=4*Ne*u` and
-`theta_bd=4*Ne*v` where `u` and `v` are the forward and backward mutation rates,
-respectively. Therefore, `theta_fd` and `theta_bd` are typically much less than
+``theta_bd=4*Ne*v`` where ``u`` and ``v`` are the forward and backward mutation rates,
+respectively. Therefore, ``theta_fd`` and ``theta_bd`` are typically much less than
 1 (and in fact the model breaks down for scaled mutation rates around 1).
 
 To simulate under the reversible mutation model, we first initialize the
@@ -408,7 +408,7 @@ to set both mutation rates (which must be set, as ``theta`` must be less than 1)
 Illustration: ancestral state misidentification
 -----------------------------------------------
 
-In SFS analyses, a tpyical confounder is the misidentification of the ancestral
+In SFS analyses, a typical confounder is the misidentification of the ancestral
 allele. This occurs because polarization requires estimating the ancestral state
 of a locus, which is typically done by comparing to one or more outgroup species
 in a sequence alignment. For humans, we typically use chimpanzee and other great
@@ -421,7 +421,8 @@ derived. For humans, the rate of ancestral misidentification is typically in the
 1-3% range, depending on the method used to polarize alleles.
 
 For example, we can simulate using rough parameters (:math:`u=1.25\times 10^{-8}`,
-:math:`N_e=10^4`, divergence of 6 million years) and symmetric mutation rates to see
+:math:`N_e=10^4`, divergence of 6 million years, and a generation time of 25 years)
+and symmetric mutation rates to see
 the effect of polarizing based on the allele in a chimp sequence. Here, if the
 chimp carries the derived allele, we will instead assume the ancestral allele
 is derived:
@@ -431,7 +432,9 @@ is derived:
     Ne = 1e4
     u = 1.25e-8
     theta = 4 * Ne * u
-    T = 6e6 / 25 / 2 / Ne
+    generation_time = 25
+    divergence_years = 6e6
+    T = divergence_years / generation_time / 2 / Ne
     
     fs = moments.LinearSystem_1D.steady_state_1D_reversible(
         101, theta_fd=theta, theta_bd=theta)
