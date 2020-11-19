@@ -678,6 +678,8 @@ class Spectrum(numpy.ma.masked_array):
             migration rate from pop j to pop i, normalized by :math:`2N_e`.
         :type m: array-like, optional
         :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
+            ``theta`` can be used in the reversible model in the case of symmetric
+            mutation rates. In this case, ``theta`` must be set to << 1.
         :type theta: float, optional
         :param adapt_dt: flag to allow dt correction avoiding negative entries.
         :type adapt_dt: bool, optional
@@ -701,10 +703,14 @@ class Spectrum(numpy.ma.masked_array):
             m = numpy.array(m)
 
         if finite_genome == True and (theta_fd == None or theta_bd == None):
-            raise ValueError(
-                "Forward and backward mutation rates must be "
-                "specified in the finite genome model."
-            )
+            if theta >= 1:
+                raise ValueError(
+                    "In the finite genome model, theta must be much less than 1. "
+                    "If symmetric mutation rates, can use theta << 1. Otherwise, "
+                    "theta_fd and theta_bd must be specified."
+                )
+            else:
+                theta_fd = theta_bd = theta
 
         if hasattr(Npop, "__len__"):
             if numpy.any(frozen) and len(Npop) != len(frozen):
