@@ -21,9 +21,9 @@ def split_h(h, pop_to_split, num_pops):
     h_new = np.empty(int((num_pops + 1) * (num_pops + 2) / 2))
     c = 0
     hn = Util.het_names(num_pops)
-    for ii in range(1, num_pops + 2):
-        for jj in range(ii, num_pops + 2):
-            if jj == num_pops + 1:
+    for ii in range(num_pops + 1):
+        for jj in range(ii, num_pops + 1):
+            if jj == num_pops:
                 if ii == jj:
                     h_new[c] = h_from[hn.index("H_{0}_{0}".format(pop_to_split))]
                 else:
@@ -54,7 +54,7 @@ def split_ld(y, pop_to_split, num_pops):
         else:
             mom_to_split = mom_to.split("_")
             for jj in range(1, len(mom_to_split)):
-                if int(mom_to_split[jj]) == num_pops + 1:
+                if int(mom_to_split[jj]) == num_pops:
                     mom_to_split[jj] = str(pop_to_split)
             mom_from = "_".join(mom_to_split)
             y_new[ii] = y[mom_list_from.index(Util.map_moment(mom_from))]

@@ -10,7 +10,7 @@ def het_names(num_pops):
     Hs = []
     for ii in range(num_pops):
         for jj in range(ii, num_pops):
-            Hs.append("H_{0}_{1}".format(ii + 1, jj + 1))
+            Hs.append("H_{0}_{1}".format(ii, jj))
     return Hs
 
 
@@ -18,11 +18,11 @@ def ld_names(num_pops):
     Ys = []
     for ii in range(num_pops):
         for jj in range(ii, num_pops):
-            Ys.append("DD_{0}_{1}".format(ii + 1, jj + 1))
+            Ys.append("DD_{0}_{1}".format(ii, jj))
     for ii in range(num_pops):
         for jj in range(num_pops):
             for kk in range(jj, num_pops):
-                Ys.append("Dz_{0}_{1}_{2}".format(ii + 1, jj + 1, kk + 1))
+                Ys.append("Dz_{0}_{1}_{2}".format(ii, jj, kk))
     for ii in range(num_pops):
         for jj in range(ii, num_pops):
             for kk in range(ii, num_pops):
@@ -32,7 +32,7 @@ def ld_names(num_pops):
                     if ii == kk and ll < jj:
                         continue
                     Ys.append(
-                        "pi2_{0}_{1}_{2}_{3}".format(ii + 1, jj + 1, kk + 1, ll + 1)
+                        "pi2_{0}_{1}_{2}_{3}".format(ii, jj, kk, ll)
                     )
     return Ys
 

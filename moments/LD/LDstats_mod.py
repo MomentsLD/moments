@@ -1,10 +1,3 @@
-"""
-Contains LD statistics object
-
-XXX I made a stupid decision early on to index populations from 1 instead of 0.
-    At some point I need to go through and fix all that, perhaps...
-
-"""
 import logging
 
 logging.basicConfig()
@@ -19,27 +12,25 @@ from . import Numerics, Util
 
 class LDstats(list):
     """
-    Represents linkage disequilibrium statistics, stored in a more accessible
-        way, with heterozygosity separated and multiple rho values (LDstats).
-    
-    (Only allows equal mutation rates, and all statistics here are order 2 (D^2))
-    
-    LDstats are represented as a list of statistics over two locus pairs for 
+    Represents linkage disequilibrium statistics as a list of arrays, where
+    each entry in the list is an array of statistics for a corresponding
+    recombination rate. The final entry in the list is always the heterozygosity
+    statistics. Thus, if we have an LDstats object for 3 recombination rate
+    values, the list will have length 4.
+
+    LDstats are represented as a list of statistics over two locus pairs for
     a given recombination distance.
-    
-    It has form Y[0] = two locus stats for rho[0], ... Y[n] = two locus stats for rho[n], H
-    Each Y[i] is a condensed set of statistics (E[D_i(1-2p_j)(1-2q_k)] = E[D_i(1-2p_k)(1-2q_j)]
-    
-    The constructor has the format:
-        y = moments.LD.LDstats(data, num_pops, pop_ids)
-        data: The list of statistics
-        num_pops: Number of populations. For one population, higher order 
-                  statistics may be computed.
-        pop_ids: population names in order that statistics are represented here.
+
+    :param data: A list of LD and heterozygosity stats.
+    :type data: list of arrays
+    :param num_pops: Number of populations. For one population, higher order
+        statistics may be computed.
+    :type num_pops: int
+    :param pop_ids: Population IDs in order that statistics are represented here.
+    :type pop_ids: list of strings, optional
     """
 
     def __new__(self, data, num_pops=None, pop_ids=None):
-
         if num_pops == None:
             raise ValueError("Specify number of populations as num_pops=.")
         my_list = super(LDstats, self).__new__(self, data, num_pops=None, pop_ids=None)
@@ -110,6 +101,12 @@ class LDstats(list):
         )
 
     def names(self):
+        """
+        Returns the set of LD and heterozygosity statistics names for the
+        number of populations represented by the LDstats.
+
+        Note that this will always return the full set of statistics,
+        """
         if self.num_pops == None:
             raise ValueError(
                 "Number of populations must be specified (as stats.num_pops)"
@@ -121,34 +118,44 @@ class LDstats(list):
 
     def LD(self, pops=None):
         """
-        returns LD stats for populations given (if None, returns all)
+        Returns LD stats for populations given (if None, returns all).
+
+        :param pops: The indexes of populations to return stats for.
+        :type pops: list of ints, optional
         """
-        if len(self) > 1:
+        if len(self) <= 1:
+            raise ValueError("No LD statistics present")
+        else:
             if pops is not None:
-                to_marginalize = list(set(range(1, self.num_pops + 1)) - set(pops))
+                to_marginalize = list(set(range(self.num_pops)) - set(pops))
                 Y_new = self.marginalize(to_marginalize)
-                if len(self) == 2:
-                    return Y_new[:-1][0]
-                else:
-                    return Y_new[:-1]
-            else:
-                return self[:-1]
+            return Y_new[:-1]
 
     def H(self, pops=None):
-        if pops is not None:
-            to_marginalize = list(set(range(1, self.num_pops + 1)) - set(pops))
-            Y_new = self.marginalize(to_marginalize)
-            return Y_new[-1]
-        else:
-            return self[-1]
-
-    def split(self, pop_to_split):
         """
-        y: LDstats object for 
-        pop_to_split: index of population to split
-        If the populations are labeled [pop1, pop2], with the new pop pop_new, 
-        the output statistics would have population order [pop1, pop2, pop_new]
-        New population always appended on end. 
+        Returns heterozygosity statistics for the populations given.
+
+        :param pops: The indexes of populations to return stats for.
+        :type pops: list of ints, optional
+        """
+        if pops is not None:
+            to_marginalize = list(set(range(self.num_pops)) - set(pops))
+            Y_new = self.marginalize(to_marginalize)
+        return Y_new[-1]
+
+    # demographic and manipulation functions
+    def split(self, pop_to_split, new_ids=None):
+        """
+        Splits the population given into two child populations. One child
+        population keeps the same index and the second child population is
+        placed at the end of the list of present populations. If new_ids
+        is given, we can set the population IDs of the child populations,
+        but only if the input LDstats have population IDs available.
+
+        :param pop_to_split: The index of the population to split.
+        :type pop_to_split: int
+        :param new_ids: List of child population names, of length two.
+        :type new_ids: list of strings, optional
         """
         if pop_to_split > self.num_pops:
             raise ValueError("population to split larger than number of pops")
@@ -161,17 +168,29 @@ class LDstats(list):
         for y in ys:
             ys_new.append(Numerics.split_ld(y, pop_to_split, self.num_pops))
 
-        return LDstats(ys_new + [h_new], num_pops=self.num_pops + 1)
+        if self.pop_ids is not None and new_ids is not None:
+            new_pop_ids = copy.copy(self.pop_ids)
+            new_pop_ids[pop_to_split] = new_ids[0]
+            new_pop_ids.append(new_ids[1])
+        else:
+            new_pop_ids = None
 
-    def swap_pops(self, pop1, pop2):
+        return LDstats(
+            ys_new + [h_new], num_pops=self.num_pops + 1, pop_ids=new_pop_ids
+        )
+
+    def swap_pops(self, pop0, pop1):
         """
-        like swapaxes for switching population ordering
-        pop1 and pop2 are indexes of the two populations to swap, and also swaps
-        their population id names in self.pop_ids
+        Swaps pop0 and pop1 in the order of the population in the LDstats.
+
+        :param pop0: The index of the first population to swap.
+        :type pop0: int
+        :param pop1: The index of the second population to swap.
+        :type pop1: int
         """
-        if pop1 > self.num_pops or pop2 > self.num_pops or pop1 < 1 or pop2 < 1:
+        if pop0 >= self.num_pops or pop1 >= self.num_pops or pop0 < 0 or pop1 < 0:
             raise ValueError("Invalid population number specified.")
-        if pop1 == pop2:
+        if pop0 == pop1:
             return self
 
         mom_list = Util.moment_names(self.num_pops)
@@ -182,19 +201,21 @@ class LDstats(list):
         if len(self) > 2:
             ys_new = [np.zeros(len(mom_list[0])) for i in range(len(self) - 1)]
 
-        pops_old = list(range(1, self.num_pops + 1))
-        pops_new = list(range(1, self.num_pops + 1))
-        pops_new[pop1 - 1] = pop2
-        pops_new[pop2 - 1] = pop1
+        pops_old = list(range(self.num_pops))
+        pops_new = list(range(self.num_pops))
+        pops_new[pop0] = pop1
+        pops_new[pop1] = pop0
 
         d = dict(zip(pops_old, pops_new))
 
+        # swap heterozygosity statistics
         for ii, mom in enumerate(mom_list[-1]):
             pops_mom = [int(p) for p in mom.split("_")[1:]]
             pops_mom_new = [d.get(p) for p in pops_mom]
             mom_new = mom.split("_")[0] + "_" + "_".join([str(p) for p in pops_mom_new])
             h_new[ii] = self[-1][mom_list[-1].index(Util.map_moment(mom_new))]
 
+        # swap LD statistics
         if len(self) > 1:
             for ii, mom in enumerate(mom_list[0]):
                 pops_mom = [int(p) for p in mom.split("_")[1:]]
@@ -212,7 +233,7 @@ class LDstats(list):
 
         if self.pop_ids is not None:
             current_order = self.pop_ids
-            new_order = [self.pop_ids[d[ii] - 1] for ii in range(1, self.num_pops + 1)]
+            new_order = [self.pop_ids[d[ii]] for ii in range(self.num_pops)]
         else:
             new_order = None
 
@@ -225,15 +246,15 @@ class LDstats(list):
 
     def marginalize(self, pops):
         """
-        Marginalize over the LDstats, removing moments for given pops
-        pops could be a single population or a list of pops
-        assume that we have 
+        Marginalize over the LDstats, removing moments for given populations.
+
+        :param pops: The index or list of indexes of populations to marginalize.
+        :type pops: int or list of ints
         """
-        if self.num_pops == 1:
-            print("no populations left.")
-            return self
         if hasattr(pops, "__len__") == False:
             pops = [pops]
+        if self.num_pops == len(pops):
+            raise ValueError("Marginalization would remove all populations.")
 
         # multiple pop indices to marginalize over
         names_from_ld, names_from_h = Util.moment_names(self.num_pops)
@@ -260,7 +281,7 @@ class LDstats(list):
         else:
             new_ids = copy.copy(self.pop_ids)
             for ii in sorted(pops)[::-1]:
-                new_ids.pop(ii - 1)
+                new_ids.pop(ii)
             return LDstats(y_new, num_pops=self.num_pops - len(pops), pop_ids=new_ids)
 
     ## Admix takes two populations, creates new population with fractions f, 1-f
@@ -274,72 +295,116 @@ class LDstats(list):
     ## then marginalize pop2, so the new population takes the same position in pop_ids
     ## that pop2 was previously in
 
-    def admix(self, pop1, pop2, f, new_pop=None):
+    def admix(self, pop0, pop1, f, new_id="Adm"):
         """
-        Admixture between pop1 and pop2, given by indexes. f is the fraction 
-            contributed by pop1, so pop2 contributes 1-f.
-        If new_pop is left as 'None', the admixed population's name is 'Adm'.
-            Otherwise, we can set it with new_pop=new_pop_name.
+        Admixture between pop0 and pop1, given by indexes. f is the fraction
+        contributed by pop0, so pop1 contributes 1-f. If new_id is not specified,
+        the admixed population's name is 'Adm'. Otherwise, we can set it with
+        new_id=new_pop_id.
+
+        :param pop0: First population to admix.
+        :type pop0: int
+        :param pop1: Second population to admix.
+        :type pop1: int
+        :param f: The fraction of ancestry contributed by pop0, so pop1 contributes
+            1 - f.
+        :type f: float
+        :param new_id: The name of the admixed population.
+        :type new_id: str, optional
         """
         if (
             self.num_pops < 2
-            or pop1 > self.num_pops
-            or pop2 > self.num_pops
-            or pop1 < 1
-            or pop2 < 1
+            or pop0 >= self.num_pops
+            or pop1 >= self.num_pops
+            or pop0 < 0
+            or pop1 < 0
         ):
             raise ValueError("Improper usage of admix (wrong indices?).")
-        else:
-            Y_new = Numerics.admix(self, self.num_pops, pop1, pop2, f)
-            if self.pop_ids is not None:
-                if new_pop == None:
-                    new_pop_ids = self.pop_ids + ["Adm"]
-                else:
-                    new_pop_ids = self.pop_ids + [new_pop]
-            else:
-                new_pop_ids = None
-            return LDstats(Y_new, num_pops=self.num_pops + 1, pop_ids=new_pop_ids)
+        if pop0 == pop1:
+            raise ValueError("pop0 cannot equal pop1")
+        if f < 0 or f > 1:
+            raise ValueError("Admixture fraction must be between 0 and 1")
 
-    def merge(self, pop1, pop2, f, new_pop=None):
+        Y_new = Numerics.admix(self, self.num_pops, pop0, pop1, f)
+        if self.pop_ids is not None:
+            new_pop_ids = self.pop_ids + [new_id]
+        else:
+            new_pop_ids = None
+        return LDstats(Y_new, num_pops=self.num_pops + 1, pop_ids=new_pop_ids)
+
+    def merge(self, pop0, pop1, f, new_id="Merged"):
         """
-        Merger of populations pop1 and pop22, with fraction f from pop1 
-            and 1-f from pop2.
-        Places new population at the end, then marginalizes pop1 and pop2.
-        To admix two populations and keep one or both, use pulse migrate or 
-            admix, respectively.
+        Merger of populations pop0 and pop1, with fraction f from pop0
+        and 1-f from pop1. Places new population at the end, then marginalizes
+        pop0 and pop1. To admix two populations and keep one or both, use pulse
+        migrate or admix, respectively.
+
+        :param pop0: First population to merge.
+        :type pop0: int
+        :param pop1: Second population to merge.
+        :type pop1: int
+        :param f: The fraction of ancestry contributed by pop0, so pop1 contributes
+            1 - f.
+        :type f: float
+        :param new_id: The name of the merged population.
+        :type new_id: str, optional
         """
-        Y_new = self.admix(pop1, pop2, f, new_pop=new_pop)
-        Y_new = Y_new.marginalize([pop1, pop2])
+        Y_new = self.admix(pop0, pop1, f, new_id=new_id)
+        Y_new = Y_new.marginalize([pop0, pop1])
         return Y_new
 
-    def pulse_migrate(self, pop1, pop2, f):
+    def pulse_migrate(self, pop0, pop1, f):
         """
-        Pulse migration/admixure event from pop1 to pop2, with fraction f 
-            replacement. We use the admix function above. We want to keep the 
-            original population names the same, if they are given in the LDstats
-            object, so we use new_pop=self.pop_ids[pop2].
-        We admix pop1 and pop2 with fraction f and 1-f, then swap the new
-            admixed population with pop2, then marginalize the original pop2.
+        Pulse migration/admixure event from pop0 to pop1, with fraction f
+        replacement. We use the admix function above. We want to keep the
+        original population names the same, if they are given in the LDstats
+        object, so we use new_pop=self.pop_ids[pop1].
+
+        We admix pop0 and pop1 with fraction f and 1-f, then swap the new
+        admixed population with pop1, then marginalize the original pop1.
+
+        :param pop0: The index of the source population.
+        :type pop0: int
+        :param pop1: The index of the target population.
+        :type pop1: int
+        :param f: The fraction of ancestry contributed by the source population.
+        :type f: float
         """
+        if (
+            self.num_pops < 2
+            or pop0 >= self.num_pops
+            or pop1 >= self.num_pops
+            or pop0 < 0
+            or pop1 < 0
+        ):
+            raise ValueError("Improper usage of admix (wrong indices?).")
+        if pop0 == pop1:
+            raise ValueError("pop0 cannot equal pop1")
+        if f < 0 or f > 1:
+            raise ValueError("Admixture fraction must be between 0 and 1")
+
         if self.pop_ids is not None:
-            Y_new = self.admix(pop1, pop2, f, new_pop=self.pop_ids[pop2 - 1])
+            Y_new = self.admix(pop0, pop1, f, new_id=self.pop_ids[pop1])
         else:
-            Y_new = self.admix(pop1, pop2, f)
-        Y_new = Y_new.swap_pops(pop2, Y_new.num_pops)
-        Y_new = Y_new.marginalize(Y_new.num_pops)
+            Y_new = self.admix(pop0, pop1, f)
+        Y_new = Y_new.swap_pops(pop1, Y_new.num_pops - 1)
+        Y_new = Y_new.marginalize(Y_new.num_pops - 1)
         return Y_new
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
-    def from_file(fid, return_comments=False):
+    def from_file(fid, return_statistics=False, return_comments=False):
         """
         Read LD statistics from file
-        
-        fid: string with file name to read from or an open file object.
-        return_statistics: If true, returns statistics writen to file.
-        return_comments: If true, the return value is (y, comments), where
-                         comments is a list of strings containing the comments
-                         from the file (without #'s).
+
+        :param fid: The file name to read from or an open file object.
+        :type fid: str
+        :param return_statistics: If true, returns statistics writen to file.
+        :type return_statistics: bool, optional
+        :param return_comments: If true, the return value is (y, comments), where
+            comments is a list of strings containing the comments
+            from the file (without #'s).
+        :type return_comments: bool, optional
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -390,46 +455,57 @@ class LDstats(list):
 
         y = LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
 
-        if not return_comments:
-            return y, statistics
+        if return_statistics:
+            if not return_comments:
+                return y, statistics
+            else:
+                return y, statistics, comments
         else:
-            return y, statistics, comments
+            if not return_comments:
+                return y
+            else:
+                return y, comments
 
     def to_file(self, fid, precision=16, statistics="ALL", comment_lines=[]):
         """
         Write LD statistics to file.
-        
-        fid: string with file name to write to or an open file object.
-        precision: precision with which to write out entries of the LD stats. 
-                   (They are formated via %.<p>g, where <p> is the precision.)
-        statistics: defaults to 'ALL', meaning all statistics are given in the
-                    LDstats object. Otherwise, list of two lists, first giving
-                    present LD stats, and the second giving present het stats.
-        comment lines: list of strings to be used as comment lines in the header
-                       of the output file.
-                       I use comment lines mainly to record the recombination 
-                       bins or distances given in the LDstats (something like
-                       "'edges = ' + str(r_edges)".
 
         The file format is:
-            # Any number of comment lines beginning with a '#'
-            A single line containing an integer giving the number of
-              populations.
-            On the *same line*, optional, the names of those populations. If
-              names are given, there needs to be the same number of pop_ids
-              as the integer number of populations. For example, the line could
-              be '3 YRI CEU CHB'.
-            A single line giving the names of the *LD* statistics, in the order
-              they appear for each recombination rate distance or bin.
-              Optionally, this line could read ALL, indicating that every 
-              statistic in the basis is given, and in the 'correct' order.
-            A single line giving the names of the *heterozygosity* statistics,
-              in the order they appear in the final row of data. Optionally,
-              this line could read ALL.
-            A line giving the number of recombination rate bins/distances we 
-              have data for (so we know how many to read)
-            One line for each row of LD statistics.
-            A single line for the heterozygosity statistics.
+
+        - # Any number of comment lines beginning with a '#'
+        - A single line containing an integer giving the number of
+          populations.
+        - On the *same line*, optional, the names of those populations. If
+          names are given, there needs to be the same number of pop_ids
+          as the integer number of populations. For example, the line could
+          be '3 YRI CEU CHB'.
+        - A single line giving the names of the *LD* statistics, in the order
+          they appear for each recombination rate distance or bin.
+          Optionally, this line could read ALL, indicating that every
+          statistic in the basis is given, and in the 'correct' order.
+        - A single line giving the names of the *heterozygosity* statistics,
+          in the order they appear in the final row of data. Optionally,
+          this line could read ALL.
+        - A line giving the number of recombination rate bins/distances we
+          have data for (so we know how many to read)
+        - One line for each row of LD statistics.
+        - A single line for the heterozygosity statistics.
+
+        :param fid: The file name to write to or an open file object.
+        :type fid: str
+        :param precision: The precision with which to write out entries of the LD stats.
+            (They are formated via %.<p>g, where <p> is the precision.)
+        :type precision: int
+        :param statistics: Defaults to 'ALL', meaning all statistics are given in the
+            LDstats object. Otherwise, list of two lists, first giving
+            present LD stats, and the second giving present het stats.
+        :type statistics: list of list of strings
+        :param comment_lines: List of strings to be used as comment lines in the header
+            of the output file.
+            I use comment lines mainly to record the recombination
+            bins or distances given in the LDstats (something like
+            "'edges = ' + str(r_edges)".
+        :type comment_lines: list of srtings
         """
 
         # if statistics is ALL, check to make sure the lengths are correct
@@ -503,8 +579,6 @@ class LDstats(list):
         if newfile:
             fid.close()
 
-    tofile = to_file
-
     # Ensures that when arithmetic is done with LDstats objects,
     # attributes are preserved. For details, see similar code in
     # moments.Spectrum_mod
@@ -567,22 +641,34 @@ def %(method)s(self, other):
         self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None, selfing=None, frozen=None
     ):
         """
-        Integrates the LD statistics forward in time. The tricky part is 
-        combining single population and multi-population integration routines. 
-        nu: relative population size, may be a function of time, given as a list [nu1, nu2, ...]
-        tf: total time to integrate
-        dt: integration timestep
-        rho: can be a single recombination rate or list of recombination rates 
-             (in which case we are integrating a list of LD stats for each rate)
-        theta: per base population-scaled mutation rate (4N*mu)
-               if we pass [theta1, theta2], differing mutation rates at left and right 
-               locus, implemented in the ISM=True model
-        m: migration matrix (num_pops x num_pops, storing m_ij migration rates
-           where m_ij is probability that a lineage in i had parent in j
-           m_ii is unused, and found by summing off diag elements in the ith row
-        selfing: list of selfing probabilities, same length as nu.
-        frozen: list of True and False same length as nu. True implies that a lineage
-                is frozen (as in ancient samples). False integrates as normal.
+        Integrates the LD statistics forward in time. When integrating LD statistics
+        for a list of recombination rates and mutation rate, they must be passed
+        as keywork arguments to this function. We can integrate either single-population
+        LD statistics up to order 10, or multi-population LD statistics but only
+        for order 2 (which includes :math:`D^2`, :math:`Dz`, and :math:`\\pi_2`).
+
+        :param nu: The relative population size, may be a function of time,
+            given as a list [nu1, nu2, ...]
+        :type nu: list or function
+        :param tf: Total time to integrate
+        :type tf: float
+        :param dt: Integration timestep
+        :type dt: float
+        :param rho: Can be a single recombination rate or list of recombination rates
+            (in which case we are integrating a list of LD stats for each rate)
+        :type rho: float or list of floats
+        :param theta: The per base population-scaled mutation rate (4N*mu)
+            if we pass [theta1, theta2], differing mutation rates at left and right
+            locus, implemented in the ISM=True model
+        :param m: The migration matrix (num_pops x num_pops, storing m_ij migration rates
+            where m_ij is probability that a lineage in i had parent in j
+            m_ii is unused, and found by summing off diag elements in the ith row
+        :type m: array
+        :param selfing: A list of selfing probabilities, same length as nu.
+        :type selfing: list of bools
+        :param frozen: A list of True and False same length as nu. True implies that a
+            lineage is frozen (as in ancient samples). False integrates as normal.
+        :type frozen: list of bools
         """
         num_pops = self.num_pops
 
