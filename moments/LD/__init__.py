@@ -6,13 +6,7 @@ from . import (
     Demographics2D,
     Inference,
     Godambe,
-)  # , Demographics3D, Corrections
-
-# Protect import of Demography in case networkx is not installed.
-try:
-    from . import Demography
-except ImportError:
-    pass
+)
 
 # Protect import of Plotting in case matplotlib is not installed.
 try:

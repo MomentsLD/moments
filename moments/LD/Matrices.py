@@ -62,9 +62,9 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("pi2_{0}_{0}_{0}_{0}".format(pop1)),
                 ]
                 new_data = [
-                    -3.0 / nus[pop1 - 1],
-                    1.0 / nus[pop1 - 1],
-                    1.0 / nus[pop1 - 1],
+                    -3.0 / nus[pop1],
+                    1.0 / nus[pop1],
+                    1.0 / nus[pop1],
                 ]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
@@ -73,7 +73,7 @@ def drift_ld(num_pops, nus, frozen=None):
             else:
                 row.append(ii)
                 col.append(names.index("DD_{0}_{1}".format(pop1, pop2)))
-                data.append(-1.0 / nus[pop1 - 1] - 1.0 / nus[pop2 - 1])
+                data.append(-1.0 / nus[pop1] - 1.0 / nus[pop2])
         elif mom == "Dz":
             pop1, pop2, pop3 = [int(p) for p in pops]
             if pop1 == pop2 == pop3:
@@ -82,7 +82,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("DD_{0}_{0}".format(pop1)),
                     names.index("Dz_{0}_{0}_{0}".format(pop1)),
                 ]
-                new_data = [4.0 / nus[pop1 - 1], -5.0 / nus[pop1 - 1]]
+                new_data = [4.0 / nus[pop1], -5.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -90,18 +90,18 @@ def drift_ld(num_pops, nus, frozen=None):
             elif pop1 == pop2:
                 row.append(ii)
                 col.append(names.index("Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)))
-                data.append(-3.0 / nus[pop1 - 1])
+                data.append(-3.0 / nus[pop1])
             elif pop1 == pop3:
                 row.append(ii)
                 col.append(names.index("Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)))
-                data.append(-3.0 / nus[pop1 - 1])
+                data.append(-3.0 / nus[pop1])
             elif pop2 == pop3:
                 new_rows = [ii, ii]
                 new_cols = [
                     names.index(Util.map_moment("DD_{0}_{1}".format(pop1, pop2))),
                     names.index("Dz_{0}_{1}_{1}".format(pop1, pop2)),
                 ]
-                new_data = [4.0 / nus[pop2 - 1], -1.0 / nus[pop1 - 1]]
+                new_data = [4.0 / nus[pop2], -1.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -109,7 +109,7 @@ def drift_ld(num_pops, nus, frozen=None):
             else:  # all different
                 row.append(ii)
                 col.append(names.index("Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)))
-                data.append(-1.0 / nus[pop1 - 1])
+                data.append(-1.0 / nus[pop1])
         elif mom == "pi2":
             pop1, pop2, pop3, pop4 = [int(p) for p in pops]
             if pop1 == pop2 == pop3 == pop4:
@@ -118,7 +118,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("Dz_{0}_{0}_{0}".format(pop1)),
                     names.index("pi2_{0}_{0}_{0}_{0}".format(pop1)),
                 ]
-                new_data = [1.0 / nus[pop1 - 1], -2.0 / nus[pop1 - 1]]
+                new_data = [1.0 / nus[pop1], -2.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -129,7 +129,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("Dz_{0}_{0}_{1}".format(pop1, pop4)),
                     names.index("pi2_{0}_{0}_{0}_{1}".format(pop1, pop4)),
                 ]
-                new_data = [1.0 / 2 / nus[pop1 - 1], -1.0 / nus[pop1 - 1]]
+                new_data = [1.0 / 2 / nus[pop1], -1.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -140,7 +140,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("Dz_{0}_{1}_{0}".format(pop1, pop3)),
                     names.index("pi2_{0}_{0}_{1}_{0}".format(pop1, pop3)),
                 ]
-                new_data = [1.0 / 2 / nus[pop1 - 1], -1.0 / nus[pop1 - 1]]
+                new_data = [1.0 / 2 / nus[pop1], -1.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -148,18 +148,18 @@ def drift_ld(num_pops, nus, frozen=None):
             elif pop1 == pop2 and pop3 == pop4:
                 row.append(ii)
                 col.append(names.index("pi2_{0}_{0}_{1}_{1}".format(pop1, pop3)))
-                data.append(-1.0 / nus[pop1 - 1] - 1.0 / nus[pop3 - 1])
+                data.append(-1.0 / nus[pop1] - 1.0 / nus[pop3])
             elif pop1 == pop2:
                 row.append(ii)
                 col.append(names.index("pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, pop4)))
-                data.append(-1.0 / nus[pop1 - 1])
+                data.append(-1.0 / nus[pop1])
             elif pop1 == pop3 == pop4:
                 new_rows = [ii, ii]
                 new_cols = [
                     names.index(Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))),
                     names.index("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2)),
                 ]
-                new_data = [1.0 / 2 / nus[pop1 - 1], -1.0 / nus[pop1 - 1]]
+                new_data = [1.0 / 2 / nus[pop1], -1.0 / nus[pop1]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -170,7 +170,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index(Util.map_moment("Dz_{1}_{0}_{1}".format(pop1, pop2))),
                     names.index("pi2_{0}_{1}_{1}_{1}".format(pop1, pop2)),
                 ]
-                new_data = [1.0 / 2 / nus[pop2 - 1], -1.0 / nus[pop2 - 1]]
+                new_data = [1.0 / 2 / nus[pop2], -1.0 / nus[pop2]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -181,8 +181,7 @@ def drift_ld(num_pops, nus, frozen=None):
                     names.index("Dz_{0}_{1}_{1}".format(pop1, pop2)),
                     names.index("Dz_{1}_{0}_{0}".format(pop1, pop2)),
                 ]
-                # new_data = [-1./4/nus[pop1-1], 1./4/nus[pop2-1]]   ###   first value changed from - to +
-                new_data = [1.0 / 4 / nus[pop1 - 1], 1.0 / 4 / nus[pop2 - 1]]
+                new_data = [1.0 / 4 / nus[pop1], 1.0 / 4 / nus[pop2]]
                 for r, c, d in zip(new_rows, new_cols, new_data):
                     row.append(r)
                     col.append(c)
@@ -194,7 +193,7 @@ def drift_ld(num_pops, nus, frozen=None):
                         Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, pop4))
                     )
                 )
-                data.append(1.0 / 4 / nus[pop1 - 1])
+                data.append(1.0 / 4 / nus[pop1])
             elif pop1 == pop4:
                 row.append(ii)
                 col.append(
@@ -202,7 +201,7 @@ def drift_ld(num_pops, nus, frozen=None):
                         Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, pop3))
                     )
                 )
-                data.append(1.0 / 4 / nus[pop1 - 1])
+                data.append(1.0 / 4 / nus[pop1])
             elif pop2 == pop3:
                 row.append(ii)
                 col.append(
@@ -210,7 +209,7 @@ def drift_ld(num_pops, nus, frozen=None):
                         Util.map_moment("Dz_{1}_{0}_{2}".format(pop1, pop2, pop4))
                     )
                 )
-                data.append(1.0 / 4 / nus[pop2 - 1])
+                data.append(1.0 / 4 / nus[pop2])
             elif pop2 == pop4:
                 row.append(ii)
                 col.append(
@@ -218,11 +217,11 @@ def drift_ld(num_pops, nus, frozen=None):
                         Util.map_moment("Dz_{1}_{0}_{2}".format(pop1, pop2, pop3))
                     )
                 )
-                data.append(1.0 / 4 / nus[pop2 - 1])
+                data.append(1.0 / 4 / nus[pop2])
             elif pop3 == pop4:
                 row.append(ii)
                 col.append(names.index("pi2_{0}_{1}_{2}_{2}".format(pop1, pop2, pop3)))
-                data.append(-1.0 / nus[pop3 - 1])
+                data.append(-1.0 / nus[pop3])
             else:
                 if len(set([pop1, pop2, pop3, pop4])) < 4:
                     print("oh no")
@@ -244,9 +243,9 @@ def mutation_h(num_pops, theta, frozen=None, selfing=None):
         c = 0
         for ii in range(num_pops):
             for jj in range(ii, num_pops):
-                if frozen[ii] is not True:
+                if not frozen[ii]:
                     U[c] += theta / 2.0 * (1 - selfing[ii] / 2.0)
-                if frozen[jj] is not True:
+                if not frozen[jj]:
                     U[c] += theta / 2.0 * (1 - selfing[jj] / 2.0)
                 c += 1
         return U
@@ -277,7 +276,7 @@ def mutation_ld(num_pops, theta, frozen=None, selfing=None):
                     data.append(theta / 4.0)
 
     else:
-        thetas = [theta] * num_pops
+        thetas = [theta for _ in range(num_pops)]
 
         if selfing is not None:
             for i, s in enumerate(selfing):
@@ -298,14 +297,14 @@ def mutation_ld(num_pops, theta, frozen=None, selfing=None):
                     # i=k and j=l
                     row.append(ii)
                     col.append(names_h.index(hmomp))
-                    data.append((thetas[i - 1] / 2.0 + thetas[j - 1] / 2.0) / 2.0)
+                    data.append((thetas[i] / 2.0 + thetas[j] / 2.0) / 2.0)
                 else:
                     row.append(ii)
                     col.append(names_h.index(hmomp))  # check if k and l are frozen
-                    data.append((thetas[k - 1] / 2.0 + thetas[l - 1] / 2.0) / 4.0)
+                    data.append((thetas[k] / 2.0 + thetas[l] / 2.0) / 4.0)
                     row.append(ii)
                     col.append(names_h.index(hmomq))  # check if i and j are frozen
-                    data.append((thetas[i - 1] / 2.0 + thetas[j - 1] / 2.0) / 4.0)
+                    data.append((thetas[i] / 2.0 + thetas[j] / 2.0) / 4.0)
 
     return csc_matrix((data, (row, col)), shape=(len(names_ld), len(names_h)))
 
@@ -327,14 +326,14 @@ def recombination(num_pops, r, frozen=None, selfing=None):
             num_pops ** 2 * (num_pops + 1) / 2
         )
     else:
-        rs = [r] * num_pops
+        rs = [r for _ in range(num_pops)]
         if selfing is not None:
             for i, s in enumerate(selfing):
                 rs[i] = rs[i] * (1 - s)
 
         if frozen is not None:
             for pid in range(num_pops):
-                if frozen[pid] == True:
+                if frozen[pid]:
                     rs[pid] = 0
 
         data = []
@@ -342,10 +341,10 @@ def recombination(num_pops, r, frozen=None, selfing=None):
             if name.split("_")[0] == "DD":
                 pop1 = int(name.split("_")[1])
                 pop2 = int(name.split("_")[2])
-                data.append(-1.0 / 2 * rs[pop1 - 1] - 1.0 / 2 * rs[pop2 - 1])
+                data.append(-1.0 / 2 * rs[pop1] - 1.0 / 2 * rs[pop2])
             elif name.split("_")[0] == "Dz":
                 pop1 = int(name.split("_")[1])
-                data.append(-1.0 / 2 * rs[pop1 - 1])
+                data.append(-1.0 / 2 * rs[pop1])
             else:
                 continue
     return csc_matrix((data, (row, col)), shape=(len(names), len(names)))
@@ -372,31 +371,31 @@ def migration_h(num_pops, mig_mat, frozen=None):
     for ii, H in enumerate(Hs):
         pop1, pop2 = [int(f) for f in H.split("_")[1:]]
         if pop1 == pop2:
-            for jj in range(1, num_pops + 1):
+            for jj in range(num_pops):
                 if jj == pop1:
                     continue
                 else:
-                    M[ii, ii] -= 2 * mig_mat[pop1 - 1][jj - 1]
+                    M[ii, ii] -= 2 * mig_mat[pop1][jj]
                     M[ii, Hs.index(Util.map_moment("H_{0}_{1}".format(pop1, jj)))] += (
-                        2 * mig_mat[pop1 - 1][jj - 1]
+                        2 * mig_mat[pop1][jj]
                     )
         else:
-            for jj in range(1, num_pops + 1):
+            for jj in range(num_pops):
                 if jj == pop1:
                     continue
                 else:
-                    M[ii, ii] -= mig_mat[pop1 - 1][jj - 1]
+                    M[ii, ii] -= mig_mat[pop1][jj]
                     M[
                         ii, Hs.index(Util.map_moment("H_{0}_{1}".format(pop2, jj)))
-                    ] += mig_mat[pop1 - 1][jj - 1]
-            for jj in range(1, num_pops + 1):
+                    ] += mig_mat[pop1][jj]
+            for jj in range(num_pops):
                 if jj == pop2:
                     continue
                 else:
-                    M[ii, ii] -= mig_mat[pop2 - 1][jj - 1]
+                    M[ii, ii] -= mig_mat[pop2][jj]
                     M[
                         ii, Hs.index(Util.map_moment("H_{0}_{1}".format(pop1, jj)))
-                    ] += mig_mat[pop2 - 1][jj - 1]
+                    ] += mig_mat[pop2][jj]
 
     return M
 
@@ -417,176 +416,176 @@ def migration_ld(num_pops, mig_mat, frozen=None):
         if name == "DD":
             pop1, pop2 = pops
             if pop1 == pop2:
-                for jj in range(1, num_pops + 1):
+                for jj in range(num_pops):
                     if jj != pop1:
                         M[ii, Ys.index(Util.map_moment("DD_{0}_{0}".format(pop1)))] -= (
-                            2 * mig_mat[pop1 - 1][jj - 1]
+                            2 * mig_mat[pop1][jj]
                         )
                         M[
                             ii, Ys.index(Util.map_moment("DD_{0}_{1}".format(pop1, jj)))
-                        ] += (2 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (2 * mig_mat[pop1][jj])
                         M[
                             ii, Ys.index(Util.map_moment("Dz_{0}_{0}_{0}".format(pop1)))
-                        ] += (1.0 / 2 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (1.0 / 2 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, jj))
                             ),
-                        ] -= (1.0 / 2 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (1.0 / 2 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, jj))
                             ),
-                        ] -= (1.0 / 2 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (1.0 / 2 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, jj))
                             ),
-                        ] += (1.0 / 2 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (1.0 / 2 * mig_mat[pop1][jj])
 
             else:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
                             Ys.index(Util.map_moment("DD_{0}_{1}".format(pop1, pop2))),
-                        ] -= mig_mat[pop1 - 1][kk - 1]
+                        ] -= mig_mat[pop1][kk]
                         M[
                             ii, Ys.index(Util.map_moment("DD_{0}_{1}".format(kk, pop2)))
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop2, pop1))
                             ),
-                        ] += (1.0 / 4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (1.0 / 4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop2, pop1, kk))
                             ),
-                        ] -= (1.0 / 4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (1.0 / 4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop2, kk, pop1))
                             ),
-                        ] -= (1.0 / 4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (1.0 / 4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop2, kk))
                             ),
-                        ] += (1.0 / 4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (1.0 / 4 * mig_mat[pop1][kk])
 
                     if kk != pop2:
                         M[
                             ii,
                             Ys.index(Util.map_moment("DD_{0}_{1}".format(pop1, pop2))),
-                        ] -= mig_mat[pop2 - 1][kk - 1]
+                        ] -= mig_mat[pop2][kk]
                         M[
                             ii, Ys.index(Util.map_moment("DD_{0}_{1}".format(pop1, kk)))
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, pop2))
                             ),
-                        ] += (1.0 / 4 * mig_mat[pop2 - 1][kk - 1])
+                        ] += (1.0 / 4 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, kk))
                             ),
-                        ] -= (1.0 / 4 * mig_mat[pop2 - 1][kk - 1])
+                        ] -= (1.0 / 4 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, kk, pop2))
                             ),
-                        ] -= (1.0 / 4 * mig_mat[pop2 - 1][kk - 1])
+                        ] -= (1.0 / 4 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, kk))
                             ),
-                        ] += (1.0 / 4 * mig_mat[pop2 - 1][kk - 1])
+                        ] += (1.0 / 4 * mig_mat[pop2][kk])
 
         elif name == "Dz":
             pop1, pop2, pop3 = pops
             if pop1 == pop2 == pop3:
-                for jj in range(1, num_pops + 1):
+                for jj in range(num_pops):
                     if jj != pop1:
                         M[
                             ii, Ys.index(Util.map_moment("Dz_{0}_{0}_{0}".format(pop1)))
-                        ] -= (3 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (3 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, jj))
                             ),
-                        ] += mig_mat[pop1 - 1][jj - 1]
+                        ] += mig_mat[pop1][jj]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, jj))
                             ),
-                        ] += mig_mat[pop1 - 1][jj - 1]
+                        ] += mig_mat[pop1][jj]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{1}_{0}_{0}".format(pop1, jj))
                             ),
-                        ] += mig_mat[pop1 - 1][jj - 1]
+                        ] += mig_mat[pop1][jj]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1))
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (4 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{0}_{0}_{1}".format(pop1, jj))
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (4 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, jj))
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (4 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{1}_{0}_{1}".format(pop1, jj))
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (4 * mig_mat[pop1][jj])
 
             elif pop1 == pop2:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, pop3))
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(kk, pop1, pop3))
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, kk, pop3))
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
@@ -594,7 +593,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{0}_{1}".format(pop1, pop3)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -602,7 +601,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -610,7 +609,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{0}_{1}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -618,42 +617,42 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{1}_{2}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                     if kk != pop3:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, pop3))
                             ),
-                        ] -= mig_mat[pop3 - 1][kk - 1]
+                        ] -= mig_mat[pop3][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, kk))
                             ),
-                        ] += mig_mat[pop3 - 1][kk - 1]
+                        ] += mig_mat[pop3][kk]
 
             elif pop1 == pop3:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(kk, pop2, pop1))
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, kk))
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
@@ -661,7 +660,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{0}".format(pop1, pop2)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -669,7 +668,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -677,7 +676,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{0}_{0}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -685,36 +684,36 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{0}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                     if kk != pop2:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))
                             ),
-                        ] -= mig_mat[pop2 - 1][kk - 1]
+                        ] -= mig_mat[pop2][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, kk))
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
 
             elif pop2 == pop3:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, pop2))
                             ),
-                        ] -= mig_mat[pop1 - 1][kk - 1]
+                        ] -= mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{2}_{1}_{1}".format(pop1, pop2, kk))
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
@@ -722,7 +721,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{1}".format(pop1, pop2)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -730,7 +729,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -738,7 +737,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{0}_{1}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (4 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -746,29 +745,29 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{1}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (4 * mig_mat[pop1][kk])
                     if kk != pop2:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, pop2))
                             ),
-                        ] -= (2 * mig_mat[pop2 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, kk))
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{2}_{1}".format(pop1, pop2, kk))
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
 
             else:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -777,13 +776,13 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][ll - 1]
+                        ] -= mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(ll, pop2, pop3))
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -791,7 +790,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][ll - 1])
+                        ] += (4 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -799,7 +798,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][ll - 1])
+                        ] -= (4 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -807,7 +806,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{0}_{2}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][ll - 1])
+                        ] -= (4 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -815,7 +814,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{2}_{3}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += (4 * mig_mat[pop1 - 1][ll - 1])
+                        ] += (4 * mig_mat[pop1][ll])
                     if ll != pop2:
                         M[
                             ii,
@@ -824,13 +823,13 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][ll - 1]
+                        ] -= mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, ll, pop3))
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop3:
                         M[
                             ii,
@@ -839,40 +838,40 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "Dz_{0}_{1}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][ll - 1]
+                        ] -= mig_mat[pop3][ll]
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("Dz_{0}_{1}_{2}".format(pop1, pop2, ll))
                             ),
-                        ] += mig_mat[pop3 - 1][ll - 1]
+                        ] += mig_mat[pop3][ll]
 
         elif name == "pi2":
             pop1, pop2, pop3, pop4 = pops
             if pop1 == pop2 == pop3 == pop4:
-                for jj in range(1, num_pops + 1):
+                for jj in range(num_pops):
                     if jj != pop1:
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1))
                             ),
-                        ] -= (4 * mig_mat[pop1 - 1][jj - 1])
+                        ] -= (4 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{0}_{0}_{1}".format(pop1, jj))
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (2 * mig_mat[pop1][jj])
                         M[
                             ii,
                             Ys.index(
                                 Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, jj))
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][jj - 1])
+                        ] += (2 * mig_mat[pop1][jj])
 
             elif pop1 == pop2 == pop3:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -881,7 +880,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{0}_{1}".format(pop1, pop4)
                                 )
                             ),
-                        ] -= (3 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (3 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -889,7 +888,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{0}_{1}".format(pop1, pop4, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -897,7 +896,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop4, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                     if kk != pop4:
                         M[
                             ii,
@@ -906,7 +905,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{0}_{1}".format(pop1, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop4 - 1][kk - 1]
+                        ] -= mig_mat[pop4][kk]
                         M[
                             ii,
                             Ys.index(
@@ -914,10 +913,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{0}_{2}".format(pop1, pop4, kk)
                                 )
                             ),
-                        ] += mig_mat[pop4 - 1][kk - 1]
+                        ] += mig_mat[pop4][kk]
 
             elif pop1 == pop2 == pop4:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -926,7 +925,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{0}".format(pop1, pop3)
                                 )
                             ),
-                        ] -= (3 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (3 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -934,7 +933,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{1}_{0}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -942,7 +941,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                     if kk != pop3:
                         M[
                             ii,
@@ -951,7 +950,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{0}".format(pop1, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][kk - 1]
+                        ] -= mig_mat[pop3][kk]
                         M[
                             ii,
                             Ys.index(
@@ -959,10 +958,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{2}_{0}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += mig_mat[pop3 - 1][kk - 1]
+                        ] += mig_mat[pop3][kk]
 
             elif pop1 == pop2 and pop3 == pop4:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -971,7 +970,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{1}".format(pop1, pop3)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -979,7 +978,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{1}_{1}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop1][kk])
                     if kk != pop3:
                         M[
                             ii,
@@ -988,7 +987,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{1}".format(pop1, pop3)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop3 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop3][kk])
                         M[
                             ii,
                             Ys.index(
@@ -996,10 +995,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop3 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop3][kk])
 
             elif pop1 == pop2:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1008,7 +1007,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, pop4)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1016,7 +1015,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{1}_{2}".format(pop1, pop3, pop4, ll)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][ll - 1])
+                        ] += (2 * mig_mat[pop1][ll])
                     if ll != pop3:
                         M[
                             ii,
@@ -1025,7 +1024,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][ll - 1]
+                        ] -= mig_mat[pop3][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1033,7 +1032,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{2}_{3}".format(pop1, pop3, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop3 - 1][ll - 1]
+                        ] += mig_mat[pop3][ll]
                     if ll != pop4:
                         M[
                             ii,
@@ -1042,7 +1041,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{2}".format(pop1, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop4 - 1][ll - 1]
+                        ] -= mig_mat[pop4][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1050,10 +1049,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{0}_{1}_{3}".format(pop1, pop3, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop4 - 1][ll - 1]
+                        ] += mig_mat[pop4][ll]
 
             elif pop1 == pop3 == pop4:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -1062,7 +1061,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{0}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= (3 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (3 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1070,7 +1069,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1078,7 +1077,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{0}_{0}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                     if kk != pop2:
                         M[
                             ii,
@@ -1087,7 +1086,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{0}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][kk - 1]
+                        ] -= mig_mat[pop2][kk]
                         M[
                             ii,
                             Ys.index(
@@ -1095,10 +1094,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{0}_{0}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
 
             elif pop2 == pop3 == pop4:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -1107,7 +1106,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{1}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][kk - 1]
+                        ] -= mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
@@ -1115,7 +1114,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{1}_{1}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                     if kk != pop2:
                         M[
                             ii,
@@ -1124,7 +1123,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{1}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= (3 * mig_mat[pop2 - 1][kk - 1])
+                        ] -= (3 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1132,7 +1131,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop2 - 1][kk - 1])
+                        ] += (2 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1140,10 +1139,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{1}_{1}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
 
             elif pop1 == pop3 and pop2 == pop4:
-                for kk in range(1, num_pops + 1):
+                for kk in range(num_pops):
                     if kk != pop1:
                         M[
                             ii,
@@ -1152,7 +1151,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{1}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop1][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1160,7 +1159,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                         M[
                             ii,
                             Ys.index(
@@ -1168,7 +1167,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{2}_{0}_{1}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][kk - 1]
+                        ] += mig_mat[pop1][kk]
                     if kk != pop2:
                         M[
                             ii,
@@ -1177,7 +1176,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{1}".format(pop1, pop2)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop2 - 1][kk - 1])
+                        ] -= (2 * mig_mat[pop2][kk])
                         M[
                             ii,
                             Ys.index(
@@ -1185,7 +1184,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
                         M[
                             ii,
                             Ys.index(
@@ -1193,10 +1192,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{2}_{0}_{1}".format(pop1, pop2, kk)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][kk - 1]
+                        ] += mig_mat[pop2][kk]
 
             elif pop1 == pop3:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1205,7 +1204,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1213,7 +1212,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1221,7 +1220,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{0}_{2}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                     if ll != pop2:
                         M[
                             ii,
@@ -1230,7 +1229,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][ll - 1]
+                        ] -= mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1238,7 +1237,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{0}_{2}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop4:
                         M[
                             ii,
@@ -1247,7 +1246,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop4 - 1][ll - 1]
+                        ] -= mig_mat[pop4][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1255,10 +1254,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{0}_{3}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop4 - 1][ll - 1]
+                        ] += mig_mat[pop4][ll]
 
             elif pop1 == pop4:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1267,7 +1266,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{0}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop1 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop1][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1275,7 +1274,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{2}_{0}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1283,7 +1282,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                     if ll != pop2:
                         M[
                             ii,
@@ -1292,7 +1291,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{0}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][ll - 1]
+                        ] -= mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1300,7 +1299,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{2}_{0}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop3:
                         M[
                             ii,
@@ -1309,7 +1308,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{0}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][ll - 1]
+                        ] -= mig_mat[pop3][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1317,10 +1316,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{3}_{0}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop3 - 1][ll - 1]
+                        ] += mig_mat[pop3][ll]
 
             elif pop2 == pop3:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1329,7 +1328,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][ll - 1]
+                        ] -= mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1337,7 +1336,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{1}_{2}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                     if ll != pop2:
                         M[
                             ii,
@@ -1346,7 +1345,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop2 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop2][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1354,7 +1353,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{1}_{2}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1362,7 +1361,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop4:
                         M[
                             ii,
@@ -1371,7 +1370,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{2}".format(pop1, pop2, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop4 - 1][ll - 1]
+                        ] -= mig_mat[pop4][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1379,10 +1378,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{1}_{3}".format(pop1, pop2, pop4, ll)
                                 )
                             ),
-                        ] += mig_mat[pop4 - 1][ll - 1]
+                        ] += mig_mat[pop4][ll]
 
             elif pop2 == pop4:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1391,7 +1390,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{1}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][ll - 1]
+                        ] -= mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1399,7 +1398,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{2}_{1}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                     if ll != pop2:
                         M[
                             ii,
@@ -1408,7 +1407,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{1}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop2 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop2][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1416,7 +1415,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{2}_{1}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1424,7 +1423,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop3:
                         M[
                             ii,
@@ -1433,7 +1432,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{1}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][ll - 1]
+                        ] -= mig_mat[pop3][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1441,10 +1440,10 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{3}_{1}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop3 - 1][ll - 1]
+                        ] += mig_mat[pop3][ll]
 
             elif pop3 == pop4:
-                for ll in range(1, num_pops + 1):
+                for ll in range(num_pops):
                     if ll != pop1:
                         M[
                             ii,
@@ -1453,7 +1452,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][ll - 1]
+                        ] -= mig_mat[pop1][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1461,7 +1460,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{1}_{3}_{2}_{2}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ll - 1]
+                        ] += mig_mat[pop1][ll]
                     if ll != pop2:
                         M[
                             ii,
@@ -1470,7 +1469,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][ll - 1]
+                        ] -= mig_mat[pop2][ll]
                         M[
                             ii,
                             Ys.index(
@@ -1478,7 +1477,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{3}_{2}_{2}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ll - 1]
+                        ] += mig_mat[pop2][ll]
                     if ll != pop3:
                         M[
                             ii,
@@ -1487,7 +1486,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{2}".format(pop1, pop2, pop3)
                                 )
                             ),
-                        ] -= (2 * mig_mat[pop3 - 1][ll - 1])
+                        ] -= (2 * mig_mat[pop3][ll])
                         M[
                             ii,
                             Ys.index(
@@ -1495,12 +1494,12 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, ll)
                                 )
                             ),
-                        ] += (2 * mig_mat[pop3 - 1][ll - 1])
+                        ] += (2 * mig_mat[pop3][ll])
 
             else:
                 if len(set([pop1, pop2, pop3, pop4])) != 4:
                     print("fucked up again")
-                for ss in range(1, num_pops + 1):
+                for ss in range(num_pops):
                     if ss != pop1:
                         M[
                             ii,
@@ -1509,7 +1508,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop1 - 1][ss - 1]
+                        ] -= mig_mat[pop1][ss]
                         M[
                             ii,
                             Ys.index(
@@ -1519,7 +1518,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     )
                                 )
                             ),
-                        ] += mig_mat[pop1 - 1][ss - 1]
+                        ] += mig_mat[pop1][ss]
                     if ss != pop2:
                         M[
                             ii,
@@ -1528,7 +1527,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop2 - 1][ss - 1]
+                        ] -= mig_mat[pop2][ss]
                         M[
                             ii,
                             Ys.index(
@@ -1538,7 +1537,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     )
                                 )
                             ),
-                        ] += mig_mat[pop2 - 1][ss - 1]
+                        ] += mig_mat[pop2][ss]
                     if ss != pop3:
                         M[
                             ii,
@@ -1547,7 +1546,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop3 - 1][ss - 1]
+                        ] -= mig_mat[pop3][ss]
                         M[
                             ii,
                             Ys.index(
@@ -1557,7 +1556,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     )
                                 )
                             ),
-                        ] += mig_mat[pop3 - 1][ss - 1]
+                        ] += mig_mat[pop3][ss]
                     if ss != pop4:
                         M[
                             ii,
@@ -1566,7 +1565,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     "pi2_{0}_{1}_{2}_{3}".format(pop1, pop2, pop3, pop4)
                                 )
                             ),
-                        ] -= mig_mat[pop4 - 1][ss - 1]
+                        ] -= mig_mat[pop4][ss]
                         M[
                             ii,
                             Ys.index(
@@ -1576,7 +1575,7 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                                     )
                                 )
                             ),
-                        ] += mig_mat[pop4 - 1][ss - 1]
+                        ] += mig_mat[pop4][ss]
 
     return csc_matrix(M)
 
@@ -1588,14 +1587,14 @@ def admix_h(num_pops, pop1, pop2, f):
     for ii, mom_to in enumerate(moms_to):
         if mom_to in moms_from:  # doesn't involve new pop (unchanged)
             A[ii, moms_from.index(mom_to)] = 1
-        else:  # all moments are of the form H_k_new, k in [1,...,new] (new = num_pops+1)
+        else:  # all moments are of the form H_k_new, k in [0,...,new] (new = num_pops)
             i1 = int(mom_to.split("_")[1])
             i2 = int(mom_to.split("_")[2])
-            if i2 != num_pops + 1:
+            if i2 != num_pops:
                 raise ValueError(
-                    "This is unexpected... i2 should have been num_pops+1."
+                    "This is unexpected... i2 should have been num_pops."
                 )
-            if i1 == i2 == num_pops + 1:  # H_new_new
+            if i1 == i2 == num_pops:  # H_new_new
                 A[ii, moms_from.index(Util.map_moment("H_{0}_{0}".format(pop1)))] = (
                     f ** 2
                 )
@@ -1640,7 +1639,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                 i1 = int(mom_to.split("_")[1])
                 i2 = int(mom_to.split("_")[2])
 
-                if i1 == i2 == num_pops + 1:  # DD_new_new
+                if i1 == i2 == num_pops:  # DD_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -1886,7 +1885,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                 i2 = int(mom_to.split("_")[2])
                 i3 = int(mom_to.split("_")[3])
 
-                if i1 == i2 == i3 == num_pops + 1:  # Dz_new_new_new
+                if i1 == i2 == i3 == num_pops:  # Dz_new_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -1991,7 +1990,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f) ** 3)
 
-                elif i1 == pop1 and i2 == i3 == num_pops + 1:  # Dz_pop1_new_new
+                elif i1 == pop1 and i2 == i3 == num_pops:  # Dz_pop1_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -2017,7 +2016,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f) ** 2
 
-                elif i1 == pop2 and i2 == i3 == num_pops + 1:  # Dz_pop2_new_new
+                elif i1 == pop2 and i2 == i3 == num_pops:  # Dz_pop2_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -2043,7 +2042,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f) ** 2
 
-                elif i2 == i3 == num_pops + 1:  # Dz_non-source_new_new
+                elif i2 == i3 == num_pops:  # Dz_non-source_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -2069,7 +2068,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f) ** 2
 
-                elif i1 == i3 == num_pops + 1 and i2 == pop1:  # Dz_new_pop1_new
+                elif i1 == i3 == num_pops and i2 == pop1:  # Dz_new_pop1_new
                     A[
                         ii,
                         moms_from.index(
@@ -2132,7 +2131,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f) ** 2)
 
-                elif i1 == i3 == num_pops + 1 and i2 == pop2:  # Dz_ne2_pop2_new
+                elif i1 == i3 == num_pops and i2 == pop2:  # Dz_ne2_pop2_new
                     A[
                         ii,
                         moms_from.index(
@@ -2195,7 +2194,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f) ** 2)
 
-                elif i1 == i3 == num_pops + 1:  # Dz_new_non-source_new
+                elif i1 == i3 == num_pops:  # Dz_new_non-source_new
                     A[
                         ii,
                         moms_from.index(
@@ -2271,7 +2270,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f) ** 2)
 
                 elif (
-                    i1 == num_pops + 1 and i2 == pop1 and i3 == pop1
+                    i1 == num_pops and i2 == pop1 and i3 == pop1
                 ):  # Dz_new_pop1_pop1
                     A[
                         ii,
@@ -2312,7 +2311,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f))
 
                 elif (
-                    i1 == num_pops + 1 and i2 == pop1 and i3 == pop2
+                    i1 == num_pops and i2 == pop1 and i3 == pop2
                 ):  # Dz_new_pop1_pop2
                     A[
                         ii,
@@ -2353,7 +2352,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f))
 
                 elif (
-                    i1 == num_pops + 1 and i2 == pop2 and i3 == pop1
+                    i1 == num_pops and i2 == pop2 and i3 == pop1
                 ):  # Dz_new_pop2_pop1
                     A[
                         ii,
@@ -2394,7 +2393,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f))
 
                 elif (
-                    i1 == num_pops + 1 and i2 == pop2 and i3 == pop2
+                    i1 == num_pops and i2 == pop2 and i3 == pop2
                 ):  # Dz_new_pop2_pop2
                     A[
                         ii,
@@ -2434,7 +2433,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif i1 == num_pops + 1 and i2 == pop1:  # Dz_new_pop1_non
+                elif i1 == num_pops and i2 == pop1:  # Dz_new_pop1_non
                     A[
                         ii,
                         moms_from.index(
@@ -2481,7 +2480,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif i1 == num_pops + 1 and i2 == pop2:  # Dz_new_pop2_non
+                elif i1 == num_pops and i2 == pop2:  # Dz_new_pop2_non
                     A[
                         ii,
                         moms_from.index(
@@ -2528,7 +2527,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif i1 == num_pops + 1 and i3 == pop1:  # Dz_new_non_pop1
+                elif i1 == num_pops and i3 == pop1:  # Dz_new_non_pop1
                     A[
                         ii,
                         moms_from.index(
@@ -2575,7 +2574,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif i1 == num_pops + 1 and i3 == pop2:  # Dz_new_non_pop2
+                elif i1 == num_pops and i3 == pop2:  # Dz_new_non_pop2
                     A[
                         ii,
                         moms_from.index(
@@ -2623,7 +2622,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f))
 
                 elif (
-                    i1 == num_pops + 1 and i2 == i3
+                    i1 == num_pops and i2 == i3
                 ):  # Dz_new_non_non (same non-source pop)
                     A[
                         ii,
@@ -2671,7 +2670,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif i1 == num_pops + 1:  # Dz_new_non1_non2 (different non-source pops)
+                elif i1 == num_pops:  # Dz_new_non1_non2 (different non-source pops)
                     A[
                         ii,
                         moms_from.index(
@@ -2719,7 +2718,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (4 * f * (1 - f))
 
                 elif (
-                    i1 == pop1 and i2 == pop1 and i3 == num_pops + 1
+                    i1 == pop1 and i2 == pop1 and i3 == num_pops
                 ):  # Dz_pop1_pop1_new
                     A[
                         ii,
@@ -2735,7 +2734,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (1 - f)
 
                 elif (
-                    i1 == pop1 and i2 == pop2 and i3 == num_pops + 1
+                    i1 == pop1 and i2 == pop2 and i3 == num_pops
                 ):  # Dz_pop1_pop2_new
                     A[
                         ii,
@@ -2750,7 +2749,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i1 == pop1 and i3 == num_pops + 1:  # Dz_pop1_non_new
+                elif i1 == pop1 and i3 == num_pops:  # Dz_pop1_non_new
                     A[
                         ii,
                         moms_from.index(
@@ -2765,7 +2764,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (1 - f)
 
                 elif (
-                    i1 == pop2 and i2 == pop1 and i3 == num_pops + 1
+                    i1 == pop2 and i2 == pop1 and i3 == num_pops
                 ):  # Dz_pop2_pop1_new
                     A[
                         ii,
@@ -2781,7 +2780,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                     ] += (1 - f)
 
                 elif (
-                    i1 == pop2 and i2 == pop2 and i3 == num_pops + 1
+                    i1 == pop2 and i2 == pop2 and i3 == num_pops
                 ):  # Dz_pop2_pop2_new
                     A[
                         ii,
@@ -2796,7 +2795,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i1 == pop2 and i3 == num_pops + 1:  # Dz_pop2_non_new
+                elif i1 == pop2 and i3 == num_pops:  # Dz_pop2_non_new
                     A[
                         ii,
                         moms_from.index(
@@ -2810,7 +2809,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i2 == pop1 and i3 == num_pops + 1:  # Dz_non_pop1_new
+                elif i2 == pop1 and i3 == num_pops:  # Dz_non_pop1_new
                     A[
                         ii,
                         moms_from.index(
@@ -2824,7 +2823,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i2 == pop2 and i3 == num_pops + 1:  # Dz_non_pop2_new
+                elif i2 == pop2 and i3 == num_pops:  # Dz_non_pop2_new
                     A[
                         ii,
                         moms_from.index(
@@ -2838,7 +2837,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i1 == i2 and i3 == num_pops + 1:  # Dz_non_non_new
+                elif i1 == i2 and i3 == num_pops:  # Dz_non_non_new
                     A[
                         ii,
                         moms_from.index(
@@ -2852,7 +2851,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif i3 == num_pops + 1:  # Dz_non1_non2_new
+                elif i3 == num_pops:  # Dz_non1_non2_new
                     A[
                         ii,
                         moms_from.index(
@@ -2875,7 +2874,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                 i3 = int(mom_to.split("_")[3])
                 i4 = int(mom_to.split("_")[4])
 
-                if i1 == i2 == i3 == i4 == num_pops + 1:  # pi2_new_new_new_new
+                if i1 == i2 == i3 == i4 == num_pops:  # pi2_new_new_new_new
                     A[
                         ii,
                         moms_from.index(
@@ -2931,7 +2930,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f) ** 4
 
-                elif i2 == i3 == i4 == num_pops + 1:
+                elif i2 == i3 == i4 == num_pops:
                     if i1 == pop1:  # pi2_pop1_new_new_new
                         A[
                             ii,
@@ -3082,7 +3081,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             ),
                         ] += (1 - f) ** 3
 
-                elif i3 == i4 == num_pops + 1:
+                elif i3 == i4 == num_pops:
                     if i1 == i2 == pop1:  # pi2_pop1_pop1_new_new
                         A[
                             ii,
@@ -3343,7 +3342,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             ),
                         ] += (1 - f) ** 2
 
-                elif i2 == num_pops + 1 and i4 == num_pops + 1:
+                elif i2 == num_pops and i4 == num_pops:
                     if i1 == pop1 and i3 == pop1:  # pi2_pop1_new_pop1_new
                         A[
                             ii,
@@ -3684,7 +3683,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             ),
                         ] += (1 - f) ** 2
 
-                elif i4 == num_pops + 1:
+                elif i4 == num_pops:
                     if (
                         i1 == pop1 and i2 == pop1 and i3 == pop1
                     ):  # pi2_pop1_pop1_pop1_new
@@ -4367,7 +4366,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             ),
                         ] += (1 - f)
 
-                elif i2 == num_pops + 1:
+                elif i2 == num_pops:
                     if (
                         i1 == pop1 and i3 == pop1 and i4 == pop1
                     ):  # pi2_pop1_new_pop1_pop1

@@ -5,5 +5,4 @@ mpmath
 matplotlib
 ipython
 pandas
-networkx
 jupyter_sphinx
