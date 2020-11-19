@@ -408,6 +408,47 @@ to set both mutation rates (which must be set, as ``theta`` must be less than 1)
 Illustration: ancestral state misidentification
 -----------------------------------------------
 
+In SFS analyses, a tpyical confounder is the misidentification of the ancestral
+allele. This occurs because polarization requires estimating the ancestral state
+of a locus, which is typically done by comparing to one or more outgroup species
+in a sequence alignment. For humans, we typically use chimpanzee and other great
+apes to infer the ancstral allele.
+
+At longer evolutionary timescales, it is not uncommon for multiple independent
+mutations to occur at the same locus, so that when comparing to an outgroup species
+we classify some derived mutations as ancestral and some ancestral mutations as
+derived. For humans, the rate of ancestral misidentification is typically in the
+1-3% range, depending on the method used to polarize alleles.
+
+For example, we can simulate using rough parameters (:math:`u=1.25\times 10^{-8}`,
+:math:`N_e=10^4`, divergence of 6 million years) and symmetric mutation rates to see
+the effect of polarizing based on the allele in a chimp sequence. Here, if the
+chimp carries the derived allele, we will instead assume the ancestral allele
+is derived:
+
+.. jupyter-execute::
+    
+    Ne = 1e4
+    u = 1.25e-8
+    theta = 4 * Ne * u
+    T = 6e6 / 25 / 2 / Ne
+    
+    fs = moments.LinearSystem_1D.steady_state_1D_reversible(
+        101, theta_fd=theta, theta_bd=theta)
+    fs = moments.Spectrum(fs, mask_corners=False)
+
+    fs = fs.split(0, 100, 1)
+    fs.integrate([1, 1], T, finite_genome=True, theta=theta)
+
+    fs_polarized = fs[:,0] + fs[::-1,1]
+    fs_polarized.mask_corners()
+
+Then visualizing using ``moments.Plotting.plot_1d_fs(fs_polarized)``, we can see
+the uptick at high-frequency variants due to ancestral misidentification - that is,
+recurrent mutations along the lineage leading from humans to chimps:
+
+.. image:: figures/ancestral_misid.png
+
 Selection and dominance
 =======================
 

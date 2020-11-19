@@ -10,6 +10,7 @@ http://matplotlib.sourceforge.net/contents.html
 import matplotlib
 import pylab
 import numpy
+import matplotlib.pyplot as plt
 
 #: Custom ticks that label only the lowest and highest bins in an FS plot.
 class _sfsTickLocator(matplotlib.ticker.Locator):
@@ -73,11 +74,11 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=
     axes.set_ylabel("Count")
 
     if ax is None:
-        fig.tight_layout()
+        plt.tight_layout()
         if out is not None:
-            fig.savefig(out)
+            plt.savefig(out)
         if show:
-            fig.show()
+            plt.show()
 
 
 def plot_1d_comp_multinom(
@@ -266,11 +267,11 @@ def plot_single_2d_sfs(
     axes.set_ylim(0, sfs.shape[0])
 
     if ax is None:
-        fig.tight_layout()
+        plt.tight_layout()
         if out is not None:
-            fig.savefig(out)
+            plt.savefig(out)
         if show:
-            fig.show()
+            plt.show()
 
 
 def plot_2d_resid(
@@ -346,11 +347,11 @@ def plot_2d_resid(
     axes.set_ylim(0, resid.shape[0])
 
     if ax is None:
-        fig.tight_layout()
+        plt.tight_layout()
         if out is not None:
-            fig.savefig(out)
+            plt.savefig(out)
         if show:
-            fig.show()
+            plt.show()
 
 
 # Used to determine whether colorbars should have 'extended' arrows
@@ -888,9 +889,9 @@ def plot_3d_spectrum(
 
     # XXX: I can't set the axis ticks to be just the endpoints.
 
-    fig.tight_layout()
+    plt.tight_layout()
     if out is not None:
-        fig.savefig(out)
+        plt.savefig(out)
     if show:
         pylab.show()
 
