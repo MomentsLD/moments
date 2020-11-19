@@ -22,9 +22,9 @@ from . import Util
 
 def check_imports():
     if imported_allel == 0:
-        raise ("Failed to import allel package needed for Parsing. Is it installed?")
+        raise ("Failed to import allel package needed for Parsing.")
     if imported_h5py == 0:
-        raise ("Failed to import h5py package needed for Parsing. Is it installed?")
+        raise ("Failed to import h5py package needed for Parsing.")
 
 
 # later go through and trim the unneeded ones
@@ -52,9 +52,6 @@ import warnings
 
 if imported_allel:
     warnings.filterwarnings(action="ignore", category=UserWarning)
-
-
-### does this handle only a single chromosome at a time???
 
 
 def load_h5(vcf_file, report=True):
@@ -1213,21 +1210,28 @@ def compute_ld_statistics(
     return reported_stats
 
 
-def bootstrap_data(all_data, normalization=["pi2_1_1_1_1", "H_1_1"]):
+def bootstrap_data(all_data, normalization=0):
     """
-    all_data : dictionary (with arbitrary keys), where each value is are ld statistics computed
-               from a distinct region. all_data[reg]
-               stats from each region has keys, 'bins', 'sums', 'stats', and optional 'pops' (anything else?)
-    normalization : we work with sigma_d^2 statistics, and by default we use population 1 to normalize stats
+    all_data : dictionary (with arbitrary keys), where each value
+    are ld statistics computed from a distinct region. all_data[reg]
+    stats from each region has keys, 'bins', 'sums', 'stats', and
+    optional 'pops' (anything else?)
+    
+    We first check that all 'stats', 'bins', 'pops' (if present),
+    match across all regions
 
-    We first check that all 'stats', 'bins', 'pops' (if present), match across all regions
+    If there are N total regions, we compute N bootstrap replicates
+    by sampling N times with replacement and summing over all 'sums'.
 
-    If there are N total regions, we compute N bootstrap replicates by sampling N times with replacement
-        and summing over all 'sums'.
+    :param all_data:
+    :param normalization: we work with sigma_d^2 statistics, and by default
+        we use population 0 to normalize stats
     """
-
-    ## Check consistencies of bins, stats, and data sizes
-
+    norm_stats = [
+        "pi2_{0}_{0}_{0}_{0}".format(normalization),
+        "H_{0}_{0}".format(normalization)
+    ]
+    
     regions = list(all_data.keys())
     reg = regions[0]
     stats = all_data[reg]["stats"]
@@ -1240,8 +1244,8 @@ def bootstrap_data(all_data, normalization=["pi2_1_1_1_1", "H_1_1"]):
             means[ii] += all_data[reg]["sums"][ii]
 
     for ii in range(len(means) - 1):
-        means[ii] /= means[ii][stats[0].index(normalization[0])]
-    means[-1] /= means[-1][stats[1].index(normalization[1])]
+        means[ii] /= means[ii][stats[0].index(norm_stats[0])]
+    means[-1] /= means[-1][stats[1].index(norm_stats[1])]
 
     # construct bootstrap data
     bootstrap_data = [np.zeros((len(sums), N)) for sums in means]
@@ -1254,8 +1258,8 @@ def bootstrap_data(all_data, normalization=["pi2_1_1_1_1", "H_1_1"]):
                 boot_means[ii] += all_data[reg]["sums"][ii]
 
         for ii in range(len(boot_means) - 1):
-            boot_means[ii] /= boot_means[ii][stats[0].index(normalization[0])]
-        boot_means[-1] /= boot_means[-1][stats[1].index(normalization[1])]
+            boot_means[ii] /= boot_means[ii][stats[0].index(norm_stats[0])]
+        boot_means[-1] /= boot_means[-1][stats[1].index(norm_stats[1])]
 
         for ii in range(len(boot_means)):
             bootstrap_data[ii][:, boot_num] = boot_means[ii]
@@ -1274,21 +1278,22 @@ def bootstrap_data(all_data, normalization=["pi2_1_1_1_1", "H_1_1"]):
 
 
 def subset_data(
-    data, pops_to, normalization=1, r_min=None, r_max=None, remove_Dz=False
+    data, pops_to, normalization=0, r_min=None, r_max=None, remove_Dz=False
 ):
     """
     to take the pickled data output by ... and get r_edges, ms, vcs, and stats
-        to pass to inference machinery
+    to pass to inference machinery
+    
     Notes: Up to user to make sure that the order is preserved
-        (have a catch in future)
+    (have a catch in future)
     """
     pops_from = data["pops"]
-    if np.all([p in pops_from for p in pops_to]) == False:
+    if not np.all([p in pops_from for p in pops_to]):
         raise ValueError("All pops in pops_to must be in data")
 
     new_pop_ids = {}
     for pop in pops_to:
-        new_pop_ids[pops_from.index(pop) + 1] = pops_to.index(pop) + 1
+        new_pop_ids[pops_from.index(pop)] = pops_to.index(pop)
 
     stats = data["stats"]
 

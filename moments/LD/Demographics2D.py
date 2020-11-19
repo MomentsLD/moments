@@ -1,31 +1,47 @@
 import numpy as np
-from moments.LD import Demography
 from moments.LD.LDstats_mod import LDstats
+from . import Numerics
 
 
-def snm(rho=None, theta=0.001, pop_ids=None):
+def snm(params=None, rho=None, theta=0.001, pop_ids=None):
     """
-    Equilibrium neutral model
-    rho: population-scaled recombination rate (4Nr), given as scalar or list of rhos
-    theta: population-scaled mutation rate (4Nu)
+    Equilibrium neutral model. Neutral steady state followed by split in
+    the immediate past.
+
+    :param params: Unused.
+    :param rho: Population-scaled recombination rate (4Nr),
+        given as scalar or list of rhos.
+    :type rho: float or list of floats, optional
+    :param theta: Population-scaled mutation rate (4Nu). Defaults to 0.001.
+    :type theta: float
+    :param pop_ids: List of population IDs of length 2.
+    :type pop_ids: lits of str, optional
     """
-    Y = Demography.equilibrium(rho=rho, theta=theta)
+    Y = Numerics.steady_state(rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1)
-    Y = Y.split(1)
+    Y = Y.split(0)
     Y.pop_ids = pop_ids
     return Y
 
 
 def split_mig(params, rho=None, theta=0.001, pop_ids=None):
     """
-    params: (nu1, nu2, T, m)
+    Split into two populations of specifed size, which then have their own
+    relative constant sizes and symmetric migration between populations.
     
-    Split into two populations of specifed size, with migration.
+    - nu1: Size of population 1 after split.
+    - nu2: Size of population 2 after split.
+    - T: Time in the past of split (in units of 2*Na generations) 
+    - m: Migration rate between populations (2*Na*m)
 
-    nu1: Size of population 1 after split.
-    nu2: Size of population 2 after split.
-    T: Time in the past of split (in units of 2*Na generations) 
-    m: Migration rate between populations (2*Na*m)
+    :param params: The input parameters: (nu1, nu2, T, m)
+    :param rho: Population-scaled recombination rate (4Nr),
+        given as scalar or list of rhos.
+    :type rho: float or list of floats, optional
+    :param theta: Population-scaled mutation rate (4Nu). Defaults to 0.001.
+    :type theta: float
+    :param pop_ids: List of population IDs of length 1.
+    :type pop_ids: lits of str, optional
     """
     nu1, nu2, T, m = params
 
