@@ -272,19 +272,141 @@ And to account for population IDs after admixture:
 Integration
 ***********
 
-
+``moments`` integrates the SFS forward in time by calling ``fs.integrate( )``. At a
+minimum, we need to pass the population size(s) ``nu`` and the integration time
+``T``. All parameters are scaled by a reference effective population size, so that
+time is measured in units of :math:`2N_e` generations, sizes are relative to this
+same :math:`N_e`, and mutation and migration rates and the selection coefficient is
+scaled by :math:`2N_e`.
 
 Size functions
 ==============
 
+The ``integrate( )`` function can take either a list of relative sizes, equal to the
+number of populations represented by the SFS, or it can take a function that returns
+a list of population sizes over time.
+
+For example, to integrate a two-population SFS with the first population having relative
+size 2.0 (double the reference size), and the second having size 0.1 (one-tenth the
+relative size) for 0.05 time units:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics2D.snm([10, 10])
+    fs.integrate([2.0, 0.1], 0.05)
+
+To specify a size function that changes over time, for example an exponential growth
+model, we can instead pass a size function to the integration method:
+
+.. jupyter-execute::
+    
+    fs = moments.Demographics1D.snm([10])
+    nu0 = 0.5
+    nuF = 2.0
+    T = 0.2
+    nu_func = lambda t: [nu0 * np.exp(np.log(nuF / nu0) * t / T)]
+    print("size at start of epoch:", nu_func(0))
+    print("size at end of epoch:", nu_func(T))
+    fs.integrate(nu_func, T)
+
 Integration time and time units
 ===============================
+
+Unlike coalescent simulators, such as ``msprime``, integration times in ``moments``
+are in units of :math:`2N_e` generations. Thus, typical integration times for many
+demographic scenarios could be much smaller than one.
+
+Times are not cummulative when integrating multiple epochs - each time ``integrate( )``
+is called, internally time starts from zero by default. Thus, when defining multiple
+epochs with size functions, keep in mind that time for that epoch runs from zero to the
+integration time ``T``.
 
 Migration rates
 ===============
 
+Migration between populations is specified by the migration matrix, with has shape
+:math:`p \\times p`, where :math:`p` is the number of populations represented by the
+SFS. The :math:`i`-th row of the migration matrix gives the migration rates from
+each other population *into* the population indexed by :math:`i`. Because rates are
+rescaled by the effective population size, the entry ``M[i, j]`` gives the migration
+rate ``2*Ne*m_ij``, where ``m_ij`` is the per-generation probability of a lineage
+in population ``i`` having its parent in population ``j``. Note that the diagonal
+elements of ``M`` are ignored.
+
+For example, to integrate a two-population SFS with migration:
+
+.. jupyter-execute::
+
+    fs = moments.Demographics2D.snm([10, 10])
+    M = np.array([
+        [0, 2.0],
+        [0.75, 0]
+    ])
+    fs.integrate([2, 3], 0.05, m=M)
+
 Mutation rates and mutation model
 =================================
+
+By default, ``moments`` uses an infinite-sites model (ISM). Then the mutation rate
+:math:`\theta`` is the population-size scaled mutation rate multplied by the number
+of loci: ``theta = 4*Ne*u*L``. By default, ``theta`` is set to 1.
+
+Luckily, we do not often need to worry about setting ``theta``, because the ISM
+guarantees that the expected count in each frequency bin of the SFS scales linearly
+in the mutation rate. This means that we can happily integrate with the default
+``theta`` and only rescale the SFS at the end:
+
+.. jupyter-execute::
+
+    theta = 100
+    fs_theta = moments.LinearSystem_1D.steady_state_1D(20) * 100
+    fs_theta = moments.Spectrum(fs_theta)
+    fs_theta.integrate([2.0], 0.1, theta=theta)
+
+    fs = moments.Demographics1D.two_epoch((2.0, 0.1), [20]) # default theta = 1
+    fs = theta * fs
+
+    print(fs_theta.S())
+    print(fs.S())
+
+Reversible mutations
+--------------------
+
+Unlike ``dadi``, which solves the diffusion equation directly and can only
+simulate under the ISM, the moments-based engine in ``moments`` lets us
+accurately track the density of the "fixed" bins. That is, we can compute
+not just the distribution of segregating mutation frequencies, but also the
+probability that a locus is monomorphic in a sample for the derived or
+ancestral allele.
+
+To compute a SFS in which we track monomorphic loci, we use a reversible mutation
+model, which we specify by setting ``finite_genome=True``. When simulating under
+the finite genome model, the mutation rate is no longer scaled by the number of
+loci, ``L``. Instead, the mutation rates are simply `theta_fd=4*Ne*u` and
+`theta_bd=4*Ne*v` where `u` and `v` are the forward and backward mutation rates,
+respectively. Therefore, `theta_fd` and `theta_bd` are typically much less than
+1 (and in fact the model breaks down for scaled mutation rates around 1).
+
+To simulate under the reversible mutation model, we first initialize the
+steady-state SFS with ``mask_corners=False``, and then apply demographic events
+as normal and integrate using ``finite_genome=True``:
+
+.. jupyter-execute::
+
+    theta_fd = 0.0005 # 4*Ne*u, with Ne = 1e4 and u = 1.25e-8
+    theta_bd = 0.001 # the backward mutation rate is double the forward rate
+    fs = moments.LinearSystem_1D.steady_state_1D_reversible(
+        20, theta_fd=theta_fd, theta_bd=theta_bd) # sample size = 20
+    fs = moments.Spectrum(fs, mask_corners=False)
+
+    fs.integrate(
+        [5.0], 0.2, finite_genome=True, theta_fd=theta_fd, theta_bd=theta_bd)
+
+Note that if the forward and backward mutation rates are equal, we can use ``theta``
+to set both mutation rates (which must be set, as ``theta`` must be less than 1).
+
+Illustration: ancestral state misidentification
+-----------------------------------------------
 
 Selection and dominance
 =======================
