@@ -382,7 +382,7 @@ ancestral allele.
 To compute a SFS in which we track monomorphic loci, we use a reversible mutation
 model, which we specify by setting ``finite_genome=True``. When simulating under
 the finite genome model, the mutation rate is no longer scaled by the number of
-loci, ``L``. Instead, the mutation rates are simply `theta_fd=4*Ne*u` and
+loci, ``L``. Instead, the mutation rates are simply ``theta_fd=4*Ne*u`` and
 ``theta_bd=4*Ne*v`` where ``u`` and ``v`` are the forward and backward mutation rates,
 respectively. Therefore, ``theta_fd`` and ``theta_bd`` are typically much less than
 1 (and in fact the model breaks down for scaled mutation rates around 1).
