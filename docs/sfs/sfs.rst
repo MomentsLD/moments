@@ -557,3 +557,15 @@ using and we then pass that data dictionary to the Spectrum class:
 
     data_dict = moments.Misc.make_data_dict_vcf(vcf_filename, popinfo_filename)
     fs = moments.Spectrum.from_data_dict(data_dict)
+
+****************
+Plotting the SFS
+****************
+
+``moments`` comes pre-installed with a number of plotting functions, which can be
+called from ``moments.Plotting``. These include functions to plot individual
+SFS, or to compare two SFS (for example, to compare a model to data). These
+functions can be used out-of-the-box, or serve as inspiration for your own
+``matplotlib`` adventures. To see what plotting functions are available and view
+their documentation, head *here*.
+

@@ -56,3 +56,19 @@ Inference functions
 
 Plotting features
 -----------------
+
+Single-population plotting
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: moments.Plotting
+    :members: plot_1d_fs, plot_1d_comp_Poisson, plot_1d_comp_multinom
+    :noindex:
+
+Multi-population plotting
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: moments.Plotting
+    :members: plot_single_2d_sfs, plot_2d_resid, plot_2d_comp_multinom,
+        plot_2d_comp_Poisson, plot_3d_comp_multinom, plot_3d_comp_Poisson,
+        plot_3d_spectrum, plot_4d_comp_multinom, plot_4d_comp_Poisson
+    :noindex:

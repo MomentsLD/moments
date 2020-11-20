@@ -23,7 +23,6 @@ Welcome to moments's documentation!
 
    sfs/sfs
    sfs/inference
-   sfs/visualization
 
 .. toctree::
    :caption: Extensions

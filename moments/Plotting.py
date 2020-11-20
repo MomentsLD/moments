@@ -1,12 +1,3 @@
-"""
-Routines for Plotting comparisons between model and data.
-
-These can serve as inspiration for custom routines for one's own purposes.
-Note that all the plotting is done with pylab. To see additional pylab methods:
-"import pylab; help(pylab)". Pylab's many functions are documented at 
-http://matplotlib.sourceforge.net/contents.html
-"""
-
 import matplotlib
 import pylab
 import numpy
@@ -37,22 +28,25 @@ _ctf = matplotlib.ticker.FuncFormatter(lambda x, pos: "%i" % (x - 0.4))
 
 from moments import Numerics, Inference
 
+##
+## 1-population functions
+##
 
 def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=1):
     """
     Plot a 1-dimensional frequency spectrum.
 
-    fs: 1-dimensional Spectrum
-    fig_num: Clear and use figure fig_num for display. If None, a new figure
-             window is created.
-    show: If True, execute pylab.show command to make sure plot displays.
-    ax: If None, uses new or specified figure. Otherwise plots in axes object
-        that is given.
-    out: If file name is given, saves before showing.
-
     Note that all the plotting is done with pylab. To see additional pylab
     methods: "import pylab; help(pylab)". Pylab's many functions are documented
     at http://matplotlib.sourceforge.net/contents.html
+
+    :param fs: A single-population Spectrum
+    :param fig_num: If used, clear and use figure fig_num for display.
+        If None, a new figure window is created.
+    :param show: If True, execute pylab.show command to make sure plot displays.
+    :param ax: If None, uses new or specified figure. Otherwise plots in axes object
+        that is given.
+    :param out: If file name is given, saves before showing.
     """
 
     if ax is None:
@@ -93,21 +87,17 @@ def plot_1d_comp_multinom(
     """
     Multinomial comparison between 1d model and data.
 
-
-    model: 1-dimensional model SFS
-    data: 1-dimensional data SFS
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    plot_masked: Additionally plots (in open circles) results for points in the 
-                 model or data that were masked.
-    out: Output filename to save figure, if given.
-    show: If True, displays figure. Set to False to supress.
-
-    This comparison is multinomial in that it rescales the model to optimally
-    fit the data.
+    :param model: 1-dimensional model SFS
+    :param data: 1-dimensional data SFS
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param plot_masked: Additionally plots (in open circles) results for points in the 
+        model or data that were masked.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, displays figure. Set to False to supress.
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
@@ -126,18 +116,17 @@ def plot_1d_comp_Poisson(
     """
     Poisson comparison between 1d model and data.
 
-
-    model: 1-dimensional model SFS
-    data: 1-dimensional data SFS
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    plot_masked: Additionally plots (in open circles) results for points in the 
-                 model or data that were masked.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param model: 1-dimensional model SFS
+    :param data: 1-dimensional data SFS
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param plot_masked: Additionally plots (in open circles) results for points in the 
+        model or data that were masked.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if fig_num is None:
         f = pylab.gcf()
@@ -177,6 +166,10 @@ def plot_1d_comp_Poisson(
         pylab.show()
 
 
+##
+## 2-population functions
+##
+
 def plot_single_2d_sfs(
     sfs,
     vmin=None,
@@ -196,17 +189,17 @@ def plot_single_2d_sfs(
 
     Returns colorbar that is created.
 
-    sfs: SFS to plot
-    vmin: Values in sfs below vmin are masked in plot.
-    vmax: Values in sfs above vmax saturate the color spectrum.
-    ax: Axes object to plot into. If None, the result of pylab.gca() is used.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    extend: Whether the colorbar should have 'extension' arrows. See
-            help(pylab.colorbar) for more details.
-    colorbar: Should we plot a colorbar?
-    cmap: Pylab colormap to use for plotting.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param sfs: SFS to plot
+    :param vmin: Values in sfs below vmin are masked in plot.
+    :param vmax: Values in sfs above vmax saturate the color spectrum.
+    :param ax: Axes object to plot into. If None, the result of pylab.gca() is used.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param extend: Whether the colorbar should have 'extension' arrows. See
+        help(pylab.colorbar) for more details.
+    :param colorbar: Should we plot a colorbar?
+    :param cmap: Pylab colormap to use for plotting.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if ax is None:
         fig = pylab.gcf()
@@ -287,16 +280,16 @@ def plot_2d_resid(
     """
     Linear heatmap of 2d residual array.
 
-    sfs: Residual array to plot.
-    resid_range: Values > resid range or < resid_range saturate the color
-                 spectrum.
-    ax: Axes object to plot into. If None, the result of pylab.gca() is used.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    extend: Whether the colorbar should have 'extension' arrows. See
-            help(pylab.colorbar) for more details.
-    colorbar: Should we plot a colorbar?
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param sfs: Residual array to plot.
+    :param resid_range: Values > resid range or < resid_range saturate the color
+        spectrum.
+    :param ax: Axes object to plot into. If None, the result of pylab.gca() is used.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param extend: Whether the colorbar should have 'extension' arrows. See
+        help(pylab.colorbar) for more details.
+    :param colorbar: Should we plot a colorbar?
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if ax is None:
         fig = pylab.gcf()
@@ -381,8 +374,8 @@ def plot_2d_comp_multinom(
 
     :param model: 2-dimensional model SFS
     :param data: 2-dimensional data SFS
-    :param vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-        vmax respectively.
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
     :param resid_range: Residual plot saturates at +- resid_range.
     :param fig_num: Clear and use figure fig_num for display. If None, an new figure
         window is created.
@@ -430,8 +423,8 @@ def plot_2d_comp_Poisson(
 
     :param model: 2-dimensional model SFS
     :param data: 2-dimensional data SFS
-    :param vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-        vmax respectively.
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
     :param resid_range: Residual plot saturates at +- resid_range.
     :param fig_num: Clear and use figure fig_num for display. If None, an new figure
         window is created.
@@ -531,6 +524,11 @@ def plot_2d_comp_Poisson(
         plt.show()
 
 
+##
+## 3-population functions
+##
+
+
 def plot_3d_comp_multinom(
     model,
     data,
@@ -547,25 +545,21 @@ def plot_3d_comp_multinom(
     """
     Multinomial comparison between 3d model and data.
 
-
-    model: 3-dimensional model SFS
-    data: 3-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-                vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
-            manipulation of plots, it may be useful to make this False.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
-
-    This comparison is multinomial in that it rescales the model to optimally
-    fit the data.
+    :param model: 3-dimensional model SFS
+    :param data: 3-dimensional data SFS
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
@@ -600,22 +594,21 @@ def plot_3d_comp_Poisson(
     """
     Poisson comparison between 3d model and data.
 
-
-    model: 3-dimensional model SFS
-    data: 3-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-                vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
-            manipulation of plots, it may be useful to make this False.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param model: 3-dimensional model SFS
+    :param data: 3-dimensional data SFS
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
         model = model.fold()
@@ -755,13 +748,13 @@ def plot_3d_spectrum(
     Note that this method is slow, because it relies on matplotlib's software
     rendering. For faster and better looking plots, use plot_3d_spectrum_mayavi.
 
-    fs: FS to plot
-    vmin: Values in fs below vmin are masked in plot.
-    vmax: Values in fs above vmax saturate the color spectrum.
-    fignum: Figure number to plot into. If None, a new figure will be created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param fs: FS to plot
+    :param vmin: Values in fs below vmin are masked in plot.
+    :param vmax: Values in fs above vmax saturate the color spectrum.
+    :param fignum: Figure number to plot into. If None, a new figure will be created.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     import mpl_toolkits.mplot3d as mplot3d
 
@@ -891,92 +884,6 @@ def plot_3d_spectrum(
         pylab.show()
 
 
-def plot_3d_spectrum_mayavi(
-    fs, fignum=None, vmin=None, vmax=None, pop_ids=None, show=True
-):
-    """
-    Logarithmic heatmap of single 3d FS.
-
-    This method relies on MayaVi2's mlab interface. See http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/mlab.html . To edit plot
-    properties, click leftmost icon in the toolbar.
-
-    If you get an ImportError upon calling this function, it is likely that you
-    don't have mayavi installed.
-
-    fs: FS to plot
-    vmin: Values in fs below vmin are masked in plot.
-    vmax: Values in fs above vmax saturate the color spectrum.
-    fignum: Figure number to plot into. If None, a new figure will be created.
-            Note that these are MayaVi figures, which are separate from
-            matplotlib figures.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    show: If True, execute pylab.show command to make sure plot displays.
-    """
-    from enthought.mayavi import mlab
-
-    fig = mlab.figure(fignum, bgcolor=(1, 1, 1))
-    mlab.clf(fig)
-
-    if vmin is None:
-        vmin = fs.min()
-    if vmax is None:
-        vmax = fs.max()
-
-    # Which entries should I plot?
-    toplot = numpy.logical_not(fs.mask)
-    toplot = numpy.logical_and(toplot, fs.data >= vmin)
-
-    # For the color mapping
-    normalized = (numpy.log(fs) - numpy.log(vmin)) / (numpy.log(vmax) - numpy.log(vmin))
-    normalized = numpy.minimum(normalized, 1)
-
-    xs, ys, zs = numpy.indices(fs.shape)
-    flat_xs = xs.flatten()
-    flat_ys = ys.flatten()
-    flat_zs = zs.flatten()
-    flat_toplot = toplot.flatten()
-
-    mlab.barchart(
-        flat_xs[flat_toplot],
-        flat_ys[flat_toplot],
-        flat_zs[flat_toplot],
-        normalized.flatten()[flat_toplot],
-        colormap="hsv",
-        scale_mode="none",
-        lateral_scale=1,
-        figure=fig,
-    )
-
-    if pop_ids is None:
-        if fs.pop_ids is not None:
-            pop_ids = fs.pop_ids
-        else:
-            pop_ids = ["pop0", "pop1", "pop2"]
-
-    a = mlab.axes(
-        xlabel=pop_ids[0],
-        ylabel=pop_ids[1],
-        zlabel=pop_ids[2],
-        figure=fig,
-        color=(0, 0, 0),
-    )
-    a.axes.label_format = ""
-    a.title_text_property.color = (0, 0, 0)
-    mlab.text3d(
-        fs.sample_sizes[0],
-        fs.sample_sizes[1],
-        fs.sample_sizes[2] + 1,
-        "(%i, %i, %i)" % tuple(fs.sample_sizes),
-        scale=0.75,
-        figure=fig,
-        color=(0, 0, 0),
-    )
-    mlab.view(azimuth=-40, elevation=65, distance="auto", focalpoint="auto")
-
-    if show:
-        mlab.show()
-
-
 def plot_4d_comp_multinom(
     model,
     data,
@@ -991,24 +898,23 @@ def plot_4d_comp_multinom(
     show=True,
 ):
     """
-    Multinomial comparison between 3d model and data.
+    Multinomial comparison between 4d model and data.
     
-    model: 4-dimensional model SFS
-    data: 4-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-        vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
+    :param model: 4-dimensional model SFS
+    :param data: 4-dimensional data SFS
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
         window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
         distributed for Poisson sampling. 'linear' for the linear
         residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
         manipulation of plots, it may be useful to make this False.
-        
-    This comparison is multinomial in that it rescales the model to optimally
-        fit the data.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
@@ -1042,22 +948,22 @@ def plot_4d_comp_Poisson(
 ):
     """
     Poisson comparison between 4d model and data.
-    
-    model: 4-dimensional model SFS
-    data: 4-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-        vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
+
+    :param model: 4-dimensional model SFS
+    :param data: 4-dimensional data SFS
+    :param vmin: Minimum value plotted.
+    :param vmax: Maximum value plotted.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
         window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
         distributed for Poisson sampling. 'linear' for the linear
         residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
         manipulation of plots, it may be useful to make this False.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
         model = model.fold()
