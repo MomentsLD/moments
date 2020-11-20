@@ -450,7 +450,7 @@ Then visualizing using ``moments.Plotting.plot_1d_fs(fs_polarized)``, we can see
 the uptick at high-frequency variants due to ancestral misidentification - that is,
 recurrent mutations along the lineage leading from humans to chimps:
 
-.. figure:: figures/ancestral_misid.png
+.. figure:: ../figures/ancestral_misid.png
     :scale: 80 %
     :align: center
 

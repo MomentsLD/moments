@@ -18,31 +18,35 @@ Welcome to moments's documentation!
    installation
 
 .. toctree::
-   :caption: SFS analysis
+   :caption: SFS
    :maxdepth: 1
 
-   sfs
-   inference
-   visualization
-   dfe
+   sfs/sfs
+   sfs/inference
+   sfs/visualization
 
 .. toctree::
-   :caption: Extentions
+   :caption: Extensions
    :maxdepth: 1
    
-   ld
-   two_locus
-   triallele
+   extensions/ld
+   extensions/two_locus
+   extensions/triallele
+   extensions/demes
 
 .. toctree::
-   :caption: Demes
+   :caption: Modules
    :maxdepth: 1
 
-   demes
+   modules/diversity
+   modules/dfe
+   modules/vcf
+   modules/recombination
+   modules/sweeps
 
 .. toctree::
    :caption: Data types and functions
    :maxdepth: 1
 
-   api_moments
-   api_ld
+   api/api_moments
+   api/api_ld

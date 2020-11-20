@@ -1,6 +1,6 @@
-=====================
-Module: DFE inference
-=====================
+=============
+DFE inference
+=============
 .. jupyter-kernel:: python3
 
 By Aaron Ragsdale, November 2020.
@@ -38,7 +38,7 @@ population, roughly 50% of them are singletons; compare that to synonymous varia
 of which less than 30% are singletons.
 
 .. _all_data:
-.. figure:: figures/msl_spectra.png
+.. figure:: ../figures/msl_spectra.png
     :align: center
 
     Synonymous, missense, and loss-of-function SFS from the 1000 Genomes Project
@@ -164,7 +164,7 @@ We can see how well our model fit the synonymous data by calling
 ``moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")``:
 
 .. _syn_fit:
-.. figure:: figures/msl_syn_comparison.png
+.. figure:: ../figures/msl_syn_comparison.png
     :align: center
 
     Demographic model fit to the MSL synonymous data. Top: model (red) and synonymous
@@ -233,7 +233,7 @@ Caching SFS
 .. jupyter-execute::
     :hide-code:
 
-    spectrum_cache = pickle.load(open("data/msl_spectrum_cache.bp", "rb"))
+    spectrum_cache = pickle.load(open("./data/msl_spectrum_cache.bp", "rb"))
     gammas = np.array(sorted(list(spectrum_cache.keys())))[1:]
 
 Optimization of the DFE
@@ -291,7 +291,7 @@ To visualize the fit of our inferred model to the missense data, we run
 ``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")``:
 
 .. _mis_fit:
-.. figure:: figures/msl_mis_comparison.png
+.. figure:: ../figures/msl_mis_comparison.png
     :align: center
 
     Gamma-DFE fit to the MSL missense data.
@@ -319,7 +319,7 @@ And again we visualize the fit of our inferred model to the LOF data with
 ``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")``:
 
 .. _lof_fit:
-.. figure:: figures/msl_lof_comparison.png
+.. figure:: ../figures/msl_lof_comparison.png
     :align: center
 
     Gamma-DFE fit to the MSL loss-of-function data.
