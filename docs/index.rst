@@ -24,6 +24,7 @@ Welcome to moments's documentation!
    sfs
    inference
    visualization
+   dfe
 
 .. toctree::
    :caption: Extentions

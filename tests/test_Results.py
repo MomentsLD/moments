@@ -1,6 +1,6 @@
 import os
 import unittest
-import numpy
+import numpy, numpy as np
 import moments
 import time
 
@@ -67,6 +67,14 @@ class ResultsTestCase(unittest.TestCase):
 
         self.assertTrue(abs(resid).max() < 0.25)
 
+    def test_selection_specification(self):
+        gamma = -2
+        h = 0.2
+        fs = moments.Demographics2D.snm([15, 15])
+        fs.integrate([2, 3], 0.3, gamma=[gamma, gamma], h=[h, h])
+        fs2 = moments.Demographics2D.snm([15, 15])
+        fs2.integrate([2, 3], 0.3, gamma=gamma, h=h)
+        self.assertTrue(np.allclose(fs.data, fs2.data))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
 

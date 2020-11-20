@@ -9,7 +9,7 @@ import functools
 import operator
 import os
 import sys
-import numpy
+import numpy, numpy as np
 from numpy import newaxis as nuax
 import scipy.misc as misc
 import copy
@@ -765,8 +765,12 @@ class Spectrum(numpy.ma.masked_array):
         else:
             if gamma is None:
                 gamma = numpy.zeros(len(n))
+            elif not hasattr(gamma, "__len__"):
+                gamma = gamma * np.ones(len(n))
             if h is None:
                 h = 0.5 * numpy.ones(len(n))
+            elif not hasattr(h, "__len__"):
+                h = h * np.ones(len(n))
             if m is None:
                 m = numpy.zeros([len(n), len(n)])
             if (m == 0).all():

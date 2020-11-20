@@ -450,19 +450,63 @@ Then visualizing using ``moments.Plotting.plot_1d_fs(fs_polarized)``, we can see
 the uptick at high-frequency variants due to ancestral misidentification - that is,
 recurrent mutations along the lineage leading from humans to chimps:
 
-.. image:: figures/ancestral_misid.png
+.. figure:: figures/ancestral_misid.png
+    :scale: 80 %
+    :align: center
+
+    Excess of high-frequency derived mutations due to 
+    ancestral misspecification.
 
 Selection and dominance
 =======================
 
+One of the great benefits to forward simulators is their ability to include the
+effects of selection and dominance with little extra cost. ``moments`` takes
+scaled selection coefficients :math:`\gamma = 2 N_e s` and dominance coefficients
+:math:`h` as keyword parameters when initializing the SFS and integrating:
+
+.. jupyter-execute::
+
+    gamma = -5
+    h = 0.1
+    ns = 30
+    
+    fs = moments.LinearSystem_1D.steady_state_1D(ns, gamma=gamma, h=h)
+    fs = moments.Spectrum(fs)
+
+    fs.integrate([3], 0.2, gamma=gamma, h=h)
+    print("Tajima's D:", fs.Tajima_D())
+
+Simulating selection with multiple populations works the same, where ``gamma`` and
+``h`` can be specified as scalar values. Note that we can also simulate with different
+selection and/or dominance coefficients in each population by passing a list of
+values, where the list has the same length as the number of populations in the SFS.
+
 Ancient samples and frozen populations
 ======================================
 
-Demographic models
-==================
+So far, in all the examples we've seen the output SFS integrates all populations
+until the same end time. If one or more of the sampled populations are
+non-contemporary, we need to "freeze" those populations at their time of sampling.
+This is done by specifying which populations to freeze using the ``frozen``
+argument.
 
-Head over to the *gallery* to see some examples of single- and multi-population
-demographic models.
+For example, if we sample two populations that split 100kya, and one
+population consisting of ancient samples from 20kya, we integrate the first
+80 thousand years as normal, and then the last 20 thousand years with the ancient
+population frozen:
+
+.. jupyter-execute::
+
+    Ne = 1e4
+    generation_time = 25
+    T1 = 80e3 / 2 / Ne / generation_time
+    T2 = 20e3 / 2 / Ne / generation_time
+    migrate = 0.5
+
+    fs = moments.Demographics2D.snm([10, 10])
+    fs.integrate([1, 1], T1, m=[[0, migrate], [migrate, 0]])
+    fs.integrate([1, 1], T1, m=[[0, migrate], [migrate, 0]], frozen=[False, True])
 
 ****************************
 Computing summary statistics
