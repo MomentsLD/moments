@@ -58,8 +58,8 @@ total mutation rates for each class of mutations.
 
 Using the mutation model from [Karczewski]_, I summed across all possible mutations in
 genes genome-wide, their mutational probability, and their functional consequences to
-get the total mutation rate (``u*L``) for each of the three mutation classes shown
-in :numref:`all_data`:
+get the total mutation rate (``u*L`` - here, ``L`` is roughlyl 36 Mb of annotated coding
+regions) for each of the three mutation classes shown in :numref:`all_data`:
 
 .. _mutation_rates:
 .. list-table:: Total mutation rates for classes of mutations in coding regions.
