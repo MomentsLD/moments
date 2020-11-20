@@ -3,33 +3,36 @@ Module: DFE inference
 =====================
 .. jupyter-kernel:: python3
 
-By Aaron Ragsdale.
+By Aaron Ragsdale, Nov 2020.
 
 The distribution of fitness effects (DFE) for new mutations describes is a fundamental
-parameter in evolutionary biology. Very roughly, most new mutations across the genome
-are effectively neutral or deleterious, with a small fraction being beneficial
-(e.g. [Eyre-Walker]_, [Boyko]_).
+parameter in evolutionary biology - it determines the fixation probability of new
+functional mutations, the strength of background selection, and the genetic architecture
+of traits and disease.
 
-In coding regions, the average selection coefficient for a new mutation will depend on
+Very roughly, most new mutations across the genome are effectively neutral or
+deleterious, with a small fraction being beneficial (e.g. [Keightley]_, [Boyko]_).
+In coding regions, the average selection coefficient for a new mutation depends on
 its functional effect: we typically assume synonymous (or silent) mutations are
-effectively neutral (though this is a tenuous assumption!), nonsynonymous (or missense)
-mutations are more deleterious on average, and loss of function (or nonsense) mutations
-are often very damaging. We can learn about the DFE in each of these categories by
-studying the number of mutations in each category and their SFS.
+effectively neutral (though this may be a tenuous assumption!), missense (or
+nonsynonymous) mutations are more deleterious on average, and loss of function
+(or nonsense) mutations are often very damaging. We can learn about the DFE in
+each of these categories by studying the distributions allele frequencies for variants
+in each class.
 
 ****
 Data
 ****
 
-Let's first look at the data we'll be working with. In :numref:`all_data`, I
-plotted the unfolded SFS for three classes of mutations in coding regions genome-wise.
-Here, I used the data from the Mende from Sierre Leone (MSL) from the 1000 Genomes
-Project [1000G]_. We can see that the missense variants are skewed to lower frequencies
-than synonymous variants, on average, and loss-of-function (LOF) variants are skewed
-to even lower frequencies.
+Let's first look at the data we'll be working with. Here, I used sing-population data
+from the Mende from Sierre Leone (MSL) from the 1000 Genomes Project [1000G]_. In
+:numref:`all_data`, I plotted the unfolded SFS for three classes of mutations 
+in coding regions genome-wise. We can see that the missense variants are skewed
+to lower frequencies than synonymous variants, on average, and loss-of-function
+(LOF) variants are skewed to even lower frequencies.
 
-It's difficult to see judge the skew of the SFS based on SFS counts, since the total
-mutational target for each mutation class differs (:numref:`mutation_rates`). On the
+It can be difficult to judge the skew of the SFS based on SFS counts, since the total
+mutational target for each mutation class differs (:numref:`mutation_rates`). In the
 right panel of the plot, we can see that of all LOF variants observed in the MSL
 population, roughly 50% of them are singletons; compare that to synonymous variants,
 of which less than 30% are singletons.
@@ -47,13 +50,14 @@ Mutation rates
 --------------
 
 The overall scaling of the SFS from mutation classes is also informative, because
-strongly deleterious or lethal mutations do not segregate at high frequencies and
+strongly deleterious or lethal mutations are quickly lost from the population and
 so are often unseen. Thus, seeing fewer mutations that expected in a given class
-tells us that some fraction of those mutations are highly deleterious. Making such
-an inference requires us to know the total mutation rates for each class of
-mutations.
+tells us that some fraction of those mutations are highly deleterious. To make such
+an inference about the strongly damaging tail fo the DFE we need to know the
+total mutation rates for each class of mutations.
 
-Using the mutation model from [Gnomad]_, I summed across all genes genome-wide to
+Using the mutation model from [Karczewski]_, I summed across all possible mutations in
+genes genome-wide, their mutational probability, and their functional consequences to
 get the total mutation rate (``u*L``) for each of the three mutation classes shown
 in :numref:`all_data`:
 
@@ -70,7 +74,7 @@ in :numref:`all_data`:
     * - Loss-offunction variants
       - 0.0256
 
-We can see here that the mutational target for nonsynonymous variants about 2.37
+We can see here that the mutational target for nonsynonymous variants is about 2.37
 times larger than for synonymous variants. Still, we see far more segregating
 synonymous mutations than nonsynonymous mutations:
 
@@ -175,7 +179,7 @@ Inferring the DFE
 *****************
 
 .. todo::
-    The general strategy, and why we cache spectra
+    The general strategy, and why we cache spectra. See [Ragsdale]_, [Kim]_
 
 Caching SFS
 -----------
@@ -264,7 +268,8 @@ Fit missense variants:
     print("scale:", f"{opt_params_mis[1]:.1f}")
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
 
-View with ``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis)``:
+To visualize the fit of our inferred model to the missense data, we run
+``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis)``:
 
 .. _mis_fit:
 .. figure:: figures/msl_mis_comparison.png
@@ -272,7 +277,7 @@ View with ``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis)``:
 
     Gamma-DFE fit to the MSL missense data.
 
-Fit LOF variants:
+Next, we LOF variants in exactly the same way:
 
 .. jupyter-execute::
 
@@ -291,7 +296,8 @@ Fit LOF variants:
     print("scale:", f"{opt_params_lof[1]:.1f}")
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
 
-View with ``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof)``:
+And again we visualize the fit of our inferred model to the LOF data with
+``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof)``:
 
 .. _lof_fit:
 .. figure:: figures/msl_lof_comparison.png
@@ -299,15 +305,15 @@ View with ``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof)``:
 
     Gamma-DFE fit to the MSL loss-of-function data.
 
-Using the inferred :math:`N_e` and the function ``scipy.stats.gamma.cdf( )``, we
-can compute the proportions of new missense and LOF mutations across bins of
-selection coefficients:
+Using the inferred :math:`N_e` from fitting the demographic model to the synonymous
+data and the function ``scipy.stats.gamma.cdf()``, we can compute the proportions
+of new missense and LOF mutations across bins of selection coefficients:
 
 .. _dfes:
 .. list-table:: DFEs
     :align: center
 
-    * - Mutation class
+    * - Class
       - :math:`| s | < 10^{-5}`
       - :math:`10^{-5} \leq | s | < 10^{-4}`
       - :math:`10^{-4} \leq | s | < 10^{-3}`
@@ -326,32 +332,54 @@ selection coefficients:
       - 0.175
       - 0.687
 
-Here, we can clearly see that LOF variants are inferred to be very deleterious,
-with roughtly 2/3 of all new LOF mutations having a selection coefficient larger
+Here, we clearly see that LOF variants are inferred to be very deleterious,
+with roughly 2/3 of all new LOF mutations having a selection coefficient larger
 that :math:`10^{-2}`.
 
 ************************************
 Sensitivity to the demographic model
 ************************************
 
-What if we fit a model that does a worse job at fitting the synonymous data - how
-robust are our results? What if we don't fit the demography at all and just assume
-steady-state demography, as a worst-case scenario?
+.. todo::
+    What if we fit a model that does a worse job at fitting the synonymous data - how
+    robust are our results? What if we don't fit the demography at all and just assume
+    steady-state demography, as a worst-case scenario?
 
 *********************************
 Are synonymous mutations neutral?
 *********************************
 
-Sneak preview: prolly not.
+.. todo::
+    Sneak preview: probably not. But how does it affect inference of the DFE of other
+    classes of mutations?
 
 **********
 References
 **********
 
-.. [Boyko] Boyko et al
+.. [Boyko] 
+    Boyko, Adam R., et al. "Assessing the evolutionary impact of amino acid mutations
+    in the human genome." *PLoS Genet* 4.5 (2008): e1000083.
 
-.. [Eyre-Walker] Eyre-Walker ...
+.. [Karczewski]
+    Karczewski, Konrad J., et al. "The mutational constraint spectrum quantified
+    from variation in 141,456 humans." *Nature* 581.7809 (2020): 434-443.
 
-.. [Gnomad] Konrad's paper
+.. [Keightley]
+    Keightley, Peter D., and Adam Eyre-Walker. "Joint inference of the distribution
+    of fitness effects of deleterious mutations and population demography based on
+    nucleotide polymorphism frequencies." *Genetics* 177.4 (2007): 2251-2261.
 
-.. [1000G] Thousand genomes.
+.. [Kim]
+    Kim, Bernard Y., Christian D. Huber, and Kirk E. Lohmueller. "Inference of the
+    distribution of selection coefficients for new nonsynonymous mutations using
+    large samples." *Genetics* 206.1 (2017): 345-361.
+
+.. [Ragsdale]
+    Ragsdale, Aaron P., et al. "Triallelic population genomics for inferring
+    correlated fitness effects of same site nonsynonymous mutations."
+    *Genetics* 203.1 (2016): 513-523.
+
+.. [1000G]
+    1000 Genomes Project Consortium. "A global reference for human genetic variation."
+    *Nature* 526.7571 (2015): 68-74.
