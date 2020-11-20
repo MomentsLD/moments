@@ -3,7 +3,7 @@ Module: DFE inference
 =====================
 .. jupyter-kernel:: python3
 
-By Aaron Ragsdale, Nov 2020.
+By Aaron Ragsdale, November 2020.
 
 The distribution of fitness effects (DFE) for new mutations describes is a fundamental
 parameter in evolutionary biology - it determines the fixation probability of new
@@ -24,16 +24,16 @@ in each class.
 Data
 ****
 
-Let's first look at the data we'll be working with. Here, I used sing-population data
+Let's first look at the data we'll be working with. Here, I used single-population data
 from the Mende from Sierre Leone (MSL) from the 1000 Genomes Project [1000G]_. In
 :numref:`all_data`, I plotted the unfolded SFS for three classes of mutations 
-in coding regions genome-wise. We can see that the missense variants are skewed
+in coding regions genome-wide. We can see that the missense variants are skewed
 to lower frequencies than synonymous variants, on average, and loss-of-function
 (LOF) variants are skewed to even lower frequencies.
 
 It can be difficult to judge the skew of the SFS based on SFS counts, since the total
 mutational target for each mutation class differs (:numref:`mutation_rates`). In the
-right panel of the plot, we can see that of all LOF variants observed in the MSL
+bottom panel of the plot, we can see that of all LOF variants observed in the MSL
 population, roughly 50% of them are singletons; compare that to synonymous variants,
 of which less than 30% are singletons.
 
@@ -42,7 +42,7 @@ of which less than 30% are singletons.
     :align: center
 
     Synonymous, missense, and loss-of-function SFS from the 1000 Genomes Project
-    across all autosomal genes. Left: counts in each frequency bin. Right: proportions
+    across all autosomal genes. Top: counts in each frequency bin. Bottom: proportions
     in each frequency bin.
 
 
@@ -62,7 +62,7 @@ get the total mutation rate (``u*L``) for each of the three mutation classes sho
 in :numref:`all_data`:
 
 .. _mutation_rates:
-.. list-table:: Mutation rates
+.. list-table:: Total mutation rates for classes of mutations in coding regions.
     :align: center
 
     * - Mutation class
@@ -161,15 +161,14 @@ In practice, you would want to test a wide range of initial conditions to make s
 our inference didn't get stuck at a local minimum.
 
 We can see how well our model fit the synonymous data by calling
-``moments.Plotting.plot_1d_comp_multinom(model, fs_syn)``:
+``moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")``:
 
 .. _syn_fit:
 .. figure:: figures/msl_syn_comparison.png
     :align: center
 
     Demographic model fit to the MSL synonymous data. Top: model (red) and synonymous
-    data (blue) SFS. Bottom: residuals, plotted as (model - data) / sqrt(data).
-    [Note to self, check residual calculation.]
+    data (blue) SFS. Bottom: residuals, plotted as ``(model - data) / sqrt(data)``.
 
 That's a pretty good fit! Now that we have our inferred demographic model, let's
 move on to inferring the DFEs for missense and LOF variants.
@@ -178,8 +177,27 @@ move on to inferring the DFEs for missense and LOF variants.
 Inferring the DFE
 *****************
 
-.. todo::
-    The general strategy, and why we cache spectra. See [Ragsdale]_, [Kim]_
+Now that we have a plausible demographic model, we can move to the selected SFS.
+Not every new missense mutation or every new LOF mutation will have the same
+fitness effect, so we aim to learn the *distribution* of selection coefficients
+of new mutations. Here, we are going to assume an additive model of selection -
+that is, heterozygotes have fitness effect :math:`1+s` while homozygotes for the
+derived allele have fitness effect :math:`1+2s`. We're also only going to focus
+on the deleterious DFE - we assume beneficial mutations are very rare, and we'll
+ignore them.
+
+The general strategy is to pick some distribution (here, we'll choose a
+`gamma distribution <https://www.wikipedia.org/wiki/Gamma_distribution>`_,
+though other distributions such a log-normal or point masses could be used),
+and then infer the parameters of that distribution. To do so, we compute a large
+number of SFS spanning the range of the distribution of possible :math:`\gamma=2N_es`
+values, and then combine them based on weights given by the parameterized DFE
+(for example, [Ragsdale]_, [Kim]_).
+
+Because the underlying demographic model does not change, we can cache the SFS
+for each value of :math:`\gamma`. Then in optimizing the DFE parameters, we just
+have a weighted sum across this cache, and this makes the actual DFE inference
+very rapid.
 
 Caching SFS
 -----------
@@ -198,6 +216,7 @@ Caching SFS
                 np.log(opt_params[1] / opt_params[0]) * t / opt_params[3])]
             fs.integrate(nu_func, opt_params[3], gamma=gamma)
             if abs(np.max(fs)) > 10 or np.any(np.isnan(fs)):
+                # large gamma-values can require large sample sizes for stability
                 rerun = True
             else:
                 rerun = False
@@ -269,7 +288,7 @@ Fit missense variants:
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
 
 To visualize the fit of our inferred model to the missense data, we run
-``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis)``:
+``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")``:
 
 .. _mis_fit:
 .. figure:: figures/msl_mis_comparison.png
@@ -297,7 +316,7 @@ Next, we LOF variants in exactly the same way:
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
 
 And again we visualize the fit of our inferred model to the LOF data with
-``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof)``:
+``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")``:
 
 .. _lof_fit:
 .. figure:: figures/msl_lof_comparison.png
@@ -310,7 +329,9 @@ data and the function ``scipy.stats.gamma.cdf()``, we can compute the proportion
 of new missense and LOF mutations across bins of selection coefficients:
 
 .. _dfes:
-.. list-table:: DFEs
+.. list-table:: The DFE for missense and loss-of-function variants binned by selection
+    coefficients, ranging from neutral or nearly neutral (:math:`|s| < 10^{-5}`) to
+    strongly deleterious and lethal (:math:`|s|\geq10^{-2}`).
     :align: center
 
     * - Class
@@ -344,6 +365,17 @@ Sensitivity to the demographic model
     What if we fit a model that does a worse job at fitting the synonymous data - how
     robust are our results? What if we don't fit the demography at all and just assume
     steady-state demography, as a worst-case scenario?
+
+********************************
+Non-additive models of selection
+********************************
+
+.. todo::
+    Here, we've assumed that selective effects are additive. There is growing evidence
+    that deleterious mutations tend toward partial recessivity, and the relationship
+    between selection and domininance coefficients is non-trivial (strongly deleterious
+    mutations are likely to be more recessive on average than weakly deleterious
+    mutations). What happens if we try to take such effects into account?
 
 *********************************
 Are synonymous mutations neutral?
