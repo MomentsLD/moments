@@ -377,27 +377,23 @@ def plot_2d_comp_multinom(
     show=True,
 ):
     """
-    Mulitnomial comparison between 2d model and data.
+    Multinomial comparison between 2d model and data.
 
-
-    model: 2-dimensional model SFS
-    data: 2-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-                vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
-            manipulation of plots, it may be useful to make this False.
-
-    This comparison is multinomial in that it rescales the model to optimally
-    fit the data.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param model: 2-dimensional model SFS
+    :param data: 2-dimensional data SFS
+    :param vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
+        vmax respectively.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
@@ -432,22 +428,21 @@ def plot_2d_comp_Poisson(
     """
     Poisson comparison between 2d model and data.
 
-
-    model: 2-dimensional model SFS
-    data: 2-dimensional data SFS
-    vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
-                vmax respectively.
-    resid_range: Residual plot saturates at +- resid_range.
-    fig_num: Clear and use figure fig_num for display. If None, an new figure
-             window is created.
-    pop_ids: If not None, override pop_ids stored in Spectrum.
-    residual: 'Anscombe' for Anscombe residuals, which are more normally
-              distributed for Poisson sampling. 'linear' for the linear
-              residuals, which can be less biased.
-    adjust: Should method use automatic 'subplots_adjust'? For advanced
-            manipulation of plots, it may be useful to make this False.
-    out: Output filename to save figure, if given.
-    show: If True, execute pylab.show command to make sure plot displays.
+    :param model: 2-dimensional model SFS
+    :param data: 2-dimensional data SFS
+    :param vmin, vmax: Minimum and maximum values plotted for sfs are vmin and
+        vmax respectively.
+    :param resid_range: Residual plot saturates at +- resid_range.
+    :param fig_num: Clear and use figure fig_num for display. If None, an new figure
+        window is created.
+    :param pop_ids: If not None, override pop_ids stored in Spectrum.
+    :param residual: 'Anscombe' for Anscombe residuals, which are more normally
+        distributed for Poisson sampling. 'linear' for the linear
+        residuals, which can be less biased.
+    :param adjust: Should method use automatic 'subplots_adjust'? For advanced
+        manipulation of plots, it may be useful to make this False.
+    :param out: Output filename to save figure, if given.
+    :param show: If True, execute pylab.show command to make sure plot displays.
     """
     if data.folded and not model.folded:
         model = model.fold()
@@ -494,13 +489,13 @@ def plot_2d_comp_Poisson(
 
     ax = pylab.subplot(2, 2, 1)
     plot_single_2d_sfs(
-        masked_data, vmin=vmin, vmax=vmax, pop_ids=data_pop_ids, colorbar=False
+        masked_data, vmin=vmin, vmax=vmax, pop_ids=data_pop_ids, colorbar=False, show=False
     )
     ax.set_title("data")
 
     ax2 = pylab.subplot(2, 2, 2, sharex=ax, sharey=ax)
     plot_single_2d_sfs(
-        masked_model, vmin=vmin, vmax=vmax, pop_ids=model_pop_ids, extend=extend
+        masked_model, vmin=vmin, vmax=vmax, pop_ids=model_pop_ids, extend=extend, show=False
     )
     ax2.set_title("model")
 
@@ -520,7 +515,7 @@ def plot_2d_comp_Poisson(
     ]
 
     ax3 = pylab.subplot(2, 2, 3, sharex=ax, sharey=ax)
-    plot_2d_resid(resid, resid_range, pop_ids=resid_pop_ids, extend=resid_extend)
+    plot_2d_resid(resid, resid_range, pop_ids=resid_pop_ids, extend=resid_extend, show=False)
     ax3.set_title("residuals")
 
     ax = pylab.subplot(2, 2, 4)
@@ -529,11 +524,11 @@ def plot_2d_comp_Poisson(
     ax.set_title("residuals")
     ax.set_yticks([])
 
-    f.tight_layout()
+    plt.tight_layout()
     if out is not None:
-        f.savefig(out)
+        plt.savefig(out)
     if show:
-        pylab.show()
+        plt.show()
 
 
 def plot_3d_comp_multinom(

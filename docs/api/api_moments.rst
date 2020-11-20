@@ -34,5 +34,25 @@ Demographic functions
 Inference functions
 -------------------
 
+.. autofunction:: moments.Inference.ll
+
+.. autofunction:: moments.Inference.ll_multinom
+
+.. autofunction:: moments.Inference.optimal_sfs_scaling
+
+.. autofunction:: moments.Inference.optimally_scaled_sfs
+
+.. autofunction:: moments.Inference.linear_Poisson_residual
+
+.. autofunction:: moments.Inference.Anscombe_Poisson_residual
+
+.. autofunction:: moments.Inference.optimize_log
+
+.. autofunction:: moments.Inference.optimize_log_fmin
+
+.. autofunction:: moments.Inference.optimize_log_powell
+
+.. autofunction:: moments.Inference.optimize_log_lbfgsb
+
 Plotting features
 -----------------
