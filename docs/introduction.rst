@@ -3,9 +3,10 @@ Introduction
 ============
 
 .. note::
-    These docs are under development. If you find any issues, confusing bits, or
-    have suggestions to make them more complete or clearer, please open an issue
-    or a PR. Thanks!
+    These docs are under development. In particular, many of the modules have not
+    yet been completed and some of the extensions are not documented in great
+    detail. If you find any issues, confusing bits, or have suggestions to make
+    them more complete or clearer, please open an issue or a PR. Thanks!
 
 Welcome to ``moments``! ``moments`` implements methods for inferring demographic
 history and patterns of selection from genetic data, based on solutions to the
