@@ -300,11 +300,22 @@ def sparsify_genotype_matrix(G):
 
 
 def sparsify_haplotype_matrix(G):
-    pass
+    G_dict = {}
+    if np.any(G == -1):
+        missing = True
+    else:
+        missing = False
+    for i in range(len(G)):
+        G_dict[i] = {
+            1: set(np.where(G[i, :] == 1)[0]),
+        }
+        if missing == True:
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+    return G_dict, missing
 
 
-def tally_sparse_haplotypes():
-    pass
+#def tally_sparse_haplotypes():
+#    pass
 
 
 # def tally_sparse(G1, G2, n, missing=False):
@@ -688,7 +699,7 @@ def _count_types_sparse(
             else:
                 cs = tuple(
                     [
-                        tally_sparse_haplotypes(
+                        spt.tally_sparse_haplotypes(
                             haplotypes_by_pop[pop][ii],
                             haplotypes_by_pop[pop][jj],
                             ns[pop],
@@ -962,7 +973,7 @@ def _get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, sep="\t")
+        samples = pandas.read_csv(pop_file, delim_whitespace=True)
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 
