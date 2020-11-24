@@ -5,8 +5,12 @@ import numpy as np
 Heterozygosity and LD stat names
 """
 
-### handling data (splits, marginalization, admixture, ...)
 def het_names(num_pops):
+    """
+    Returns the heterozygosity statistic representation names.
+
+    :param int num_pops: Number of populations.
+    """
     Hs = []
     for ii in range(num_pops):
         for jj in range(ii, num_pops):
@@ -15,6 +19,11 @@ def het_names(num_pops):
 
 
 def ld_names(num_pops):
+    """
+    Returns the LD statistic representation names.
+
+    :param int num_pops: Number of populations.
+    """
     Ys = []
     for ii in range(num_pops):
         for jj in range(ii, num_pops):
@@ -39,22 +48,27 @@ def ld_names(num_pops):
 
 def moment_names(num_pops):
     """
-    num_pops : number of populations, indexed [1,...,num_pops]
+    Returns a tuple of length two with LD and heterozygosity moment names.
+
+    :param int num_pops: Number of populations
     """
     hn = het_names(num_pops)
     yn = ld_names(num_pops)
     return (yn, hn)
 
 
-"""
-We need to map moments for split and rearrangement functions
-"""
+##
+## We need to map moments for split and rearrangement functions
+##
 mom_map = {}
 
 
 def map_moment(mom):
     """
-    
+    There are repeated moments with equal expectations, so we collapse them into
+    the same moment.
+
+    :param str mom: The moment to map to its "canonical" name.
     """
     try:
         return mom_map[mom]
@@ -71,7 +85,8 @@ def map_moment(mom):
         elif mom.split("_")[0] == "pi2":
             popsp = sorted([int(p) for p in mom.split("_")[1:3]])
             popsq = sorted([int(p) for p in mom.split("_")[3:]])
-            ## pi2_2_2_1_1 -> pi2_1_1_2_2, pi2_1_2_1_1 -> pi2_1_1_1_2, pi2_2_2_1_3 -> pi2_1_3_2_2
+            ## pi2_2_2_1_1 -> pi2_1_1_2_2, pi2_1_2_1_1 -> pi2_1_1_1_2,
+            ## pi2_2_2_1_3 -> pi2_1_3_2_2
             if popsp[0] > popsq[0]:  # switch them
                 mom_out = (
                     "pi2_"
@@ -106,14 +121,17 @@ def map_moment(mom):
 
 def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     """
-    Generate a perturbed set of parameters.
-
-    Each element of params is radomly perturbed <fold> factors of 2 up or down.
-    fold: Number of factors of 2 to perturb by
-    lower_bound: If not None, the resulting parameter set is adjusted to have 
-                 all value greater than lower_bound.
-    upper_bound: If not None, the resulting parameter set is adjusted to have 
-                 all value less than upper_bound.
+    Generate a perturbed set of parameters. Each element of params is randomly
+    perturbed by the given factor of 2 up or down.
+    
+    :param list params: A list of input parameters.
+    :param float fold: Number of factors of 2 to perturb by.
+    :param list lower_bound: If not None, the resulting parameter set is adjusted
+        to have all value greater than lower_bound. Must have equal length to
+        ``params``.
+    :param list upper_bound: If not None, the resulting parameter set is adjusted
+        to have all value less than upper_bound. Must have equal length to
+        ``params``.
     """
     pnew = params * 2 ** (fold * (2 * np.random.random(len(params)) - 1))
     if lower_bound is not None:
@@ -133,6 +151,14 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
     """
     Times in params must be specified so that earlier epochs are earlier in the
     param list, because we return rescaled cumulative times.
+
+    :param list params: List of parameters.
+    :param list types: List of parameter types. Times are given by "T", sizes by "nu",
+        effective size by "Ne", migration rates by "n", and fractions by "x" or "f".
+    :param float Ne: The effective population size, typically as the last entry in
+        ``params``.
+    :param float gens: The generation time.
+    :param list uncerts: List of uncertainties, same length as ``params``.
     """
     if Ne is not None and "Ne" in types:
         raise ValueError(

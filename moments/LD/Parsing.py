@@ -54,7 +54,7 @@ if imported_allel:
     warnings.filterwarnings(action="ignore", category=UserWarning)
 
 
-def load_h5(vcf_file, report=True):
+def _load_h5(vcf_file, report=True):
     check_imports()
     ## open the h5 callset, create if doesn't exist
     ## note that if the h5 file exists, but isn't properly written, you will need to delete and recreate
@@ -82,22 +82,37 @@ def get_genotypes(
     vcf_file, bed_file=None, chromosome=None, min_bp=None, use_h5=True, report=True
 ):
     """
-    Given a vcf file, we extract the biallelic SNP genotypes.
-    If bed_file is None, we use all valid variants. Otherwise we filter genotypes
-        by the given bed file.
-    If chromosome (int) is given, filters to keep snps only in given chrom (useful for vcfs spanning
-        multiple chromosomes).
-    min_bp : only used with bed file, filters out features that are smaller than min_bp
+    Given a vcf file, we extract the biallelic SNP genotypes. If bed_file is None,
+    we use all valid variants. Otherwise we filter genotypes by the given bed file.
+    If chromosome is given, filters to keep snps only in given chrom (useful for vcfs
+    spanning multiple chromosomes).
+
     If use_h5 is True, we try to load the h5 file, which has the same path/name as
-        vcf_file, but with *.h5 instead of *.vcf or *.vcf.gz. If the h5 file does not
-        exist, we create it and save it as *.h5
-    report : prints progress updates if True, silent otherwise
+    vcf_file, but with {fname}.h5 instead of {fname}.vcf or {fname}.vcf.gz. If the h5
+    file does not exist, we create it and save it as {fname}.h5
+
+    :param vcf_file: A VCF-formatted file.
+    :type vcf_file: str
+    :param bed_file: A bed file specifying regions to compute statistics from.
+    :type bed_file: str, optional
+    :param min_bp: only used with bed file, filters out features that are smaller
+        than ``min_bp``.
+    :type min_bp: int, optional
+    :param chromosome: Chromosome to compute LD statistics from.
+    :type chromosome: int or str, optional
+    :param use_h5: If use_h5 is True, we try to load the h5 file, which has the
+        same path/name as vcf_file, but with .h5 instead of .vcf or .vcf.gz extension.
+        If the h5 file does not exist, we create it and save it with .h5 extension.
+        Defaults to True.
+    :type use_h5: bool, optional
+    :param report: Prints progress updates if True, silent otherwise. Defaults to True.
+    :type report: bool, optional
     """
 
     check_imports()
 
     if use_h5 is True:
-        callset = load_h5(vcf_file, report=report)
+        callset = _load_h5(vcf_file, report=report)
     else:
         ## read the vcf directly
         raise ValueError("Use hdf5 format.")
@@ -198,13 +213,14 @@ def get_genotypes(
     return biallelic_positions, biallelic_genotypes, biallelic_allele_counts, sample_ids
 
 
-def assign_r_pos(positions, rec_map):
+def _assign_r_pos(positions, rec_map):
     rs = np.zeros(len(positions))
     for ii, pos in enumerate(positions):
         if pos in np.array(rec_map[0]):
             rs[ii] = np.array(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0]]
         else:
-            ## for now, if outside rec map, assign to nearest point, but later want to drop these positions
+            ## for now, if outside rec map, assign to nearest point,
+            ## but later want to drop these positions
             if pos < rec_map[0].iloc[0]:
                 rs[ii] = rec_map[1].iloc[0]
             elif pos > rec_map[0].iloc[-1]:
@@ -219,7 +235,7 @@ def assign_r_pos(positions, rec_map):
     return rs
 
 
-def assign_recombination_rates(
+def _assign_recombination_rates(
     positions, map_file, map_name=None, map_sep="\t", cM=True, report=True
 ):
     if map_file == None:
@@ -254,7 +270,7 @@ def assign_recombination_rates(
     if cM == True:
         map_values /= 100
 
-    pos_rs = assign_r_pos(positions, [map_positions, map_values])
+    pos_rs = _assign_r_pos(positions, [map_positions, map_values])
 
     return pos_rs
 
@@ -346,17 +362,18 @@ def tally_sparse_haplotypes():
 def compute_pairwise_stats(Gs):
     """
     Computes D^2, Dz, pi_2, and D for every pair of loci
-        within a block of SNPs, coded as a genotype matrix.
-    Gs : genotype matrix, of size L \times n, where
-        L is the number of loci and n is the sample size
+    within a block of SNPs, coded as a genotype matrix.
     We use the sparse genotype matrix representation, where
     we first "sparsify" the genotype matrix, and then count
     two-locus genotype configurations from that, from which
-    we compute two-locus statistics
+    we compute two-locus statistics.
+
+    :param Gs: A genotype matrix, of size L-by-n, where
+        L is the number of loci and n is the sample size.
     """
-    assert (
-        ld_extensions == 1
-    ), "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+    if ld_extensions != 1:
+        raise ValueError("Need to build LD cython extensions. "
+            "Install moments with the flag `--ld_extensions`")
 
     L, n = np.shape(Gs)
 
@@ -374,8 +391,11 @@ def compute_pairwise_stats(Gs):
 
 def compute_average_stats(Gs):
     """
-    Takes the outputs of compute_pairwise_stats and returns
-    the average value for each statistic
+    Takes the outputs of ``compute_pairwise_stats`` and returns
+    the average value for each statistic.
+
+    :param Gs: A genotype matrix, of size L-by-n, where
+        L is the number of loci and n is the sample size.
     """
     D2, Dz, pi2, D = compute_pairwise_stats(Gs)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
@@ -383,19 +403,22 @@ def compute_average_stats(Gs):
 
 def compute_pairwise_stats_between(Gs1, Gs2):
     """
-    The Gs are matrices, where rows correspond to loci and columns to individuals
-    Both matrices must have the same number of individuals
-    If Gs1 has length L1 and Gs2 has length L2, we compute all pairwise counts,
-    return Counts, which has size (L1*L2, 9)
-
     Computes D^2, Dz, pi_2, and D for every pair of loci
-        between two blocks of SNPs, coded as a genotype matrices.
-    Gs : genotype matrices, of size L1 or L2 by n, where
-        L is the number of loci and n is the sample size
+    between two blocks of SNPs, coded as a genotype matrices.
+
+    The Gs are matrices, where rows correspond to loci and columns to individuals.
+    Both matrices must have the same number of individuals. If Gs1 has length L1
+    and Gs2 has length L2, we compute all pairwise counts, which has size (L1*L2, 9).
+
     We use the sparse genotype matrix representation, where
     we first "sparsify" the genotype matrix, and then count
     two-locus genotype configurations from that, from which
     we compute two-locus statistics
+
+    :param Gs1: A genotype matrices, of size L1 by n, where
+        L1 is the number of loci and n is the sample size.
+    :param Gs2: A genotype matrices, of size L2 by n, where
+        L1 is the number of loci and n is the sample size.
     """
     assert (
         ld_extensions == 1
@@ -429,13 +452,18 @@ def compute_pairwise_stats_between(Gs1, Gs2):
 def compute_average_stats_between(Gs1, Gs2):
     """
     Takes the outputs of compute_pairwise_stats_between and returns
-    the average value for each statistic
+    the average value for each statistic.
+
+    :param Gs1: A genotype matrices, of size L1 by n, where
+        L1 is the number of loci and n is the sample size.
+    :param Gs2: A genotype matrices, of size L2 by n, where
+        L1 is the number of loci and n is the sample size.
     """
     D2, Dz, pi2, D = compute_pairwise_stats_between(Gs1, Gs2)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
 
 
-def count_types_sparse(
+def _count_types_sparse(
     genotypes,
     bins,
     sample_ids,
@@ -631,7 +659,7 @@ def count_types_sparse(
 
         if use_cache == False:
             # create counts for each bin, call stats from gentoype counts from here
-            # format to pass to call_sgc, for each bin, is
+            # format to pass to _call_sgc, for each bin, is
             #
             counts_ii = {}
             for b in bs:
@@ -682,7 +710,7 @@ def count_types_sparse(
                 if these_counts.shape[1] == 0:
                     continue
                 for stat in stats_to_compute[0]:
-                    sums[b][stat] += call_sgc(
+                    sums[b][stat] += _call_sgc(
                         stat, these_counts.swapaxes(1, 2), use_genotypes
                     ).sum()
 
@@ -692,10 +720,11 @@ def count_types_sparse(
         return sums
 
 
-def call_sgc(stat, Cs, use_genotypes=True):
+def _call_sgc(stat, Cs, use_genotypes=True):
     """
     stat = 'DD', 'Dz', or 'pi2', with underscore indices (like 'DD_1_1')
-    Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes)
+    Cs = L \times n array, L number of count configurations, n = 4 or 9
+    (for haplotypes or genotypes)
     """
     assert (
         ld_extensions == 1
@@ -837,7 +866,8 @@ def call_sgc(stat, Cs, use_genotypes=True):
                     )
 
 
-def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=True):
+def _cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=True):
+    ### This function might not be needed anymore if we completely remove caching
     bs = list(zip(bins[:-1], bins[1:]))
 
     estimates = {}
@@ -853,14 +883,14 @@ def cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report=
         if report is True:
             print("computing " + stat)
             sys.stdout.flush()
-        vals = call_sgc(stat, all_counts, use_genotypes)
+        vals = _call_sgc(stat, all_counts, use_genotypes)
         for ii in range(len(all_counts[0, 0])):
             cs = all_counts[:, :, ii]
             estimates[tuple([tuple(c) for c in cs])][stat] = vals[ii]
     return estimates
 
 
-def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=True):
+def _get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=True):
     """
     return sums[b][stat]
     """
@@ -892,7 +922,7 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
         all_counts = np.array(list(stat_counts.keys()))
         all_counts = np.swapaxes(all_counts, 0, 1)
         all_counts = np.swapaxes(all_counts, 1, 2)
-        vals = call_sgc(stat, all_counts, use_genotypes)
+        vals = _call_sgc(stat, all_counts, use_genotypes)
 
         estimates = {}
         for v, ii in zip(vals, range(len(all_counts[0, 0]))):
@@ -908,7 +938,7 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
     return sums
 
 
-def get_H_statistics(
+def _get_H_statistics(
     genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False, report=True
 ):
     """
@@ -992,7 +1022,7 @@ def get_H_statistics(
     return Hs
 
 
-def get_reported_stats(
+def _get_reported_stats(
     genotypes,
     bins,
     sample_ids,
@@ -1019,7 +1049,7 @@ def get_reported_stats(
     bs = list(zip(bins[:-1], bins[1:]))
 
     if use_cache == True:
-        type_counts = count_types_sparse(
+        type_counts = _count_types_sparse(
             genotypes,
             bins,
             sample_ids,
@@ -1035,7 +1065,7 @@ def get_reported_stats(
         )
 
         # if report is True: print("counted genotypes"); sys.stdout.flush()
-        # statistics_cache = cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
+        # statistics_cache = _cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
         #
         # if report is True: print("summing over genotype counts and statistics cache"); sys.stdout.flush()
         # sums = {}
@@ -1046,7 +1076,7 @@ def get_reported_stats(
         #        for cs in type_counts[b]:
         #            sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
 
-        sums = get_ld_stat_sums(
+        sums = _get_ld_stat_sums(
             type_counts,
             stats_to_compute[0],
             bins,
@@ -1055,7 +1085,7 @@ def get_reported_stats(
         )
 
     else:
-        sums = count_types_sparse(
+        sums = _count_types_sparse(
             genotypes,
             bins,
             sample_ids,
@@ -1078,7 +1108,7 @@ def get_reported_stats(
     if len(stats_to_compute[1]) == 0:
         Hs = {}
     else:
-        Hs = get_H_statistics(
+        Hs = _get_H_statistics(
             genotypes,
             sample_ids,
             pop_file=pop_file,
@@ -1129,28 +1159,42 @@ def compute_ld_statistics(
     use_cache=True,
 ):
     """
-    vcf_file : path to vcf file
-    bed_file : path to bed file to specify regions over which to compute LD statistics. If None, computes statistics
-               for all positions in vcf_file
-    rec_map_file : path to recombination map
-    map_name : if None, takes the first map column, otherwise takes the specified map column
-    map_sep : tells pandas how to parse the recombination map. Default is tabs, though I've been working
-              with space delimitted map files
-    pop_file :
-    pops :
-    cM :
-    r_bins :
-    bp_bins :
-    min_bp :
-    use_genotypes :
-    use_h5 :
-    stats_to_compute :
-    report :
-    report_spacing :
-    use_cache :
+    Computes LD statistics for a given VCF, with many options.
 
-    Recombination map has the format XXX
-    pop_file has the format XXX
+    Future versions need to accept HapMap formatted recombination maps and deprecate
+    map_sep.
+
+    :param vcf_file: The input VCF.
+    :param bed_file: An optional bed file that specifies regions over which to compute
+        LD statistics. If None, computes statistics for all positions in vcf_file.
+    :param chromosome: If None, treats all positions in VCF as coming from same
+        chromosome. If multiple chromosomes are reported in the same VCF, we need to
+        specify which chromosome to keep variants from.
+    :param rec_map_file: The input recombination map - **need to specify format**.
+    :param map_name: If None, takes the first map column, otherwise takes the
+        specified map column.
+    :param map_sep: Tells pandas how to parse the recombination map. Default is tabs,
+        though I've been working with space delimitted map files
+    :param pop_file: A file the specifies the population for each sample in the VCF.
+        Each sample is listed on its own line, in the format "{sample}\t{pop}". The
+        first line must be "sample\tpop".
+    :param pops: List of populations to compute statistics for. If none are given, it
+        treates every sample as coming from the same population.
+    :param cM: If True, the recombination map is specified in cM. If False, the map is
+        given in units of Morgans.
+    :param r_bins: A list of raw recombination rate bin edges.
+    :param bp_bins: If ``r_bins`` are not given, a list of bp bin edges (for use when
+        no recombination map is specified).
+    :param min_bp: The minimum bp allowed for a segment specified by the bed file.
+    :param use_genotypes: If True, we assume the data in the VCF is unphased. Otherwise,
+        we use phased information.
+    :param use_h5: If True, we use the h5 format.
+    :param stats_to_compute: If given, we compute only the statistics specified.
+        Otherwise, we compute all possible statistics for the populations given.
+    :param report: If True, we report the progress of our parsing.
+    :param report_spacing: We track the number of "left" variants we compute, and report
+        our progress with the given spacing.
+    :param use_cache: If True, cache intermediate results.
     """
 
     check_imports()
@@ -1172,7 +1216,7 @@ def compute_ld_statistics(
         if report is True:
             print("assigning recombination rates to positions")
             sys.stdout.flush()
-        pos_rs = assign_recombination_rates(
+        pos_rs = _assign_recombination_rates(
             positions,
             rec_map_file,
             map_name=map_name,
@@ -1191,7 +1235,7 @@ def compute_ld_statistics(
         else:
             bins = []
 
-    reported_stats = get_reported_stats(
+    reported_stats = _get_reported_stats(
         genotypes,
         bins,
         sample_ids,
@@ -1212,10 +1256,7 @@ def compute_ld_statistics(
 
 def bootstrap_data(all_data, normalization=0):
     """
-    all_data : dictionary (with arbitrary keys), where each value
-    are ld statistics computed from a distinct region. all_data[reg]
-    stats from each region has keys, 'bins', 'sums', 'stats', and
-    optional 'pops' (anything else?)
+    Returns bootstrapped variances for LD statistics.
     
     We first check that all 'stats', 'bins', 'pops' (if present),
     match across all regions
@@ -1223,7 +1264,10 @@ def bootstrap_data(all_data, normalization=0):
     If there are N total regions, we compute N bootstrap replicates
     by sampling N times with replacement and summing over all 'sums'.
 
-    :param all_data:
+    :param all_data: A dictionary (with arbitrary keys), where each value
+        is LD statistics computed from a distinct region. all_data[reg]
+        stats from each region has keys, 'bins', 'sums', 'stats', and
+        optional 'pops'.
     :param normalization: we work with sigma_d^2 statistics, and by default
         we use population 0 to normalize stats
     """
@@ -1281,11 +1325,15 @@ def subset_data(
     data, pops_to, normalization=0, r_min=None, r_max=None, remove_Dz=False
 ):
     """
-    to take the pickled data output by ... and get r_edges, ms, vcs, and stats
-    to pass to inference machinery
-    
-    Notes: Up to user to make sure that the order is preserved
-    (have a catch in future)
+    Take the output data and get r_edges, ms, vcs, and stats
+    to pass to inference machinery.
+
+    :param data:
+    :param pops_to:
+    :param normalization:
+    :param r_min:
+    :param r_max:
+    :param remove_Dz:
     """
     pops_from = data["pops"]
     if not np.all([p in pops_from for p in pops_to]):

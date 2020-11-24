@@ -28,3 +28,17 @@ Inference functions
 
 .. automodule:: moments.LD.Inference
     :members:
+
+**************
+Util functions
+**************
+
+.. automodule:: moments.LD.Util
+    :members:
+
+*****************
+Parsing functions
+*****************
+
+.. automodule:: moments.LD.Parsing
+    :members:
