@@ -124,6 +124,11 @@ additionally install
 
 ## Changelog
 
+### 1.0.7
+
+- But fixes and haplotype parsing in `moments.LD.Parsing`. (Issues #38-42,
+  with thanks to Nathaniel Pope)
+
 ### 1.0.6
 
 - Updates to installation, so that `pip` installs dependencies automatically
