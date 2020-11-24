@@ -2,4 +2,8 @@
 Triallele frequency spectrum
 ============================
 
-.. todo:: This section of the documentation has not been completed.
+API
+---
+
+.. autoclass:: moments.Triallele.TriSpectrum
+    :members:

@@ -17,20 +17,17 @@ class TLSpectrum(numpy.ma.masked_array):
     """
     Represents a two locus frequency spectrum.
     
-    Spectra are represented ...
-    
-    The constructor has the format:
-        fs = moments.TwoLocus.TLSpectrum(data, mask, mask_infeasible, mask_fixed,
-                                data_folded)
-        
-        data: The frequency spectrum data
-        mask: An optional array of the same size as data. 'True' entries in this array
-              are masked in the TLSpectrum. These represent missing data categories,
-              or invalid entries in the array.
-        data_folded: If True, it is assumed that the input data is folded 
-                     for the major and minor derived alleles
-        check_folding: If True and data_folded_ancestral=True, the data and
-                       mask will be checked to ensure they are consistent
+    :param array data: The frequency spectrum data, which has shape
+        (n+1)-by-(n+1)-by-(n+1) where n is the sample size.
+    :param array mask: An optional array of the same size as data. 'True' entries
+        in this array are masked in the TLSpectrum.
+    :param bool mask_infeasible: If True, mask all bins for frequencies that cannot
+        occur, e.g. i + j > n. Defaults to True.
+    :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.
+    :param bool data_folded: If True, it is assumed that the input data is folded 
+        for the major and minor derived alleles
+    :param bool check_folding: If True and data_folded=True, the data and
+        mask will be checked to ensure they are consistent.
     """
 
     def __new__(
@@ -122,7 +119,7 @@ class TLSpectrum(numpy.ma.masked_array):
 
     def mask_fixed(self):
         """
-        Mask all infeasible, as well as any where both sites are not segregating
+        Mask all infeasible, as well as any where both sites are not segregating.
         """
         ns = len(self) - 1
         # mask fixed entries
@@ -147,6 +144,9 @@ class TLSpectrum(numpy.ma.masked_array):
         return self
 
     def unfold(self):
+        """
+        Remove folding from the spectrum.
+        """
         if not self.folded:
             raise ValueError("Input Spectrum is not folded.")
         data = self.data
@@ -160,8 +160,7 @@ class TLSpectrum(numpy.ma.masked_array):
 
     def left(self):
         """
-        The marginal allele frequency spectrum at the left locus
-        index in new AFS is ii+jj
+        The marginal allele frequency spectrum at the left locus.
         """
         n = len(self) - 1
         fl = np.zeros(n + 1)
@@ -173,7 +172,7 @@ class TLSpectrum(numpy.ma.masked_array):
 
     def right(self):
         """
-        The marginal AFS at the right locus
+        The marginal AFS at the right locus.
         """
         n = len(self) - 1
         fr = np.zeros(n + 1)
@@ -184,6 +183,9 @@ class TLSpectrum(numpy.ma.masked_array):
         return fr
 
     def D(self, proj=True):
+        """
+        Return the expectation of D from the spectrum.
+        """
         n = len(self) - 1
         DD = 0
         for ii in range(n + 1):
@@ -207,6 +209,9 @@ class TLSpectrum(numpy.ma.masked_array):
         return DD
 
     def D2(self, proj=True):
+        """
+        Return the expectation of D^2 from the spectrum.
+        """
         n = len(self) - 1
         DD2 = 0
         for ii in range(n + 1):
@@ -252,6 +257,9 @@ class TLSpectrum(numpy.ma.masked_array):
         return DD2
 
     def pi2(self, proj=True):
+        """
+        Return the expectation of pi2 = p(1-p)q(1-q) from the spectrum.
+        """
         n = len(self) - 1
         stat = 0
         for ii in range(n + 1):
@@ -311,27 +319,25 @@ class TLSpectrum(numpy.ma.masked_array):
                             )
         return stat
 
-    def Dz(self, proj=True):
-        n = len(self) - 1
-        if proj == False:
-            print("not implemented with proj=False")
-            return
-        else:
-            F_proj = self.project(4)
-            stat = (
-                1.0 / 4 * F_proj[3, 0, 0]
-                - 1.0 / 3 * F_proj[2, 0, 0]
-                + 1.0 / 4 * F_proj[1, 0, 0]
-                - 1.0 / 12 * F_proj[2, 1, 1]
-                - 1.0 / 12 * F_proj[1, 2, 0]
-                - 1.0 / 12 * F_proj[1, 0, 2]
-                - 1.0 / 12 * F_proj[0, 1, 1]
-                + 1.0 / 4 * F_proj[0, 3, 1]
-                - 1.0 / 3 * F_proj[0, 2, 2]
-                + 1.0 / 4 * F_proj[0, 1, 3]
-                + 1.0 / 6 * F_proj[1, 1, 1]
-            )
-            return 2 * stat
+    def Dz(self):
+        """
+        Compute the expectation of D(1-2p)(1-2q) from the spectrum.
+        """
+        F_proj = self.project(4)
+        stat = (
+            1.0 / 4 * F_proj[3, 0, 0]
+            - 1.0 / 3 * F_proj[2, 0, 0]
+            + 1.0 / 4 * F_proj[1, 0, 0]
+            - 1.0 / 12 * F_proj[2, 1, 1]
+            - 1.0 / 12 * F_proj[1, 2, 0]
+            - 1.0 / 12 * F_proj[1, 0, 2]
+            - 1.0 / 12 * F_proj[0, 1, 1]
+            + 1.0 / 4 * F_proj[0, 3, 1]
+            - 1.0 / 3 * F_proj[0, 2, 2]
+            + 1.0 / 4 * F_proj[0, 1, 3]
+            + 1.0 / 6 * F_proj[1, 1, 1]
+        )
+        return 2 * stat
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
@@ -339,13 +345,11 @@ class TLSpectrum(numpy.ma.masked_array):
         """
         Read frequency spectrum from file.
 
-        fid: string with file name to read from or an open file object.
-        mask_infeasible: If True, mask the infeasible entries in the two locus spectrum.
-        return_comments: If true, the return value is (fs, comments), where
-                         comments is a list of strings containing the comments
-                         from the file (without #'s).
-
-        See to_file method for details on the file format.
+        :param str fid: String with file name to read from or an open file object.
+        :param bool mask_infeasible: If True, mask the infeasible entries in the
+            two locus spectrum.
+        :param bool return_comments: If true, the return value is (fs, comments), where
+            comments is a list of strings containing the comments from the file.
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -388,31 +392,17 @@ class TLSpectrum(numpy.ma.masked_array):
         else:
             return fs, comments
 
-    fromfile = from_file
-
     def to_file(self, fid, precision=16, comment_lines=[], foldmaskinfo=True):
         """
         Write frequency spectrum to file.
     
-        fid: string with file name to write to or an open file object.
-        precision: precision with which to write out entries of the SFS. (They 
-                   are formated via %.<p>g, where <p> is the precision.)
-        comment lines: list of strings to be used as comment lines in the header
-                       of the output file.
-        foldmaskinfo: If False, folding and mask and population label
+        :param str fid: String with file name to write to or an open file object.
+        :param int precision: Precision with which to write out entries of the SFS.
+            (They  are formated via %.<p>g, where <p> is the precision.)
+        :param list comment_lines: List of strings to be used as comment lines in
+            the header of the output file.
+        :param bool foldmaskinfo: If False, folding and mask and population label
                       information will not be saved.
-
-        The file format is:
-            # Any number of comment lines beginning with a '#'
-            A single line containing N integers giving the dimensions of the fs
-              array. So this line would be '5 5 3' for an SFS that was 5x5x3.
-              (That would be 4x4x2 *samples*.)
-            On the *same line*, the string 'folded' or 'unfolded' 
-              denoting the folding status of the array
-            A single line giving the array elements. The order of elements is 
-              e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
-            A single line giving the elements of the mask in the same order as
-              the data line. '1' indicates masked, '0' indicates unmasked.
         """
         # Open the file object.
         newfile = False
@@ -450,9 +440,10 @@ class TLSpectrum(numpy.ma.masked_array):
         if newfile:
             fid.close()
 
-    tofile = to_file
-
     def fold(self):
+        """
+        Fold the two-locus spectrum by minor allele frequencies.
+        """
         if self.folded:
             raise ValueError("Input Spectrum is already folded.")
         ns = self.shape[0] - 1
@@ -484,8 +475,12 @@ class TLSpectrum(numpy.ma.masked_array):
     def project(self, ns, finite_genome=False):
         """
         Project to smaller sample size.
-        ns: Sample size for new spectrum.
+
+        param int ns: Sample size for new spectrum.
+        param bool finite_genome: If we also track proportions in fixed bins.
         """
+        if finite_genome:
+            raise ValueError("Projection with finite genome not supported")
         data = moments.TwoLocus.Numerics.project(self, ns)
         output = TLSpectrum(data, mask_infeasible=True)
         return output
@@ -576,14 +571,28 @@ def %(method)s(self, other):
         alternate_fg=None,
     ):
         """
-        Method to simulate the triallelic fs forward in time.
+        Simulate the two-locus haplotype frequency spectrum forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
-        nu: population effective sizes as positive value or callable function
-        tf: integration time in genetics units
-        dt_fac: time step for integration
-        gammas: Population size scaled selection coefficients [sAA, sA0, sBB, sB0, sAB]
-                See documentation for definition and use
-        theta: Population size scale mutation parameter
+        
+        :param nu: Population effective size as positive value or callable function.
+        :param float tf: The integration time in genetics units.
+        :param float dt_fac: The time step for integration.
+        :param float rho: The population-size scaled recombination rate 4*Ne*r.
+        :param float gamma: The population-size scaled selection coefficient 2*Ne*s.
+        :param float h: The dominance coefficient.
+        :param list sel_params: A list of selection parameters. See docstrings in
+            Numerics. Selection parameters will be deprecated when we clean up the
+            numerics and integration.
+        :param float theta: Population size scale mutation parameter.
+        :param bool finite_genome: Defaults to False, in which case we use the
+            infinite sites model. Otherwise, we use a reversible mutation model, and
+            must specify ``u`` and ``v``.
+        :param float u: The mutation rate at the left locus in the finite genome model.
+        :param float v: The mutation rate at the right locus in the finite genome
+            model.
+        :param bool alternate_fg: If True, use the alternative finite genome model.
+            This parameter will be deprecated when we clean up the numerics and
+            integration.
         """
         if gamma == None:
             gamma = 0.0

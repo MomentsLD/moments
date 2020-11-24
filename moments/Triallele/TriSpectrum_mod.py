@@ -16,25 +16,27 @@ class TriSpectrum(numpy.ma.masked_array):
     """
     Represents a triallelic frequency spectrum.
     
-    Spectra are represented ...
-    
-    The constructor has the format:
-        fs = moments.Triallele.TriSpectrum(data, mask, mask_infeasible,
-                                data_folded_major, data_folded_ancestral)
-        
-        data: The frequency spectrum data
-        mask: An optional array of the same size as data. 'True' entries in this array
-              are masked in the TriSpectrum. These represent missing data categories,
-              or invalid entries in the array.
-        data_folded_major: If True, it is assumed that the input data is folded 
-                           for the major and minor derived alleles
-        data_folded_ancestral: If True, it is assumed that the input data is folded
-                               to account for uncertainty in the ancestral state. Note
-                               that if True, data_folded_major must also be True.
-        check_folding_major: If True and data_folded_ancestral=True, the data and
-                             mask will be checked to ensure they are consistent
-        check_folding_ancestral: If True and data_folded_ancestral=True, the data and
-                                 mask will be checked to ensure they are consistent
+    The triallelic spectrum is represented as a square numpy masked array in which
+    the (i, j)-th element stores the count or density of loci in which there are i
+    copies of the first derived allele and j copies of the second derived allele.
+
+    :param array data: The frequency spectrum data of size (n+1)-by-(n+1) where n is
+        the sample size.
+    :param array mask: An optional array of the same size as data. 'True' entries in
+        this array are masked in the TriSpectrum. These represent missing data
+        categories, or invalid entries in the array
+    :param bool mask_infeasible: If True, mask all bins for frequencies that cannot
+        occur, e.g. i + j > n. Defaults to True.
+    :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.
+    :param bool data_folded_major: If True, it is assumed that the input data is folded 
+        for the major and minor derived alleles.
+    :param bool data_folded_ancestral: If True, it is assumed that the input data is
+        folded to account for uncertainty in the ancestral state. Note
+        that if True, data_folded_major must also be True.
+    :param bool check_folding_major: If True and data_folded_ancestral=True, the data
+        and mask will be checked to ensure they are consistent.
+    :param bool check_folding_ancestral: If True and data_folded_ancestral=True, the
+        data and mask will be checked to ensure they are consistent.
     """
 
     def __new__(
@@ -149,13 +151,18 @@ class TriSpectrum(numpy.ma.masked_array):
 
     def mask_fixed(self):
         """
-        Mask entries that are not triallelic
+        Mask entries that are not triallelic.
         """
         self.mask[0, 0] = True
         for ii in range(len(self)):
             self.mask[ii, len(self) - ii - 1] = True
 
     def unfold(self):
+        """
+        Completely unfold the spectrum.
+
+        Returns a new TriSpectrum.
+        """
         if not self.folded_major:
             raise ValueError("Input Spectrum is not folded.")
         data = self.data
@@ -178,13 +185,13 @@ class TriSpectrum(numpy.ma.masked_array):
         """
         Read frequency spectrum from file.
 
-        fid: string with file name to read from or an open file object.
-        mask_infeasible: If True, mask the infeasible entries in the triallelic spectrum.
-        return_comments: If true, the return value is (fs, comments), where
-                         comments is a list of strings containing the comments
-                         from the file (without #'s).
-
         See to_file method for details on the file format.
+
+        :param str fid: String with file name to read from or an open file object.
+        :param bool mask_infeasible: If True, mask the infeasible entries in the
+            triallelic spectrum.
+        :param bool return_comments: If true, the return value is (fs, comments), where
+            comments is a list of strings containing the comments from the file.
         """
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -242,28 +249,27 @@ class TriSpectrum(numpy.ma.masked_array):
     def to_file(self, fid, precision=16, comment_lines=[], foldmaskinfo=True):
         """
         Write frequency spectrum to file.
-    
-        fid: string with file name to write to or an open file object.
-        precision: precision with which to write out entries of the SFS. (They 
-                   are formated via %.<p>g, where <p> is the precision.)
-        comment lines: list of strings to be used as comment lines in the header
-                       of the output file.
-        foldmaskinfo: If False, folding and mask and population label
-                      information will not be saved.
 
         The file format is:
-            # Any number of comment lines beginning with a '#'
-            A single line containing N integers giving the dimensions of the fs
-              array. So this line would be '5 5 3' for an SFS that was 5x5x3.
-              (That would be 4x4x2 *samples*.)
-            On the *same line*, the string 'folded_major' or 'unfolded_major' 
-              denoting the folding status of the array
-            On the *same line*, the string 'folded_ancestral' or 'unfolded_ancestral' 
-              denoting the folding status of the array
-            A single line giving the array elements. The order of elements is 
-              e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
-            A single line giving the elements of the mask in the same order as
-              the data line. '1' indicates masked, '0' indicates unmasked.
+        
+        - # Any number of comment lines beginning with a '#'
+        - A single line containing the sample size.
+          On the *same line*, the string 'folded_major' or 'unfolded_major' 
+          denoting the folding status of the array.
+          And on the *same line*, the string 'folded_ancestral' or 'unfolded_ancestral' 
+          denoting the folding status of the array.
+        - A single line giving the array elements. The order of elements is 
+          e.g.: fs[0, 0] fs[0, 1] fs[0, 2] ... fs[1, 0] fs[1, 1] ...
+        - A single line giving the elements of the mask in the same order as
+          the data line. '1' indicates masked, '0' indicates unmasked.
+
+        :param str fid: String with file name to write to or an open file object.
+        :param int precision: Precision with which to write out entries of the SFS.
+            (They  are formated via %.<p>g, where <p> is the precision.)
+        :param list comment_lines: List of strings to be used as comment lines in
+            the header of the output file.
+        :param bool foldmaskinfo: If False, folding and mask and population label
+            information will not be saved.
         """
         # Open the file object.
         newfile = False
@@ -305,9 +311,10 @@ class TriSpectrum(numpy.ma.masked_array):
         if newfile:
             fid.close()
 
-    tofile = to_file
-
     def fold_major(self):
+        """
+        Fold the spectrum based on the major allele(s).
+        """
         if self.folded_major:
             raise ValueError("Input Spectrum is already folded.")
         folded = self + np.transpose(self)
@@ -337,6 +344,9 @@ class TriSpectrum(numpy.ma.masked_array):
         return logfs
 
     def fold_ancestral(self):
+        """
+        Fold the spectrum based on the ancestral state
+        """
         if self.folded_ancestral:
             raise ValueError("Input Spectrum is already folded.")
         folded = 0 * self
@@ -373,14 +383,16 @@ class TriSpectrum(numpy.ma.masked_array):
 
     def S(self):
         """
-        Segregating sites
+        Number of sites in the unmasked spectrum.
         """
         return self.sum()
 
     def project(self, ns, finite_genome=False):
         """
         Project to smaller sample size.
-        ns: Sample size for new spectrum.
+
+        :param int ns: Sample size for new spectrum.
+
         """
         ### Take from numerics and put here - projection cache might stay in Numerics
         if finite_genome == False:  # projection doesn't reach edges
@@ -394,14 +406,14 @@ class TriSpectrum(numpy.ma.masked_array):
             #            if self.mask_infeasible == True:
             #                output.mask_infeasible()
             #            return output
-            pass  # still to implement
+            raise ValueError("finite_genome is not yet implemented")  # still to implement
 
     def pi(self):
         """
-        Estimated expected number of pairwise differences between two samples from the population
-        at loci that are triallelic
+        Estimated expected number of pairwise differences between two samples
+        from the population at loci that are triallelic
         """
-        pass
+        raise ValueError("Not yet implemented")
 
     # Ensures that when arithmetic is done with TriSpectrum objects,
     # attributes are preserved. For details, see similar code in
@@ -481,12 +493,16 @@ def %(method)s(self, other):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
-        nu: population effective sizes as positive value or callable function
-        tf: integration time in genetics units
-        dt_fac: time step for integration
-        gammas: Population size scaled selection coefficients [sAA, sA0, sBB, sB0, sAB]
-                See documentation for definition and use
-        theta: Population size scale mutation parameter
+        
+        :param nu: The population effective size as positive value or callable function.
+        :param float tf: The integration time in genetics units.
+        :param float dt_fac: time step for integration
+        :param list gammas: Population size scaled selection coefficients
+            [sAA, sA0, sBB, sB0, sAB]. Here, 0 represents that ancestral allele, so we
+            can implement dominance by picking the relationship between, e.g., sAA, sA0,
+            sAB, and sA0.
+        :param float theta: Population size scale mutation parameter, assuming equal
+            mutation rates to both derived alleles.
         """
         if gammas == None:
             gammas = [0, 0, 0, 0, 0]
