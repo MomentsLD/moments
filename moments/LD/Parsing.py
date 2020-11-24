@@ -88,10 +88,10 @@ def get_genotypes(
     Given a vcf file, we extract the biallelic SNP genotypes.
     If bed_file is None, we use all valid variants. Otherwise we filter genotypes
         by the given bed file.
-    If chromosome (int) is given, filters to keep snps only in given chrom (useful for vcfs spanning 
+    If chromosome (int) is given, filters to keep snps only in given chrom (useful for vcfs spanning
         multiple chromosomes).
     min_bp : only used with bed file, filters out features that are smaller than min_bp
-    If use_h5 is True, we try to load the h5 file, which has the same path/name as 
+    If use_h5 is True, we try to load the h5 file, which has the same path/name as
         vcf_file, but with *.h5 instead of *.vcf or *.vcf.gz. If the h5 file does not
         exist, we create it and save it as *.h5
     report : prints progress updates if True, silent otherwise
@@ -282,16 +282,27 @@ def sparsify_genotype_matrix(G):
             2: set(np.where(G[i, :] == 2)[0]),
         }
         if missing == True:
-            G_dict[i][-1] = set(np.where(G[i, :] == -11)[0])
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
     return G_dict, missing
 
 
 def sparsify_haplotype_matrix(G):
-    pass
+    G_dict = {}
+    if np.any(G == -1):
+        missing = True
+    else:
+        missing = False
+    for i in range(len(G)):
+        G_dict[i] = {
+            1: set(np.where(G[i, :] == 1)[0]),
+        }
+        if missing == True:
+            G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+    return G_dict, missing
 
 
-def tally_sparse_haplotypes():
-    pass
+#def tally_sparse_haplotypes():
+#    pass
 
 
 # def tally_sparse(G1, G2, n, missing=False):
@@ -389,7 +400,7 @@ def compute_pairwise_stats_between(Gs1, Gs2):
     The Gs are matrices, where rows correspond to loci and columns to individuals
     Both matrices must have the same number of individuals
     If Gs1 has length L1 and Gs2 has length L2, we compute all pairwise counts,
-    return Counts, which has size (L1*L2, 9) 
+    return Counts, which has size (L1*L2, 9)
 
     Computes D^2, Dz, pi_2, and D for every pair of loci
         between two blocks of SNPs, coded as a genotype matrices.
@@ -455,15 +466,15 @@ def count_types_sparse(
     ac_filter=None,
 ):
     """
-    genotypes: 
-    bins: 
+    genotypes:
+    bins:
     sample_ids: list of ordered samples, as output by get_genotypes
     positions: list of base pair positions for each SNP in genotypes
     pos_rs: list of genetic map positions for each SNP in genotypes
     pop_file: sample-population file
-    pops: list of populations to keep. If None, uses all samples and treats them 
+    pops: list of populations to keep. If None, uses all samples and treats them
         as a single population
-    use_genotypes: if True, assumes unphased data. If False, assumes phasing is given 
+    use_genotypes: if True, assumes unphased data. If False, assumes phasing is given
         in genotypes.
     use_cache: if True, caches genotype tally counts to compute statistics at end
         together. If False, computes statistics for each pair on the fly. Can result
@@ -471,8 +482,8 @@ def count_types_sparse(
         populations.
     stats_to_compute: list of lists of two-locus and single-locus statist to compute.
         If None, computes all relevant statistics.
-    normalized_by: population that we are normalizing by. We need to have at least 
-        four two-locus counts for the focal pop in order to include this pair. 
+    normalized_by: population that we are normalizing by. We need to have at least
+        four two-locus counts for the focal pop in order to include this pair.
         If we set to None, then we should be sure that we won't run into this issue,
         for example if we know that we don't have missing data.
     """
@@ -575,7 +586,7 @@ def count_types_sparse(
         haplotypes_by_pop = {}
         any_missing = False
         for pop in pops:
-            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes[pop], axis=1)
+            temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
             haplotypes_by_pop[pop], this_missing = sparsify_haplotype_matrix(
                 temp_haplotypes
             )
@@ -663,7 +674,7 @@ def count_types_sparse(
             else:
                 cs = tuple(
                     [
-                        tally_sparse_haplotypes(
+                        spt.tally_sparse_haplotypes(
                             haplotypes_by_pop[pop][ii],
                             haplotypes_by_pop[pop][jj],
                             ns[pop],
@@ -698,7 +709,7 @@ def count_types_sparse(
 def call_sgc(stat, Cs, use_genotypes=True):
     """
     stat = 'DD', 'Dz', or 'pi2', with underscore indices (like 'DD_1_1')
-    Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes) 
+    Cs = L \times n array, L number of count configurations, n = 4 or 9 (for haplotypes or genotypes)
     """
     assert (
         ld_extensions == 1
@@ -728,9 +739,12 @@ def call_sgc(stat, Cs, use_genotypes=True):
                     Cs, [ii, kk, jj]
                 )
     if s == "pi2":
-        ii, jj, kk, ll = (
-            pop_nums
-        )  ### this doesn't consider the symmetry between p/q yet...
+        (
+            ii,
+            jj,
+            kk,
+            ll,
+        ) = pop_nums  ### this doesn't consider the symmetry between p/q yet...
         if ii == jj:
             if kk == ll:
                 if ii == kk:  # all the same
@@ -868,7 +882,10 @@ def get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tru
 
     bs = list(zip(bins[:-1], bins[1:]))
     sums = {}
-    empty_genotypes = tuple([0] * 9)
+    if use_genotypes is True:
+        empty_genotypes = tuple([0] * 9)
+    else:
+        empty_genotypes = tuple([0] * 4)
 
     for stat in ld_stats:
         if report is True:
@@ -929,7 +946,7 @@ def get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, sep="\t")
+        samples = pandas.read_csv(pop_file, delim_whitespace=True)
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 
@@ -1131,21 +1148,21 @@ def compute_ld_statistics(
                for all positions in vcf_file
     rec_map_file : path to recombination map
     map_name : if None, takes the first map column, otherwise takes the specified map column
-    map_sep : tells pandas how to parse the recombination map. Default is tabs, though I've been working 
+    map_sep : tells pandas how to parse the recombination map. Default is tabs, though I've been working
               with space delimitted map files
-    pop_file : 
-    pops : 
-    cM : 
-    r_bins : 
-    bp_bins : 
-    min_bp : 
-    use_genotypes : 
-    use_h5 : 
-    stats_to_compute : 
-    report : 
-    report_spacing : 
-    use_cache : 
-    
+    pop_file :
+    pops :
+    cM :
+    r_bins :
+    bp_bins :
+    min_bp :
+    use_genotypes :
+    use_h5 :
+    stats_to_compute :
+    report :
+    report_spacing :
+    use_cache :
+
     Recombination map has the format XXX
     pop_file has the format XXX
     """
@@ -1213,9 +1230,9 @@ def bootstrap_data(all_data, normalization=["pi2_1_1_1_1", "H_1_1"]):
                from a distinct region. all_data[reg]
                stats from each region has keys, 'bins', 'sums', 'stats', and optional 'pops' (anything else?)
     normalization : we work with sigma_d^2 statistics, and by default we use population 1 to normalize stats
-    
+
     We first check that all 'stats', 'bins', 'pops' (if present), match across all regions
-    
+
     If there are N total regions, we compute N bootstrap replicates by sampling N times with replacement
         and summing over all 'sums'.
     """
@@ -1271,9 +1288,9 @@ def subset_data(
     data, pops_to, normalization=1, r_min=None, r_max=None, remove_Dz=False
 ):
     """
-    to take the pickled data output by ... and get r_edges, ms, vcs, and stats 
+    to take the pickled data output by ... and get r_edges, ms, vcs, and stats
         to pass to inference machinery
-    Notes: Up to user to make sure that the order is preserved 
+    Notes: Up to user to make sure that the order is preserved
         (have a catch in future)
     """
     pops_from = data["pops"]
