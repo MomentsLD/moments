@@ -2,15 +2,16 @@
 The Site Frequency Spectrum
 ===========================
 
-.. note::
-   Some sections of this documentation are incomplete and only contain
-   bullet-points to fill in. This will be completed in the very near
-   future.
-
 This page describes the Site Frequency Spectrum (SFS), how to compute
 its expectation using ``moments``, manipulate spectra, implement demographic
 models using the ``moments`` API, and computing and saving spectra from
 a VCF.
+
+If you use the SFS methods in ``moments`` in your research, please cite
+
+- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017).
+  Inferring the joint demographic history of multiple populations:
+  beyond the diffusion approximation. *Genetics*, 206(3), 1549-1567.
 
 *******
 The SFS

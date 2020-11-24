@@ -39,15 +39,15 @@ If you use ``moments`` in your research, please cite:
 
 - Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint
   demographic history of multiple populations: beyond the diffusion approximation.
-  Genetics, 206(3), 1549-1567.
+  *Genetics*, 206(3), 1549-1567.
 
 If you use ``moments.LD`` in your research, please cite:
 
 - Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history
-  from two-locus statistics. PLoS Genetics, 15(6), e1008204.
+  from two-locus statistics. *PLoS Genetics*, 15(6), e1008204.
 
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
-  from unphased data. Mol Biol Evol, 37(3), 923-932.
+  from unphased data. *Mol Biol Evol*, 37(3), 923-932.
 
 **********
 Change log

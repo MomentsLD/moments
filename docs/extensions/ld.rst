@@ -9,6 +9,15 @@ number of populations. The statistics are stored in a different way that the SFS
 much of the API for implementing demographic events and integration is largely
 consistent between the SFS and LD methods.
 
+If you use ``moments.LD`` in your research, please cite:
+
+- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history
+  from two-locus statistics. *PLoS Genetics*, 15(6), e1008204.
+
+- Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
+  from unphased data. *Mol Biol Evol*, 37(3), 923-932.
+
+
 *************
 LD statistics
 *************
