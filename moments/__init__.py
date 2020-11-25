@@ -11,6 +11,7 @@ logging.basicConfig()
 
 from . import Demographics1D
 from . import Demographics2D
+from . import Demographics3D
 from . import Godambe
 from . import Inference
 from . import Integration
@@ -21,6 +22,7 @@ import LinearSystem_2D
 from . import Manips
 from . import Misc
 from . import Numerics
+from . import Demes
 
 # Protect import of Plotting in case matplotlib not installed.
 try:

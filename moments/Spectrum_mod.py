@@ -1898,53 +1898,6 @@ class Spectrum(numpy.ma.masked_array):
 
         return Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
 
-    @staticmethod
-    def from_demes(
-        g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_Ne=4
-    ):
-        """
-        Takes a deme graph and computes the SFS. ``demes`` is a package for
-        specifying demographic models in a user-friendly, human-readable YAML
-        format. This function automatically parses the demographic description
-        and returns a SFS for the specified populations and sample sizes.
-
-        This function is new in version 1.1.0. Future developments will allow for
-        inference using ``demes``-based demographic descriptions.
-
-        :param g: A ``demes`` DemeGraph from which to compute the SFS. The DemeGraph
-            can either be specified as a YAML file, in which case `g` is a string,
-            or as a ``DemeGraph`` object.
-        :type g: str or :class:`demes.DemeGraph`
-        :param sampled_demes: A list of deme IDs to take samples from. We can repeat
-            demes, as long as the sampling of repeated deme IDs occurs at distinct
-            times.
-        :type sampled_demes: list of strings
-        :param sample_sizes: A list of the same length as ``sampled_demes``,
-            giving the sample sizes for each sampled deme.
-        :type sample_sizes: list of ints
-        :param sample_times: If None, assumes all sampling occurs at the end of the
-            existence of the sampled deme. If there are
-            ancient samples, ``sample_times`` must be a list of same length as
-            ``sampled_demes``, giving the sampling times for each sampled
-            deme. Sampling times are given in time units of the original deme graph,
-            so might not necessarily be generations (e.g. if ``g.time_units`` is years)
-        :type sapmle_times: list of floats, optional
-        :param Ne: reference population size. If none is given, we use the initial
-            size of the root deme.
-        :type Ne: float, optional
-        :param unsampled_n: The default sample size of unsampled demes, which must be
-            greater than or equal to 4.
-        :type unsampled_n: int, optional
-        :return: A ``moments`` site frequency spectrum, with dimension equal to the
-            length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
-            in each dimension, indexing the allele frequency in each deme from 0
-            to n[i], where i is the deme index.
-        :rtype: :class:`moments.Spectrum`
-        """
-        raise ValueError(
-            "The method ``from_demes`` is not yet implemented - coming ver 1.1"
-        )
-
     # The code below ensures that when I do arithmetic with Spectrum objects,
     # it is not done between a folded and an unfolded array. If it is, I raise
     # a ValueError.

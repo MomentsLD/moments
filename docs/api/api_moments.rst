@@ -10,26 +10,23 @@ The Spectrum object
         split, admix, pulse_migrate, integrate,
         Fst, S, Watterson_theta, theta_L, Zengs_E, pi, Tajima_D,
         from_file, to_file, fixed_size_sample, sample,
-        from_data_dict, from_demes
+        from_data_dict
 
 .. autofunction:: moments.Misc.make_data_dict_vcf
+
+.. autofunction:: moments.Demes.SFS
 
 Demographic functions
 ---------------------
 
-.. autofunction:: moments.Demographics1D.snm
+.. automodule:: moments.Demographics1D
+    :members:
 
-.. autofunction:: moments.Demographics1D.two_epoch
+.. automodule:: moments.Demographics2D
+    :members:
 
-.. autofunction:: moments.Demographics1D.growth
-
-.. autofunction:: moments.Demographics1D.bottlegrowth
-
-.. autofunction:: moments.Demographics1D.three_epoch
-
-.. autofunction:: moments.Demographics2D.split_mig
-
-.. autofunction:: moments.Demographics2D.IM
+.. automodule:: moments.Demographics3D
+    :members:
 
 Inference functions
 -------------------
