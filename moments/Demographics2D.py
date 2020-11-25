@@ -27,6 +27,7 @@ def snm(ns, pop_ids=None):
 def bottlegrowth(params, ns, pop_ids=None):
     """
     params = (nuB, nuF, T)
+
     ns = [n1, n2]
 
     Instantanous size change followed by exponential growth with no population
@@ -52,6 +53,7 @@ def bottlegrowth(params, ns, pop_ids=None):
 def bottlegrowth_split(params, ns, pop_ids=None):
     """
     params = (nuB, nuF, T, Ts)
+    
     ns = [n1, n2]
 
     Instantanous size change followed by exponential growth then split.
@@ -73,7 +75,7 @@ def bottlegrowth_split(params, ns, pop_ids=None):
     return bottlegrowth_split_mig((nuB, nuF, 0.0, T, Ts), ns, pop_ids=pop_ids)
 
 
-def bottlegrowth_split_mig(params, ns):
+def bottlegrowth_split_mig(params, ns, pop_ids=None):
     """
     params = (nuB, nuF, m, T, Ts)
     ns = [n1, n2]
@@ -81,14 +83,14 @@ def bottlegrowth_split_mig(params, ns):
     Instantanous size change followed by exponential growth then split with
     migration.
 
-    nuB: Ratio of population size after instantanous change to ancient
-         population size
-    nuF: Ratio of contempoary to ancient population size
-    m: Migration rate between the two populations (2*Na*m).
-    T: Time in the past at which instantaneous change happened and growth began
-       (in units of 2*Na generations)
-    Ts: Time in the past at which the two populations split.
-    n1, n2: Sample sizes of resulting Spectrum.
+    - nuB: Ratio of population size after instantanous change to ancient
+      population size
+    - nuF: Ratio of contempoary to ancient population size
+    - m: Migration rate between the two populations (2*Na*m).
+    - T: Time in the past at which instantaneous change happened and growth began
+      (in units of 2*Na generations)
+    - Ts: Time in the past at which the two populations split.
+    - n1, n2: Sample sizes of resulting Spectrum.
 
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
@@ -181,6 +183,7 @@ def IM(params, ns, pop_ids=None):
 def IM_pre(params, ns, pop_ids=None):
     """
     params = (nuPre, TPre, s, nu1, nu2, T, m12, m21)
+    
     ns = [n1, n2]
 
     Isolation-with-migration model with exponential pop growth and a size change
