@@ -15,7 +15,7 @@ def out_of_Africa(params, ns, pop_ids=["YRI", "CEU", "CHB"]):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 3:
+    if pop_ids is not None and len(pop_ids) != 3:
         raise ValueError("pop_ids must be a list of three population IDs")
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1] + ns[2])
     fs = moments.Spectrum(sts)

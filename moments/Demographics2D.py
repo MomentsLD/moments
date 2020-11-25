@@ -15,7 +15,7 @@ def snm(ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
     fs = moments.Spectrum(sts)
@@ -44,7 +44,7 @@ def bottlegrowth(params, ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     nuB, nuF, T = params
     return bottlegrowth_split_mig((nuB, nuF, 0, T, 0), ns, pop_ids=pop_ids)
@@ -69,7 +69,7 @@ def bottlegrowth_split(params, ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     nuB, nuF, T, Ts = params
     return bottlegrowth_split_mig((nuB, nuF, 0.0, T, Ts), ns, pop_ids=pop_ids)
@@ -95,7 +95,7 @@ def bottlegrowth_split_mig(params, ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     nuB, nuF, m, T, Ts = params
     nu_func = lambda t: [nuB * numpy.exp(numpy.log(nuF / nuB) * t / T)]
@@ -131,7 +131,7 @@ def split_mig(params, ns, pop_ids=None):
     :param ns: List of length two specifying sample sizes n1 and n2.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     nu1, nu2, T, m = params
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
@@ -166,7 +166,7 @@ def IM(params, ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     s, nu1, nu2, T, m12, m21 = params
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
@@ -202,7 +202,7 @@ def IM_pre(params, ns, pop_ids=None):
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
-    if len(pop_ids) != 2:
+    if pop_ids is not None and len(pop_ids) != 2:
         raise ValueError("pop_ids must be a list of two population IDs")
     nuPre, TPre, s, nu1, nu2, T, m12, m21 = params
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1])
