@@ -1,5 +1,5 @@
 """
-Two population demographic models.
+Three-population demographic models.
 """
 import numpy as np
 import moments

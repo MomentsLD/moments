@@ -1,5 +1,5 @@
 """
-Single population demographic models.
+Single-population demographic models.
 """
 import numpy
 
@@ -25,7 +25,7 @@ def two_epoch(params, ns, pop_ids=None):
     """
     Instantaneous size change some time ago.
 
-    params = (nu,T)
+    params = (nu, T)
     
     :param params: Tuple of length two, specifying (nu, T).
         
@@ -50,7 +50,7 @@ def growth(params, ns, pop_ids=None):
     """
     Exponential growth beginning some time ago.
 
-    params = (nu,T)
+    params = (nu, T)
 
     :param params: Tupe of length two, specifying (nu, t).
         
@@ -76,7 +76,7 @@ def bottlegrowth(params, ns, pop_ids=None):
     """
     Instantanous size change followed by exponential growth.
 
-    params = (nuB,nuF,T)
+    params = (nuB, nuF, T)
 
     :param params: Tuple of length three specifying (nuB, nuF, T).
         

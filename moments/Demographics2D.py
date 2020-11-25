@@ -1,5 +1,5 @@
 """
-Two population demographic models.
+Two-population demographic models.
 """
 import numpy
 
@@ -33,12 +33,12 @@ def bottlegrowth(params, ns, pop_ids=None):
     Instantanous size change followed by exponential growth with no population
     split.
 
-    nuB: Ratio of population size after instantanous change to ancient
-         population size
-    nuF: Ratio of contempoary to ancient population size
-    T: Time in the past at which instantaneous change happened and growth began
-       (in units of 2*Na generations)
-    n1, n2: Sample sizes of resulting Spectrum.
+    - nuB: Ratio of population size after instantanous change to ancient
+      population size
+    - nuF: Ratio of contempoary to ancient population size
+    - T: Time in the past at which instantaneous change happened and growth began
+      (in units of 2*Na generations)
+    - n1, n2: Sample sizes of resulting Spectrum.
 
     :param params: List of parameters, (nuB, nuF, T).
     :param ns: List of population sizes in first and second populations.
@@ -58,13 +58,13 @@ def bottlegrowth_split(params, ns, pop_ids=None):
 
     Instantanous size change followed by exponential growth then split.
 
-    nuB: Ratio of population size after instantanous change to ancient
-         population size
-    nuF: Ratio of contempoary to ancient population size
-    T: Time in the past at which instantaneous change happened and growth began
-       (in units of 2*Na generations)
-    Ts: Time in the past at which the two populations split.
-    n1, n2: Sample sizes of resulting Spectrum.
+    - nuB: Ratio of population size after instantanous change to ancient
+      population size
+    - nuF: Ratio of contempoary to ancient population size
+    - T: Time in the past at which instantaneous change happened and growth began
+      (in units of 2*Na generations)
+    - Ts: Time in the past at which the two populations split.
+    - n1, n2: Sample sizes of resulting Spectrum.
 
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
@@ -121,13 +121,10 @@ def split_mig(params, ns, pop_ids=None):
 
     :param params: Tuple of length 4.
 
-        nu1: Size of population 1 after split.
-
-        nu2: Size of population 2 after split.
-
-        T: Time in the past of split (in units of 2*Na generations)
-
-        m: Migration rate between populations (2*Na*m)
+        - nu1: Size of population 1 after split.
+        - nu2: Size of population 2 after split.
+        - T: Time in the past of split (in units of 2*Na generations)
+        - m: Migration rate between populations (2*Na*m)
     :param ns: List of length two specifying sample sizes n1 and n2.
     :param pop_ids: List of population IDs.
     """
@@ -152,17 +149,12 @@ def IM(params, ns, pop_ids=None):
 
     :param params: Tuple of length 6.
 
-        s: Size of pop 1 after split. (Pop 2 has size 1-s.)
-
-        nu1: Final size of pop 1.
-
-        nu2: Final size of pop 2.
-
-        T: Time in the past of split (in units of 2*Na generations)
-
-        m12: Migration from pop 2 to pop 1 (2 * Na * m12)
-
-        m21: Migration from pop 1 to pop 2
+        - s: Size of pop 1 after split. (Pop 2 has size 1-s.)
+        - nu1: Final size of pop 1.
+        - nu2: Final size of pop 2.
+        - T: Time in the past of split (in units of 2*Na generations)
+        - m12: Migration from pop 2 to pop 1 (2 * Na * m12)
+        - m21: Migration from pop 1 to pop 2
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
     """
@@ -189,15 +181,15 @@ def IM_pre(params, ns, pop_ids=None):
     Isolation-with-migration model with exponential pop growth and a size change
     prior to split.
 
-    nuPre: Size after first size change
-    TPre: Time before split of first size change.
-    s: Fraction of nuPre that goes to pop1. (Pop 2 has size nuPre*(1-s).)
-    nu1: Final size of pop 1.
-    nu2: Final size of pop 2.
-    T: Time in the past of split (in units of 2*Na generations)
-    m12: Migration from pop 2 to pop 1 (2*Na*m12)
-    m21: Migration from pop 1 to pop 2
-    n1, n2: Sample sizes of resulting Spectrum.
+    - nuPre: Size after first size change
+    - TPre: Time before split of first size change.
+    - s: Fraction of nuPre that goes to pop1. (Pop 2 has size nuPre*(1-s).)
+    - nu1: Final size of pop 1.
+    - nu2: Final size of pop 2.
+    - T: Time in the past of split (in units of 2*Na generations)
+    - m12: Migration from pop 2 to pop 1 (2*Na*m12)
+    - m21: Migration from pop 1 to pop 2
+    - n1, n2: Sample sizes of resulting Spectrum.
 
     :param ns: List of population sizes in first and second populations.
     :param pop_ids: List of population IDs.
