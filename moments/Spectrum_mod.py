@@ -29,12 +29,14 @@ import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
 
-plotting = True
+_plotting = True
 try:
     import moments.ModelPlot
-except ImportError:  # if matplotlib is not present, do not import, and do not run plotting
-    # functions
-    plotting = False
+except ImportError:
+    # if matplotlib is not present, do not import, and do not run plotting functions
+    _plotting = False
+
+_imported_demes = False
 
 
 class Spectrum(numpy.ma.masked_array):
@@ -346,7 +348,7 @@ class Spectrum(numpy.ma.masked_array):
             corner is masked, the output frequency spectrum masks the fixed bins.
         :type mask_corners: bool, optional
         """
-        if plotting:
+        if _plotting:
             # Update ModelPlot
             model = moments.ModelPlot._get_model()
             if model is not None:
@@ -725,7 +727,7 @@ class Spectrum(numpy.ma.masked_array):
                     "of frozen must match number of simulated pops."
                 )
 
-        if plotting:
+        if _plotting:
             model = moments.ModelPlot._get_model()
             if model is not None:
                 model.evolve(tf, Npop, m)
@@ -1941,18 +1943,19 @@ class Spectrum(numpy.ma.masked_array):
             to n[i], where i is the deme index.
         :rtype: :class:`moments.Spectrum`
         """
-        try:
-            import demes
-        except ImportError:
-            raise ImportError("demes is not installed")
-        from . import Demes
+        if not _imported_demes:
+            try:
+                import demes
+            except ImportError:
+                raise ImportError("demes is not installed")
+            import moments.Demes
 
         if isinstance(g, str):
             dg = demes.load(g)
         else:
             dg = g
 
-        fs = Demes.SFS(
+        fs = moments.Demes.SFS(
             dg, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4
         )
         return fs

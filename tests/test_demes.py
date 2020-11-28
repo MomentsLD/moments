@@ -5,6 +5,7 @@ import pathlib
 
 import numpy as np
 import moments
+from moments.Demes import Demes
 import time
 
 import demes
@@ -22,7 +23,7 @@ class TestSplits(unittest.TestCase):
         ns0, ns1 = 10, 6
         pop_ids = ["A", "B"]
         fs = moments.Demographics1D.snm([ns0 + ns1], pop_ids=["O"])
-        out = moments.Demes._split_fs(fs, 0, pop_ids, [ns0, ns1])
+        out = Demes._split_fs(fs, 0, pop_ids, [ns0, ns1])
         fs = fs.split(0, ns0, ns1, new_ids=pop_ids)
         self.assertTrue(np.all([x == y for x, y in zip(pop_ids, out.pop_ids)]))
         self.assertTrue(np.all(out.sample_sizes == np.array([ns0, ns1])))
@@ -35,7 +36,7 @@ class TestSplits(unittest.TestCase):
         nsA = 5
         nsB = sum(child_sizes)
         fs = moments.Spectrum(np.ones((nsA + 1, nsB + 1)), pop_ids=pop_ids)
-        out = moments.Demes._split_fs(fs, 1, child_ids, child_sizes)
+        out = Demes._split_fs(fs, 1, child_ids, child_sizes)
         self.assertTrue(out.Npop == 4)
         self.assertTrue(
             np.all([x == y for x, y in zip(out.sample_sizes, [nsA] + child_sizes)])
@@ -51,7 +52,7 @@ class TestSplits(unittest.TestCase):
         nsA = sum(child_sizes)
         nsB = 5
         fs = moments.Spectrum(np.ones((nsA + 1, nsB + 1)), pop_ids=pop_ids)
-        out = moments.Demes._split_fs(fs, 0, child_ids, child_sizes)
+        out = Demes._split_fs(fs, 0, child_ids, child_sizes)
         self.assertTrue(out.Npop == 4)
         self.assertTrue(
             np.all([x == y for x, y in zip(out.sample_sizes, [4, 5, 6, 8])])
@@ -76,7 +77,7 @@ class TestReorder(unittest.TestCase):
         new_orders = [[1, 0, 2], [0, 2, 1], [2, 1, 0], [2, 0, 1]]
         for new_order in new_orders:
             new_ids = [fs.pop_ids[ii] for ii in new_order]
-            out = moments.Demes._reorder_fs(fs, new_ids)
+            out = Demes._reorder_fs(fs, new_ids)
             self.assertTrue(
                 np.all(
                     [
@@ -104,7 +105,7 @@ class TestReorder(unittest.TestCase):
         for new_order_idx in range(10):
             new_order = np.random.permutation([0, 1, 2, 3, 4])
             new_ids = [fs.pop_ids[ii] for ii in new_order]
-            out = moments.Demes._reorder_fs(fs, new_ids)
+            out = Demes._reorder_fs(fs, new_ids)
             self.assertTrue(
                 np.all(
                     [
@@ -139,7 +140,7 @@ class TestAdmix(unittest.TestCase):
         proportions = [0.3, 0.7]
         child = "D"
         child_size = 2
-        out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
+        out = Demes._admix_fs(fs, parents, proportions, child, child_size)
         self.assertTrue(
             np.all([x == y for x, y in zip(out.sample_sizes, (4, 6, 4, 2))])
         )
@@ -148,7 +149,7 @@ class TestAdmix(unittest.TestCase):
         )
 
         child_size = 6
-        out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
+        out = Demes._admix_fs(fs, parents, proportions, child, child_size)
         self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (6, 6))]))
         self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("B", "D"))]))
 
@@ -158,7 +159,7 @@ class TestAdmix(unittest.TestCase):
         proportions = [0.2, 0.3, 0.5]
         child = "D"
         child_size = 2
-        out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
+        out = Demes._admix_fs(fs, parents, proportions, child, child_size)
         self.assertTrue(
             np.all([x == y for x, y in zip(out.sample_sizes, (2, 2, 2, 2))])
         )
@@ -167,7 +168,7 @@ class TestAdmix(unittest.TestCase):
         )
 
         child_size = 4
-        out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
+        out = Demes._admix_fs(fs, parents, proportions, child, child_size)
         self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (4,))]))
         self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("D",))]))
 
@@ -182,7 +183,7 @@ class TestPulse(unittest.TestCase):
 
     def test_pulse_function(self):
         fs = moments.Demographics2D.snm([20, 10], pop_ids=["A", "B"])
-        out = moments.Demes._pulse_fs(fs, "A", "B", 0.2, [10, 10])
+        out = Demes._pulse_fs(fs, "A", "B", 0.2, [10, 10])
         self.assertTrue(out.sample_sizes[0] == 10)
         self.assertTrue(out.sample_sizes[1] == 10)
         fs2 = fs.pulse_migrate(0, 1, 10, 0.2)
@@ -305,10 +306,10 @@ class TestMomentsSFS(unittest.TestCase):
         )
         sampled_demes = ["pop"]
         demes_demo_events = g.list_demographic_events()
-        demo_events, demes_present = moments.Demes._get_demographic_events(
+        demo_events, demes_present = Demes._get_demographic_events(
             g, demes_demo_events, sampled_demes
         )
-        deme_sample_sizes = moments.Demes._get_deme_sample_sizes(
+        deme_sample_sizes = Demes._get_deme_sample_sizes(
             g, demo_events, sampled_demes, [20], demes_present
         )
         self.assertTrue(deme_sample_sizes[(math.inf, 100)][0] == 60)
@@ -332,10 +333,10 @@ class TestMomentsSFS(unittest.TestCase):
         )
         sampled_demes = ["pop"]
         demes_demo_events = g.list_demographic_events()
-        demo_events, demes_present = moments.Demes._get_demographic_events(
+        demo_events, demes_present = Demes._get_demographic_events(
             g, demes_demo_events, sampled_demes
         )
-        deme_sample_sizes = moments.Demes._get_deme_sample_sizes(
+        deme_sample_sizes = Demes._get_deme_sample_sizes(
             g, demo_events, sampled_demes, [20], demes_present, unsampled_n=10
         )
         self.assertTrue(deme_sample_sizes[(math.inf, 100)][0] == 90)
@@ -347,7 +348,7 @@ class TestMomentsSFS(unittest.TestCase):
     def test_one_pop(self):
         g = demes.Graph(description="test", time_units="generations")
         g.deme(id="Pop", initial_size=1000)
-        fs = moments.Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20])
         fs_m = moments.Demographics1D.snm([20])
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
@@ -359,7 +360,7 @@ class TestMomentsSFS(unittest.TestCase):
                 demes.Epoch(end_time=0, initial_size=10000),
             ],
         )
-        fs = moments.Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20])
         fs_m = moments.Demographics1D.snm([20])
         fs_m.integrate([10], 1)
         self.assertTrue(np.allclose(fs.data, fs_m.data))
@@ -370,14 +371,14 @@ class TestMomentsSFS(unittest.TestCase):
         for i in range(6):
             g.deme(id=f"pop{i}", initial_size=1000, ancestors=["anc"])
         with self.assertRaises(ValueError):
-            moments.Demes.SFS(g, ["pop{i}" for i in range(6)], [10 for i in range(6)])
+            Demes.SFS(g, ["pop{i}" for i in range(6)], [10 for i in range(6)])
 
         g = demes.Graph(description="test", time_units="generations")
         g.deme(id="anc", initial_size=1000, end_time=1000)
         for i in range(3):
             g.deme(id=f"pop{i}", initial_size=1000, ancestors=["anc"])
         with self.assertRaises(ValueError):
-            moments.Demes.SFS(
+            Demes.SFS(
                 g,
                 ["pop{i}" for i in range(3)],
                 [10 for i in range(3)],
@@ -387,7 +388,7 @@ class TestMomentsSFS(unittest.TestCase):
     def test_one_pop_ancient_samples(self):
         g = demes.Graph(description="test", time_units="generations")
         g.deme(id="Pop", initial_size=1000)
-        fs = moments.Demes.SFS(g, ["Pop", "Pop"], [20, 4], sample_times=[0, 100])
+        fs = Demes.SFS(g, ["Pop", "Pop"], [20, 4], sample_times=[0, 100])
         fs_m = moments.Demographics1D.snm([24])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 4)
         fs_m.integrate([1, 1], 100 / 2 / 1000, frozen=[False, True])
@@ -405,7 +406,7 @@ class TestMomentsSFS(unittest.TestCase):
             proportions=[0.8, 0.2],
             start_time=10,
         )
-        fs = moments.Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20])
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)
@@ -426,7 +427,7 @@ class TestMomentsSFS(unittest.TestCase):
             proportions=[0.8, 0.2],
             start_time=10,
         )
-        fs = moments.Demes.SFS(g, ["Source1", "Source2", "Pop"], [10, 10, 10])
+        fs = Demes.SFS(g, ["Source1", "Source2", "Pop"], [10, 10, 10])
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)
@@ -444,7 +445,7 @@ class TestMomentsSFS(unittest.TestCase):
                 demes.Epoch(initial_size=500, final_size=5000, end_time=0),
             ],
         )
-        fs = moments.Demes.SFS(g, ["Pop"], [100])
+        fs = Demes.SFS(g, ["Pop"], [100])
 
         fs_m = moments.Demographics1D.snm([100])
 
@@ -467,7 +468,7 @@ class TestMomentsSFS(unittest.TestCase):
                 ),
             ],
         )
-        fs = moments.Demes.SFS(g, ["Pop"], [100])
+        fs = Demes.SFS(g, ["Pop"], [100])
 
         fs_m = moments.Demographics1D.snm([100])
 
@@ -483,7 +484,7 @@ class TestMomentsSFS(unittest.TestCase):
         g.deme(id="source", initial_size=1000, ancestors=["anc"])
         g.deme(id="dest", initial_size=1000, ancestors=["anc"])
         g.pulse(source="source", dest="dest", time=10, proportion=0.1)
-        fs = moments.Demes.SFS(g, ["source", "dest"], [20, 20])
+        fs = Demes.SFS(g, ["source", "dest"], [20, 20])
 
         fs_m = moments.Demographics1D.snm([60])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 40, 20)
@@ -499,7 +500,7 @@ class TestMomentsSFS(unittest.TestCase):
         g.deme(id="deme2", initial_size=1000, ancestors=["anc"])
         g.deme(id="deme3", initial_size=1000, ancestors=["anc"])
         ns = [10, 15, 20]
-        fs = moments.Demes.SFS(g, ["deme1", "deme2", "deme3"], ns)
+        fs = Demes.SFS(g, ["deme1", "deme2", "deme3"], ns)
         self.assertTrue(np.all([fs.sample_sizes[i] == ns[i] for i in range(len(ns))]))
 
         fs_m1 = moments.Demographics1D.snm([sum(ns)])
@@ -530,7 +531,7 @@ class TestMomentsSFS(unittest.TestCase):
             start_time=10,
         )
         ns = [10]
-        fs = moments.Demes.SFS(g, ["merged"], ns)
+        fs = Demes.SFS(g, ["merged"], ns)
 
         fs_m = moments.Demographics1D.snm([30])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 10, 20)
@@ -555,7 +556,7 @@ class TestMomentsSFS(unittest.TestCase):
             start_time=10,
         )
         ns = [10]
-        fs = moments.Demes.SFS(g, ["admixed"], ns)
+        fs = Demes.SFS(g, ["admixed"], ns)
 
         fs_m = moments.Demographics1D.snm([30])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 10, 20)
@@ -567,7 +568,7 @@ class TestMomentsSFS(unittest.TestCase):
 
         self.assertTrue(np.allclose(fs_m.data[1:-1], fs.data[1:-1]))
 
-        fs = moments.Demes.SFS(g, ["source1", "admixed"], [10, 10])
+        fs = Demes.SFS(g, ["source1", "admixed"], [10, 10])
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)

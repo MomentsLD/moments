@@ -400,6 +400,11 @@ def _migration_rate_in_interval(g, source, dest, time_interval):
     return rate
 
 
+##
+## Functions for SFS computation
+##
+
+
 def _get_deme_sample_sizes(
     g, demo_events, sampled_demes, sample_sizes, demes_present, unsampled_n=4
 ):
