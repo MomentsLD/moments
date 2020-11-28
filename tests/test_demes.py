@@ -140,8 +140,12 @@ class TestAdmix(unittest.TestCase):
         child = "D"
         child_size = 2
         out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
-        self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (4, 6, 4, 2))]))
-        self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))]))
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.sample_sizes, (4, 6, 4, 2))])
+        )
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))])
+        )
 
         child_size = 6
         out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
@@ -151,12 +155,16 @@ class TestAdmix(unittest.TestCase):
     def test_three_way_admixture(self):
         fs = moments.Spectrum(np.ones((5, 5, 5)), pop_ids=["A", "B", "C"])
         parents = ["A", "B", "C"]
-        proportions = [.2, .3, .5]
+        proportions = [0.2, 0.3, 0.5]
         child = "D"
         child_size = 2
         out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
-        self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (2, 2, 2, 2))]))
-        self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))]))
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.sample_sizes, (2, 2, 2, 2))])
+        )
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))])
+        )
 
         child_size = 4
         out = moments.Demes._admix_fs(fs, parents, proportions, child, child_size)
@@ -179,7 +187,64 @@ class TestPulse(unittest.TestCase):
         self.assertTrue(out.sample_sizes[1] == 10)
         fs2 = fs.pulse_migrate(0, 1, 10, 0.2)
         self.assertTrue(np.allclose(fs2.data, out.data))
-        
+
+
+class CompareOOA(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_direct_comparison(self):
+        Ne = 7300
+        gens = 25
+        nuA = 12300 / Ne
+        TA = (220e3 - 140e3) / 2 / Ne / gens
+        nuB = 2100 / Ne
+        TB = (140e3 - 21.2e3) / 2 / Ne / gens
+        nuEu0 = 1000 / Ne
+        nuEuF = 29725 / Ne
+        nuAs0 = 510 / Ne
+        nuAsF = 54090 / Ne
+        TF = 21.2e3 / 2 / Ne / gens
+        mAfB = 2 * Ne * 25e-5
+        mAfEu = 2 * Ne * 3e-5
+        mAfAs = 2 * Ne * 1.9e-5
+        mEuAs = 2 * Ne * 9.6e-5
+
+        ns = [10, 10, 10]
+
+        fs_moments = moments.Demographics3D.out_of_Africa(
+            (
+                nuA,
+                TA,
+                nuB,
+                TB,
+                nuEu0,
+                nuEuF,
+                nuAs0,
+                nuAsF,
+                TF,
+                mAfB,
+                mAfEu,
+                mAfAs,
+                mEuAs,
+            ),
+            ns,
+        )
+        fs_demes = moments.Spectrum.from_demes(
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yml"),
+            ["YRI", "CEU", "CHB"],
+            ns,
+        )
+
+        self.assertTrue(
+            np.all([x == y for x, y in zip(fs_moments.pop_ids, fs_demes.pop_ids)])
+        )
+        self.assertTrue(np.allclose(fs_demes.data, fs_moments.data))
+
 
 ### tests from demes
 

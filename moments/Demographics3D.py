@@ -17,6 +17,21 @@ def out_of_Africa(params, ns, pop_ids=["YRI", "CEU", "CHB"]):
     """
     if pop_ids is not None and len(pop_ids) != 3:
         raise ValueError("pop_ids must be a list of three population IDs")
+    (
+        nuA,
+        TA,
+        nuB,
+        TB,
+        nuEu0,
+        nuEuF,
+        nuAs0,
+        nuAsF,
+        TF,
+        mAfB,
+        mAfEu,
+        mAfAs,
+        mEuAs,
+    ) = params
     sts = moments.LinearSystem_1D.steady_state_1D(ns[0] + ns[1] + ns[2])
     fs = moments.Spectrum(sts)
     # integrate modern human branch with expansion
@@ -29,8 +44,8 @@ def out_of_Africa(params, ns, pop_ids=["YRI", "CEU", "CHB"]):
     fs = fs.split(1, ns[1], ns[2])
     nu_func = lambda t: [
         nuA,
-        nuEu0 * np.exp(np.log(nuEuF / nuEu0) * t / T),
-        nuAs0 * np.exp(np.log(nuAsF / nuAs0) * t / T),
+        nuEu0 * np.exp(np.log(nuEuF / nuEu0) * t / TF),
+        nuAs0 * np.exp(np.log(nuAsF / nuAs0) * t / TF),
     ]
     mig_mat = [[0, mAfEu, mAfAs], [mAfEu, 0, mEuAs], [mAfAs, mEuAs, 0]]
     fs.integrate(nu_func, TF, m=mig_mat)
