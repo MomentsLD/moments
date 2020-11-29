@@ -1930,7 +1930,7 @@ class Spectrum(numpy.ma.masked_array):
             ``sampled_demes``, giving the sampling times for each sampled
             deme. Sampling times are given in time units of the original deme graph,
             so might not necessarily be generations (e.g. if ``g.time_units`` is years)
-        :type sapmle_times: list of floats, optional
+        :type sample_times: list of floats, optional
         :param Ne: reference population size. If none is given, we use the initial
             size of the root deme.
         :type Ne: float, optional

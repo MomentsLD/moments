@@ -9,6 +9,7 @@ import copy
 import numpy as np
 
 import moments
+import moments.LD
 
 
 def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4):
@@ -21,10 +22,8 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
     This function is new in version 1.1.0. Future developments will allow for
     inference using ``demes``-based demographic descriptions.
 
-    :param g: A ``demes`` DemeGraph from which to compute the SFS. The DemeGraph
-        can either be specified as a YAML file, in which case `g` is a string,
-        or as a ``DemeGraph`` object.
-    :type g: str or :class:`demes.DemeGraph`
+    :param g: A ``demes`` DemeGraph from which to compute the SFS.
+    :type g: :class:`demes.DemeGraph`
     :param sampled_demes: A list of deme IDs to take samples from. We can repeat
         demes, as long as the sampling of repeated deme IDs occurs at distinct
         times.
@@ -38,7 +37,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         ``sampled_demes``, giving the sampling times for each sampled
         deme. Sampling times are given in time units of the original deme graph,
         so might not necessarily be generations (e.g. if ``g.time_units`` is years)
-    :type sapmle_times: list of floats, optional
+    :type sample_times: list of floats, optional
     :param Ne: reference population size. If none is given, we use the initial
         size of the root deme.
     :type Ne: float, optional
@@ -51,6 +50,8 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         to n[i], where i is the deme index.
     :rtype: :class:`moments.Spectrum`
     """
+    import moments
+
     if len(sampled_demes) != len(sample_sizes):
         raise ValueError("sampled_demes and sample_sizes must be same length")
     if sample_times is not None and len(sampled_demes) != len(sample_times):
@@ -134,6 +135,129 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
     fs = _reorder_fs(fs, sampled_demes)
 
     return fs
+
+
+def LD(
+    g, sampled_demes, sample_times=None, rho=None, theta=0.001, r=None, u=None, Ne=None
+):
+    """
+    Takes a deme graph and computes the SFS. ``demes`` is a package for
+    specifying demographic models in a user-friendly, human-readable YAML
+    format. This function automatically parses the demographic description
+    and returns a SFS for the specified populations and sample sizes.
+
+    This function is new in version 1.1.0. Future developments will allow for
+    inference using ``demes``-based demographic descriptions.
+
+    :param g: A ``demes`` DemeGraph from which to compute the SFS.
+    :type g: :class:`demes.DemeGraph`
+    :param sampled_demes: A list of deme IDs to take samples from. We can repeat
+        demes, as long as the sampling of repeated deme IDs occurs at distinct
+        times.
+    :type sampled_demes: list of strings
+    :param sample_times: If None, assumes all sampling occurs at the end of the
+        existence of the sampled deme. If there are
+        ancient samples, ``sample_times`` must be a list of same length as
+        ``sampled_demes``, giving the sampling times for each sampled
+        deme. Sampling times are given in time units of the original deme graph,
+        so might not necessarily be generations (e.g. if ``g.time_units`` is years)
+    :type sample_times: list of floats, optional
+    :param rho: The population-size scaled recombination rate(s). Can be None, a
+        non-negative float, or a list of values. Cannot be used with ``Ne``.
+    :param theta: The population-size scaled mutation rate. Cannot be used with ``Ne``.
+    :param r: The raw recombination rate. Can be None, a non-negative float, or a
+        list of values. Must be used with ``Ne``.
+    :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
+        ``theta`` is set to ``4 * Ne * u``.
+    :param Ne: The reference population size. If none is given, we use the initial
+        size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
+        ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.
+    :type Ne: float, optional
+    :return: A ``moments.LD`` LD statistics object, with number of populations equal
+        to the length of ``sampled_demes``.
+    :rtype: :class:`moments.LD.LDstats`
+    """
+    if sample_times is not None and len(sampled_demes) != len(sample_times):
+        raise ValueError("sample_times must have same length as sampled_demes")
+    for deme in sampled_demes:
+        if deme not in g:
+            raise ValueError(f"deme {deme} is not in demography")
+
+    if sample_times is None:
+        sample_times = [g[d].end_time for d in sampled_demes]
+
+    # for any ancient samples, we need to add frozen branches
+    # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
+    if np.any(np.array(sample_times) != 0):
+        g, sampled_demes, list_of_frozen_demes = _augment_with_ancient_samples(
+            g, sampled_demes, sample_times
+        )
+        sample_times = [0 for _ in sample_times]
+    else:
+        list_of_frozen_demes = []
+
+    if g.time_units != "generations":
+        g, sample_times = _convert_to_generations(g, sample_times)
+    for d, n, t in zip(sampled_demes, sample_times):
+        if t < g[d].end_time or t >= g[d].start_time:
+            raise ValueError("sample time for {deme} must be within its time span")
+
+    # get the list of demographic events from demes, which is a dictionary with
+    # lists of splits, admixtures, mergers, branches, and pulses
+    demes_demo_events = g.list_demographic_events()
+
+    # get the dict of events and event times that partition integration epochs, in
+    # descending order. events include demographic events, such as splits and
+    # mergers and admixtures, as well as changes in population sizes or migration
+    # rates that require instantaneous changes in the size function or migration matrix.
+    # get the list of demes present in each epoch, as a dictionary with non-overlapping
+    # adjoint epoch time intervals
+    demo_events, demes_present = _get_demographic_events(
+        g, demes_demo_events, sampled_demes
+    )
+
+    # get the list of size functions, migration matrices, and frozen attributes from
+    # the deme graph and event times, matching the integration times
+    nu_funcs, mig_mats, Ts, frozen_pops = _get_integration_parameters(
+        g, demes_present, list_of_frozen_demes, Ne=Ne
+    )
+
+    selfing_rates = _get_selfing_rates(g, demes_present)
+    root_selfing_rate = _get_root_selfing_rate(g)
+
+    # set recombination and mutation rates
+    if Ne is None:
+        Ne = _get_root_Ne(g)
+    if rho is not None and r is not None:
+        raise ValueError("Can only specify rho or r, but not both")
+    if rho is None:
+        if r is not None:
+            rho = 4 * Ne * r
+    if u is not None:
+        theta = 4 * Ne * u
+
+    # compute LD
+    y = _compute_LD(
+        demo_events,
+        demes_present,
+        nu_funcs,
+        mig_mats,
+        Ts,
+        frozen_pops,
+        selfing_rates,
+        root_selfing_rate,
+        rho,
+        theta,
+    )
+
+    y = _reorder_LD(y, sampled_demes)
+
+    return y
+
+
+##
+## general functions used by both SFS and LD
+##
 
 
 def _convert_to_generations(g, sample_times):
@@ -258,10 +382,20 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     return demo_events, demes_present
 
 
+def _get_root_Ne(g):
+    # get root population and set Ne to root size
+    for deme_id, preds in g.predecessors.items():
+        if len(preds) == 0:
+            root_deme = deme_id
+            break
+    Ne = g[root_deme].epochs[0].initial_size
+    return Ne
+
+
 def _get_integration_parameters(g, demes_present, frozen_list, Ne=None):
     """
     Returns a list of size functions, migration matrices, integration times,
-    and frozen attributes.
+    and lists frozen demes.
     """
     nu_funcs = []
     integration_times = []
@@ -269,12 +403,7 @@ def _get_integration_parameters(g, demes_present, frozen_list, Ne=None):
     frozen_demes = []
 
     if Ne is None:
-        # get root population and set Ne to root size
-        for deme_id, preds in g.predecessors.items():
-            if len(preds) == 0:
-                root_deme = deme_id
-                break
-        Ne = g[root_deme].epochs[0].initial_size
+        Ne = _get_root_Ne(g)
 
     for interval, live_demes in sorted(demes_present.items())[::-1]:
         # get intergration time for interval
@@ -791,4 +920,187 @@ def _reorder_fs(fs, next_deme_order):
         if pop_id != swap_id:
             swap_index = out.pop_ids.index(swap_id)
             out = out.swap_axes(ii, swap_index)
+    return out
+
+
+##
+## Functions for LD computation
+##
+
+
+def _get_selfing_rates(g, demes_present):
+    """
+    Returns a list of size functions, migration matrices, integration times,
+    and lists frozen demes.
+    """
+    selfing_rates = []
+
+    for interval, live_demes in sorted(demes_present.items())[::-1]:
+        # get selfing_rates for interval
+        interval_rates = []
+        for d in live_demes:
+            # get the selfing rate for deme d in epoch that spans this interval
+            for epoch in g[d].epochs:
+                if epoch.start_time <= interval[0] and epoch.end_time >= interval[1]:
+                    interval_rates.append(epoch.selfing_rate)
+        selfing_rates.append(interval_rates)
+
+    return selfing_rates
+
+
+def _get_root_selfing_rate(g):
+    for deme_id, preds in g.predecessors.items():
+        if len(preds) == 0:
+            root_deme = deme_id
+            break
+    root_selfing_rate = g[root_deme].epochs[0].selfing_rate
+    return root_selfing_rate
+
+
+def _compute_LD(
+    demo_events,
+    demes_present,
+    nu_funcs,
+    mig_mats,
+    Ts,
+    frozen_pops,
+    selfing_rates,
+    root_selfing_rate,
+    rho,
+    theta,
+):
+    integration_intervals = sorted(list(demes_present.keys()))[::-1]
+
+    # set up initial steady-state LD for ancestral deme
+    y = moments.LD.LDstats(
+        moments.LD.Numerics.steady_state(
+            theta=theta, rho=rho, selfing_rate=root_selfing_rate
+        )
+    )
+
+    # for each set of demographic events and integration epochs, step through
+    # integration, apply events, and then reorder populations to align with demes
+    # present in the next integration epoch
+    for (T, nu, M, frozen, interval, selfing_rate) in zip(
+        integration_times,
+        nu_funcs,
+        migration_matrices,
+        frozen_demes,
+        integration_intervals,
+        selfing_rates,
+    ):
+        if T > 0:
+            y.integrate(
+                nu, T, m=M, frozen=frozen, theta=theta, rho=rho, selfing=selfing_rate
+            )
+
+        events = demo_events[interval[1]]
+        for event in events:
+            y = _apply_LD_event(y, event, interval[1], demes_present)
+
+        if interval[1] > 0:
+            # rearrange to next order of demes
+            next_interval = integration_intervals[
+                [x[0] for x in integration_intervals].index(interval[1])
+            ]
+            next_deme_order = demes_present[next_interval]
+            assert y.num_pops == len(next_deme_order)
+            assert np.all([d in next_deme_order for d in y.pop_ids])
+            y = _reorder_LD(y, next_deme_order)
+
+    return y
+
+
+def _apply_LD_events(y, event, t, demes_present):
+    e = event[0]
+    if e == "marginalize":
+        y = y.marginalize([y.pop_ids.index(event[1])])
+    elif e == "split":
+        children = event[2]
+        if len(children) == 1:
+            # "split" into just one population (name change)
+            y.pop_ids[y.pop_ids.index(event[1])] = children[0]
+        else:
+            split_idx = y.pop_ids.index(event[1])
+            # children[0] is placed in split idx, the rest are at the end
+            i = 1
+            while i < len(children):
+                y = y.split(
+                    split_idx,
+                    new_ids=[children[0], children[i]],
+                )
+                i += 1
+    elif e == "branch":
+        # branch is a split, but keep the pop_id of parent
+        parent = event[1]
+        child = event[2]
+        split_idx = y.pop_ids.index(parent)
+        y = y.split(split_idx, new_ids=[parent, child])
+    elif e in ["admix", "merge"]:
+        # two or more populations merge, based on given proportions
+        parents = event[1]
+        proportions = event[2]
+        child = event[3]
+        if e == "admix":
+            marg = False
+        elif e == "merge":
+            marg = True
+        y = _admix_LD(y, parents, proportions, child, marginalize=marg)
+    elif e == "pulse":
+        # admixture from one population to another, with some proportion
+        source = event[1]
+        source_idx = y.pop_ids.index(source)
+        dest = event[2]
+        dest_idx = y.pop_ids.index(dest)
+        proportion = event[3]
+        y = y.pulse_migrate(source_idx, dest_idx, proportion)
+    else:
+        raise ValueError(f"Haven't implemented methods for event type {e}")
+    return y
+
+
+def _admix_LD(y, parents, proportions, child, marginalize=False):
+    """
+    Both merge and admixture events use this function, with the only difference that
+    merge events remove the parental demes, while admixture events do not.
+    """
+    if len(parents) >= 2:
+        # admix first two pops
+        fA = proportions[0] / (proportions[0] + proportions[1])
+        fB = proportions[1] / (proportions[0] + proportions[1])
+        assert np.isclose(fA, 1 - fB)
+        idxA = y.pop_ids.index(parents[0])
+        idxB = y.pop_ids.index(parents[1])
+        y = y.admix(idxA, idxB, fA, new_id=child)
+    if len(parents) >= 3:
+        i = 2
+        while i < len(parents):
+            f = proportions[i] / sum(proportions[:i + 1])
+            idx = y.pop_ids.index(parents[i])
+            y = y.pulse_migrate(idx, y.num_pops - 1, f)
+            i += 1
+    if marginalize:
+        marg_indexes = [y.pop_ids.index(p) for p in parents]
+        y = y.marginalize(marg_indexes)
+    return y
+
+
+def _reorder_LD(y, next_deme_order):
+    """
+    :param y: LD stats object
+    :param next_deme_order: List of population IDs in the order of output SFS.
+    """
+    ### this function could be combined with ``_reorder_fs`` if swap_pops has
+    ### swap_axes as an alias...
+    if np.any([id not in y.pop_ids for id in next_deme_order]) or np.any(
+        [id not in next_deme_order for id in y.pop_ids]
+    ):
+        raise ValueError("y.pop_ids and next_deme_order have mismatched IDs")
+
+    out = copy.deepcopy(y)
+    for ii, swap_id in enumerate(next_deme_order):
+        pop_id = out.pop_ids[ii]
+        if pop_id != swap_id:
+            swap_index = out.pop_ids.index(swap_id)
+            out = out.swap_pops(ii, swap_index)
     return out

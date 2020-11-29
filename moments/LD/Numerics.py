@@ -247,21 +247,27 @@ def integrate(
     return Y
 
 
-def steady_state(theta=0.001, rho=None):
-    h_ss = np.array([theta])
+def steady_state(theta=0.001, rho=None, selfing_rate=None):
+    if selfing_rate is None:
+        h_ss = np.array([theta])
+    else:
+        h_ss = np.array([theta * (1 - selfing_rate / 2)])
     if hasattr(rho, "__len__"):  # list of rhos
-        ys_ss = [equilibrium_ld(theta=theta, rho=r) for r in rho]
+        ys_ss = [equilibrium_ld(theta=theta, rho=r, selfing_rate=selfing_rate) for r in rho]
         return ys_ss + [h_ss]
     elif np.isscalar(rho):  # one rho value
-        y_ss = equilibrium_ld(theta=theta, rho=rho)
+        y_ss = equilibrium_ld(theta=theta, rho=rho, selfing_rate=selfing_rate)
         return [y_ss, h_ss]
     else:  # only het stats
         return [h_ss]
 
 
-def equilibrium_ld(theta=0.001, rho=0.0):
-    h_ss = [theta]
-    U = Matrices.mutation_ld(1, theta)
-    R = Matrices.recombination(1, rho)
+def equilibrium_ld(theta=0.001, rho=0.0, selfing_rate=None):
+    if selfing_rate is None:
+        h_ss = np.array([theta])
+    else:
+        h_ss = np.array([theta * (1 - selfing_rate / 2)])
+    U = Matrices.mutation_ld(1, theta, selfing=selfing_rate)
+    R = Matrices.recombination(1, rho, selfing=selfing_rate)
     D = Matrices.drift_ld(1, [1.0])
     return factorized(D + R)(-U.dot(h_ss))
