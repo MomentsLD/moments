@@ -29,6 +29,14 @@ class TestSplits(unittest.TestCase):
         self.assertTrue(np.all(out.sample_sizes == np.array([ns0, ns1])))
         self.assertTrue(np.allclose(out.data, fs.data))
 
+        rho = [0, 1]
+        y = moments.LD.Demographics1D.snm(rho=rho, pop_ids=["O"])
+        out = Demes._apply_LD_events(y, ("split", "O", pop_ids), 0, pop_ids)
+        y = y.split(0, new_ids=pop_ids)
+        self.assertTrue(np.all([x == y for x, y in zip(pop_ids, out.pop_ids)]))
+        for s0, s1 in zip(y, out):
+            self.assertTrue(np.allclose(s0, s1))
+
     def test_three_way_split_1(self):
         pop_ids = ["A", "B"]
         child_ids = ["C1", "C2", "C3"]
@@ -43,6 +51,18 @@ class TestSplits(unittest.TestCase):
         )
         self.assertTrue(
             np.all([x == y for x, y in zip(out.pop_ids, ["A"] + child_ids)])
+        )
+
+        rho = [0, 1, 10]
+        y = moments.LD.LDstats(
+            [np.random.rand(15) for _ in range(len(rho))] + [np.random.rand(3)],
+            pop_ids=["A", "B"],
+            num_pops=2,
+        )
+        out = Demes._apply_LD_events(y, ("split", "B", child_ids), 0, ["A"] + child_ids)
+        self.assertTrue(out.num_pops == 4)
+        self.assertTrue(
+            np.all([i == j for i, j in zip(out.pop_ids, ["A"] + child_ids)])
         )
 
     def test_three_way_split_0(self):
@@ -61,6 +81,18 @@ class TestSplits(unittest.TestCase):
             np.all([x == y for x, y in zip(out.pop_ids, ["C1", "B", "C2", "C3"])])
         )
 
+        rho = [0, 1, 10]
+        y = moments.LD.LDstats(
+            [np.random.rand(15) for _ in range(len(rho))] + [np.random.rand(3)],
+            pop_ids=["A", "B"],
+            num_pops=2,
+        )
+        out = Demes._apply_LD_events(y, ("split", "A", child_ids), 0, ["B"] + child_ids)
+        self.assertTrue(out.num_pops == 4)
+        self.assertTrue(
+            np.all([i == j for i, j in zip(out.pop_ids, ["C1", "B", "C2", "C3"])])
+        )
+
 
 class TestReorder(unittest.TestCase):
     def setUp(self):
@@ -74,10 +106,16 @@ class TestReorder(unittest.TestCase):
         fs = moments.Spectrum(
             np.random.rand(4 * 6 * 8).reshape((4, 6, 8)), pop_ids=["A", "B", "C"]
         )
+        y = moments.LD.LDstats(
+            [np.random.rand(45)] + [np.random.rand(6)],
+            num_pops=3,
+            pop_ids=["A", "B", "C"],
+        )
         new_orders = [[1, 0, 2], [0, 2, 1], [2, 1, 0], [2, 0, 1]]
         for new_order in new_orders:
             new_ids = [fs.pop_ids[ii] for ii in new_order]
             out = Demes._reorder_fs(fs, new_ids)
+            out_ld = Demes._reorder_LD(y, new_ids)
             self.assertTrue(
                 np.all(
                     [
@@ -96,16 +134,32 @@ class TestReorder(unittest.TestCase):
                     ]
                 )
             )
+            self.assertTrue(
+                np.all(
+                    [
+                        x == y
+                        for x, y in zip(
+                            (y.pop_ids[ii] for ii in new_order), out_ld.pop_ids
+                        )
+                    ]
+                )
+            )
 
     def test_reorder_five_pops(self):
         fs = moments.Spectrum(
             np.random.rand(4 * 5 * 6 * 7 * 8).reshape((4, 5, 6, 7, 8)),
             pop_ids=["A", "B", "C", "D", "E"],
         )
+        y = moments.LD.LDstats(
+            [np.random.rand(210)] + [np.random.rand(15)],
+            num_pops=5,
+            pop_ids=["A", "B", "C", "D", "E"],
+        )
         for new_order_idx in range(10):
             new_order = np.random.permutation([0, 1, 2, 3, 4])
             new_ids = [fs.pop_ids[ii] for ii in new_order]
             out = Demes._reorder_fs(fs, new_ids)
+            out_ld = Demes._reorder_LD(y, new_ids)
             self.assertTrue(
                 np.all(
                     [
@@ -120,6 +174,16 @@ class TestReorder(unittest.TestCase):
                         x == y
                         for x, y in zip(
                             (fs.pop_ids[ii] for ii in new_order), out.pop_ids
+                        )
+                    ]
+                )
+            )
+            self.assertTrue(
+                np.all(
+                    [
+                        x == y
+                        for x, y in zip(
+                            (y.pop_ids[ii] for ii in new_order), out_ld.pop_ids
                         )
                     ]
                 )
@@ -153,6 +217,18 @@ class TestAdmix(unittest.TestCase):
         self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (6, 6))]))
         self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("B", "D"))]))
 
+        y = moments.LD.LDstats(
+            [np.random.rand(45)] + [np.random.rand(6)],
+            num_pops=3,
+            pop_ids=["A", "B", "C"],
+        )
+        out = Demes._admix_LD(y, parents, proportions, child, marginalize=False)
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))])
+        )
+        out = Demes._admix_LD(y, parents, proportions, child, marginalize=True)
+        self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("B", "D"))]))
+
     def test_three_way_admixture(self):
         fs = moments.Spectrum(np.ones((5, 5, 5)), pop_ids=["A", "B", "C"])
         parents = ["A", "B", "C"]
@@ -170,6 +246,18 @@ class TestAdmix(unittest.TestCase):
         child_size = 4
         out = Demes._admix_fs(fs, parents, proportions, child, child_size)
         self.assertTrue(np.all([x == y for x, y in zip(out.sample_sizes, (4,))]))
+        self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("D",))]))
+
+        y = moments.LD.LDstats(
+            [np.random.rand(45)] + [np.random.rand(6)],
+            num_pops=3,
+            pop_ids=["A", "B", "C"],
+        )
+        out = Demes._admix_LD(y, parents, proportions, child, marginalize=False)
+        self.assertTrue(
+            np.all([x == y for x, y in zip(out.pop_ids, ("A", "B", "C", "D"))])
+        )
+        out = Demes._admix_LD(y, parents, proportions, child, marginalize=True)
         self.assertTrue(np.all([x == y for x, y in zip(out.pop_ids, ("D",))]))
 
 
@@ -245,6 +333,58 @@ class CompareOOA(unittest.TestCase):
             np.all([x == y for x, y in zip(fs_moments.pop_ids, fs_demes.pop_ids)])
         )
         self.assertTrue(np.allclose(fs_demes.data, fs_moments.data))
+
+    def test_direct_comparison_LD(self):
+        Ne = 7300
+        gens = 25
+        nuA = 12300 / Ne
+        TA = (220e3 - 140e3) / 2 / Ne / gens
+        nuB = 2100 / Ne
+        TB = (140e3 - 21.2e3) / 2 / Ne / gens
+        nuEu0 = 1000 / Ne
+        nuEuF = 29725 / Ne
+        nuAs0 = 510 / Ne
+        nuAsF = 54090 / Ne
+        TF = 21.2e3 / 2 / Ne / gens
+        mAfB = 2 * Ne * 25e-5
+        mAfEu = 2 * Ne * 3e-5
+        mAfAs = 2 * Ne * 1.9e-5
+        mEuAs = 2 * Ne * 9.6e-5
+
+        rho = [0, 1, 10]
+        theta = 0.001
+
+        y_moments = moments.LD.Demographics3D.out_of_Africa(
+            (
+                nuA,
+                TA,
+                nuB,
+                TB,
+                nuEu0,
+                nuEuF,
+                nuAs0,
+                nuAsF,
+                TF,
+                mAfB,
+                mAfEu,
+                mAfAs,
+                mEuAs,
+            ),
+            rho=rho,
+            theta=theta
+        )
+        y_demes = moments.LD.LDstats.from_demes(
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yml"),
+            ["YRI", "CEU", "CHB"],
+            rho=rho,
+            theta=theta,
+        )
+
+        self.assertTrue(
+            np.all([x == y for x, y in zip(y_moments.pop_ids, y_demes.pop_ids)])
+        )
+        for x, y in zip(y_demes, y_moments):
+            self.assertTrue(np.allclose(x, y))
 
 
 ### tests from demes

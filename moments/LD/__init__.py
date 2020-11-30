@@ -4,6 +4,7 @@ from . import (
     Matrices,
     Demographics1D,
     Demographics2D,
+    Demographics3D,
     Inference,
     Godambe,
 )

@@ -141,15 +141,10 @@ def LD(
     g, sampled_demes, sample_times=None, rho=None, theta=0.001, r=None, u=None, Ne=None
 ):
     """
-    Takes a deme graph and computes the SFS. ``demes`` is a package for
-    specifying demographic models in a user-friendly, human-readable YAML
-    format. This function automatically parses the demographic description
-    and returns a SFS for the specified populations and sample sizes.
-
     This function is new in version 1.1.0. Future developments will allow for
     inference using ``demes``-based demographic descriptions.
 
-    :param g: A ``demes`` DemeGraph from which to compute the SFS.
+    :param g: A ``demes`` DemeGraph from which to compute the LD.
     :type g: :class:`demes.DemeGraph`
     :param sampled_demes: A list of deme IDs to take samples from. We can repeat
         demes, as long as the sampling of repeated deme IDs occurs at distinct
@@ -198,7 +193,7 @@ def LD(
 
     if g.time_units != "generations":
         g, sample_times = _convert_to_generations(g, sample_times)
-    for d, n, t in zip(sampled_demes, sample_times):
+    for d, t in zip(sampled_demes, sample_times):
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
 
@@ -961,9 +956,9 @@ def _compute_LD(
     demo_events,
     demes_present,
     nu_funcs,
-    mig_mats,
-    Ts,
-    frozen_pops,
+    migration_matrices,
+    integration_times,
+    frozen_demes,
     selfing_rates,
     root_selfing_rate,
     rho,
@@ -975,7 +970,9 @@ def _compute_LD(
     y = moments.LD.LDstats(
         moments.LD.Numerics.steady_state(
             theta=theta, rho=rho, selfing_rate=root_selfing_rate
-        )
+        ),
+        num_pops=1,
+        pop_ids=demes_present[integration_intervals[0]]
     )
 
     # for each set of demographic events and integration epochs, step through
@@ -989,14 +986,19 @@ def _compute_LD(
         integration_intervals,
         selfing_rates,
     ):
+        if np.all([s is None for s in selfing_rate]):
+            selfing = None
+        else:
+            selfing = [s if s is not None else 0 for s in selfing_rate]
+
         if T > 0:
             y.integrate(
-                nu, T, m=M, frozen=frozen, theta=theta, rho=rho, selfing=selfing_rate
+                nu, T, m=M, frozen=frozen, theta=theta, rho=rho, selfing=selfing
             )
 
         events = demo_events[interval[1]]
         for event in events:
-            y = _apply_LD_event(y, event, interval[1], demes_present)
+            y = _apply_LD_events(y, event, interval[1], demes_present)
 
         if interval[1] > 0:
             # rearrange to next order of demes
@@ -1097,7 +1099,7 @@ def _reorder_LD(y, next_deme_order):
     ):
         raise ValueError("y.pop_ids and next_deme_order have mismatched IDs")
 
-    out = copy.deepcopy(y)
+    out = copy.copy(y)
     for ii, swap_id in enumerate(next_deme_order):
         pop_id = out.pop_ids[ii]
         if pop_id != swap_id:

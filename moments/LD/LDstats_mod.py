@@ -9,6 +9,8 @@ import copy
 
 from . import Numerics, Util
 
+_imported_demes = False
+
 
 class LDstats(list):
     """
@@ -578,6 +580,79 @@ class LDstats(list):
         # Close file
         if newfile:
             fid.close()
+
+    @staticmethod
+    def from_demes(
+        g,
+        sampled_demes,
+        sample_times=None,
+        rho=None,
+        theta=0.001,
+        r=None,
+        u=None,
+        Ne=None,
+    ):
+        """
+        Takes a deme graph and computes the LD stats. ``demes`` is a package for
+        specifying demographic models in a user-friendly, human-readable YAML
+        format. This function automatically parses the demographic description
+        and returns a LD for the specified populations and recombination and
+        mutation rates.
+
+        This function is new in version 1.1.0. Future developments will allow for
+        inference using ``demes``-based demographic descriptions.
+
+        :param g: A ``demes`` DemeGraph from which to compute the LD.
+        :type g: :class:`demes.DemeGraph`
+        :param sampled_demes: A list of deme IDs to take samples from. We can repeat
+            demes, as long as the sampling of repeated deme IDs occurs at distinct
+            times.
+        :type sampled_demes: list of strings
+        :param sample_times: If None, assumes all sampling occurs at the end of the
+            existence of the sampled deme. If there are
+            ancient samples, ``sample_times`` must be a list of same length as
+            ``sampled_demes``, giving the sampling times for each sampled
+            deme. Sampling times are given in time units of the original deme graph,
+            so might not necessarily be generations (e.g. if ``g.time_units`` is years)
+        :type sample_times: list of floats, optional
+        :param rho: The population-size scaled recombination rate(s). Can be None, a
+            non-negative float, or a list of values. Cannot be used with ``Ne``.
+        :param theta: The population-size scaled mutation rate. Cannot be used with ``Ne``.
+        :param r: The raw recombination rate. Can be None, a non-negative float, or a
+            list of values. Must be used with ``Ne``.
+        :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
+            ``theta`` is set to ``4 * Ne * u``.
+        :param Ne: The reference population size. If none is given, we use the initial
+            size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
+            ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.
+        :type Ne: float, optional
+        :return: A ``moments.LD`` LD statistics object, with number of populations equal
+            to the length of ``sampled_demes``.
+        :rtype: :class:`moments.LD.LDstats`
+        """
+        if not _imported_demes:
+            try:
+                import demes
+            except ImportError:
+                raise ImportError("demes is not installed")
+            import moments.Demes
+
+        if isinstance(g, str):
+            dg = demes.load(g)
+        else:
+            dg = g
+
+        y = moments.Demes.LD(
+            dg,
+            sampled_demes,
+            sample_times=sample_times,
+            rho=rho,
+            theta=theta,
+            r=u,
+            u=u,
+            Ne=Ne,
+        )
+        return y
 
     # Ensures that when arithmetic is done with LDstats objects,
     # attributes are preserved. For details, see similar code in

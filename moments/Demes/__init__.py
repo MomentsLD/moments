@@ -1,2 +1,2 @@
-from .Demes import SFS
+from .Demes import SFS, LD
 from . import Demes
