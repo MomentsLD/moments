@@ -71,7 +71,7 @@ regions) for each of the three mutation classes shown in :numref:`all_data`:
       - 0.1442
     * - Missense variants
       - 0.3426
-    * - Loss-offunction variants
+    * - Loss-of-function variants
       - 0.0256
 
 We can see here that the mutational target for nonsynonymous variants is about 2.37
@@ -201,6 +201,15 @@ very rapid.
 
 Caching SFS
 -----------
+
+We cache the SFS for the inferred demography and a grid of selection coefficients
+ranging from neutral to strongly deleterious. For the SFS with very deleterious
+selection coefficients, the computation is only stable with large sample sizes.
+Thus, after each computation for a given selection coefficient, we check to make
+sure that the SFS does not have large negative oscillations and did not fail
+to converge. If the computation failed, we doube the sample size and recompute
+the SFS, repeating until we have a sample size large enough to stably compute
+the SFS. That SFS is then projected to the needed sample size and chached.
 
 .. code-block:: python
 
