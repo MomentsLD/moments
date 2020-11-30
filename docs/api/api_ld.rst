@@ -19,6 +19,9 @@ Demographic functions
 .. automodule:: moments.LD.Demographics2D
     :members:
 
+.. automodule:: moments.LD.Demographics3D
+    :members:
+
 *******************
 Inference functions
 *******************
