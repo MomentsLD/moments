@@ -179,8 +179,7 @@ Inferring the DFE
 
 Now that we have a plausible demographic model, we can move to the selected SFS.
 Not every new missense mutation or every new LOF mutation will have the same
-fitness effect, so we aim to learn the *distribution* of selection coefficients
-of new mutations. Here, we are going to assume an additive model of selection -
+
 that is, heterozygotes have fitness effect :math:`1+s` while homozygotes for the
 derived allele have fitness effect :math:`1+2s`. We're also only going to focus
 on the deleterious DFE - we assume beneficial mutations are very rare, and we'll
@@ -370,10 +369,292 @@ that :math:`10^{-2}`.
 Sensitivity to the demographic model
 ************************************
 
-.. todo::
-    What if we fit a model that does a worse job at fitting the synonymous data - how
-    robust are our results? What if we don't fit the demography at all and just assume
-    steady-state demography, as a worst-case scenario?
+Here, we'll fit a simpler models to the synonymous variants, and rerun the same DFE
+inference to check if the results are robust. We'll first fit a two-epoch model (again
+accounting for ancestral misidentification), and then simply use a standard neutral
+model without size changes.
+
+.. jupyter-execute::
+
+    def model_func(params, ns):
+        nu, T, p_misid = params
+        fs = moments.Demographics1D.two_epoch([nu, T], ns)
+        fs = (1 - p_misid) * fs + p_misid * fs[::-1]
+        return fs
+    
+    p_guess = [2, .3, 0.02]
+    lower_bound = [1e-3, 1e-3, 1e-3]
+    upper_bound = [10, 1, 0.999]
+
+    opt_params = moments.Inference.optimize_log_fmin(
+        p_guess, fs_syn, model_func,
+        lower_bound=lower_bound, upper_bound=upper_bound)
+
+    model = model_func(opt_params, fs_syn.sample_sizes)
+    opt_theta = moments.Inference.optimal_sfs_scaling(model, fs_syn)
+    Ne = opt_theta / u_syn / 4
+
+    print("optimal demog. parameters:", opt_params[:-1])
+    print("anc misid:", opt_params[-1])
+    print("inferred Ne:", f"{Ne:.2f}")
+
+    moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
+
+Now we cache the selection-SFS for this demography and refit the DFE to the missense
+variants:
+
+.. code-block:: python
+
+    def selection_spectrum(gamma):
+        rerun = True
+        ns_sim = 100
+        while rerun:
+            ns_sim = 2 * ns_sim
+            fs = moments.LinearSystem_1D.steady_state_1D(ns_sim, gamma=gamma)
+            fs = moments.Spectrum(fs)
+            fs.integrate([opt_params[0]], opt_params[1], gamma=gamma)
+            if abs(np.max(fs)) > 10 or np.any(np.isnan(fs)):
+                # large gamma-values can require large sample sizes for stability
+                rerun = True
+            else:
+                rerun = False
+        fs = fs.project(fs_syn.sample_sizes)
+        return fs
+
+    spectrum_cache = {}
+    spectrum_cache[0] = selection_spectrum(0)
+
+    gammas = np.logspace(-4, 3, 61)
+    for gamma in gammas:
+        spectrum_cache[gamma] = selection_spectrum(-gamma)
+
+.. jupyter-execute::
+    :hide-code:
+
+    spectrum_cache = pickle.load(open("./data/msl_spectrum_cache_two_epoch.bp", "rb"))
+    gammas = np.array(sorted(list(spectrum_cache.keys())))[1:]
+
+Set up the mutation rates and DFE functions:
+
+.. jupyter-execute::
+
+    theta_mis = opt_theta * u_mis / u_syn
+    theta_lof = opt_theta * u_lof / u_syn
+
+    dxs = ((gammas - np.concatenate(([gammas[0]], gammas))[:-1]) / 2
+        + (np.concatenate((gammas, [gammas[-1]]))[1:] - gammas) / 2)
+    
+    def dfe_func(params, ns, theta=1):
+        alpha, beta, p_misid = params
+        fs = spectrum_cache[0] * scipy.stats.gamma.cdf(gammas[0], alpha, scale=beta)
+        weights = scipy.stats.gamma.pdf(gammas, alpha, scale=beta)
+        for gamma, dx, w in zip(gammas, dxs, weights):
+            fs += spectrum_cache[gamma] * dx * w
+        fs = theta * fs
+        return (1 - p_misid) * fs + p_misid * fs[::-1]
+
+    def model_func_missense(params, ns):
+        return dfe_func(params, ns, theta=theta_mis)
+
+    def model_func_lof(params, ns):
+        return dfe_func(params, ns, theta=theta_lof)
+
+Fit the missense data:
+
+.. jupyter-execute::
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_mis = moments.Inference.optimize_log_fmin(
+        p_guess, fs_mis, model_func_missense,
+        lower_bound=lower_bound, upper_bound=upper_bound,
+        multinom=False)
+
+    model_mis = model_func_missense(opt_params_mis, fs_mis.sample_sizes)
+    print("optimal parameters (missense):")
+    print("shape:", f"{opt_params_mis[0]:.4f}")
+    print("scale:", f"{opt_params_mis[1]:.1f}")
+    print("anc misid:", f"{opt_params_mis[2]:.4f}")
+
+    moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")
+
+Fit the LOF data:
+
+.. jupyter-execute::
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_lof = moments.Inference.optimize_log_fmin(
+        p_guess, fs_lof, model_func_lof,
+        lower_bound=lower_bound, upper_bound=upper_bound,
+        multinom=False)
+
+    model_lof = model_func_lof(opt_params_lof, fs_lof.sample_sizes)
+    print("optimal parameters:")
+    print("shape:", f"{opt_params_lof[0]:.4f}")
+    print("scale:", f"{opt_params_lof[1]:.1f}")
+    print("anc misid:", f"{opt_params_lof[2]:.4f}")
+
+    moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")
+
+We can compare our results using this simpler two-epoch demographic model to our
+previous findings:
+
+.. jupyter-execute::
+
+    print("Missense DFE:")
+    shape = opt_params_mis[0]
+    scale = opt_params_mis[1]
+    ss = [0, 1e-5, 1e-4, 1e-3, 1e-2]
+    for s0, s1 in zip(ss[:-1], ss[1:]):
+        cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
+        cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
+        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        if s1 == ss[-1]:
+            print(f"s >= {s1}:", 1 - cdf1)
+
+    print()
+    print("LOF DFE:")
+    shape = opt_params_lof[0]
+    scale = opt_params_lof[1]
+    ss = [0, 1e-5, 1e-4, 1e-3, 1e-2]
+    for s0, s1 in zip(ss[:-1], ss[1:]):
+        cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
+        cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
+        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        if s1 == ss[-1]:
+            print(f"s >= {s1}:", 1 - cdf1)
+
+Comparing to the table above, these look pretty similar - that's a good sign.
+
+Now what if our demographic model is way off?
+
+.. jupyter-execute::
+
+    model = moments.Demographics1D.snm(fs_syn.sample_sizes)
+    opt_theta = moments.Inference.optimal_sfs_scaling(model, fs_syn)
+    Ne = opt_theta / u_syn / 4
+
+    print("optimal Ne scaling:", f"{Ne:.2f}")
+
+    moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
+
+.. code-block:: python
+
+    def selection_spectrum(gamma):
+        fs = moments.LinearSystem_1D.steady_state_1D(fs_syn.sample_sizes[0], gamma=gamma)
+        fs = moments.Spectrum(fs)
+        return fs
+
+    spectrum_cache = {}
+    spectrum_cache[0] = selection_spectrum(0)
+
+    gammas = np.logspace(-4, 3, 61)
+    for gamma in gammas:
+        spectrum_cache[gamma] = selection_spectrum(-gamma)
+
+Set up the mutation rates and DFE functions:
+
+.. jupyter-execute::
+
+    theta_mis = opt_theta * u_mis / u_syn
+    theta_lof = opt_theta * u_lof / u_syn
+
+    dxs = ((gammas - np.concatenate(([gammas[0]], gammas))[:-1]) / 2
+        + (np.concatenate((gammas, [gammas[-1]]))[1:] - gammas) / 2)
+    
+    def dfe_func(params, ns, theta=1):
+        alpha, beta, p_misid = params
+        fs = spectrum_cache[0] * scipy.stats.gamma.cdf(gammas[0], alpha, scale=beta)
+        weights = scipy.stats.gamma.pdf(gammas, alpha, scale=beta)
+        for gamma, dx, w in zip(gammas, dxs, weights):
+            fs += spectrum_cache[gamma] * dx * w
+        fs = theta * fs
+        return (1 - p_misid) * fs + p_misid * fs[::-1]
+
+    def model_func_missense(params, ns):
+        return dfe_func(params, ns, theta=theta_mis)
+
+    def model_func_lof(params, ns):
+        return dfe_func(params, ns, theta=theta_lof)
+
+Fit the missense data:
+
+.. jupyter-execute::
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_mis = moments.Inference.optimize_log_fmin(
+        p_guess, fs_mis, model_func_missense,
+        lower_bound=lower_bound, upper_bound=upper_bound,
+        multinom=False)
+
+    model_mis = model_func_missense(opt_params_mis, fs_mis.sample_sizes)
+    print("optimal parameters (missense):")
+    print("shape:", f"{opt_params_mis[0]:.4f}")
+    print("scale:", f"{opt_params_mis[1]:.1f}")
+    print("anc misid:", f"{opt_params_mis[2]:.4f}")
+
+Fit the LOF data:
+
+.. jupyter-execute::
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_lof = moments.Inference.optimize_log_fmin(
+        p_guess, fs_lof, model_func_lof,
+        lower_bound=lower_bound, upper_bound=upper_bound,
+        multinom=False)
+
+    model_lof = model_func_lof(opt_params_lof, fs_lof.sample_sizes)
+    print("optimal parameters:")
+    print("shape:", f"{opt_params_lof[0]:.4f}")
+    print("scale:", f"{opt_params_lof[1]:.1f}")
+    print("anc misid:", f"{opt_params_lof[2]:.4f}")
+
+
+And now comparing our results using the standard neutral model as the underlying
+demography:
+
+
+.. jupyter-execute::
+
+    print("Missense DFE:")
+    shape = opt_params_mis[0]
+    scale = opt_params_mis[1]
+    ss = [0, 1e-5, 1e-4, 1e-3, 1e-2]
+    for s0, s1 in zip(ss[:-1], ss[1:]):
+        cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
+        cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
+        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        if s1 == ss[-1]:
+            print(f"s >= {s1}:", 1 - cdf1)
+
+    print()
+    print("LOF DFE:")
+    shape = opt_params_lof[0]
+    scale = opt_params_lof[1]
+    ss = [0, 1e-5, 1e-4, 1e-3, 1e-2]
+    for s0, s1 in zip(ss[:-1], ss[1:]):
+        cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
+        cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
+        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        if s1 == ss[-1]:
+            print(f"s >= {s1}:", 1 - cdf1)
+
+These distributions look quite different - in particular, both the missense and LOF
+variants are inferred to be much more deleterious. This is because we did not account
+for population size expansions in it history, which leads to an excess of rare variants
+for each class of mutations, and the model over-compensates for the excess of rare
+variants by fitting a DFE that is more skewed toward larger selection coefficients.
 
 ********************************
 Non-additive models of selection
