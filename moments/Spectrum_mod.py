@@ -1707,7 +1707,7 @@ def %(method)s(self, other):
         """
         n = numpy.array(self.shape) - 1
 
-        if m is not None:
+        if m is not None and not callable(m):
             m = numpy.array(m)
 
         if finite_genome == True and (theta_fd == None or theta_bd == None):
@@ -1773,7 +1773,7 @@ def %(method)s(self, other):
                 h = 0.5 * numpy.ones(len(n))
             if m is None:
                 m = numpy.zeros([len(n), len(n)])
-            if (m == 0).all():
+            if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n) < 3:
                     self.data[:] = moments.Integration_nomig.integrate_neutral(
