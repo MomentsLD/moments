@@ -660,6 +660,15 @@ variants by fitting a DFE that is more skewed toward larger selection coefficien
 Non-additive models of selection
 ********************************
 
+So far, we've assumed that all selection is additive, that is, the dominance coefficient
+:math:`h = 0.5`. Here, we'll fit:
+
+1. allow h to vary
+
+2. h is an exponental, from h = 0.5 for nearly neutral and decays to 0 or some value
+between 0 and 0.5 for very strongly deleterious mutations, with rate lambda for the
+exponential function
+
 .. todo::
     Here, we've assumed that selective effects are additive. There is growing evidence
     that deleterious mutations tend toward partial recessivity, and the relationship
