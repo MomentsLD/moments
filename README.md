@@ -124,9 +124,16 @@ additionally install
 
 ## Changelog
 
+### 1.0.8
+
+- Allow for variable migration rate by passing a function as the migration matrix
+  (with thanks to Ekaterina Noskova/noscode)
+
+- Fixes an issue with ModelPlot when splitting 3D and 4D SFS
+
 ### 1.0.7
 
-- But fixes and haplotype parsing in `moments.LD.Parsing`. (Issues #38-42,
+- Bug fixes and haplotype parsing in `moments.LD.Parsing`. (Issues #38-42,
   with thanks to Nathaniel Pope)
 
 ### 1.0.6
