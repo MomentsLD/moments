@@ -579,6 +579,13 @@ class _ModelInfo:
             popfunc = lambda t: popsizes
         time_vals = np.linspace(0, time, num=self.precision)
         tp.popsizes = np.transpose([popfunc(t) for t in time_vals])
+        # Use average migration if it is function
+        if callable(migrations):
+            sum_mig = 0
+            step = 1 / (self.precision - 1)
+            for t in np.arange(0, 1+step, step):
+                sum_mig += migrations(t)
+            migrations = sum_mig / self.precision
         # Transpose because plotting assumes m[i,j] corresponds to migration from i to j
         if migrations is not None:
             tp.migrations = migrations.transpose()
