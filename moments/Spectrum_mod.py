@@ -676,8 +676,10 @@ class Spectrum(numpy.ma.masked_array):
         :param h: The dominance coefficient, or list of dominance coefficients within
             each population, if more than one population.
         :type h: float or list of floats, optional
-        :param m: The migration rates matrix as an N-D array, where m[i,j] is the
-            migration rate from pop j to pop i, normalized by :math:`2N_e`.
+        :param m: The migration rates matrix as an 2-D array, where m[i,j] is the
+            migration rate from pop j to pop i, normalized by :math:`2N_e`. `m` may
+            be either a 2-D array, or a function that returns a 2-D array (with
+            dimensions equal to (num pops)x(num pops)).
         :type m: array-like, optional
         :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
             ``theta`` can be used in the reversible model in the case of symmetric
@@ -701,7 +703,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         n = numpy.array(self.shape) - 1
 
-        if m is not None:
+        if m is not None and not callable(m):
             m = numpy.array(m)
 
         if finite_genome == True and (theta_fd == None or theta_bd == None):
@@ -775,7 +777,7 @@ class Spectrum(numpy.ma.masked_array):
                 h = h * np.ones(len(n))
             if m is None:
                 m = numpy.zeros([len(n), len(n)])
-            if (m == 0).all():
+            if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n) < 3:
                     self.data[:] = moments.Integration_nomig.integrate_neutral(

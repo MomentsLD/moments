@@ -821,7 +821,10 @@ def integrate_nD(
         else:
             v = np.array([theta_bd / 4.0] * len(dims))
 
-    mm = np.array(m) / 2.0
+    if callable(m):
+        mm = lambda t: np.array(m(t)) / 2.0
+    else:
+        mm = np.array(m) / 2.0
 
     # if any populations are frozen, we set their population extremely large,
     # selection to zero, and mutations to zero in those pops
@@ -845,9 +848,16 @@ def integrate_nD(
             u *= 1 - frozen
             v *= 1 - frozen
         # fix migration to zero to and from frozen populations
-        for pop_num in frozen_pops:
-            mm[:, pop_num] = 0.0
-            mm[pop_num, :] = 0.0
+        def fix_migrations(mig_matrix):
+            for pop_num in frozen_pops:
+                mig_matrix[:, pop_num] = 0.0
+                mig_matrix[pop_num, :] = 0.0
+            return mig_matrix
+        if callable(mm):
+            mm_func = copy.copy(mm)
+            mm = lambda t: fix_migrations(mm_func(t))
+        else:
+            mm = fix_migrations(mm)
 
     # parameters of the equation
     if callable(Npop):
@@ -857,6 +867,12 @@ def integrate_nD(
 
     Nold = N.copy()
     Neff = N
+
+    if callable(mm):
+        mig = mm(0)
+    else:
+        mig = mm
+    mig_old = mig.copy()
 
     # number of "directions" for the splitting
     nbp = int(len(n) * (len(n) - 1) / 2)
@@ -880,7 +896,7 @@ def integrate_nD(
 
     # migration
     vm = _calcM(dims, ljk)
-    Mi = _buildM(vm, dims, mm)
+    Mi_bwd = _buildM(vm, dims, mig)
 
     # mutations
     if finite_genome == False:
@@ -907,20 +923,11 @@ def integrate_nD(
         dt_old = dt
         sfs_old = sfs
         if neg == False:
-            dt = min(compute_dt(N, mm, s, h), Tmax * dt_fac)
+            dt = min(compute_dt(N, mig, s, h), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
-        # we update the value of N if a function was provided as argument
-        # if callable(Npop):
-        #    N_old = N[:]
-        #    N = np.array(Npop((t+dt) / 2.0))
-        #    Neff = Numerics.compute_N_effective(Npop, 0.5*t, 0.5*(t+dt))
-        #    if np.max(np.abs(N-N_old)/N_old)>0.1:
-        #        print("warning: large change size at time"
-        #                + " t = %2.2f in function integrate_nD" % (t,))
-        #        print("N_old, " , N_old)
-        #        print("N_new, " , N)
 
+        # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t + dt) / 2.0))
             Neff = Numerics.compute_N_effective(Npop, 0.5 * t, 0.5 * (t + dt))
@@ -948,10 +955,23 @@ def integrate_nD(
                     )
                     print("currently %2.2f" % dt_fac)
                     break
-
-        # we recompute the matrix only if N has changed...
-        if t == 0.0 or (Nold != N).any() or dt != dt_old or neg == True:
+        
+        # update migration matrix if callable and check non-negative rates
+        if callable(mm):
+            mig = mm((t + dt / 2) / 2.0)
+        if np.any(mig < 0):
+            raise ValueError(f"Migration rate is below zero in matrix:\n{mig}")
+        
+        # we recompute the matrix only if N or mig matrix has changed:
+        if (
+            t == 0.0
+            or (Nold != N).any()
+            or dt != dt_old
+            or neg == True
+            or (mig != mig_old).any()
+        ):
             D = _buildD(vd, dims, Neff)
+            Mi = _buildM(vm, dims, mig)
             # system inversion for backward scheme
             slv = [
                 linalg.factorized(
@@ -963,6 +983,7 @@ def integrate_nD(
                 )
                 for i in range(nbp)
             ]
+            # forward step
             Q = [
                 sp.sparse.identity(S1[i].shape[0], dtype="float", format="csc")
                 + dt
@@ -998,7 +1019,7 @@ def integrate_nD(
 
         if (sfs < 0).any() and adapt_dt:
             neg = True
-            if dt > min(compute_dt(N, mm, s, h), Tmax * dt_fac) / 8.0:
+            if dt > min(compute_dt(N, mig, s, h), Tmax * dt_fac) / 8.0:
                 dt *= 0.5
             sfs = sfs_old
 
@@ -1006,6 +1027,8 @@ def integrate_nD(
             neg = False
             Nold = N
             t += dt
+            mig_old = mig
+
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)

@@ -197,7 +197,7 @@ def split_2D_to_3D_1(sfs, n1new, n3):
     return data_3D
 
 
-def split_3D_to_4D_3(sfs, n3new, n4):
+def split_3D_to_4D_3(sfs, n3new, n4, model_update=True):
     """
     Three-to-four population split for the spectrum,
     needs that n3 >= n3new+n4.
@@ -206,8 +206,12 @@ def split_3D_to_4D_3(sfs, n3new, n4):
 
     n3new : sample size for resulting pop 3
 
-    n4 : sample size for resulting pop 4
+    n4 : sample size for resulting pop 4 
 
+    model_update : update model if set to True. Since we wrap this function to
+        split other populations, we update the ModelPlot model outside of this
+        function instead, and set it to False in that case.
+   
     Returns a new 4D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -223,7 +227,7 @@ def split_3D_to_4D_3(sfs, n3new, n4):
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
-    if model is not None:
+    if model is not None and model_update is True:
         model.split(2, (2, 3))
 
     data_3D = copy.copy(sfs)
@@ -256,7 +260,7 @@ def split_3D_to_4D_3(sfs, n3new, n4):
     return data_4D
 
 
-def split_4D_to_5D_4(sfs, n4new, n5):
+def split_4D_to_5D_4(sfs, n4new, n5, model_update=True):
     """
     Four-to-five population split for the spectrum,
     n4 >= n4new+n5.
@@ -266,7 +270,11 @@ def split_4D_to_5D_4(sfs, n4new, n5):
     n4new : sample size for resulting pop 4
 
     n5 : sample size for resulting pop 5
-
+    
+    model_update : update model if set to True. Since we wrap this function to
+        split other populations, we update the ModelPlot model outside of this
+        function instead, and set it to False in that case.
+   
     Returns a new 5D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -282,7 +290,7 @@ def split_4D_to_5D_4(sfs, n4new, n5):
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()
-    if model is not None:
+    if model is not None and model_update is True:
         model.split(3, (3, 4))
 
     data_4D = copy.copy(sfs)
@@ -391,8 +399,13 @@ def split_3D_to_4D_1(sfs, n1new, n4):
     Uses split_3D_to_4D_3,
     swap 1st and 3rd population, split, and then swap back
     """
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(0, (0, 3))
+
     fs = sfs.swapaxes(0, 2)
-    fs = split_3D_to_4D_3(fs, n1new, n4)
+    fs = split_3D_to_4D_3(fs, n1new, n4, model_update=False)
     fs = fs.swapaxes(0, 2)
     return fs
 
@@ -402,8 +415,13 @@ def split_3D_to_4D_2(sfs, n2new, n4):
     Uses split_3D_to_4D_3,
     swap 2nd and 3rd population, split, and then swap back
     """
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(1, (1, 3))
+
     fs = sfs.swapaxes(1, 2)
-    fs = split_3D_to_4D_3(fs, n2new, n4)
+    fs = split_3D_to_4D_3(fs, n2new, n4, model_update=False)
     fs = fs.swapaxes(1, 2)
     return fs
 
@@ -413,8 +431,13 @@ def split_4D_to_5D_1(sfs, n1new, n5):
     Uses split_3D_to_4D_3,
     swap 1st and 3rd population, split, and then swap back
     """
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(0, (0, 4))
+
     fs = sfs.swapaxes(0, 3)
-    fs = split_4D_to_5D_4(fs, n1new, n5)
+    fs = split_4D_to_5D_4(fs, n1new, n5, model_update=False)
     fs = fs.swapaxes(0, 3)
     return fs
 
@@ -424,8 +447,13 @@ def split_4D_to_5D_2(sfs, n2new, n5):
     Uses split_3D_to_4D_3,
     swap 1st and 3rd population, split, and then swap back
     """
+    # Update ModelPlot if necessary
+    model = ModelPlot._get_model()
+    if model is not None:
+        model.split(1, (1, 4))
+
     fs = sfs.swapaxes(1, 3)
-    fs = split_4D_to_5D_4(fs, n2new, n5)
+    fs = split_4D_to_5D_4(fs, n2new, n5, model_update=False)
     fs = fs.swapaxes(1, 3)
     return fs
 
