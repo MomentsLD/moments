@@ -12,9 +12,10 @@ index_cache = {}
 
 def index_n(n, i, j, k):
     """
-    For a spectrum of sample size n, take in an (n+1)^3 sized object, convert to correctly sized array Phi.
+    For a spectrum of sample size n, take in an (n+1)^3 sized object, convert to
+    correctly sized array Phi.
     Here, we'll try to operate on the whole spectrum, since recombination cannot be split.
-    We need a dictionary that maps (i,j,k) to the correct index in the array.
+    We need a dictionary that maps (i, j, k) to the correct index in the array.
     """
     try:
         return index_cache[n][(i, j, k)]
@@ -32,6 +33,10 @@ def index_n(n, i, j, k):
 
 
 def array_to_Phi(F):
+    """
+    The array F is the square masked array object, with lots of zeros for infeasible
+    entries. Returns Phi, which is a 1D vector keeping variable entries.
+    """
     n = len(F) - 1
     Phi = np.zeros(int((n + 1) * (n + 2) * (n + 3) / 6))
     for ii in range(n + 1):
@@ -60,6 +65,9 @@ def choose(n, i):
 
 
 def drift(n):
+    """
+    The drift operator for sample size n.
+    """
     Dsize = int((n + 1) * (n + 2) * (n + 3) / 6)
     row = []
     col = []
@@ -233,7 +241,14 @@ def drift(n):
 
 def mutations(n, theta=1.0):
     """
-    
+    Infinite-sites mutation model, where new mutations occur along the A/a and B/b
+    backgrounds, with single-site SFS stored in [0,:,0] and [0,0,:].
+
+    Note: might want to make theta accept a list of length two, which could be
+    [theta_A, theta_B] in the future.
+
+    :param n: The sample size.
+    :param theta: The scaled mutation rate.
     """
     Msize = int((n + 1) * (n + 2) * (n + 3) / 6)
 
@@ -257,8 +272,10 @@ def mutations(n, theta=1.0):
 
 def recombination(n, rho):
     """
-    rho = 4*Ne*r
-    where r is the recombination probability
+    Returns the recombination operater for a given sample size.
+
+    :param n: The sample size.
+    :param rho: 4*Ne*r, where r is the recombination probability between two loci.
     """
     Rsize0 = int((n + 1) * (n + 2) * (n + 3) / 6)
     Rsize1 = int((n + 2) * (n + 3) * (n + 4) / 6)
@@ -343,7 +360,12 @@ def selection_two_locus(n, sel_params):
     """
     This is for additive selection at both loci, where Ab has selection coefficient sA, 
     aB has sB, and AB has sAB
-    Additive model, allowing for epistasis if sAB != sA+sB
+    This is an additive model, meaning at each locus selection acts additively, but
+    it allows for epistasis if sAB != sA + sB. (I.e. sAB = sA + sB + epsilon)
+
+    :param n: The sample size.
+    :param sel_params: The list of selection coefficients, where
+        sel_params = [sAB, sA, sB].
     """
     sAB, sA, sB = sel_params
     Ssize0 = int((n + 1) * (n + 2) * (n + 3) / 6)

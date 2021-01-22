@@ -41,7 +41,7 @@ Welcome to moments's documentation!
    modules/dfe
    modules/vcf
    modules/recombination
-   modules/sweeps
+   modules/two_locus_selection`
 
 .. toctree::
    :caption: Data types and functions

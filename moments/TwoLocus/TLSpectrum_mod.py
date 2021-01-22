@@ -562,7 +562,6 @@ def %(method)s(self, other):
         dt=0.01,
         rho=None,
         gamma=None,
-        h=None,
         sel_params=None,
         theta=1.0,
         finite_genome=False,
@@ -573,13 +572,19 @@ def %(method)s(self, other):
         """
         Simulate the two-locus haplotype frequency spectrum forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
+
+        When using the reversible mutation model (with `finite_genome` = True), we are
+        limited to selection at only one locus (the left locus), and selection is
+        additive. When using the default ISM, additive selection is allowed at both
+        loci, and we use `sel_params`, which specifies [sAB, sA, and sB] in that order.
+        Note that while this selection model is additive within loci, it allows for
+        epistasis between loci if sAB != sA + sB.
         
         :param nu: Population effective size as positive value or callable function.
         :param float tf: The integration time in genetics units.
         :param float dt_fac: The time step for integration.
         :param float rho: The population-size scaled recombination rate 4*Ne*r.
         :param float gamma: The population-size scaled selection coefficient 2*Ne*s.
-        :param float h: The dominance coefficient.
         :param list sel_params: A list of selection parameters. See docstrings in
             Numerics. Selection parameters will be deprecated when we clean up the
             numerics and integration.
@@ -596,11 +601,9 @@ def %(method)s(self, other):
         """
         if gamma == None:
             gamma = 0.0
-        if h == None:
-            h = 0.5
         if rho == None:
             rho = 0.0
-            print("Warning: rho was not specified. Simulating with rho = 0.")
+            print("Warning: rho was not specified. Simulating with rho = 0")
 
         self.data[:] = moments.TwoLocus.Integration.integrate(
             self.data,
@@ -610,7 +613,6 @@ def %(method)s(self, other):
             dt=dt,
             theta=theta,
             gamma=gamma,
-            h=h,
             sel_params=sel_params,
             finite_genome=finite_genome,
             u=u,
