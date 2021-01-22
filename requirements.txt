@@ -6,3 +6,4 @@ matplotlib
 ipython
 pandas
 jupyter_sphinx
+git+https://github.com/popsim-consortium/demes-python.git#egg=demes
