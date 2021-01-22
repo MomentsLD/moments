@@ -10,6 +10,7 @@ import numpy as np
 
 import moments
 import moments.LD
+import demes
 
 
 def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4):
@@ -287,9 +288,7 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
             sampled_demes[ii] = sd_frozen
             g.deme(
                 id=sd_frozen,
-                start_time=st,
-                end_time=0,
-                initial_size=1,
+                epochs=[demes.Epoch(start_time=st, end_time=0, initial_size=1)],
                 ancestors=[sd],
             )
     return g, sampled_demes, frozen_demes
@@ -972,7 +971,7 @@ def _compute_LD(
             theta=theta, rho=rho, selfing_rate=root_selfing_rate
         ),
         num_pops=1,
-        pop_ids=demes_present[integration_intervals[0]]
+        pop_ids=demes_present[integration_intervals[0]],
     )
 
     # for each set of demographic events and integration epochs, step through
@@ -1027,10 +1026,7 @@ def _apply_LD_events(y, event, t, demes_present):
             # children[0] is placed in split idx, the rest are at the end
             i = 1
             while i < len(children):
-                y = y.split(
-                    split_idx,
-                    new_ids=[children[0], children[i]],
-                )
+                y = y.split(split_idx, new_ids=[children[0], children[i]],)
                 i += 1
     elif e == "branch":
         # branch is a split, but keep the pop_id of parent
@@ -1077,7 +1073,7 @@ def _admix_LD(y, parents, proportions, child, marginalize=False):
     if len(parents) >= 3:
         i = 2
         while i < len(parents):
-            f = proportions[i] / sum(proportions[:i + 1])
+            f = proportions[i] / sum(proportions[: i + 1])
             idx = y.pop_ids.index(parents[i])
             y = y.pulse_migrate(idx, y.num_pops - 1, f)
             i += 1
