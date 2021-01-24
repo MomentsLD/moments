@@ -29,7 +29,7 @@ cache_path = None
 set_cache_path()
 
 
-def make_floats(params):
+def _make_floats(params):
     """
     pass list of params, return floats of those params (for caching)
     """
@@ -41,13 +41,18 @@ def make_floats(params):
         return float(params)
 
 
-def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
+def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    Compute or load the equilibrium two locus frequency spectrum
-    gamma and h, if set, are only for selection at the A/a locus
-    sel_params, which are the (additive) selection coefficients for haplotypes AB, Ab, and aB
-        so that sel_params = (sAB, sA, sB)
-        If sAB = sA + sB, no epistatic interaction
+    Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum
+    does not exist, create the equilibrium spectrum and cache in the cache path.
+
+    :param ns: The sample size.
+    :param rho: The population size scaled selection coefficient, 4*Ne*r.
+    :param theta: The mutation rate at each locus, typically left as 1.
+    :param gamma: Only used for additive selection at the A/a locus.
+    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
+        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+        epistasis.
     """
     if rho == None:
         print("Warning: no rho value set. Simulating with rho = 0.")
@@ -56,27 +61,23 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     if gamma == None:
         gamma = 0.0
 
-    gamma = make_floats(gamma)
-    rho = make_floats(rho)
-    theta = make_floats(theta)
-    sel_params = make_floats(sel_params)
+    gamma = _make_floats(gamma)
+    rho = _make_floats(rho)
+    theta = _make_floats(theta)
+    sel_params = _make_floats(sel_params)
 
     # fetch from cache if neutral (cache only neutral spectra for the moment)
     if gamma == 0.0 and (
         sel_params == None
         or (sel_params[0] == 0.0 and sel_params[1] == 0.0 and sel_params[2] == 0.0)
     ):
-        eq_name = "tlfs_ns{0}_rho{1}_theta{2}.fs".format(ns, rho, theta)
+        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.fs"
         eq_name = os.path.join(cache_path, eq_name)
-    elif gamma != 0.0:  # cache for gammaA, hA
-        eq_name = "tlfs_ns{0}_rho{1}_theta{2}_gammaA{3}_hA{4}.fs".format(
-            ns, rho, theta, gamma, h
-        )
+    elif gamma != 0.0:
+        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.gammaA_{gamma}.fs"
         eq_name = os.path.join(cache_path, eq_name)
     elif sel_params != None:
-        eq_name = "tlfs_ns{0}_rho{1}_theta{2}_sel_{3}_{4}_{5}.fs".format(
-            ns, rho, theta, sel_params[0], sel_params[1], sel_params[2]
-        )
+        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.sel_{sel_params[0]}_{sel_params[1]}_{sel_params[2]}.fs"
         eq_name = os.path.join(cache_path, eq_name)
 
     try:
@@ -92,7 +93,6 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
             rho=rho,
             theta=theta,
             gamma=gamma,
-            h=h,
             sel_params=sel_params,
             dt=0.001,
         )
@@ -101,11 +101,19 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     return F
 
 
-def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
+def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    params = (nu,T)
-    nu - size change
-    T - time in past size change occured
+    A two-epoch model, with relative size change nu, time T in the past. T is given
+    in units of 2Ne generations. Note that a relative size of 1 implies no size change.
+
+    :param params: Given as [nu, T].
+    :param ns: The sample size.
+    :param rho: The population size scaled selection coefficient, 4*Ne*r.
+    :param theta: The mutation rate at each locus, typically left as 1.
+    :param gamma: Only used for additive selection at the A/a locus.
+    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
+        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+        epistasis.
     """
     nu, T = params
     if rho == None:
@@ -115,21 +123,30 @@ def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=Non
     if gamma == None:
         gamma = 0.0
 
-    gamma = make_floats(gamma)
-    rho = make_floats(rho)
-    theta = make_floats(theta)
-    sel_params = make_floats(sel_params)
+    gamma = _make_floats(gamma)
+    rho = _make_floats(rho)
+    theta = _make_floats(theta)
+    sel_params = _make_floats(sel_params)
 
-    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
-    F.integrate(nu, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
+    F.integrate(nu, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     return F
 
 
-def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
+def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    params = (nu1,nu2,T1,T2)
-    nu - size change
-    T - time in past size change occured
+    A three-epoch model, with relative size changes nu1 that lasts for time T1, followed
+    by a relative size change to nu2 that last for time T2. Times are in units of 2Ne
+    generations, and sizes are relative to the ancestral Ne.
+
+    :param params: Given as [nu1, nu2, T1, T2].
+    :param ns: The sample size.
+    :param rho: The population size scaled selection coefficient, 4*Ne*r.
+    :param theta: The mutation rate at each locus, typically left as 1.
+    :param gamma: Only used for additive selection at the A/a locus.
+    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
+        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+        epistasis.
     """
     nu1, nu2, T1, T2 = params
     if rho == None:
@@ -139,23 +156,31 @@ def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=N
     if gamma == None:
         gamma = 0.0
 
-    gamma = make_floats(gamma)
-    rho = make_floats(rho)
-    theta = make_floats(theta)
-    sel_params = make_floats(sel_params)
+    gamma = _make_floats(gamma)
+    rho = _make_floats(rho)
+    theta = _make_floats(theta)
+    sel_params = _make_floats(sel_params)
 
-    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
-    F.integrate(nu1, T1, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
-    F.integrate(nu2, T2, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
+    F.integrate(nu1, T1, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
+    F.integrate(nu2, T2, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     return F
 
 
-def growth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
+def growth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    exponential growth or decay model
-    params = (nu,T)
-    nu - final size
-    T - time in past size changes begin
+    An expnential growth model, that begins growth at time T ago, in units of 2Ne
+    generations. The final size is given by nu, which is the relative size to the
+    ancestral Ne.
+
+    :param params: Given as [nu, T].
+    :param ns: The sample size.
+    :param rho: The population size scaled selection coefficient, 4*Ne*r.
+    :param theta: The mutation rate at each locus, typically left as 1.
+    :param gamma: Only used for additive selection at the A/a locus.
+    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
+        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+        epistasis.
     """
     nu, T = params
     if rho == None:
@@ -165,26 +190,33 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
     if gamma == None:
         gamma = 0.0
 
-    gamma = make_floats(gamma)
-    rho = make_floats(rho)
-    theta = make_floats(theta)
-    sel_params = make_floats(sel_params)
+    gamma = _make_floats(gamma)
+    rho = _make_floats(rho)
+    theta = _make_floats(theta)
+    sel_params = _make_floats(sel_params)
 
-    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     nu_func = lambda t: np.exp(np.log(nu) * t / T)
     F.integrate(
-        nu_func, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params
+        nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params
     )
     return F
 
 
-def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=None):
+def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    exponential growth or decay model
-    params = (nuB,nuF,T)
-    nuB - bottleneck size
-    nu - final size
-    T - time in past size changes begin
+    A bottleneck followed by exponential growth. The population changes size to nuB
+    T generations ago, and then has exponential size change to final size nuF. Time is
+    in units of 2Ne generations, and sizes are relative to the ancestral Ne.
+
+    :param params: Given as [nuB, nuF, T].
+    :param ns: The sample size.
+    :param rho: The population size scaled selection coefficient, 4*Ne*r.
+    :param theta: The mutation rate at each locus, typically left as 1.
+    :param gamma: Only used for additive selection at the A/a locus.
+    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
+        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+        epistasis.
     """
     nuB, nuF, T = params
     if rho == None:
@@ -194,14 +226,14 @@ def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, h=0.5, sel_params=
     if gamma == None:
         gamma = 0.0
 
-    gamma = make_floats(gamma)
-    rho = make_floats(rho)
-    theta = make_floats(theta)
-    sel_params = make_floats(sel_params)
+    gamma = _make_floats(gamma)
+    rho = _make_floats(rho)
+    theta = _make_floats(theta)
+    sel_params = _make_floats(sel_params)
 
-    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params)
+    F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     nu_func = lambda t: nuB * np.exp(np.log(nuF / nuB) * t / T)
     F.integrate(
-        nu_func, T, rho=rho, theta=theta, gamma=gamma, h=h, sel_params=sel_params
+        nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params
     )
     return F
