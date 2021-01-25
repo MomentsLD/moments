@@ -690,7 +690,7 @@ References
 
 .. [Boyko] 
     Boyko, Adam R., et al. "Assessing the evolutionary impact of amino acid mutations
-    in the human genome." *PLoS Genet* 4.5 (2008): e1000083.
+    in the human genome." *PLoS Genetics* 4.5 (2008): e1000083.
 
 .. [Karczewski]
     Karczewski, Konrad J., et al. "The mutational constraint spectrum quantified

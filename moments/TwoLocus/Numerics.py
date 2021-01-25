@@ -429,6 +429,65 @@ def selection_two_locus(n, sel_params):
     return csc_matrix((data, (row, col)), shape=(Ssize0, Ssize1))
 
 
+def selection_general(n, sel_params):
+    """
+    A general selection operator, that works with a jackknife with a jump of two.
+    The fitnesses (via selection coefficients) of each diploid two-locus genotype are:
+    
+     - ab/ab: 1
+     - Ab/ab: 1 + s_Ab_ab
+     - aB/ab: 1 + s_aB_ab
+     - AB/ab: 1 + s_AB_ab
+     - Ab/Ab: 1 + s_Ab_Ab
+     - aB/Ab: 1 + s_Ab_aB
+     - AB/Ab: 1 + s_AB_Ab
+     - aB/aB: 1 + s_aB_aB
+     - AB/aB: 1 + s_AB_aB
+     - AB/AB: 1 + s_AB_AB
+
+    There are some helper functions that convert typical selection scenarios
+    (additivity and domininace, epistasis, etc) to these selection parameters.
+
+    :param n: The sample size.
+    :param sel_params: The selection parameters for each diploid genotype.
+    """
+    (
+        s_AB_AB,
+        s_AB_Ab,
+        s_AB_aB,
+        s_AB_ab,
+        s_Ab_Ab,
+        s_Ab_aB,
+        s_Ab_ab,
+        s_aB_aB,
+        s_aB_ab,
+    ) = sel_params
+    Ssize0 = int((n + 1) * (n + 2) * (n + 3) / 6)
+    Ssize2 = int((n + 3) * (n + 4) * (n + 5) / 6)
+
+    row = []
+    col = []
+    data = []
+
+    for i in range(n + 1):
+        for j in range(n + 1 - i):
+            for k in range(n + 1 - i - j):
+                this_ind = index_n(n, i, j, k)
+                if n - i - j - k > 0:
+                    row.append(this_ind)
+                    col.append(index_n(n + 2, i, j ,k))
+                    data.append(
+                        1 / (n + 2) / (n + 1) * (
+                            s_AB_ab * i * (n - i - j - k + 2) * (n - i - j - k + 1) +
+                            s_Ab_ab * j * (n - i - j - k + 2) * (n - i - j - k + 1) +
+                            s_aB_ab * k * (n - i - j - k + 2) * (n - i - j - k + 1)
+                        )
+                    )
+
+
+    return csc_matrix((data, (row, col)), shape=(Ssize0, Ssize(2)))
+
+
 # from dadi.TwoLocus, projecting the spectrum to smaller sample size
 def ln_binomial(n, k):
     return math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)

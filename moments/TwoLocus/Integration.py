@@ -35,6 +35,8 @@ def integrate(
     dominance at the left locus.
     The default selection model is available with the ISM model.
     """
+    if rho is None:
+        rho = 0
     if rho < 0:
         raise ValueError("rho must be non-negative")
 
@@ -53,7 +55,7 @@ def integrate(
     N_old = 1.0
 
     compute_jk1 = False
-    if rho is not None:
+    if rho != 0:
         compute_jk1 = True
         if finite_genome is False:
             R = moments.TwoLocus.Numerics.recombination(n, rho)
@@ -99,15 +101,15 @@ def integrate(
         if t_elapsed == 0 or N_old != N or dt != dt_old:
             # recompute solver
             Ab = M / 2.0 + D / (2.0 * N)
-            if rho is not None:
+            if rho != 0:
                 Ab += R.dot(J1)
-            if sel_params is not None or gamma > 0:
+            if (
+                sel_params is not None and np.any([s != 0 for s in sel_params])
+            ) or gamma > 0:
                 Ab += S.dot(J1)
             Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
-            slv = factorized(
-                identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab
-            )
-        
+            slv = factorized(identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab)
+
         if finite_genome is False:
             Phi = slv(Ab1.dot(Phi) + dt * M_0to1)
         else:
