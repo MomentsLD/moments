@@ -3,6 +3,7 @@ from scipy.special import gammaln
 from scipy.sparse import csc_matrix
 from scipy.sparse import identity
 from scipy.sparse.linalg import factorized
+from scipy.sparse.linalg import spsolve
 import moments.TwoLocus.Jackknife
 import moments.TwoLocus.Numerics
 
@@ -121,3 +122,64 @@ def integrate(
         t_elapsed += dt
 
     return moments.TwoLocus.Numerics.Phi_to_array(Phi, n)
+
+
+# Use scipy sparse linear algebra solvers to compute the steady state solution
+# for the ISM model, which requires removing the fixed bins.
+
+
+def delete_rows_cols(A, b, indices):
+    if A.shape[0] != A.shape[1]:
+        raise ValueError("only apply to square matrix")
+    if A.shape[0] != len(b):
+        raise ValueError("dimension mismatch")
+    indices = list(indices)
+    mask = np.ones(A.shape[0], dtype=bool)
+    mask[indices] = False
+    remaining = np.arange(len(mask)).compress(mask)
+    return A[mask][:, mask], b.compress(mask), remaining
+
+
+def steady_state_additive(n, rho=0.0, theta=1.0, sel_params=None):
+    """
+    Compute the steady state distribution for the additive selection model and
+    infitinite sites.
+    """
+    if rho < 0:
+        raise ValueError("recombination rate must be non-negative")
+    if theta <= 0:
+        raise ValueError("theta must be positive")
+
+    M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+    D = moments.TwoLocus.Numerics.drift(n)
+
+    Ab = M / 2.0 + D / 2.0
+
+    computed_jk1 = False
+    if rho > 0:
+        J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)
+        R = moments.TwoLocus.Numerics.recombination(n, rho)
+        computed_jk1 = True
+        Ab += R.dot(J1)
+
+    if sel_params is not None and np.any([s != 0 for s in sel_params]):
+        S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
+        if computed_jk1 is False:
+            J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)
+            computed_jk1 = True
+        Ab += S.dot(J1)
+
+    to_del = [moments.TwoLocus.Numerics.index_n(n, 0, 0, 0)]
+    for i in range(0, n):
+        j = n - i
+        to_del.append(moments.TwoLocus.Numerics.index_n(n, i, j, 0))
+        to_del.append(moments.TwoLocus.Numerics.index_n(n, i, 0, j))
+    to_del.append(moments.TwoLocus.Numerics.index_n(n, n, 0, 0))
+
+    A, b, indices = delete_rows_cols(Ab, M_0to1, to_del)
+    sts = spsolve(A, -b)
+
+    sts_full = np.zeros(Ab.shape[0])
+    sts_full[indices] = sts
+    F = moments.TwoLocus.Numerics.Phi_to_array(sts_full, n)
+    return moments.TwoLocus.TLSpectrum(F)

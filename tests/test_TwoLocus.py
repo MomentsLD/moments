@@ -5,7 +5,7 @@ import moments, moments.TwoLocus
 import time
 
 
-class TwoLocusTestCase(unittest.TestCase):
+class TwoLocusMethods(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
 
@@ -98,8 +98,31 @@ class TwoLocusTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(out1, cached, atol=0.01, rtol=.01))
 
 
+class TwoLocusResults(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusTestCase)
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_equilibrium(self):
+        ns = 30
+        rhos = [0, 1]
+        for rho in rhos:
+            cached = moments.TwoLocus.TLSpectrum.from_file(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    f"test_files/two_locus_ns{ns}_rho{rho}.fs",
+                )
+            )
+            F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho)
+            self.assertTrue(np.allclose(F, cached))
+
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusMethods)
+suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusResults)
 
 if __name__ == "__main__":
     unittest.main()

@@ -49,22 +49,117 @@ and ask under what conditions those patterns are expected to differ or to be con
 Citing this work
 ++++++++++++++++
 
-.. todo:: [Ragsdale_Gutenkunst]_, [Ragsdale_Gravel]_
+Demographic inference using a diffusion approximation-based solution for :math:`\Psi_n`
+was introduced in [Ragsdale_Gutenkunst]_. The moments-based method, which is implemented
+here, was described in [Ragsdale_Gravel]_.
 
 Two-locus haplotype distribution under neutrality
 =================================================
 
-.. todo:: Some basics about working with the two-locus spectrum, comparing to ``moments.LD``
-    how the size of the data array grows (and efficiency declines) with increasing sample
-    size, caching results can help a lot.
+The frequency spectrum :math:`\Psi_n` is displayed as a 3-dimensional array in `moments`,
+and the size grows quite quickly in the sample size :math:`n`. (The number of frequency
+bins is :math:`\frac{1}{6}(n+1)(n+2)(n+3)`, so it grows as :math:`n^3`.) Thus, solving
+for :math:`\Psi` gets quite expensive for large sample sizes.
 
-.. todo:: Comparison to ``moments.LD`` for single population scenarios (equilibrium,
-    bottleneck, growth). Recreate figure from Hudson 2002 of n_11 for different
-    recombination rates and possible different demographic scenarios.
+.. todo:: Plot of time to get equilibrium solution and memory needed for different sizes,
+    on my laptop (specs).
 
-.. note:: We'll want to cache the equilibrium spectra, unless we can figure out how to
-    get the equilibrium spectrum from :math:`\Psi^0=A^{-1}\cdot(-M_{0,1})` with :math:`A`
-    not being singular. This would be a lot cleaner and help a ton with "burn-in".
+The ``moments.TwoLocus`` solution for the neutral frequency spectrum without recombination
+(:math:`\rho = 4 N_e r = 0`) is exact, while :math:`\rho > 0` and selection require a
+moment-closure approximation. This approximation grows more accurate for larger :math:`n`.
+
+To get familiar with some common two-locus statistics (either summaries of :math:`Psi_n`
+and :math:`Psi` itself), we can compare to some classical results, such as the expectation
+for :math:`\sigma_d^2 = \frac{\mathbb{E}[D^2]}{\mathbb{E}[p(1-p)q(1-q)]}`, where `D` is
+the standard covariance measure of LD, and `p` and `q` are allele frequencies at the
+left and right loci, respectively [Ohta]_:
+
+.. jupyter-execute::
+
+    rho = 0
+    n = 20
+    Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+    sigma_d2 = Psi.D2() / Psi.pi2()
+    print("moments sigma_d^2:", sigma_d2)
+    print("Ohta and Kimura expectation:", 5 / 11)
+
+And we can plot the LD-decay curve for :math:`\sigma_d^2` for a range of recombination
+rates, and compare to the expectation from [Ohta]_:
+
+.. jupyter-execute::
+
+    rhos_ok = np.logspace(-1, 2, 30)
+    ohta_kimura = (5 + rhos_ok / 2) / (11 + 13 * rhos_ok / 2 + rhos_ok ** 2 / 2)
+    rhos = np.logspace(-1, 2, 11)
+    ld_curve_moments = []
+    for rho in rhos:
+        Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        ld_curve_moments.append(Psi.D2() / Psi.pi2())
+
+    fig = plt.figure(1)
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, ohta_kimura, 'k--', label="Ohta and Kimura")
+    ax.plot(rhos, ld_curve_moments, "o", label="moments.TwoLocus")
+    ax.set_ylabel(r"$\sigma_d^2$")
+    ax.set_xlabel(r"$\rho$")
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    ax.legend()
+    plt.show()
+
+We can see that the moments approximation breaks down for recombination rates around
+:math:`\rho\sim50-100`. To be safe, we can assume that numerical error starts to creep
+in around :math:`rho\approx40`, which for human parameters, is very roughly 100kb. So
+we're limited to looking at LD in relatively shorter regions. For higher recombination
+rates, we can turn to ``moments.LD``, which lets us model multiple populations, but
+is restricted to neutral loci and low-order statistics.
+
+The statistics :math:`\mathbb{E}[D^2]` and :math:`\mathbb{E}[p(1-p)q(1-q)]` are low-order
+summaries of the full sampling distribution, similar to how heterozygosity or Tajima's `D`
+are low-order summaries of the single-site SFS. So let's visualize some features of the
+full two-locus haplotype frequency distribution instead, following Figure 1 in Hudson's
+classical paper on the two-locus sampling distribution [Hudson]_. Here, we'll look at
+a slice in the 3-dimensional distribution: if we observe :math:`n_A` samples carrying `A`
+at the left locus, and :math:`n_B` carrying `B` at the right locus, what is the probability
+that we observe `n_{AB}` haplotypes with `A` and `B` coupled in the same sample? This
+marginal distribution will depend on :math:`\rho`:
+
+.. jupyter-execute::
+
+    def nAB_slice(F, n, nA, nB):
+        """
+        Get the normalized distribution of nAB for given sample size n and
+        nA and nB of types A and B.
+        """
+        min_AB = max(0, nA + nB - n)
+        max_AB = min(nA, nB)
+        p_AB = []
+        counts = list(range(min_AB, max_AB + 1))
+        for i in counts:
+            p_AB.append(F[i, nA - i, nB - i])
+        p_AB = np.array(p_AB)
+        p_AB /= p_AB.sum()
+        return counts, p_AB
+
+
+    rhos = [1.0, 5.0, 40.0]
+    n = 50
+    nA = 20
+    nB = 30
+
+    fig = plt.figure(figsize=(12, 4))
+    for ii, rho in enumerate(rhos):
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        counts, pAB = nAB_slice(F, n, nA, nB)
+        ax = plt.subplot(1, 3, ii + 1)
+        ax.bar(counts, pAB)
+        ax.set_title(f"rho = {rho}")
+        if ii == 0:
+            ax.set_ylabel("Probability")
+        if ii == 1:
+            ax.set_xlabel(r"$n_{AB}$")
+        
+    
 
 How does selection interact across multiple loci?
 =================================================
@@ -280,6 +375,15 @@ References
 .. [Good]
     Good, Benjamin H. "Linkage disequilibrium between rare mutations." bioRxiv (2020).
 
+.. [Hudson]
+    Hudson, Richard R. "Two-locus sampling distributions and their application."
+    Genetics 159.4 (2001): 1805-1817.
+
+.. [Ohta]
+    Ohta, Tomoko, and Motoo Kimura. "Linkage disequilibrium between two segregating
+    nucleotide sites under the steady flux of mutations in a finite population."
+    Genetics 68.4 (1971): 571.
+
 .. [Ragsdale_Gutenkunst]
     Ragsdale, Aaron P. and Ryan N. Gutenkunst. "Inferring demographic history using
     two-locus statistics." *Genetics* 206.2 (2017): 1037-1048.
@@ -293,7 +397,9 @@ References
     linkage disequilibria to test for epistasis in flies and plants." *bioRxiv* (2020).
 
 .. [Sanjak]
-    is a sweet paper
+    Sanjak, Jaleal S., Anthony D. Long, and Kevin R. Thornton. "A model of compound
+    heterozygous, loss-of-function alleles is broadly consistent with observations
+    from complex-disease GWAS datasets." PLoS genetics 13.1 (2017): e1006573.
 
 .. [Sohail]
     Sohail, Mashaal, et al. "Negative selection in humans and fruit flies involves

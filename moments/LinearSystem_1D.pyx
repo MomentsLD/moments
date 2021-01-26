@@ -209,8 +209,12 @@ We require h=1/2
 These are found by integrating equations 5.70 and 5.72 in Ewens (2004)
         against the binomial sampling function
 """
-cpdef np.ndarray[np.float64_t] steady_state_1D_reversible(int n, float gamma=0.0,
-                                                          float theta_fd=0.0008, float theta_bd=0.0008):
+cpdef np.ndarray[np.float64_t] steady_state_1D_reversible(
+    int n,
+    float gamma=0.0,
+    float theta_fd=0.0008,
+    float theta_bd=0.0008
+):
     fs = np.zeros(n+1)
     if gamma == 0.0:
         for i in range(n+1):

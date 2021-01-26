@@ -41,7 +41,7 @@ def _make_floats(params):
         return float(params)
 
 
-def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None):
+def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None, cache=True):
     """
     Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum
     does not exist, create the equilibrium spectrum and cache in the cache path.
@@ -53,51 +53,40 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
         that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
         epistasis.
+    :param cache: If True, save the frequency spectrum in the cache for future use. If
+        False, don't save the spectrum.
     """
     if rho == None:
         print("Warning: no rho value set. Simulating with rho = 0.")
         rho = 0.0
-
-    if gamma == None:
-        gamma = 0.0
 
     gamma = _make_floats(gamma)
     rho = _make_floats(rho)
     theta = _make_floats(theta)
     sel_params = _make_floats(sel_params)
 
+    if sel_params is None and gamma is not None:
+        print("Setting selection parameters to (2 * gamma, gamma, gamma)")
+        sel_params = [2 * gamma, gamma, gamma]
+    if sel_params is not None and np.all([s == 0 for s in sel_params]):
+        sel_params = None
+
     # fetch from cache if neutral (cache only neutral spectra for the moment)
-    if gamma == 0.0 and (
-        sel_params == None
-        or (sel_params[0] == 0.0 and sel_params[1] == 0.0 and sel_params[2] == 0.0)
-    ):
+    if sel_params == None:
         eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.fs"
         eq_name = os.path.join(cache_path, eq_name)
-    elif gamma != 0.0:
-        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.gammaA_{gamma}.fs"
-        eq_name = os.path.join(cache_path, eq_name)
-    elif sel_params != None:
+    else:
         eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.sel_{sel_params[0]}_{sel_params[1]}_{sel_params[2]}.fs"
         eq_name = os.path.join(cache_path, eq_name)
 
     try:
         F = moments.TwoLocus.TLSpectrum.from_file(eq_name)
     except IOError:
-        F = np.zeros((ns + 1, ns + 1, ns + 1))
-        ### I would rather compute the equilibrium state by inverting the transition matrix
-        ### so long as it is not poory conditioned (note 7/16)
-        F = moments.TwoLocus.Integration.integrate(
-            F,
-            1.0,
-            40.0,
-            rho=rho,
-            theta=theta,
-            gamma=gamma,
-            sel_params=sel_params,
-            dt=0.001,
+        F = moments.TwoLocus.Integration.steady_state_additive(
+            ns, rho=rho, theta=theta, sel_params=sel_params
         )
-        F = moments.TwoLocus.TLSpectrum(F)
-        F.to_file(eq_name)
+        if cache:
+            F.to_file(eq_name)
     return F
 
 
