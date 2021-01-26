@@ -158,8 +158,11 @@ marginal distribution will depend on :math:`\rho`:
             ax.set_ylabel("Probability")
         if ii == 1:
             ax.set_xlabel(r"$n_{AB}$")
-        
-    
+
+For low recombination rates, the marginal distribution of `AB` haplotypes is skewed
+toward the maximum or minimum number of copies, resulting in higher LD, while for larger
+recombination rates, the distribution of :math:`n_{AB}` is concentrated around frequencies
+that result in low levels of LD.
 
 How does selection interact across multiple loci?
 =================================================
