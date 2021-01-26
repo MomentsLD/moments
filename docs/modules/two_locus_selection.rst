@@ -78,7 +78,8 @@ left and right loci, respectively [Ohta]_:
 
     rho = 0
     n = 20
-    Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+    # we set cache to False here, to not save the equilibrium sfs
+    Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
     sigma_d2 = Psi.D2() / Psi.pi2()
     print("moments sigma_d^2:", sigma_d2)
     print("Ohta and Kimura expectation:", 5 / 11)
@@ -93,7 +94,7 @@ rates, and compare to the expectation from [Ohta]_:
     rhos = np.logspace(-1, 2, 11)
     ld_curve_moments = []
     for rho in rhos:
-        Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
         ld_curve_moments.append(Psi.D2() / Psi.pi2())
 
     fig = plt.figure(1)
@@ -149,7 +150,7 @@ marginal distribution will depend on :math:`\rho`:
 
     fig = plt.figure(figsize=(12, 4))
     for ii, rho in enumerate(rhos):
-        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
         counts, pAB = nAB_slice(F, n, nA, nB)
         ax = plt.subplot(1, 3, ii + 1)
         ax.bar(counts, pAB)
