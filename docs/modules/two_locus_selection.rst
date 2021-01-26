@@ -61,15 +61,68 @@ and the size grows quite quickly in the sample size :math:`n`. (The number of fr
 bins is :math:`\frac{1}{6}(n+1)(n+2)(n+3)`, so it grows as :math:`n^3`.) Thus, solving
 for :math:`\Psi` gets quite expensive for large sample sizes.
 
-.. todo:: Plot of time to get equilibrium solution and memory needed for different sizes,
-    on my laptop (specs).
+.. jupyter-execute::
+    :hide-code:
+
+    from matplotlib.ticker import ScalarFormatter
+    ns = [10, 15, 20, 25, 30, 35, 40, 50, 60, 70]
+    t_jk = np.array(
+        [1.01, 1.48, 3.03, 7.65, 20.58, 47.07, 102.44, 412.94, 1192.44, 3526.23]
+    )
+    mem_jk = np.array(
+        [131828, 135580, 141608, 157068, 187996, 253480, 345692, 700044, 1601448, 3543684]
+    )
+    t_no_jk = np.array(
+        [0.87, 0.93, 1.02, 1.43, 2.21, 4.24, 8.31, 26.66, 77.12, 280.66]
+    )
+    mem_no_jk = np.array(
+        [130864, 133832, 140784, 156116, 185932, 247812, 341120, 692348, 1598728, 3541400]
+    )
+
+    fig = plt.figure(0)
+    ax1 = plt.subplot(1, 2, 1)
+    ax1.plot(ns, t_jk, label="With jackknife computation")
+    ax1.plot(ns, t_no_jk, label="Cached jackknife")
+    ax1.set_xlabel("Sample size")
+    ax1.set_ylabel("Time (seconds)")
+    ax1.set_yscale("log")
+    ax1.set_xscale("log")
+    ax1.legend()
+    ax1.xaxis.set_major_formatter(ScalarFormatter())
+    ax1.xaxis.set_minor_formatter(ScalarFormatter())
+    ax1.yaxis.set_major_formatter(ScalarFormatter())
+    ax1.set_title("Time to compute equilibrium FS")
+
+    ax2 = plt.subplot(1, 2, 2)
+    ax2.plot(ns, mem_jk / 1024, label="With jackknife computation")
+    ax2.plot(ns, mem_no_jk / 1024, label="Cached jackknife")
+    ax2.set_xlabel("Sample size")
+    ax2.set_ylabel("Mb")
+    ax2.set_yscale("log")
+    ax2.set_xscale("log")
+    ax2.legend()
+    ax2.xaxis.set_major_formatter(ScalarFormatter())
+    ax2.xaxis.set_minor_formatter(ScalarFormatter())
+    ax2.yaxis.set_major_formatter(ScalarFormatter())
+    ax2.set_title("Maximum memory usage")
+
+    fig.tight_layout()
+    plt.show()
+
+Here, we see the time needed to compute the equilibrium frequency spectrum for a given
+sample size. Recombination requires computing a jackknife operator for approximate
+moment closure operator, which gets expensive for large sample sizes. However, we can
+cache and reuse this jackknife matrix (the default behavior), so that much of the
+computational time is saved from having to recompute that large matrix. However, we see
+that it gets very expensive as the sample sizes increase: we'll stick to sample sizes on
+the order 20 or 30 here.
 
 The ``moments.TwoLocus`` solution for the neutral frequency spectrum without recombination
 (:math:`\rho = 4 N_e r = 0`) is exact, while :math:`\rho > 0` and selection require a
 moment-closure approximation. This approximation grows more accurate for larger :math:`n`.
 
-To get familiar with some common two-locus statistics (either summaries of :math:`Psi_n`
-and :math:`Psi` itself), we can compare to some classical results, such as the expectation
+To get familiar with some common two-locus statistics (either summaries of :math:`\Psi_n`
+and :math:`\Psi` itself), we can compare to some classical results, such as the expectation
 for :math:`\sigma_d^2 = \frac{\mathbb{E}[D^2]}{\mathbb{E}[p(1-p)q(1-q)]}`, where `D` is
 the standard covariance measure of LD, and `p` and `q` are allele frequencies at the
 left and right loci, respectively [Ohta]_:
@@ -125,6 +178,9 @@ at the left locus, and :math:`n_B` carrying `B` at the right locus, what is the 
 that we observe `n_{AB}` haplotypes with `A` and `B` coupled in the same sample? This
 marginal distribution will depend on :math:`\rho`:
 
+.. todo:: Cache the results from Hudson's algorithm for these same parameters, plot side
+    by side in the same bar plot.
+
 .. jupyter-execute::
 
     def nAB_slice(F, n, nA, nB):
@@ -164,6 +220,10 @@ For low recombination rates, the marginal distribution of `AB` haplotypes is ske
 toward the maximum or minimum number of copies, resulting in higher LD, while for larger
 recombination rates, the distribution of :math:`n_{AB}` is concentrated around frequencies
 that result in low levels of LD.
+
+.. note:: Below, we'll be revisiting these same statistics and seeing how various models
+    of selection at the two loci, as well as non-steady state demography, distort the
+    expected distributions.
 
 How does selection interact across multiple loci?
 =================================================

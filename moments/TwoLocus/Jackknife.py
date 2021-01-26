@@ -891,7 +891,7 @@ def calc_jk(n, jump):
             jks[(n, jump)] = load_pickle(os.path.join(cache_path, jk_name))
             return jks[(n, jump)]
         else:
-            print("creating and caching jackknife matrix for {0}, {1}".format(n, jump))
+            #print("creating and caching jackknife matrix for {0}, {1}".format(n, jump))
             row = []
             col = []
             data = []
