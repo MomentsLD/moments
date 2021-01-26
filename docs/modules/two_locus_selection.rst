@@ -78,7 +78,7 @@ left and right loci, respectively [Ohta]_:
 
     rho = 0
     n = 20
-    # we set cache to False here, to not save the equilibrium sfs
+    # we set cache to False here, to not using caching of the equilibrium sfs
     Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
     sigma_d2 = Psi.D2() / Psi.pi2()
     print("moments sigma_d^2:", sigma_d2)
@@ -144,9 +144,9 @@ marginal distribution will depend on :math:`\rho`:
 
 
     rhos = [1.0, 5.0, 40.0]
-    n = 50
-    nA = 20
-    nB = 30
+    n = 30
+    nA = 15
+    nB = 20
 
     fig = plt.figure(figsize=(12, 4))
     for ii, rho in enumerate(rhos):

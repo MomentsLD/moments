@@ -71,17 +71,20 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None, cache=True
     if sel_params is not None and np.all([s == 0 for s in sel_params]):
         sel_params = None
 
-    # fetch from cache if neutral (cache only neutral spectra for the moment)
-    if sel_params == None:
-        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.fs"
-        eq_name = os.path.join(cache_path, eq_name)
-    else:
-        eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.sel_{sel_params[0]}_{sel_params[1]}_{sel_params[2]}.fs"
-        eq_name = os.path.join(cache_path, eq_name)
-
-    try:
-        F = moments.TwoLocus.TLSpectrum.from_file(eq_name)
-    except IOError:
+    if cache:
+        if sel_params == None:
+            eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.fs"
+            eq_name = os.path.join(cache_path, eq_name)
+        else:
+            eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.sel_{sel_params[0]}_{sel_params[1]}_{sel_params[2]}.fs"
+            eq_name = os.path.join(cache_path, eq_name)
+        try:
+            F = moments.TwoLocus.TLSpectrum.from_file(eq_name)
+            recompute = False
+        except IOError:
+            recompute = True
+    
+    if cache is False or recompute:
         F = moments.TwoLocus.Integration.steady_state_additive(
             ns, rho=rho, theta=theta, sel_params=sel_params
         )
