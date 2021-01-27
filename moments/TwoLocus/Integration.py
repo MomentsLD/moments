@@ -21,6 +21,7 @@ def integrate(
     theta=1.0,
     gamma=0.0,
     sel_params=None,
+    sel_params_general=None,
     finite_genome=False,
     u=None,
     v=None,
@@ -56,6 +57,8 @@ def integrate(
     N_old = 1.0
 
     compute_jk1 = False
+    compute_jk2 = False
+
     if rho != 0:
         compute_jk1 = True
         if finite_genome is False:
@@ -70,6 +73,9 @@ def integrate(
             sel_params = [2 * gamma, gamma, gamma]
         if sel_params is not None:
             compute_jk1 = True
+            S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
+        if sel_params_general is not None:
+            compute_jk2 = True
             S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
     else:
         if sel_params is not None:
@@ -86,6 +92,8 @@ def integrate(
 
     if compute_jk1:
         J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)
+    if compute_jk2:
+        J2 = moments.TwoLocus.Jackknife.calc_jk(n, 2)
 
     Phi = moments.TwoLocus.Numerics.array_to_Phi(F)
 
@@ -108,6 +116,8 @@ def integrate(
                 sel_params is not None and np.any([s != 0 for s in sel_params])
             ) or gamma > 0:
                 Ab += S.dot(J1)
+            elif sel_params_general is not None:
+                Ab += S.dot(J2)
             Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
             slv = factorized(identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab)
 
@@ -140,15 +150,18 @@ def delete_rows_cols(A, b, indices):
     return A[mask][:, mask], b.compress(mask), remaining
 
 
-def steady_state_additive(n, rho=0.0, theta=1.0, sel_params=None):
+def steady_state(n, rho=0.0, theta=1.0, sel_params=None, sel_params_general=None):
     """
-    Compute the steady state distribution for the additive selection model and
-    infitinite sites.
+    Compute the steady state distribution for the additive or general selection model
+    and infinite sites.
     """
     if rho < 0:
         raise ValueError("recombination rate must be non-negative")
     if theta <= 0:
         raise ValueError("theta must be positive")
+
+    if sel_params is not None and sel_params_general is not None:
+        raise ValueError("pick one selection model or the other")
 
     M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
     D = moments.TwoLocus.Numerics.drift(n)
@@ -168,6 +181,10 @@ def steady_state_additive(n, rho=0.0, theta=1.0, sel_params=None):
             J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)
             computed_jk1 = True
         Ab += S.dot(J1)
+    elif sel_params_general is not None:
+        S = moments.TwoLocus.Numerics.selection_general(n, sel_params_general)
+        J2 = moments.TwoLocus.Jackknife.calc_jk(n, 2)
+        Ab += S.dot(J2)
 
     to_del = [moments.TwoLocus.Numerics.index_n(n, 0, 0, 0)]
     for i in range(0, n):

@@ -41,7 +41,15 @@ def _make_floats(params):
         return float(params)
 
 
-def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None, cache=True):
+def equilibrium(
+    ns,
+    rho=None,
+    theta=1.0,
+    gamma=None,
+    sel_params=None,
+    sel_params_general=None,
+    cache=False,
+):
     """
     Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum
     does not exist, create the equilibrium spectrum and cache in the cache path.
@@ -53,6 +61,7 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None, cache=True
     :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
         that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
         epistasis.
+    :param sel_params_general: General selection parameters for diploids.
     :param cache: If True, save the frequency spectrum in the cache for future use. If
         False, don't save the spectrum.
     """
@@ -83,10 +92,14 @@ def equilibrium(ns, rho=None, theta=1.0, gamma=None, sel_params=None, cache=True
             recompute = False
         except IOError:
             recompute = True
-    
+
     if cache is False or recompute:
-        F = moments.TwoLocus.Integration.steady_state_additive(
-            ns, rho=rho, theta=theta, sel_params=sel_params
+        F = moments.TwoLocus.Integration.steady_state(
+            ns,
+            rho=rho,
+            theta=theta,
+            sel_params=sel_params,
+            sel_params_general=sel_params_general,
         )
         if cache:
             F.to_file(eq_name)
@@ -189,9 +202,7 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     nu_func = lambda t: np.exp(np.log(nu) * t / T)
-    F.integrate(
-        nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params
-    )
+    F.integrate(nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     return F
 
 
@@ -225,7 +236,5 @@ def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
 
     F = equilibrium(ns, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     nu_func = lambda t: nuB * np.exp(np.log(nuF / nuB) * t / T)
-    F.integrate(
-        nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params
-    )
+    F.integrate(nu_func, T, rho=rho, theta=theta, gamma=gamma, sel_params=sel_params)
     return F
