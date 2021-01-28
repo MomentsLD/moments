@@ -61,7 +61,8 @@ def equilibrium(
     :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
         that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
         epistasis.
-    :param sel_params_general: General selection parameters for diploids.
+    :param sel_params_general: General selection parameters for diploids. In the order
+        (s_AB_AB, s_AB_Ab, s_AB_aB, s_AB_ab, s_Ab_Ab, s_Ab_aB, s_Ab_ab, s_aB_aB, s_aB_ab)
     :param cache: If True, save the frequency spectrum in the cache for future use. If
         False, don't save the spectrum.
     """

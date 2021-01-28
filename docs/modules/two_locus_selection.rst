@@ -7,7 +7,9 @@ Selection at two loci
 
 By Aaron Ragsdale, January 2021.
 
-.. todo:: This module has not been completed
+.. note:: This module has not been completed - I've placed to-dos where content is
+    incoming. If you find an error here, or find some aspects confusing, please don't
+    hesitate to get in touch or open an issue. Thanks!
 
 Most users of ``moments`` will be most interested in computing the single-site SFS and
 comparing it to data. However, ``moments`` can do much more, such as computing expectations
@@ -131,8 +133,7 @@ left and right loci, respectively [Ohta]_:
 
     rho = 0
     n = 20
-    # we set cache to False here, to not using caching of the equilibrium sfs
-    Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
+    Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
     sigma_d2 = Psi.D2() / Psi.pi2()
     print("moments sigma_d^2:", sigma_d2)
     print("Ohta and Kimura expectation:", 5 / 11)
@@ -147,7 +148,7 @@ rates, and compare to the expectation from [Ohta]_:
     rhos = np.logspace(-1, 2, 11)
     ld_curve_moments = []
     for rho in rhos:
-        Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
+        Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
         ld_curve_moments.append(Psi.D2() / Psi.pi2())
 
     fig = plt.figure(1)
@@ -178,9 +179,6 @@ at the left locus, and :math:`n_B` carrying `B` at the right locus, what is the 
 that we observe `n_{AB}` haplotypes with `A` and `B` coupled in the same sample? This
 marginal distribution will depend on :math:`\rho`:
 
-.. todo:: Cache the results from Hudson's algorithm for these same parameters, plot side
-    by side in the same bar plot.
-
 .. jupyter-execute::
 
     def nAB_slice(F, n, nA, nB):
@@ -199,27 +197,49 @@ marginal distribution will depend on :math:`\rho`:
         return counts, p_AB
 
 
-    rhos = [1.0, 5.0, 40.0]
+    rhos = [0.5, 5.0, 30.0]
     n = 30
     nA = 15
-    nB = 20
+    nB = 12
+
+    # first we'll get the slice for the given frequencies from the "hnrho" file
+    # from RR Hudson: http://home.uchicago.edu/~rhudson1/source/twolocus.html
+    hudson = {}
+    import gzip
+    with gzip.open("./data/h30rho.gz", "rb") as fin:
+        at_frequencies = False
+        for line in fin:
+            l = line.decode()
+            if "freq" in l:
+                if int(l.split()[1]) == nA and int(l.split()[2]) == nB:
+                    at_frequencies = True
+                else:
+                    at_frequencies = False
+            if at_frequencies:
+                rho = float(l.split()[1])
+                if rho in rhos:
+                        hudson[rho] = np.array([float(v) for v in l.split()[2:]])
 
     fig = plt.figure(figsize=(12, 4))
     for ii, rho in enumerate(rhos):
-        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, cache=False)
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
         counts, pAB = nAB_slice(F, n, nA, nB)
+        counts = np.array(counts)
         ax = plt.subplot(1, 3, ii + 1)
-        ax.bar(counts, pAB)
+        ax.bar(counts - 0.2, hudson[rho] / hudson[rho].sum(), width=0.35, label="Hudson")
+        ax.bar(counts + 0.2, pAB, width=0.35, label="moments.TwoLocus")
         ax.set_title(f"rho = {rho}")
         if ii == 0:
             ax.set_ylabel("Probability")
+            ax.legend()
         if ii == 1:
             ax.set_xlabel(r"$n_{AB}$")
 
 For low recombination rates, the marginal distribution of `AB` haplotypes is skewed
 toward the maximum or minimum number of copies, resulting in higher LD, while for larger
 recombination rates, the distribution of :math:`n_{AB}` is concentrated around frequencies
-that result in low levels of LD.
+that result in low levels of LD. We can also see that ``moments.TwoLocus`` agrees well
+with Hudson's results under neutrality and steady state demography.
 
 .. note:: Below, we'll be revisiting these same statistics and seeing how various models
     of selection at the two loci, as well as non-steady state demography, distort the
@@ -418,8 +438,156 @@ dominance coefficient `h`:
 
 .. note:: Cite [Sanjak]_
 
-How do the selection models affect expected LD statistics?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+How do different selection models affect expected LD statistics?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Here, we will examine some relatively simple models in order to gain some intuition about
+how selection, along with recombination and size changes, affect expected patterns of LD,
+such as the decay curve of :math:`\sigma_d^2` and Hudson-style slices in the two-locus
+sampling distribution. The selection coefficients will be equal at the two loci, so that
+the only selection parameters that change will be the selection models (dominance and
+epistasis). We'll be focusing on negative selection with scaled selection parameter
+:math:`\gamma=2N_es=-5`, which would be considered moderately deleterious.
+
+.. jupyter-execute::
+    
+    gamma = -5.0
+    n = 30
+
+Additive selection with and without epistasis
+---------------------------------------------
+
+Let's first see how simple, additive selection distorts expected LD away from neutral
+expectations at steady state:
+
+.. jupyter-execute::
+
+    rhos = np.logspace(-1, np.log10(50), 20)
+    sd1 = [] # signed $D$, normalized by $E[p(1-p)q(1-q)]$
+    sd2 = [] # classical $\sigma_d^2$ statistic
+    
+    sel_params = moments.TwoLocus.Util.additive_epistasis(gamma, epsilon=0)
+    # this helper function returns selection parameters, given gamma and epsilon:
+    # sel_params = [2 * gamma * (1 + epsilon), gamma, gamma]
+
+    for rho in rhos:
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
+        sd1.append(F.D() / F.pi2())
+        sd2.append(F.D2() / F.pi2())
+
+    fig = plt.figure(1)
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, 0 * rhos_ok, 'k--', label="Neutrality")
+    ax.plot(rhos, sd1, "o", label="gamma = -5")
+    ax.set_ylabel(r"$\sigma_d^1$")
+    ax.set_xlabel(r"$\rho$")
+    ax.set_xscale("log")
+    ax.legend()
+    plt.show()
+
+    fig = plt.figure(2)
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, ohta_kimura, 'k--', label="Neutrality")
+    ax.plot(rhos, sd2, "o", label="gamma = -5")
+    ax.set_ylabel(r"$\sigma_d^2$")
+    ax.set_xlabel(r"$\rho$")
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    ax.legend()
+    plt.show()
+
+Here, we see that measures of signed `D` are slightly below zero for short recombination
+distances, and that small amount of repulsion LD decays as :math:`\rho` increases. We also
+see that expectations for :math:`\sigma_d^2` are quite a bit lower when we include
+selection.
+
+.. todo:: Plots of frequency conditioned LD.
+
+The "helper" function that we used above converts input :math:`\gamma` and :math:`\epsilon`
+to the selection parameters that are passed to ``moments.TwoLocus.Demographics`` functions.
+The additive epistasis model implemented in the helper function
+(``moments.TwoLocus.Util.additive_epistasis``) returns
+:math:`[(1+\epsilon)(\gamma_A + \gamma_B), \gamma_A, \gamma_B]`, so that if
+:math:`\epsilon > 0`, we have synergistic epistasis, and if :math:`\epsilon < 0`, we
+have antagonistic epistasis. Any value of :math:`\epsilon` is permitted, and note that if
+:math:`\epsilon` is less than :math:`-1`, we get reverse-sign epistasis.
+
+.. jupyter-execute::
+
+    epsilons = [-1, -0.5, 0, 0.5, 1]
+    sd2s = {eps: [] for eps in epsilons}
+    sd1s = {eps: [] for eps in epsilons}
+    sd2s[0] = sd2
+    sd1s[0] = sd1
+    for eps in epsilons:
+        if eps == 0:
+            continue
+        for rho in rhos:
+            sel_params = moments.TwoLocus.Util.additive_epistasis(gamma, epsilon=eps)
+            F = moments.TwoLocus.Demographics.equilibrium(
+                n, rho=rho, sel_params=sel_params)
+            sd2s[eps].append(F.D2() / F.pi2())
+            sd1s[eps].append(F.D() / F.pi2())
+
+    fig = plt.figure(figsize=(12, 4))
+    markers = ["x", "+", ".", "v", "^"]
+    ax1 = plt.subplot(1, 2, 1)
+    for ii, eps in enumerate(epsilons):
+        ax1.plot(rhos, sd1s[eps], markers[ii] + "--", label=f"epsilon = {eps}")
+    ax1.set_xscale("log")
+    ax1.set_ylabel(r"$\sigma_d^1$")
+    ax1.set_xlabel(r"$\rho$")
+    ax1.legend()
+
+    ax2 = plt.subplot(1, 2, 2)
+    for ii, eps in enumerate(epsilons):
+        ax2.plot(rhos, sd2s[eps], markers[ii] + "--", label=f"epsilon = {eps}")
+    ax2.plot(rhos_ok, ohta_kimura, "k--", label="Ohta-Kimura")
+    ax2.set_yscale("log")
+    ax2.set_xscale("log")
+    ax2.set_ylabel(r"$\sigma_d^2$")
+    ax2.set_xlabel(r"$\rho$")
+    ax2.legend()
+
+As expected, negative :math:`\epsilon` (i.e. selection against the `AB` haplotype is less
+strong than the sum of selection against `A` and `B`) leads to an excess of coupling
+LD (pairs with more `AB` and `ab` haplotypes) than repulsion LD (pairs with more `Ab`
+and `aB` haplotypes).
+
+We can see this effect more clearly by looking at a slice in the two-locus sampling
+distribution, showing the neutral expectation from Hudson for reference:
+
+.. jupyter-execute::
+
+    rhos = sorted(hudson.keys())
+    n = 30
+    nA = 15
+    nB = 12
+
+    epsilon = [-0.5, 0, 1]
+
+    fig = plt.figure(figsize=(8, 8))
+    for ii, rho in enumerate(rhos):
+        pABs = {}
+        for eps in epsilon:
+            sel_params = moments.TwoLocus.Util.additive_epistasis(gamma, epsilon=eps)
+            F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
+            counts, pAB = nAB_slice(F, n, nA, nB)
+            pABs[eps] = pAB
+        counts = np.array(counts)
+        ax = plt.subplot(3, 1, ii + 1)
+        ax.bar(counts - 0.3, hudson[rho] / hudson[rho].sum(), width=0.192, label="Hudson")
+        ax.bar(counts - 0.1, pABs[epsilon[0]], width=0.19, label=f"epsilon={epsilon[0]}")
+        ax.bar(counts + 0.1, pABs[epsilon[1]], width=0.19, label=f"epsilon={epsilon[1]}")
+        ax.bar(counts + 0.3, pABs[epsilon[2]], width=0.19, label=f"epsilon={epsilon[2]}")
+
+        ax.set_title(f"rho = {rho}")
+        ax.set_ylabel("Probability")
+        if ii == 0:
+            ax.legend(loc="upper center")
+        if ii == 2:
+            ax.set_xlabel(r"$n_{AB}$")
+    fig.tight_layout()
 
 .. todo:: All the comparisons, show LD curves and expectations for signed LD, depending
     on the selection model, maybe explore how population size changes distort these

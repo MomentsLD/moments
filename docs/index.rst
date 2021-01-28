@@ -39,7 +39,6 @@ Welcome to moments's documentation!
 
    modules/diversity
    modules/dfe
-   modules/vcf
    modules/recombination
    modules/two_locus_selection
 

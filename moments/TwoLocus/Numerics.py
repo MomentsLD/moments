@@ -298,59 +298,55 @@ def recombination(n, rho):
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j - 1, k))
                     data.append(
-                        n
-                        * rho
+                        rho
                         / 2.0
                         * 1.0
                         * (i + 1)
                         * (n - i - j - k + 1)
                         / (n + 1)
-                        / n
                     )
 
                 if k > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j, k - 1))
                     data.append(
-                        n
-                        * rho
+                        rho
                         / 2.0
                         * 1.0
                         * (i + 1)
                         * (n - i - j - k + 1)
                         / (n + 1)
-                        / n
                     )
 
                 if i > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i - 1, j + 1, k + 1))
-                    data.append(n * rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1) / n)
+                    data.append(rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1))
 
-                if i + j + k + 1 < n + 1:
+                if n - i - j - k > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i, j + 1, k + 1))
-                    data.append(n * rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1) / n)
+                    data.append(rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1))
 
                 # outgoing
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i + 1, j, k))
                 data.append(
-                    -n * rho / 2.0 * 1.0 * (i + 1) * (n - i - j - k) / (n + 1) / n
+                    rho / 2.0 * 1.0 * (i + 1) * (n - i - j - k) / (n + 1)
                 )
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j + 1, k))
-                data.append(-n * rho / 2.0 * 1.0 * (j + 1) * (k) / (n + 1) / n)
+                data.append(-rho / 2.0 * 1.0 * (j + 1) * (k) / (n + 1))
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j, k + 1))
-                data.append(-n * rho / 2.0 * 1.0 * (j) * (k + 1) / (n + 1) / n)
+                data.append(-rho / 2.0 * 1.0 * (j) * (k + 1) / (n + 1))
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j, k))
                 data.append(
-                    -n * rho / 2.0 * 1.0 * (i) * (n - i - j - k + 1) / (n + 1) / n
+                    -rho / 2.0 * 1.0 * (i) * (n - i - j - k + 1) / (n + 1)
                 )
 
     return csc_matrix((data, (row, col)), shape=(Rsize0, Rsize1))
@@ -378,54 +374,65 @@ def selection_two_locus(n, sel_params):
         for j in range(n + 1 - i):
             for k in range(n + 1 - i - j):
                 this_ind = index_n(n, i, j, k)
-                if i > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 1, i + 1, j, k))
-                    data.append(
-                        1.0
-                        / (n + 1)
-                        * (
-                            -sAB * (i + 1) * (n - i)
-                            + sA * (i + 1) * j
-                            + sB * (i + 1) * k
-                        )
-                    )
-                if j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 1, i, j + 1, k))
-                    data.append(
-                        1.0
-                        / (n + 1)
-                        * (
-                            sAB * i * (j + 1)
-                            - sA * (j + 1) * (n - j)
-                            + sB * (j + 1) * k
-                        )
-                    )
-                if k > 0:
+                if i == 0 and j == 0 and k == 0:
+                    continue
+                if i + j == n:
+                    continue
+                if i + k == n:
+                    continue
+
+                if i + j == 0:
+                    # nA = 0, 1 <= k <= n - 1
                     row.append(this_ind)
                     col.append(index_n(n + 1, i, j, k + 1))
-                    data.append(
-                        1.0
-                        / (n + 1)
-                        * (
-                            sAB * i * (k + 1)
-                            + sA * j * (k + 1)
-                            - sB * (k + 1) * (n - k)
-                        )
-                    )
-                if n - i - j - k > 0:
+                    data.append(-1.0 / (n + 1) * sB * (k + 1) * (n - k))
                     row.append(this_ind)
                     col.append(index_n(n + 1, i, j, k))
-                    data.append(
-                        1.0
-                        / (n + 1)
-                        * (
-                            sAB * i * (n - i - j - k + 1)
-                            + sA * j * (n - i - j - k + 1)
-                            + sB * k * (n - i - j - k + 1)
-                        )
+                    data.append(1.0 / (n + 1) * sB * k * (n - k + 1))
+                    continue
+
+                if i + k == 0:
+                    # nB = 0, 1 <= j <= n - 1
+                    row.append(this_ind)
+                    col.append(index_n(n + 1, i, j + 1, k))
+                    data.append(-1.0 / (n + 1) * sA * (j + 1) * (n - j))
+                    row.append(this_ind)
+                    col.append(index_n(n + 1, i, j, k))
+                    data.append(1.0 / (n + 1) * sA * j * (n - j + 1))
+                    continue
+
+                row.append(this_ind)
+                col.append(index_n(n + 1, i + 1, j, k))
+                data.append(
+                    1.0
+                    / (n + 1)
+                    * (-sAB * (i + 1) * (n - i) + sA * (i + 1) * j + sB * (i + 1) * k)
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 1, i, j + 1, k))
+                data.append(
+                    1.0
+                    / (n + 1)
+                    * (sAB * i * (j + 1) - sA * (j + 1) * (n - j) + sB * (j + 1) * k)
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 1, i, j, k + 1))
+                data.append(
+                    1.0
+                    / (n + 1)
+                    * (sAB * i * (k + 1) + sA * j * (k + 1) - sB * (k + 1) * (n - k))
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 1, i, j, k))
+                data.append(
+                    1.0
+                    / (n + 1)
+                    * (
+                        sAB * i * (n - i - j - k + 1)
+                        + sA * j * (n - i - j - k + 1)
+                        + sB * k * (n - i - j - k + 1)
                     )
+                )
     return csc_matrix((data, (row, col)), shape=(Ssize0, Ssize1))
 
 
@@ -473,215 +480,270 @@ def selection_general(n, sel_params):
     for i in range(n + 1):
         for j in range(n + 1 - i):
             for k in range(n + 1 - i - j):
-                # skip indices that are fixed
-                if i == j == k == 0:
+                this_ind = index_n(n, i, j, k)
+                if i == 0 and j == 0 and k == 0:
                     continue
                 if i + j == n:
                     continue
                 if i + k == n:
                     continue
 
-                this_ind = index_n(n, i, j, k)
-
-                if n - i - j - k > 0:
+                if i + j == 0:
+                    # nA = 0, 1 <= k <= n - 1
                     row.append(this_ind)
                     col.append(index_n(n + 2, i, j, k))
                     data.append(
-                        1
+                        1.0
                         / (n + 2)
                         / (n + 1)
-                        * (
-                            s_AB_ab * i * (n - i - j - k + 2) * (n - i - j - k + 1)
-                            + s_Ab_ab * j * (n - i - j - k + 2) * (n - i - j - k + 1)
-                            + s_aB_ab * k * (n - i - j - k + 2) * (n - i - j - k + 1)
-                        )
+                        * s_aB_ab
+                        * k
+                        * (n - k + 2)
+                        * (n - k + 1)
                     )
-
-                if i > 0 and n - i - j - k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i + 1, j, k))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            -s_AB_ab * (i + 1) * j * (n - i - j - k + 1)
-                            - s_AB_ab * (i + 1) * k * (n - i - j - k + 1)
-                            - s_AB_ab * (i + 1) * i * (n - i - j - k + 1)
-                            + s_Ab_ab * (i + 1) * j * (n - i - j - k + 1)
-                            + s_AB_Ab * (i + 1) * j * (n - i - j - k + 1)
-                            + s_aB_ab * (i + 1) * k * (n - i - j - k + 1)
-                            + s_AB_aB * (i + 1) * k * (n - i - j - k + 1)
-                            - s_AB_ab * (i + 1) * (n - i - j - k + 1) * (n - i - j - k)
-                            - s_AB_ab * (i + 1) * j * (n - i - j - k + 1)
-                            - s_AB_ab * (i + 1) * k * (n - i - j - k + 1)
-                            + s_AB_AB * (i + 1) * i * (n - i - j - k + 1)
-                        )
-                    )
-
-                if i > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i + 2, j, k))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            s_AB_ab * (i + 2) * (i + 1) * (n - i - j - k)
-                            + s_AB_Ab * (i + 2) * (i + 1) * j
-                            + s_AB_aB * (i + 2) * (i + 1) * k
-                            - s_AB_AB * (i + 2) * (i + 1) * (n - i - j - k)
-                            - s_AB_AB * (i + 2) * (i + 1) * j
-                            - s_AB_AB * (i + 2) * (i + 1) * k
-                        )
-                    )
-
-                if i > 0 and j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i + 1, j + 1, k))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            s_Ab_ab * (i + 1) * (j + 1) * (n - i - j - k)
-                            + s_AB_ab * (i + 1) * (j + 1) * (n - i - j - k)
-                            + s_Ab_Ab * (i + 1) * (j + 1) * j
-                            - s_AB_Ab * (i + 1) * (j + 1) * (n - i - j - k)
-                            - s_AB_Ab * (i + 1) * (j + 1) * k
-                            - s_AB_Ab * (i + 1) * i * (j + 1)
-                            + s_Ab_aB * (i + 1) * (j + 1) * k
-                            + s_AB_aB * (i + 1) * (j + 1) * k
-                            - s_AB_Ab * (i + 1) * (j + 1) * (n - i - j - k)
-                            - s_AB_Ab * (i + 1) * (j + 1) * j
-                            - s_AB_Ab * (i + 1) * (j + 1) * k
-                            + s_AB_AB * (i + 1) * i * (j + 1)
-                        )
-                    )
-
-                if i > 0 and k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i + 1, j, k + 1))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            s_aB_ab * (i + 1) * (k + 1) * (n - i - j - k)
-                            + s_AB_ab * (i + 1) * (k + 1) * (n - i - j - k)
-                            + s_Ab_aB * (i + 1) * j * (k + 1)
-                            + s_AB_Ab * (i + 1) * j * (k + 1)
-                            + s_aB_aB * (i + 1) * (k + 1) * k
-                            - s_AB_aB * (i + 1) * (k + 1) * (n - i - j - k)
-                            - s_AB_aB * (i + 1) * j * (k + 1)
-                            - s_AB_aB * (i + 1) * i * (k + 1)
-                            - s_AB_aB * (i + 1) * (k + 1) * (n - i - j - k)
-                            - s_AB_aB * (i + 1) * j * (k + 1)
-                            - s_AB_aB * (i + 1) * (k + 1) * k
-                            + s_AB_AB * (i + 1) * i * (k + 1)
-                        )
-                    )
-
-                if j > 0 and n - i - j - k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i, j + 1, k))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            -s_Ab_ab * (j + 1) * j * (n - i - j - k + 1)
-                            - s_Ab_ab * (j + 1) * k * (n - i - j - k + 1)
-                            - s_Ab_ab * i * (j + 1) * (n - i - j - k + 1)
-                            - s_Ab_ab * (j + 1) * (n - i - j - k + 1) * (n - i - j - k)
-                            - s_Ab_ab * (j + 1) * k * (n - i - j - k + 1)
-                            - s_Ab_ab * i * (j + 1) * (n - i - j - k + 1)
-                            + s_Ab_Ab * (j + 1) * j * (n - i - j - k + 1)
-                            + s_aB_ab * (j + 1) * k * (n - i - j - k + 1)
-                            + s_Ab_aB * (j + 1) * k * (n - i - j - k + 1)
-                            + s_AB_ab * i * (j + 1) * (n - i - j - k + 1)
-                            + s_AB_Ab * i * (j + 1) * (n - i - j - k + 1)
-                        )
-                    )
-
-                if j > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i, j + 2, k))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            s_Ab_ab * (j + 2) * (j + 1) * (n - i - j - k)
-                            - s_Ab_Ab * (j + 2) * (j + 1) * (n - i - j - k)
-                            - s_Ab_Ab * (j + 2) * (j + 1) * k
-                            - s_Ab_Ab * i * (j + 2) * (j + 1)
-                            + s_Ab_aB * (j + 2) * (j + 1) * k
-                            + s_AB_Ab * i * (j + 2) * (j + 1)
-                        )
-                    )
-
-                if j > 0 and k > 0:
-                    row.append(this_ind)
-                    col.append(index_n(n + 2, i, j + 1, k + 1))
-                    data.append(
-                        1
-                        / (n + 2)
-                        / (n + 1)
-                        * (
-                            s_Ab_ab * (j + 1) * (k + 1) * (n - i - j - k)
-                            + s_aB_ab * (j + 1) * (k + 1) * (n - i - j - k)
-                            + s_Ab_Ab * (j + 1) * j * (k + 1)
-                            - s_Ab_aB * (j + 1) * (k + 1) * (n - i - j - k)
-                            - s_Ab_aB * (j + 1) * (k + 1) * k
-                            - s_Ab_aB * i * (j + 1) * (k + 1)
-                            - s_Ab_aB * (j + 1) * (k + 1) * (n - i - j - k)
-                            - s_Ab_aB * (j + 1) * j * (k + 1)
-                            - s_Ab_aB * i * (j + 1) * (k + 1)
-                            + s_aB_aB * (j + 1) * (k + 1) * k
-                            + s_AB_Ab * i * (j + 1) * (k + 1)
-                            + s_AB_aB * i * (j + 1) * (k + 1)
-                        )
-                    )
-
-                if k > 0 and n - i - j - k > 0:
                     row.append(this_ind)
                     col.append(index_n(n + 2, i, j, k + 1))
                     data.append(
-                        1
+                        1.0
                         / (n + 2)
                         / (n + 1)
                         * (
-                            -s_aB_ab * j * (k + 1) * (n - i - j - k + 1)
-                            - s_aB_ab * (k + 1) * k * (n - i - j - k + 1)
-                            - s_aB_ab * i * (k + 1) * (n - i - j - k + 1)
-                            + s_Ab_ab * j * (k + 1) * (n - i - j - k + 1)
-                            + s_Ab_aB * j * (k + 1) * (n - i - j - k + 1)
-                            - s_aB_ab * (k + 1) * (n - i - j - k + 1) * (n - i - j - k)
-                            - s_aB_ab * j * (k + 1) * (n - i - j - k + 1)
-                            - s_aB_ab * i * (k + 1) * (n - i - j - k + 1)
-                            + s_aB_aB * (k + 1) * k * (n - i - j - k + 1)
-                            + s_AB_aB * i * (k + 1) * (n - i - j - k + 1)
-                            + s_AB_ab * i * (k + 1) * (n - i - j - k + 1)
+                            -s_aB_ab * (k + 1) * k * (n - k + 1)
+                            - s_aB_ab * (k + 1) * (n - k + 1) * (n - k)
+                            + s_aB_aB * (k + 1) * k * (n - k + 1)
                         )
                     )
-
-                if k > 0:
                     row.append(this_ind)
                     col.append(index_n(n + 2, i, j, k + 2))
                     data.append(
-                        1
+                        1.0
                         / (n + 2)
                         / (n + 1)
                         * (
-                            s_aB_ab * (k + 2) * (k + 1) * (n - i - j - k)
-                            + s_Ab_aB * j * (k + 2) * (k + 1)
-                            - s_aB_aB * (k + 2) * (k + 1) * (n - i - j - k)
-                            - s_aB_aB * j * (k + 2) * (k + 1)
-                            - s_aB_aB * i * (k + 2) * (k + 1)
-                            + s_AB_aB * i * (k + 2) * (k + 1)
+                            s_aB_ab * (k + 2) * (k + 1) * (n - k)
+                            - s_aB_aB * (k + 2) * (k + 1) * (n - k)
                         )
                     )
+                    continue
+
+                if i + k == 0:
+                    # nB = 0, 1 <= j <= n - 1
+                    row.append(this_ind)
+                    col.append(index_n(n + 2, i, j, k))
+                    data.append(
+                        1.0
+                        / (n + 2)
+                        / (n + 1)
+                        * s_Ab_ab
+                        * j
+                        * (n - j + 2)
+                        * (n - j + 1)
+                    )
+                    row.append(this_ind)
+                    col.append(index_n(n + 2, i, j + 1, k))
+                    data.append(
+                        1.0
+                        / (n + 2)
+                        / (n + 1)
+                        * (
+                            -s_Ab_ab * (j + 1) * j * (n - j + 1)
+                            - s_Ab_ab * (j + 1) * (n - j + 1) * (n - j)
+                            + s_Ab_Ab * (j + 1) * j * (n - j + 1)
+                        )
+                    )
+                    row.append(this_ind)
+                    col.append(index_n(n + 2, i, j + 2, k))
+                    data.append(
+                        1.0
+                        / (n + 2)
+                        / (n + 1)
+                        * (
+                            s_Ab_ab * (j + 2) * (j + 1) * (n - j)
+                            - s_Ab_Ab * (j + 2) * (j + 1) * (n - j)
+                        )
+                    )
+                    continue
+
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_AB_ab * i * (n - i - j - k + 2) * (n - i - j - k + 1)
+                        + s_Ab_ab * j * (n - i - j - k + 2) * (n - i - j - k + 1)
+                        + s_aB_ab * k * (n - i - j - k + 2) * (n - i - j - k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i + 1, j, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        -s_AB_ab * (i + 1) * j * (n - i - j - k + 1)
+                        - s_AB_ab * (i + 1) * k * (n - i - j - k + 1)
+                        - s_AB_ab * (i + 1) * i * (n - i - j - k + 1)
+                        + s_Ab_ab * (i + 1) * j * (n - i - j - k + 1)
+                        + s_AB_Ab * (i + 1) * j * (n - i - j - k + 1)
+                        + s_aB_ab * (i + 1) * k * (n - i - j - k + 1)
+                        + s_AB_aB * (i + 1) * k * (n - i - j - k + 1)
+                        - s_AB_ab * (i + 1) * (n - i - j - k + 1) * (n - i - j - k)
+                        - s_AB_ab * (i + 1) * j * (n - i - j - k + 1)
+                        - s_AB_ab * (i + 1) * k * (n - i - j - k + 1)
+                        + s_AB_AB * (i + 1) * i * (n - i - j - k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i + 2, j, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_AB_ab * (i + 2) * (i + 1) * (n - i - j - k)
+                        + s_AB_Ab * (i + 2) * (i + 1) * j
+                        + s_AB_aB * (i + 2) * (i + 1) * k
+                        - s_AB_AB * (i + 2) * (i + 1) * (n - i - j - k)
+                        - s_AB_AB * (i + 2) * (i + 1) * j
+                        - s_AB_AB * (i + 2) * (i + 1) * k
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i + 1, j + 1, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_Ab_ab * (i + 1) * (j + 1) * (n - i - j - k)
+                        + s_AB_ab * (i + 1) * (j + 1) * (n - i - j - k)
+                        + s_Ab_Ab * (i + 1) * (j + 1) * j
+                        - s_AB_Ab * (i + 1) * (j + 1) * (n - i - j - k)
+                        - s_AB_Ab * (i + 1) * (j + 1) * k
+                        - s_AB_Ab * (i + 1) * i * (j + 1)
+                        + s_Ab_aB * (i + 1) * (j + 1) * k
+                        + s_AB_aB * (i + 1) * (j + 1) * k
+                        - s_AB_Ab * (i + 1) * (j + 1) * (n - i - j - k)
+                        - s_AB_Ab * (i + 1) * (j + 1) * j
+                        - s_AB_Ab * (i + 1) * (j + 1) * k
+                        + s_AB_AB * (i + 1) * i * (j + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i + 1, j, k + 1))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_aB_ab * (i + 1) * (k + 1) * (n - i - j - k)
+                        + s_AB_ab * (i + 1) * (k + 1) * (n - i - j - k)
+                        + s_Ab_aB * (i + 1) * j * (k + 1)
+                        + s_AB_Ab * (i + 1) * j * (k + 1)
+                        + s_aB_aB * (i + 1) * (k + 1) * k
+                        - s_AB_aB * (i + 1) * (k + 1) * (n - i - j - k)
+                        - s_AB_aB * (i + 1) * j * (k + 1)
+                        - s_AB_aB * (i + 1) * i * (k + 1)
+                        - s_AB_aB * (i + 1) * (k + 1) * (n - i - j - k)
+                        - s_AB_aB * (i + 1) * j * (k + 1)
+                        - s_AB_aB * (i + 1) * (k + 1) * k
+                        + s_AB_AB * (i + 1) * i * (k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j + 1, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        -s_Ab_ab * (j + 1) * j * (n - i - j - k + 1)
+                        - s_Ab_ab * (j + 1) * k * (n - i - j - k + 1)
+                        - s_Ab_ab * i * (j + 1) * (n - i - j - k + 1)
+                        - s_Ab_ab * (j + 1) * (n - i - j - k + 1) * (n - i - j - k)
+                        - s_Ab_ab * (j + 1) * k * (n - i - j - k + 1)
+                        - s_Ab_ab * i * (j + 1) * (n - i - j - k + 1)
+                        + s_Ab_Ab * (j + 1) * j * (n - i - j - k + 1)
+                        + s_aB_ab * (j + 1) * k * (n - i - j - k + 1)
+                        + s_Ab_aB * (j + 1) * k * (n - i - j - k + 1)
+                        + s_AB_ab * i * (j + 1) * (n - i - j - k + 1)
+                        + s_AB_Ab * i * (j + 1) * (n - i - j - k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j + 2, k))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_Ab_ab * (j + 2) * (j + 1) * (n - i - j - k)
+                        - s_Ab_Ab * (j + 2) * (j + 1) * (n - i - j - k)
+                        - s_Ab_Ab * (j + 2) * (j + 1) * k
+                        - s_Ab_Ab * i * (j + 2) * (j + 1)
+                        + s_Ab_aB * (j + 2) * (j + 1) * k
+                        + s_AB_Ab * i * (j + 2) * (j + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j + 1, k + 1))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_Ab_ab * (j + 1) * (k + 1) * (n - i - j - k)
+                        + s_aB_ab * (j + 1) * (k + 1) * (n - i - j - k)
+                        + s_Ab_Ab * (j + 1) * j * (k + 1)
+                        - s_Ab_aB * (j + 1) * (k + 1) * (n - i - j - k)
+                        - s_Ab_aB * (j + 1) * (k + 1) * k
+                        - s_Ab_aB * i * (j + 1) * (k + 1)
+                        - s_Ab_aB * (j + 1) * (k + 1) * (n - i - j - k)
+                        - s_Ab_aB * (j + 1) * j * (k + 1)
+                        - s_Ab_aB * i * (j + 1) * (k + 1)
+                        + s_aB_aB * (j + 1) * (k + 1) * k
+                        + s_AB_Ab * i * (j + 1) * (k + 1)
+                        + s_AB_aB * i * (j + 1) * (k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j, k + 1))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        -s_aB_ab * j * (k + 1) * (n - i - j - k + 1)
+                        - s_aB_ab * (k + 1) * k * (n - i - j - k + 1)
+                        - s_aB_ab * i * (k + 1) * (n - i - j - k + 1)
+                        + s_Ab_ab * j * (k + 1) * (n - i - j - k + 1)
+                        + s_Ab_aB * j * (k + 1) * (n - i - j - k + 1)
+                        - s_aB_ab * (k + 1) * (n - i - j - k + 1) * (n - i - j - k)
+                        - s_aB_ab * j * (k + 1) * (n - i - j - k + 1)
+                        - s_aB_ab * i * (k + 1) * (n - i - j - k + 1)
+                        + s_aB_aB * (k + 1) * k * (n - i - j - k + 1)
+                        + s_AB_aB * i * (k + 1) * (n - i - j - k + 1)
+                        + s_AB_ab * i * (k + 1) * (n - i - j - k + 1)
+                    )
+                )
+                row.append(this_ind)
+                col.append(index_n(n + 2, i, j, k + 2))
+                data.append(
+                    1
+                    / (n + 2)
+                    / (n + 1)
+                    * (
+                        s_aB_ab * (k + 2) * (k + 1) * (n - i - j - k)
+                        + s_Ab_aB * j * (k + 2) * (k + 1)
+                        - s_aB_aB * (k + 2) * (k + 1) * (n - i - j - k)
+                        - s_aB_aB * j * (k + 2) * (k + 1)
+                        - s_aB_aB * i * (k + 2) * (k + 1)
+                        + s_AB_aB * i * (k + 2) * (k + 1)
+                    )
+                )
 
     return csc_matrix((data, (row, col)), shape=(Ssize0, Ssize2))
 

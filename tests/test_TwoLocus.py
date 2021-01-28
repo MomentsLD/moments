@@ -94,8 +94,8 @@ class TwoLocusMethods(unittest.TestCase):
         out1.mask_fixed()
         out2.mask_fixed()
         cached.mask_fixed()
-        self.assertTrue(np.allclose(out2, cached, atol=0.01, rtol=.01))
-        self.assertTrue(np.allclose(out1, cached, atol=0.01, rtol=.01))
+        self.assertTrue(np.allclose(out2, cached, atol=0.01, rtol=0.01))
+        self.assertTrue(np.allclose(out1, cached, atol=0.01, rtol=0.01))
 
 
 class TwoLocusResults(unittest.TestCase):
@@ -119,7 +119,30 @@ class TwoLocusResults(unittest.TestCase):
             F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho)
             self.assertTrue(np.allclose(F, cached))
 
-
+    def test_additive_general_selection(self):
+        gamma = -2
+        ns = 30
+        rhos = [0, 1, 10]
+        for rho in rhos:
+            F1 = moments.TwoLocus.Demographics.equilibrium(
+                ns, rho=rho, sel_params=[2 * gamma, gamma, gamma]
+            )
+            F2 = moments.TwoLocus.Demographics.equilibrium(
+                ns,
+                rho=rho,
+                sel_params_general=[
+                    4 * gamma,
+                    3 * gamma,
+                    3 * gamma,
+                    2 * gamma,
+                    2 * gamma,
+                    2 * gamma,
+                    gamma,
+                    2 * gamma,
+                    gamma,
+                ],
+            )
+            self.assertTrue(np.allclose(F1.data, F2.data, atol=0.0005))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusMethods)
 suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusResults)
