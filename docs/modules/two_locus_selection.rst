@@ -189,7 +189,7 @@ marginal distribution will depend on :math:`\rho`:
         min_AB = max(0, nA + nB - n)
         max_AB = min(nA, nB)
         p_AB = []
-        counts = list(range(min_AB, max_AB + 1))
+        counts = np.arange(min_AB, max_AB + 1)
         for i in counts:
             p_AB.append(F[i, nA - i, nB - i])
         p_AB = np.array(p_AB)
@@ -224,7 +224,6 @@ marginal distribution will depend on :math:`\rho`:
     for ii, rho in enumerate(rhos):
         F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
         counts, pAB = nAB_slice(F, n, nA, nB)
-        counts = np.array(counts)
         ax = plt.subplot(1, 3, ii + 1)
         ax.bar(counts - 0.2, hudson[rho] / hudson[rho].sum(), width=0.35, label="Hudson")
         ax.bar(counts + 0.2, pAB, width=0.35, label="moments.TwoLocus")
@@ -574,7 +573,6 @@ distribution, showing the neutral expectation from Hudson for reference:
             F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
             counts, pAB = nAB_slice(F, n, nA, nB)
             pABs[eps] = pAB
-        counts = np.array(counts)
         ax = plt.subplot(3, 1, ii + 1)
         ax.bar(counts - 0.3, hudson[rho] / hudson[rho].sum(), width=0.192, label="Hudson")
         ax.bar(counts - 0.1, pABs[epsilon[0]], width=0.19, label=f"epsilon={epsilon[0]}")
@@ -589,9 +587,49 @@ distribution, showing the neutral expectation from Hudson for reference:
             ax.set_xlabel(r"$n_{AB}$")
     fig.tight_layout()
 
+Dominance
+---------
+
+We again assume fitness effects are the same at both loci, and now explore how dominance
+affects LD. We'll start by looking at the "simple" dominance model without epistasis, so
+that fitness effects are additive across loci:
+
+.. jupyter-execute::
+
+    rho = 5
+    sel_params = moments.TwoLocus.Util.additive_epistasis(gamma)
+    F_additive = moments.TwoLocus.Demographics.equilibrium(
+        n, rho=rho, sel_params=sel_params)
+    sel_params_recessive = moments.TwoLocus.Util.simple_dominance(gamma, h=0)
+    F_recessive = moments.TwoLocus.Demographics.equilibrium(
+        n, rho=rho, sel_params_general=sel_params_recessive)
+    # note that for models with dominance, we need to use the sel_params_general flag
+
+    fig = plt.figure(figsize=(8, 3))
+    ax = plt.subplot(1, 1, 1)
+    counts, pAB = nAB_slice(F_additive, n, 18, 12)
+    ax.bar(counts - 0.2, pAB, width=0.35, label="Additive")
+    counts, pAB = nAB_slice(F_recessive, n, 18, 12)
+    ax.bar(counts + 0.2, pAB, width=0.35, label=r"Recessive ($h=0$)")
+    ax.set_title(f"rho = {rho}")
+    ax.set_ylabel("Probability")
+    ax.set_xlabel(r"$n_{AB}$")
+    ax.legend()
+    fig.tight_layout()
+
+.. todo:: LD curves for varying dominance.
+
+Gene-based dominance
+--------------------
+
 .. todo:: All the comparisons, show LD curves and expectations for signed LD, depending
     on the selection model, maybe explore how population size changes distort these
     expectations.
+
+Non-steady-state demography
+---------------------------
+
+.. todo:: Are any of these statistics quite sensitive to bottlenecks or expansions?
 
 .. todo:: Discussion on what we can expect to learn from signed LD-based inferences. Are
     the various selection models and demography hopelessly confounded?

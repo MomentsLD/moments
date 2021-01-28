@@ -1,5 +1,5 @@
 import os, unittest
-
+import copy
 import numpy as np
 import moments, moments.TwoLocus
 import time
@@ -143,6 +143,15 @@ class TwoLocusResults(unittest.TestCase):
                 ],
             )
             self.assertTrue(np.allclose(F1.data, F2.data, atol=0.0005))
+
+    def test_integration_neutral(self):
+        ns = 30
+        rhos = [0, 1]
+        for rho in rhos:
+            F0 = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho)
+            F1 = copy.deepcopy(F0)
+            F1.integrate(1.0, 0.1, rho=rho)
+            self.assertTrue(np.allclose(F0.data, F1.data, atol=0.0005))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusMethods)
 suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusResults)
