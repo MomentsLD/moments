@@ -298,56 +298,42 @@ def recombination(n, rho):
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j - 1, k))
                     data.append(
-                        rho
-                        / 2.0
-                        * 1.0
-                        * (i + 1)
-                        * (n - i - j - k + 1)
-                        / (n + 1)
+                        rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1)
                     )
 
                 if k > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j, k - 1))
                     data.append(
-                        rho
-                        / 2.0
-                        * 1.0
-                        * (i + 1)
-                        * (n - i - j - k + 1)
-                        / (n + 1)
+                        rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1)
                     )
 
                 if i > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i - 1, j + 1, k + 1))
-                    data.append(rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1))
+                    data.append(rho / 2.0 * (j + 1) * (k + 1) / (n + 1))
 
                 if n - i - j - k > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i, j + 1, k + 1))
-                    data.append(rho / 2.0 * 1.0 * (j + 1) * (k + 1) / (n + 1))
+                    data.append(rho / 2.0 * (j + 1) * (k + 1) / (n + 1))
 
                 # outgoing
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i + 1, j, k))
-                data.append(
-                    -rho / 2.0 * 1.0 * (i + 1) * (n - i - j - k) / (n + 1)
-                )
+                data.append(-rho / 2.0 * (i + 1) * (n - i - j - k) / (n + 1))
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j + 1, k))
-                data.append(-rho / 2.0 * 1.0 * (j + 1) * (k) / (n + 1))
+                data.append(-rho / 2.0 * (j + 1) * k / (n + 1))
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j, k + 1))
-                data.append(-rho / 2.0 * 1.0 * (j) * (k + 1) / (n + 1))
+                data.append(-rho / 2.0 * j * (k + 1) / (n + 1))
 
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i, j, k))
-                data.append(
-                    -rho / 2.0 * 1.0 * (i) * (n - i - j - k + 1) / (n + 1)
-                )
+                data.append(-rho / 2.0 * i * (n - i - j - k + 1) / (n + 1))
 
     return csc_matrix((data, (row, col)), shape=(Rsize0, Rsize1))
 

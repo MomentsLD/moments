@@ -22,6 +22,17 @@ explore what we can do with the two-locus methods available in ``moments.TwoLocu
     import numpy as np
     import matplotlib.pylab as plt
 
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=9)
+    matplotlib.rc('ytick', labelsize=9)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 The two-locus allele frequency spectrum
 =======================================
 
@@ -81,7 +92,7 @@ for :math:`\Psi` gets quite expensive for large sample sizes.
         [130864, 133832, 140784, 156116, 185932, 247812, 341120, 692348, 1598728, 3541400]
     )
 
-    fig = plt.figure(0)
+    fig = plt.figure(figsize=(8, 3))
     ax1 = plt.subplot(1, 2, 1)
     ax1.plot(ns, t_jk, label="With jackknife computation")
     ax1.plot(ns, t_no_jk, label="Cached jackknife")
@@ -107,9 +118,7 @@ for :math:`\Psi` gets quite expensive for large sample sizes.
     ax2.xaxis.set_minor_formatter(ScalarFormatter())
     ax2.yaxis.set_major_formatter(ScalarFormatter())
     ax2.set_title("Maximum memory usage")
-
     fig.tight_layout()
-    plt.show()
 
 Here, we see the time needed to compute the equilibrium frequency spectrum for a given
 sample size. Recombination requires computing a jackknife operator for approximate
@@ -151,16 +160,16 @@ rates, and compare to the expectation from [Ohta]_:
         Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
         ld_curve_moments.append(Psi.D2() / Psi.pi2())
 
-    fig = plt.figure(1)
+    fig = plt.figure(figsize=(6, 4))
     ax = plt.subplot(1, 1, 1)
-    ax.plot(rhos_ok, ohta_kimura, 'k--', label="Ohta and Kimura")
-    ax.plot(rhos, ld_curve_moments, "o", label="moments.TwoLocus")
+    ax.plot(rhos_ok, ohta_kimura, 'k--', lw=2, label="Ohta and Kimura")
+    ax.plot(rhos, ld_curve_moments, "v-", lw=1, label="moments.TwoLocus")
     ax.set_ylabel(r"$\sigma_d^2$")
     ax.set_xlabel(r"$\rho$")
     ax.set_yscale("log")
     ax.set_xscale("log")
     ax.legend()
-    plt.show()
+    fig.tight_layout()
 
 We can see that the moments approximation breaks down for recombination rates around
 :math:`\rho\sim50-100`. To be safe, we can assume that numerical error starts to creep
@@ -233,6 +242,7 @@ marginal distribution will depend on :math:`\rho`:
             ax.legend()
         if ii == 1:
             ax.set_xlabel(r"$n_{AB}$")
+    fig.tight_layout()
 
 For low recombination rates, the marginal distribution of `AB` haplotypes is skewed
 toward the maximum or minimum number of copies, resulting in higher LD, while for larger
@@ -474,26 +484,26 @@ expectations at steady state:
         sd1.append(F.D() / F.pi2())
         sd2.append(F.D2() / F.pi2())
 
-    fig = plt.figure(1)
+    fig = plt.figure(figsize=(6, 4))
     ax = plt.subplot(1, 1, 1)
-    ax.plot(rhos_ok, 0 * rhos_ok, 'k--', label="Neutrality")
-    ax.plot(rhos, sd1, "o", label="gamma = -5")
+    ax.plot(rhos_ok, 0 * rhos_ok, 'k--', lw=2, label="Neutrality")
+    ax.plot(rhos, sd1, "v-", lw=1, label=r"$\gamma = -5$")
     ax.set_ylabel(r"$\sigma_d^1$")
     ax.set_xlabel(r"$\rho$")
     ax.set_xscale("log")
     ax.legend()
-    plt.show()
+    fig.tight_layout()
 
-    fig = plt.figure(2)
+    fig = plt.figure(figsize=(6, 4))
     ax = plt.subplot(1, 1, 1)
-    ax.plot(rhos_ok, ohta_kimura, 'k--', label="Neutrality")
-    ax.plot(rhos, sd2, "o", label="gamma = -5")
+    ax.plot(rhos_ok, ohta_kimura, 'k--', lw=2, label="Neutrality")
+    ax.plot(rhos, sd2, "v-", lw=1, label=r"$\gamma = -5$")
     ax.set_ylabel(r"$\sigma_d^2$")
     ax.set_xlabel(r"$\rho$")
     ax.set_yscale("log")
     ax.set_xscale("log")
     ax.legend()
-    plt.show()
+    fig.tight_layout()
 
 Here, we see that measures of signed `D` are slightly below zero for short recombination
 distances, and that small amount of repulsion LD decays as :math:`\rho` increases. We also
@@ -528,25 +538,29 @@ have antagonistic epistasis. Any value of :math:`\epsilon` is permitted, and not
             sd2s[eps].append(F.D2() / F.pi2())
             sd1s[eps].append(F.D() / F.pi2())
 
-    fig = plt.figure(figsize=(12, 4))
+    fig = plt.figure(figsize=(6, 4))
     markers = ["x", "+", ".", "v", "^"]
-    ax1 = plt.subplot(1, 2, 1)
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, 0 * rhos_ok, "k--", label=None)
     for ii, eps in enumerate(epsilons):
-        ax1.plot(rhos, sd1s[eps], markers[ii] + "--", label=f"epsilon = {eps}")
-    ax1.set_xscale("log")
-    ax1.set_ylabel(r"$\sigma_d^1$")
-    ax1.set_xlabel(r"$\rho$")
-    ax1.legend()
+        ax.plot(rhos, sd1s[eps], markers[ii] + "--", label=f"$\epsilon = {eps}$")
+    ax.set_xscale("log")
+    ax.set_ylabel(r"$\sigma_d^1$")
+    ax.set_xlabel(r"$\rho$")
+    ax.legend()
+    fig.tight_layout()
 
-    ax2 = plt.subplot(1, 2, 2)
+    fig = plt.figure(figsize=(6, 4))
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, ohta_kimura, "k--", label="Ohta-Kimura")
     for ii, eps in enumerate(epsilons):
-        ax2.plot(rhos, sd2s[eps], markers[ii] + "--", label=f"epsilon = {eps}")
-    ax2.plot(rhos_ok, ohta_kimura, "k--", label="Ohta-Kimura")
-    ax2.set_yscale("log")
-    ax2.set_xscale("log")
-    ax2.set_ylabel(r"$\sigma_d^2$")
-    ax2.set_xlabel(r"$\rho$")
-    ax2.legend()
+        ax.plot(rhos, sd2s[eps], markers[ii] + "--", label=f"$\epsilon = {eps}$")
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    ax.set_ylabel(r"$\sigma_d^2$")
+    ax.set_xlabel(r"$\rho$")
+    ax.legend()
+    fig.tight_layout()
 
 As expected, negative :math:`\epsilon` (i.e. selection against the `AB` haplotype is less
 strong than the sum of selection against `A` and `B`) leads to an excess of coupling
@@ -565,7 +579,7 @@ distribution, showing the neutral expectation from Hudson for reference:
 
     epsilon = [-0.5, 0, 1]
 
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(9, 12))
     for ii, rho in enumerate(rhos):
         pABs = {}
         for eps in epsilon:
@@ -574,10 +588,10 @@ distribution, showing the neutral expectation from Hudson for reference:
             counts, pAB = nAB_slice(F, n, nA, nB)
             pABs[eps] = pAB
         ax = plt.subplot(3, 1, ii + 1)
-        ax.bar(counts - 0.3, hudson[rho] / hudson[rho].sum(), width=0.192, label="Hudson")
-        ax.bar(counts - 0.1, pABs[epsilon[0]], width=0.19, label=f"epsilon={epsilon[0]}")
-        ax.bar(counts + 0.1, pABs[epsilon[1]], width=0.19, label=f"epsilon={epsilon[1]}")
-        ax.bar(counts + 0.3, pABs[epsilon[2]], width=0.19, label=f"epsilon={epsilon[2]}")
+        ax.bar(counts - 0.3, hudson[rho] / hudson[rho].sum(), width=0.15, label="Hudson")
+        ax.bar(counts - 0.1, pABs[epsilon[0]], width=0.15, label=f"epsilon={epsilon[0]}")
+        ax.bar(counts + 0.1, pABs[epsilon[1]], width=0.15, label=f"epsilon={epsilon[1]}")
+        ax.bar(counts + 0.3, pABs[epsilon[2]], width=0.15, label=f"epsilon={epsilon[2]}")
 
         ax.set_title(f"rho = {rho}")
         ax.set_ylabel("Probability")
@@ -605,7 +619,7 @@ that fitness effects are additive across loci:
         n, rho=rho, sel_params_general=sel_params_recessive)
     # note that for models with dominance, we need to use the sel_params_general flag
 
-    fig = plt.figure(figsize=(8, 3))
+    fig = plt.figure(figsize=(8, 4))
     ax = plt.subplot(1, 1, 1)
     counts, pAB = nAB_slice(F_additive, n, 18, 12)
     ax.bar(counts - 0.2, pAB, width=0.35, label="Additive")
@@ -617,7 +631,65 @@ that fitness effects are additive across loci:
     ax.legend()
     fig.tight_layout()
 
-.. todo:: LD curves for varying dominance.
+We can also compare the LD decay between additive and partially and fully recessive
+(:math:`h<0.5`) mutations:
+
+.. jupyter-execute::
+
+    rhos = np.logspace(-1, np.log10(50), 20)
+    sd1_add = []
+    sd2_add = []
+    sd1_rec = []
+    sd2_rec = []
+    sd1_par = []
+    sd2_par = []
+
+    for rho in rhos:
+        # additive model
+        sel_params = moments.TwoLocus.Util.simple_dominance(gamma, h=0.5)
+        F = moments.TwoLocus.Demographics.equilibrium(
+            n, rho=rho, sel_params_general=sel_params)
+        sd1_add.append(F.D() / F.pi2())
+        sd2_add.append(F.D2() / F.pi2())
+        # fully recessive model
+        sel_params = moments.TwoLocus.Util.simple_dominance(gamma, h=0.0)
+        F = moments.TwoLocus.Demographics.equilibrium(
+            n, rho=rho, sel_params_general=sel_params)
+        sd1_rec.append(F.D() / F.pi2())
+        sd2_rec.append(F.D2() / F.pi2())
+        # partially recessive model
+        sel_params = moments.TwoLocus.Util.simple_dominance(gamma, h=0.1)
+        F = moments.TwoLocus.Demographics.equilibrium(
+            n, rho=rho, sel_params_general=sel_params)
+        sd1_par.append(F.D() / F.pi2())
+        sd2_par.append(F.D2() / F.pi2())
+
+    fig = plt.figure(figsize=(6, 4))
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, 0 * rhos_ok, 'k--', lw=2, label="Neutrality")
+    ax.plot(rhos, sd1_add, "^-", lw=1, label="Additive")
+    ax.plot(rhos, sd1_par, ".-", lw=1, label="Partial recessive")
+    ax.plot(rhos, sd1_rec, "v-", lw=1, label="Full recessive")
+    ax.set_ylabel(r"$\sigma_d^1$")
+    ax.set_xlabel(r"$\rho$")
+    ax.set_xscale("log")
+    ax.legend()
+    fig.tight_layout()
+
+    fig = plt.figure(figsize=(6, 4))
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(rhos_ok, ohta_kimura, 'k--', lw=2, label="Neutrality (O/K)")
+    ax.plot(rhos, sd2_add, "^-", lw=1, label="Additive")
+    ax.plot(rhos, sd2_par, ".-", lw=1, label="Partial recessive")
+    ax.plot(rhos, sd2_rec, "v-", lw=1, label="Full recessive")
+    ax.set_ylabel(r"$\sigma_d^2$")
+    ax.set_xlabel(r"$\rho$")
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    ax.legend()
+    fig.tight_layout()
+
+.. todo:: Relate to associative overdominance work, e.g. Charlesworth.
 
 Gene-based dominance
 --------------------
