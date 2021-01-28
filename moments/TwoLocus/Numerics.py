@@ -332,7 +332,7 @@ def recombination(n, rho):
                 row.append(index_n(n, i, j, k))
                 col.append(index_n(n + 1, i + 1, j, k))
                 data.append(
-                    rho / 2.0 * 1.0 * (i + 1) * (n - i - j - k) / (n + 1)
+                    -rho / 2.0 * 1.0 * (i + 1) * (n - i - j - k) / (n + 1)
                 )
 
                 row.append(index_n(n, i, j, k))
