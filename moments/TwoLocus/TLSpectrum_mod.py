@@ -182,9 +182,16 @@ class TLSpectrum(numpy.ma.masked_array):
                     fr[ii + kk] += self[ii, jj, kk]
         return fr
 
-    def D(self, proj=True):
+    def D(self, proj=True, nA=None, nB=None):
         """
         Return the expectation of D from the spectrum.
+
+        :param proj: If True, use the unbiased estimator from downsampling. If False,
+            use naive maximum likelihood estimates for frequency.
+        :param nA: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the left locus.
+        :param nB: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the right locus.
         """
         n = len(self) - 1
         DD = 0
@@ -195,22 +202,43 @@ class TLSpectrum(numpy.ma.masked_array):
                         continue
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= self.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= self.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+
+                    if proj == True:
+                        DD += self.data[ii, jj, kk] * (
+                            ii * (n - ii - jj - kk) / float(n * (n - 1))
+                            - jj * kk / float(n * (n - 1))
+                        )
                     else:
-                        if proj == True:
-                            DD += self.data[ii, jj, kk] * (
-                                ii * (n - ii - jj - kk) / float(n * (n - 1))
-                                - jj * kk / float(n * (n - 1))
-                            )
-                        else:
-                            DD += self.data[ii, jj, kk] * (
-                                ii * (n - ii - jj - kk) / float(n ** 2)
-                                - jj * kk / float(n ** 2)
-                            )
+                        DD += self.data[ii, jj, kk] * (
+                            ii * (n - ii - jj - kk) / float(n ** 2)
+                            - jj * kk / float(n ** 2)
+                        )
         return DD
 
-    def D2(self, proj=True):
+    def D2(self, proj=True, nA=None, nB=None):
         """
         Return the expectation of D^2 from the spectrum.
+
+        :param proj: If True, use the unbiased estimator from downsampling. If False,
+            use naive maximum likelihood estimates for frequency.
+        :param nA: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the left locus.
+        :param nB: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the right locus.
         """
         n = len(self) - 1
         DD2 = 0
@@ -221,44 +249,65 @@ class TLSpectrum(numpy.ma.masked_array):
                         continue
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= self.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= self.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+
+                    if proj == True:
+                        DD2 += (
+                            self.data[ii, jj, kk]
+                            * 1.0
+                            / 3
+                            * (
+                                scipy.special.binom(ii, 2)
+                                * scipy.special.binom(n - ii - jj - kk, 2)
+                                / scipy.special.binom(n, 4)
+                                + scipy.special.binom(jj, 2)
+                                * scipy.special.binom(kk, 2)
+                                / scipy.special.binom(n, 4)
+                                - 1.0
+                                / 2
+                                * ii
+                                * jj
+                                * kk
+                                * (n - ii - jj - kk)
+                                / scipy.special.binom(n, 4)
+                            )
+                        )
                     else:
-                        if proj == True:
-                            DD2 += (
-                                self.data[ii, jj, kk]
-                                * 1.0
-                                / 3
-                                * (
-                                    scipy.special.binom(ii, 2)
-                                    * scipy.special.binom(n - ii - jj - kk, 2)
-                                    / scipy.special.binom(n, 4)
-                                    + scipy.special.binom(jj, 2)
-                                    * scipy.special.binom(kk, 2)
-                                    / scipy.special.binom(n, 4)
-                                    - 1.0
-                                    / 2
-                                    * ii
-                                    * jj
-                                    * kk
-                                    * (n - ii - jj - kk)
-                                    / scipy.special.binom(n, 4)
-                                )
+                        DD2 += (
+                            self.data[ii, jj, kk]
+                            * 2.0
+                            / n ** 4
+                            * (
+                                ii ** 2 * (n - ii - jj - kk) ** 2
+                                + jj ** 2 * kk ** 2
+                                - 2 * ii * jj * kk * (n - ii - jj - kk)
                             )
-                        else:
-                            DD2 += (
-                                self.data[ii, jj, kk]
-                                * 2.0
-                                / n ** 4
-                                * (
-                                    ii ** 2 * (n - ii - jj - kk) ** 2
-                                    + jj ** 2 * kk ** 2
-                                    - 2 * ii * jj * kk * (n - ii - jj - kk)
-                                )
-                            )
+                        )
         return DD2
 
-    def pi2(self, proj=True):
+    def pi2(self, proj=True, nA=None, nB=None):
         """
         Return the expectation of pi2 = p(1-p)q(1-q) from the spectrum.
+        
+        :param proj: If True, use the unbiased estimator from downsampling. If False,
+            use naive maximum likelihood estimates for frequency.
+        :param nA: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the left locus.
+        :param nB: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the right locus.
         """
         n = len(self) - 1
         stat = 0
@@ -270,53 +319,67 @@ class TLSpectrum(numpy.ma.masked_array):
                     ll = n - ii - jj - kk
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= self.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= self.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+                        
+                    if proj == True:
+                        stat += (
+                            self.data[ii, jj, kk]
+                            * 2.0
+                            / scipy.special.binom(n, 4)
+                            * (
+                                ii * (ii - 1) / 2 * jj * kk / 12.0
+                                + ii * jj * (jj - 1) / 2 * kk / 12.0
+                                + ii * jj * kk * (kk - 1) / 2 / 12.0
+                                + jj * (jj - 1) / 2 * kk * (kk - 1) / 2 / 6.0
+                                + ii * (ii - 1) / 2 * jj * ll / 12.0
+                                + ii * jj * (jj - 1) / 2 * ll / 12.0
+                                + ii * (ii - 1) / 2 * kk * ll / 12.0
+                                + 2 * ii * jj * kk * ll / 24.0
+                                + jj * (jj - 1) / 2 * kk * ll / 12.0
+                                + ii * kk * (kk - 1) / 2 * ll / 12.0
+                                + jj * kk * (kk - 1) / 2 * ll / 12.0
+                                + ii * (ii - 1) / 2 * ll * (ll - 1) / 2 / 6.0
+                                + ii * jj * ll * (ll - 1) / 2 / 12.0
+                                + ii * kk * ll * (ll - 1) / 2 / 12.0
+                                + jj * kk * ll * (ll - 1) / 2 / 12.0
+                            )
+                        )
                     else:
-                        if proj == True:
-                            stat += (
-                                self.data[ii, jj, kk]
-                                * 2.0
-                                / scipy.special.binom(n, 4)
-                                * (
-                                    ii * (ii - 1) / 2 * jj * kk / 12.0
-                                    + ii * jj * (jj - 1) / 2 * kk / 12.0
-                                    + ii * jj * kk * (kk - 1) / 2 / 12.0
-                                    + jj * (jj - 1) / 2 * kk * (kk - 1) / 2 / 6.0
-                                    + ii * (ii - 1) / 2 * jj * ll / 12.0
-                                    + ii * jj * (jj - 1) / 2 * ll / 12.0
-                                    + ii * (ii - 1) / 2 * kk * ll / 12.0
-                                    + 2 * ii * jj * kk * ll / 24.0
-                                    + jj * (jj - 1) / 2 * kk * ll / 12.0
-                                    + ii * kk * (kk - 1) / 2 * ll / 12.0
-                                    + jj * kk * (kk - 1) / 2 * ll / 12.0
-                                    + ii * (ii - 1) / 2 * ll * (ll - 1) / 2 / 6.0
-                                    + ii * jj * ll * (ll - 1) / 2 / 12.0
-                                    + ii * kk * ll * (ll - 1) / 2 / 12.0
-                                    + jj * kk * ll * (ll - 1) / 2 / 12.0
-                                )
+                        stat += (
+                            self.data[ii, jj, kk]
+                            * 2.0
+                            / n ** 4
+                            * (
+                                ii ** 2 * jj * kk
+                                + ii * jj ** 2 * kk
+                                + ii * jj * kk ** 2
+                                + jj ** 2 * kk ** 2
+                                + ii ** 2 * jj * ll
+                                + ii * jj ** 2 * ll
+                                + ii ** 2 * kk * ll
+                                + 2 * ii * jj * kk * ll
+                                + jj ** 2 * kk * ll
+                                + ii * kk ** 2 * ll
+                                + jj * kk ** 2 * ll
+                                + ii ** 2 * ll ** 2
+                                + ii * jj * ll ** 2
+                                + ii * kk * ll ** 2
+                                + jj * kk * ll ** 2
                             )
-                        else:
-                            stat += (
-                                self.data[ii, jj, kk]
-                                * 2.0
-                                / n ** 4
-                                * (
-                                    ii ** 2 * jj * kk
-                                    + ii * jj ** 2 * kk
-                                    + ii * jj * kk ** 2
-                                    + jj ** 2 * kk ** 2
-                                    + ii ** 2 * jj * ll
-                                    + ii * jj ** 2 * ll
-                                    + ii ** 2 * kk * ll
-                                    + 2 * ii * jj * kk * ll
-                                    + jj ** 2 * kk * ll
-                                    + ii * kk ** 2 * ll
-                                    + jj * kk ** 2 * ll
-                                    + ii ** 2 * ll ** 2
-                                    + ii * jj * ll ** 2
-                                    + ii * kk * ll ** 2
-                                    + jj * kk * ll ** 2
-                                )
-                            )
+                        )
         return stat
 
     def Dz(self):
