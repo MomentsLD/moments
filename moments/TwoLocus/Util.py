@@ -45,8 +45,9 @@ def simple_dominance(s, h=0.5, Ne=None):
         2 * h * gamma + 2 * h * gamma,
         2 * h * gamma,
         2 * gamma,
-        2 * h * gamma
+        2 * h * gamma,
     ]
+
 
 def gene_based_dominance(s, h=0.5, Ne=None):
     """
@@ -60,7 +61,7 @@ def gene_based_dominance(s, h=0.5, Ne=None):
         if Ne <= 0:
             raise ValueError("Ne must be positive")
         gamma = 2 * Ne * s
-    
+
     gamma *= 2
 
     return [
@@ -72,5 +73,5 @@ def gene_based_dominance(s, h=0.5, Ne=None):
         2 * gamma,
         2 * h * gamma,
         2 * gamma,
-        2 * h * gamma
+        2 * h * gamma,
     ]

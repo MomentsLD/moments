@@ -253,21 +253,29 @@ def mutations(n, theta=1.0):
     """
     Msize = int((n + 1) * (n + 2) * (n + 3) / 6)
 
-    #M_1to2 = np.zeros((Msize, Msize))
+    # M_1to2 = np.zeros((Msize, Msize))
     M_1to2_entries = defaultdict(float)
     # M_1to2_entries[(row, col)] = val
 
     # A/a -> AB and aB
     M_1to2_entries = defaultdict(float)
     for j in range(0, n - 1):  # B falls on A background
-        M_1to2_entries[(index_n(n, 1, j, 0), index_n(n, 0, j + 1, 0))] += (j + 1) * theta / 2.0
+        M_1to2_entries[(index_n(n, 1, j, 0), index_n(n, 0, j + 1, 0))] += (
+            (j + 1) * theta / 2.0
+        )
     for j in range(1, n):  # B falls on a background
-        M_1to2_entries[(index_n(n, 0, j, 1), index_n(n, 0, j, 0))] += (n - j) * theta / 2.0
+        M_1to2_entries[(index_n(n, 0, j, 1), index_n(n, 0, j, 0))] += (
+            (n - j) * theta / 2.0
+        )
     # B/b -> AB and Ab
     for k in range(0, n - 1):
-        M_1to2_entries[(index_n(n, 1, 0, k), index_n(n, 0, 0, k + 1))] += (k + 1) * theta / 2.0
+        M_1to2_entries[(index_n(n, 1, 0, k), index_n(n, 0, 0, k + 1))] += (
+            (k + 1) * theta / 2.0
+        )
     for k in range(1, n):
-        M_1to2_entries[(index_n(n, 0, 1, k), index_n(n, 0, 0, k))] += (n - k) * theta / 2.0
+        M_1to2_entries[(index_n(n, 0, 1, k), index_n(n, 0, 0, k))] += (
+            (n - k) * theta / 2.0
+        )
 
     M_0to1 = np.zeros(Msize)
     M_0to1[index_n(n, 0, 0, 1)] = M_0to1[index_n(n, 0, 1, 0)] = n * theta / 2.0
@@ -280,7 +288,7 @@ def mutations(n, theta=1.0):
         cols.append(k[1])
         data.append(v)
     M_1to2 = csc_matrix((data, (rows, cols)), shape=(Msize, Msize))
-    
+
     return M_0to1, M_1to2
 
 
@@ -311,16 +319,12 @@ def recombination(n, rho):
                 if j > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j - 1, k))
-                    data.append(
-                        rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1)
-                    )
+                    data.append(rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1))
 
                 if k > 0:
                     row.append(index_n(n, i, j, k))
                     col.append(index_n(n + 1, i + 1, j, k - 1))
-                    data.append(
-                        rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1)
-                    )
+                    data.append(rho / 2.0 * (i + 1) * (n - i - j - k + 1) / (n + 1))
 
                 if i > 0:
                     row.append(index_n(n, i, j, k))

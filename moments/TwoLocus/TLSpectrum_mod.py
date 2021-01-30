@@ -115,8 +115,6 @@ class TLSpectrum(numpy.ma.masked_array):
                     if ii + jj + kk > ns:
                         self.mask[ii, jj, kk] = True
 
-        return self
-
     def mask_fixed(self):
         """
         Mask all infeasible, as well as any where both sites are not segregating.
@@ -141,7 +139,6 @@ class TLSpectrum(numpy.ma.masked_array):
 
         self.mask[0, :, 0] = True
         self.mask[0, 0, :] = True
-        return self
 
     def unfold(self):
         """
@@ -333,7 +330,7 @@ class TLSpectrum(numpy.ma.masked_array):
                             )
                         elif nB != ii + kk:
                             continue
-                        
+
                     if proj == True:
                         stat += (
                             self.data[ii, jj, kk]
