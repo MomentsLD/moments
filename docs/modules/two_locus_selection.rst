@@ -227,22 +227,6 @@ marginal distribution will depend on :math:`\rho`:
 
 .. jupyter-execute::
 
-    def nAB_slice(F, n, nA, nB):
-        """
-        Get the normalized distribution of nAB for given sample size n and
-        nA and nB of types A and B.
-        """
-        min_AB = max(0, nA + nB - n)
-        max_AB = min(nA, nB)
-        p_AB = []
-        counts = np.arange(min_AB, max_AB + 1)
-        for i in counts:
-            p_AB.append(F[i, nA - i, nB - i])
-        p_AB = np.array(p_AB)
-        p_AB /= p_AB.sum()
-        return counts, p_AB
-
-
     rhos = [0.5, 5.0, 30.0]
     n = 30
     nA = 15
@@ -269,7 +253,8 @@ marginal distribution will depend on :math:`\rho`:
     fig = plt.figure(figsize=(12, 4))
     for ii, rho in enumerate(rhos):
         F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
-        counts, pAB = nAB_slice(F, n, nA, nB)
+        counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
+        pAB /= pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
         ax.bar(counts - 0.2, hudson[rho] / hudson[rho].sum(), width=0.35, label="Hudson")
         ax.bar(counts + 0.2, pAB, width=0.35, label="moments.TwoLocus")
@@ -706,8 +691,8 @@ sampling distribution with low frequencies at the two loci. For doubletons at bo
         for eps in epsilon:
             sel_params = moments.TwoLocus.Util.additive_epistasis(gammas[0], epsilon=eps)
             F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
-            counts, pAB = nAB_slice(F, n, nA, nB)
-            pABs[eps] = pAB
+            counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
+            pABs[eps] = pAB / pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
         ax.bar(counts - 0.25, pABs[epsilon[0]], width=0.22, label=rf"$\epsilon={epsilon[0]}$")
         ax.bar(counts, pABs[epsilon[1]], width=0.22, label=rf"$\epsilon={epsilon[1]}$")
@@ -728,8 +713,8 @@ sampling distribution with low frequencies at the two loci. For doubletons at bo
         for eps in epsilon:
             sel_params = moments.TwoLocus.Util.additive_epistasis(gammas[1], epsilon=eps)
             F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
-            counts, pAB = nAB_slice(F, n, nA, nB)
-            pABs[eps] = pAB
+            counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
+            pABs[eps] = pAB / pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
         ax.bar(counts - 0.25, pABs[epsilon[0]], width=0.22, label=rf"$\epsilon={epsilon[0]}$")
         ax.bar(counts, pABs[epsilon[1]], width=0.22, label=rf"$\epsilon={epsilon[1]}$")
@@ -758,7 +743,8 @@ projected to size 30.
 
     F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
     F_proj = F.project(n_proj)
-    counts, p_AB = nAB_slice(F_proj, n_proj, nA, nB)
+    counts, pAB = moments.TwoLocus.Util.pAB(F_proj, nA, nB)
+    pAB /= pAB.sum()
 
 .. jupyter-execute:: 
     :hide-code:
@@ -955,6 +941,8 @@ Gene-based dominance
 
 Non-steady-state demography
 ---------------------------
+
+:math:`\mathcal{K}`
 
 .. todo:: Are any of these statistics quite sensitive to bottlenecks or expansions?
 
