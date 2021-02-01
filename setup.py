@@ -83,7 +83,6 @@ if build_ld_extensions is True:
 
 setup(
     name="moments",
-    # version='1.0.8',
     version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),
     author="Aaron Ragsdale, Julien Jouganous, Simon Gravel, Ryan Gutenkunst",
     author_email="aaron.ragsdale@mail.mcgill.ca, simon.gravel@mcgill.ca",
@@ -92,5 +91,6 @@ setup(
     license="MIT",
     cmdclass={"build_ext": build_ext},
     ext_modules=cythonize(extensions, language_level="3"),
-    install_requires=["numpy >=1.10", "cython >=0.25", "scipy >=1.3", "mpmath >=1.0"],
+    python_requires=">=3.6",
+    install_requires=["numpy >=1.12.1", "cython >=0.25", "scipy >=1.3", "mpmath >=1.0"],
 )
