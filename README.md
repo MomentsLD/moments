@@ -124,6 +124,12 @@ additionally install
 
 ## Changelog
 
+### 1.0.9
+
+- Numpy version bump from 0.19 to 0.20 creates incompatibility if cython extension
+  are built with different version than user environment. This more explicitly
+  specifies the numpy version to maintain compatibility (with thanks to Graham Gower)
+
 ### 1.0.8
 
 - Allow for variable migration rate by passing a function as the migration matrix
