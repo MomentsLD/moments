@@ -5,8 +5,7 @@ def D(counts):
     c1, c2, c3, c4 = counts
     n = sum(counts)
     numer = c1 * c4 - c2 * c3
-    denom = n * (n - 1)
-    return 1.0 * numer / denom
+    return 1.0 * numer / n / (n - 1)
 
 
 def DD(counts, pop_nums):
@@ -19,10 +18,12 @@ def DD(counts, pop_nums):
         c1, c2, c3, c4 = cs
         n = sum(cs)
         numer = (
-            (c1 * c4 - c2 * c3) ** 2 - c2 * c3 * (c2 + c3 - 1) - c1 * c4 * (c1 + c4 - 1)
+            # (c1 * c4 - c2 * c3) ** 2 - c2 * c3 * (c2 + c3 - 1) - c1 * c4 * (c1 + c4 - 1)
+            c1 * (c1 - 1) * c4 * (c4 - 1)
+            + c2 * (c2 - 1) * c3 * (c3 - 1)
+            - 2 * c1 * c2 * c3 * c4
         )
-        denom = n * (n - 1) * (n - 2) * (n - 3)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n / (n - 1) / (n - 2) / (n - 3)
     else:
         cs1, cs2 = counts[pop1], counts[pop2]
         c11, c12, c13, c14 = cs1
@@ -30,8 +31,7 @@ def DD(counts, pop_nums):
         n1 = sum(cs1)
         n2 = sum(cs2)
         numer = (c12 * c13 - c11 * c14) * (c22 * c23 - c21 * c24)
-        denom = (-1 + n1) * n1 * (-1 + n2) * n2
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / (n2 - 1)
 
 
 def Dz(counts, pop_nums):
@@ -47,8 +47,7 @@ def Dz(counts, pop_nums):
             + (c1 * c4 - c2 * c3) * (c2 + c3 - c1 - c4)
             + 2 * (c2 * c3 + c1 * c4)
         )
-        denom = n * (n - 1) * (n - 2) * (n - 3)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n / (n - 1) / (n - 2) / (n - 3)
     elif pop1 == pop2:  # Dz(i,i,j)
         cs1, cs2 = counts[pop1], counts[pop3]
         c11, c12, c13, c14 = cs1
@@ -60,8 +59,7 @@ def Dz(counts, pop_nums):
             * (-(c12 * c13) + c11 * c14)
             * (-c21 + c22 - c23 + c24)
         )
-        denom = n2 * n1 * (n1 - 1.0) * (n1 - 2)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
     elif pop1 == pop3:  # Dz(i,j,i)
         cs1, cs2 = counts[pop1], counts[pop2]
         c11, c12, c13, c14 = cs1
@@ -73,8 +71,7 @@ def Dz(counts, pop_nums):
             * (-(c12 * c13) + c11 * c14)
             * (-c21 - c22 + c23 + c24)
         )
-        denom = n2 * n1 * (n1 - 1.0) * (n1 - 2)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
     elif pop2 == pop3:  # Dz(i,j,j)
         cs1, cs2 = counts[pop1], counts[pop2]
         c11, c12, c13, c14 = cs1
@@ -84,8 +81,7 @@ def Dz(counts, pop_nums):
         numer = (-(c12 * c13) + c11 * c14) * (-c21 + c22 + c23 - c24) + (
             -(c12 * c13) + c11 * c14
         ) * (-c21 + c22 - c23 + c24) * (-c21 - c22 + c23 + c24)
-        denom = n1 * (n1 - 1) * n2 * (n2 - 1)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / (n2 - 1)
     else:  # Dz(i,j,k)
         cs1 = counts[pop1]
         cs2 = counts[pop2]
@@ -103,8 +99,7 @@ def Dz(counts, pop_nums):
                 * (c31 - c32 + c33 - c34)
             )
         )
-        denom = n1 * (n1 - 1) * n2 * n3
-        return 1.0 * numer / denom
+        return 1.0 * numer / denom / n1 / (n1 - 1) / n2 / n3
 
 
 def pi2(counts, pop_nums):
@@ -120,8 +115,7 @@ def pi2(counts, pop_nums):
             - c1 * c4 * (-1 + c1 + 3 * c2 + 3 * c3 + c4)
             - c2 * c3 * (-1 + 3 * c1 + c2 + c3 + 3 * c4)
         )
-        denom = n * (n - 1) * (n - 2) * (n - 3)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n / (n - 1) / (n - 2) / (n - 3)
     elif (pop1 == pop2 == pop3) or (
         pop1 == pop2 == pop4
     ):  # pi2(i,i;i,j) or pi2(i,i;j,i)
@@ -142,8 +136,7 @@ def pi2(counts, pop_nums):
             + (c12 * (c13 + c14) * (c22 + c24)) / 2.0
             + ((c11 + c12) * (c11 + c13) * (c13 + c14) * (c22 + c24)) / 2.0
         )
-        denom = n2 * n1 * (n1 - 1) * (n1 - 2)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
 
     elif (pop1 == pop3 == pop4) or (pop2 == pop3 == pop4):  # pi2(i,j;i,i), pi2(j,i;i,i)
         if pop1 == pop3:
@@ -175,8 +168,7 @@ def pi2(counts, pop_nums):
                 )
             )
         ) / 2.0
-        denom = n2 * n1 * (n1 - 1) * (n1 - 2)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
 
     elif pop1 == pop2 and pop3 == pop4:  # pi2(i,i;j,j)
         cs1, cs2 = counts[pop1], counts[pop3]
@@ -185,11 +177,11 @@ def pi2(counts, pop_nums):
         n1 = sum(cs1)
         n2 = sum(cs2)
         numer = (c11 + c12) * (c13 + c14) * (c21 + c23) * (c22 + c24)
-        denom = n1 * (n1 - 1) * n2 * (n2 - 1)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / (n2 - 1)
 
-    elif (pop1 == pop3 and pop2 == pop4) or ( # pi2(i,j;i,j) or
-          pop1 == pop4 and pop2 == pop3):     # pi2(i,j;j,i)
+    elif (pop1 == pop3 and pop2 == pop4) or (  # pi2(i,j;i,j) or
+        pop1 == pop4 and pop2 == pop3
+    ):  # pi2(i,j;j,i)
         cs1, cs2 = counts[pop1], counts[pop2]
         c11, c12, c13, c14 = cs1
         c21, c22, c23, c24 = cs2
@@ -240,8 +232,7 @@ def pi2(counts, pop_nums):
             )
             / 4.0
         )
-        denom = n1 * (n1 - 1) * n2 * (n2 - 1)
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / (n2 - 1)
 
     elif pop1 == pop2:  # pi2(i,i;j,k)
         cs1 = counts[pop1]
@@ -258,8 +249,7 @@ def pi2(counts, pop_nums):
             * (c13 + c14)
             * (c22 * (c31 + c33) + c24 * (c31 + c33) + (c21 + c23) * (c32 + c34))
         ) / 2.0
-        denom = n1 * (n1 - 1) * n2 * n3
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / n3
 
     elif pop3 == pop4:  # pi2(i,j;k,k)
         cs1 = counts[pop3]
@@ -276,8 +266,7 @@ def pi2(counts, pop_nums):
             * (c12 + c14)
             * (c23 * (c31 + c32) + c24 * (c31 + c32) + (c21 + c22) * (c33 + c34))
         ) / 2.0
-        denom = n1 * (n1 - 1) * n2 * n3
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / n3
 
     elif (
         (pop1 == pop3) or (pop1 == pop4) or (pop2 == pop3) or (pop2 == pop4)
@@ -338,8 +327,7 @@ def pi2(counts, pop_nums):
                 + (c23 + c24) * ((-1 + c11) * c31 - c33 + c11 * (c32 + c33 + c34))
             )
         ) / 4.0
-        denom = n1 * (n1 - 1) * n2 * n3
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / n3
 
     else:  # pi2(i,j,k,l)
         cs1, cs2, cs3, cs4 = counts[pop1], counts[pop2], counts[pop3], counts[pop4]
@@ -358,4 +346,4 @@ def pi2(counts, pop_nums):
             + ((c11 + c12) * (c23 + c24) * (c31 + c33) * (c42 + c44)) / 4.0
         )
         denom = n1 * n2 * n3 * n4
-        return 1.0 * numer / denom
+        return 1.0 * numer / n1 / n2 / n3 / n4

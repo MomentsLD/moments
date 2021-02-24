@@ -41,9 +41,7 @@ def sigmaD2(y, normalization=0):
     :type normalization: int, optional
     """
     if normalization > y.num_pops - 1:
-        raise ValueError(
-            "Normalization index must be for a present population"
-        )
+        raise ValueError("Normalization index must be for a present population")
 
     out = copy.deepcopy(y)
 

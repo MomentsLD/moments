@@ -314,7 +314,7 @@ def sparsify_haplotype_matrix(G):
     return G_dict, missing
 
 
-#def tally_sparse_haplotypes():
+# def tally_sparse_haplotypes():
 #    pass
 
 
@@ -370,7 +370,7 @@ def sparsify_haplotype_matrix(G):
 #    return Counts
 
 
-def compute_pairwise_stats(Gs):
+def compute_pairwise_stats(Gs, genotypes=True):
     """
     Computes D^2, Dz, pi_2, and D for every pair of loci
     within a block of SNPs, coded as a genotype matrix.
@@ -381,38 +381,53 @@ def compute_pairwise_stats(Gs):
 
     :param Gs: A genotype matrix, of size L-by-n, where
         L is the number of loci and n is the sample size.
+    :param genotypes: If True, use 0, 1, 2 genotypes. If False,
+        use 0, 1 phased haplotypes.
     """
     if ld_extensions != 1:
-        raise ValueError("Need to build LD cython extensions. "
-            "Install moments with the flag `--ld_extensions`")
+        raise ValueError(
+            "Need to build LD cython extensions. "
+            "Install moments with the flag `--ld_extensions`"
+        )
 
     L, n = np.shape(Gs)
 
-    G_dict, any_missing = sparsify_genotype_matrix(Gs)
+    if genotypes:
+        G_dict, any_missing = sparsify_genotype_matrix(Gs)
+        Counts = spt.count_genotypes_sparse(G_dict, n, missing=any_missing)
+    else:
+        G_dict, any_missing = sparsify_haplotype_matrix(Gs)
+        Counts = spt.count_haplotypes_sparse(G_dict, n, missing=any_missing)
 
-    Counts = spt.count_genotypes_sparse(G_dict, n, missing=any_missing)
-
-    D = gcs.compute_D(Counts)
-    D2 = gcs.compute_D2(Counts)
-    Dz = gcs.compute_Dz(Counts)
-    pi2 = gcs.compute_pi2(Counts)
+    if genotypes:
+        D = gcs.compute_D(Counts)
+        D2 = gcs.compute_D2(Counts)
+        Dz = gcs.compute_Dz(Counts)
+        pi2 = gcs.compute_pi2(Counts)
+    else:
+        D = shc.D(Counts.T)
+        D2 = shc.DD([Counts.T], [0, 0])
+        Dz = shc.Dz([Counts.T], [0, 0, 0])
+        pi2 = shc.pi2([Counts.T], [0, 0, 0, 0])
 
     return D2, Dz, pi2, D
 
 
-def compute_average_stats(Gs):
+def compute_average_stats(Gs, genotypes=True):
     """
     Takes the outputs of ``compute_pairwise_stats`` and returns
     the average value for each statistic.
 
     :param Gs: A genotype matrix, of size L-by-n, where
         L is the number of loci and n is the sample size.
+    :param genotypes: If True, use 0, 1, 2 genotypes. If False,
+        use 0, 1 phased haplotypes.
     """
-    D2, Dz, pi2, D = compute_pairwise_stats(Gs)
+    D2, Dz, pi2, D = compute_pairwise_stats(Gs, genotypes=True)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
 
 
-def compute_pairwise_stats_between(Gs1, Gs2):
+def compute_pairwise_stats_between(Gs1, Gs2, genotypes=True):
     """
     Computes D^2, Dz, pi_2, and D for every pair of loci
     between two blocks of SNPs, coded as a genotype matrices.
@@ -430,6 +445,8 @@ def compute_pairwise_stats_between(Gs1, Gs2):
         L1 is the number of loci and n is the sample size.
     :param Gs2: A genotype matrices, of size L2 by n, where
         L1 is the number of loci and n is the sample size.
+    :param genotypes: If True, use 0, 1, 2 genotypes. If False,
+        use 0, 1 phased haplotypes.
     """
     assert (
         ld_extensions == 1
@@ -443,24 +460,39 @@ def compute_pairwise_stats_between(Gs1, Gs2):
     else:
         n = n1
 
-    G_dict1, any_missing1 = sparsify_genotype_matrix(Gs1)
-    G_dict2, any_missing2 = sparsify_genotype_matrix(Gs2)
+    if genotypes:
+        G_dict1, any_missing1 = sparsify_genotype_matrix(Gs1)
+        G_dict2, any_missing2 = sparsify_genotype_matrix(Gs2)
+    else:
+        G_dict1, any_missing1 = sparsify_haplotype_matrix(Gs1)
+        G_dict2, any_missing2 = sparsify_haplotype_matrix(Gs2)
 
     any_missing = np.logical_or(any_missing1, any_missing2)
 
-    Counts = spt.count_genotypes_between_sparse(
-        G_dict1, G_dict2, n, missing=any_missing
-    )
+    if genotypes:
+        Counts = spt.count_genotypes_between_sparse(
+            G_dict1, G_dict2, n, missing=any_missing
+        )
+    else:
+        Counts = spt.count_haplotypes_between_sparse(
+            G_dict1, G_dict2, n, missing=any_missing
+        )
 
-    D2 = gcs.compute_D2(Counts)
-    Dz = gcs.compute_Dz(Counts)
-    pi2 = gcs.compute_pi2(Counts)
-    D = gcs.compute_D(Counts)
+    if genotypes:
+        D2 = gcs.compute_D2(Counts)
+        Dz = gcs.compute_Dz(Counts)
+        pi2 = gcs.compute_pi2(Counts)
+        D = gcs.compute_D(Counts)
+    else:
+        D = shc.D(Counts.T)
+        D2 = shc.DD([Counts.T], [0, 0])
+        Dz = shc.Dz([Counts.T], [0, 0, 0])
+        pi2 = shc.pi2([Counts.T], [0, 0, 0, 0])
 
     return D2, Dz, pi2, D
 
 
-def compute_average_stats_between(Gs1, Gs2):
+def compute_average_stats_between(Gs1, Gs2, genotypes=True):
     """
     Takes the outputs of compute_pairwise_stats_between and returns
     the average value for each statistic.
@@ -470,7 +502,7 @@ def compute_average_stats_between(Gs1, Gs2):
     :param Gs2: A genotype matrices, of size L2 by n, where
         L1 is the number of loci and n is the sample size.
     """
-    D2, Dz, pi2, D = compute_pairwise_stats_between(Gs1, Gs2)
+    D2, Dz, pi2, D = compute_pairwise_stats_between(Gs1, Gs2, genotypes=genotypes)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
 
 
@@ -1284,9 +1316,9 @@ def bootstrap_data(all_data, normalization=0):
     """
     norm_stats = [
         "pi2_{0}_{0}_{0}_{0}".format(normalization),
-        "H_{0}_{0}".format(normalization)
+        "H_{0}_{0}".format(normalization),
     ]
-    
+
     regions = list(all_data.keys())
     reg = regions[0]
     stats = all_data[reg]["stats"]

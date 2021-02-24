@@ -705,6 +705,7 @@ class TestAdmixFunction(unittest.TestCase):
         self.assertEqual(out.Npop, 2)
         self.assertTrue(np.all([i == j for i, j in zip(out.pop_ids, ["B", "C"])]))
 
+
 class TestPulseMigrateFunction(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -721,7 +722,7 @@ class TestPulseMigrateFunction(unittest.TestCase):
             fs.pulse_migrate(0, 3, 5, 0.01)
         with self.assertRaises(ValueError):
             fs.pulse_migrate(0, 0, 5, 0.01)
-    
+
     def test_pulse_migrate_func(self):
         fs = moments.Spectrum(np.ones((11, 11, 11)))
         fs.pop_ids = ["A", "B", "C"]

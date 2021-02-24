@@ -59,7 +59,6 @@ class LDTestCase(unittest.TestCase):
         fs_proj = fs.marginalize([0]).project([2])
         self.assertTrue(np.allclose(y[-1][2], fs_proj[1], rtol=1e-3))
 
-
     def test_equilibrium_ld_tlfs_cache(self):
         theta = 1
         rhos = [0, 1, 10]
@@ -73,8 +72,7 @@ class LDTestCase(unittest.TestCase):
                     f"test_files/two_locus_equilibrium_rho_{rho}_theta_{theta}_ns_{ns}.fs",
                 )
             )
-            F = F.project(4)
-            self.assertTrue(np.allclose(y[ii], [F.D2(), F.Dz(), F.pi2()], rtol=2e-2))
+            self.assertTrue(np.allclose(y[ii], [2 * F.D2(), 2 * F.Dz(), 2 * F.pi2()], rtol=2e-2))
 
 
 class SplitStats(unittest.TestCase):
@@ -245,11 +243,13 @@ class MergeLD(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_merge_two_pops(self):
-        y = moments.LD.Demographics2D.split_mig((1, 2, .1, 2), rho=1, pop_ids=["A", "B"])
+        y = moments.LD.Demographics2D.split_mig(
+            (1, 2, 0.1, 2), rho=1, pop_ids=["A", "B"]
+        )
         with self.assertRaises(ValueError):
             y.merge(0, 1, 1.5)
         with self.assertRaises(ValueError):
-            y.merge(0, 0, .5)
+            y.merge(0, 0, 0.5)
         with self.assertRaises(ValueError):
             y.merge(0, 2, 0.5)
 
@@ -260,6 +260,7 @@ class MergeLD(unittest.TestCase):
         y2 = y.merge(0, 1, 0.1, new_id="XX")
         self.assertTrue(y2.pop_ids[0] == "XX")
 
+
 class AdmixLD(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -269,11 +270,13 @@ class AdmixLD(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_admix_two_pops(self):
-        y = moments.LD.Demographics2D.split_mig((1, 2, .1, 2), rho=1, pop_ids=["A", "B"])
+        y = moments.LD.Demographics2D.split_mig(
+            (1, 2, 0.1, 2), rho=1, pop_ids=["A", "B"]
+        )
         with self.assertRaises(ValueError):
             y.admix(0, 1, 1.5)
         with self.assertRaises(ValueError):
-            y.admix(0, 0, .5)
+            y.admix(0, 0, 0.5)
         with self.assertRaises(ValueError):
             y.admix(0, 2, 0.5)
 
@@ -291,6 +294,7 @@ class AdmixLD(unittest.TestCase):
         self.assertTrue(np.all(y3[0] == y2[0]))
         self.assertTrue(y3.pop_ids[0] == y2.pop_ids[0])
 
+
 class PulseLD(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -300,14 +304,16 @@ class PulseLD(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_pulse_two_pops(self):
-        y = moments.LD.Demographics2D.split_mig((1, 2, .1, 2), rho=1, pop_ids=["A", "B"])
+        y = moments.LD.Demographics2D.split_mig(
+            (1, 2, 0.1, 2), rho=1, pop_ids=["A", "B"]
+        )
         with self.assertRaises(ValueError):
             y.pulse_migrate(0, 1, 1.5)
         with self.assertRaises(ValueError):
-            y.pulse_migrate(0, 0, .5)
+            y.pulse_migrate(0, 0, 0.5)
         with self.assertRaises(ValueError):
             y.pulse_migrate(0, 2, 0.5)
-        
+
         y1 = y.pulse_migrate(0, 1, 0.1)
         self.assertTrue(y1.num_pops == 2)
         self.assertTrue(y1.pop_ids[0] == "A")
@@ -315,6 +321,7 @@ class PulseLD(unittest.TestCase):
         y2 = y.merge(0, 1, 0.1)
         y1 = y1.marginalize([0])
         self.assertTrue(np.all(y1[0] == y2[0]))
+
 
 class TestDemographics1D(unittest.TestCase):
     def setUp(self):

@@ -1591,9 +1591,7 @@ def admix_h(num_pops, pop1, pop2, f):
             i1 = int(mom_to.split("_")[1])
             i2 = int(mom_to.split("_")[2])
             if i2 != num_pops:
-                raise ValueError(
-                    "This is unexpected... i2 should have been num_pops."
-                )
+                raise ValueError("This is unexpected... i2 should have been num_pops.")
             if i1 == i2 == num_pops:  # H_new_new
                 A[ii, moms_from.index(Util.map_moment("H_{0}_{0}".format(pop1)))] = (
                     f ** 2
@@ -2269,9 +2267,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f) ** 2)
 
-                elif (
-                    i1 == num_pops and i2 == pop1 and i3 == pop1
-                ):  # Dz_new_pop1_pop1
+                elif i1 == num_pops and i2 == pop1 and i3 == pop1:  # Dz_new_pop1_pop1
                     A[
                         ii,
                         moms_from.index(
@@ -2310,9 +2306,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif (
-                    i1 == num_pops and i2 == pop1 and i3 == pop2
-                ):  # Dz_new_pop1_pop2
+                elif i1 == num_pops and i2 == pop1 and i3 == pop2:  # Dz_new_pop1_pop2
                     A[
                         ii,
                         moms_from.index(
@@ -2351,9 +2345,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif (
-                    i1 == num_pops and i2 == pop2 and i3 == pop1
-                ):  # Dz_new_pop2_pop1
+                elif i1 == num_pops and i2 == pop2 and i3 == pop1:  # Dz_new_pop2_pop1
                     A[
                         ii,
                         moms_from.index(
@@ -2392,9 +2384,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif (
-                    i1 == num_pops and i2 == pop2 and i3 == pop2
-                ):  # Dz_new_pop2_pop2
+                elif i1 == num_pops and i2 == pop2 and i3 == pop2:  # Dz_new_pop2_pop2
                     A[
                         ii,
                         moms_from.index(
@@ -2717,9 +2707,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (4 * f * (1 - f))
 
-                elif (
-                    i1 == pop1 and i2 == pop1 and i3 == num_pops
-                ):  # Dz_pop1_pop1_new
+                elif i1 == pop1 and i2 == pop1 and i3 == num_pops:  # Dz_pop1_pop1_new
                     A[
                         ii,
                         moms_from.index(
@@ -2733,9 +2721,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif (
-                    i1 == pop1 and i2 == pop2 and i3 == num_pops
-                ):  # Dz_pop1_pop2_new
+                elif i1 == pop1 and i2 == pop2 and i3 == num_pops:  # Dz_pop1_pop2_new
                     A[
                         ii,
                         moms_from.index(
@@ -2763,9 +2749,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif (
-                    i1 == pop2 and i2 == pop1 and i3 == num_pops
-                ):  # Dz_pop2_pop1_new
+                elif i1 == pop2 and i2 == pop1 and i3 == num_pops:  # Dz_pop2_pop1_new
                     A[
                         ii,
                         moms_from.index(
@@ -2779,9 +2763,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         ),
                     ] += (1 - f)
 
-                elif (
-                    i1 == pop2 and i2 == pop2 and i3 == num_pops
-                ):  # Dz_pop2_pop2_new
+                elif i1 == pop2 and i2 == pop2 and i3 == num_pops:  # Dz_pop2_pop2_new
                     A[
                         ii,
                         moms_from.index(

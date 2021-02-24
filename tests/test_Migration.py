@@ -23,7 +23,7 @@ class SpectrumTestCase(unittest.TestCase):
         fs2 = moments.Demographics2D.snm([20, 20])
         mig_mat = lambda t: [[0, 1], [1, 0]]
         fs2.integrate([1, 1], 0.1, m=mig_mat)
-        
+
         self.assertTrue(np.allclose(fs.data, fs2.data))
 
     def test_migration_function(self):
@@ -41,6 +41,7 @@ class SpectrumTestCase(unittest.TestCase):
         fs.integrate([1, 1], 0.1, m=[[0, 2], [2, 0]])
         fs.integrate([1, 1], 0.1, m=[[0, 0], [0, 0]])
         fs2 = moments.Demographics2D.snm([20, 20])
+
         def mig_mat(t):
             if 0 <= t <= 0.1:
                 return [[0, 3], [3, 0]]
@@ -48,7 +49,9 @@ class SpectrumTestCase(unittest.TestCase):
                 return [[0, 2], [2, 0]]
             else:
                 return [[0, 0], [0, 0]]
+
         fs2.integrate([1, 1], 0.3, m=mig_mat)
         self.assertTrue(np.allclose(fs.data, fs2.data, rtol=0.02, atol=1e-5))
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(SpectrumTestCase)

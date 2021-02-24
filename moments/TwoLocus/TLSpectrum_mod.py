@@ -7,6 +7,7 @@ logging.basicConfig()
 logger = logging.getLogger("TLSpectrum_mod")
 
 import os
+import copy
 import numpy, numpy as np
 import moments.TwoLocus.Numerics
 import moments.TwoLocus.Integration
@@ -179,6 +180,46 @@ class TLSpectrum(numpy.ma.masked_array):
                     fr[ii + kk] += self[ii, jj, kk]
         return fr
 
+    def ancestral_misid(self, p):
+        """
+        Return a new SFS with a given ancestral misidentification, p.
+        """
+        if p == 0:
+            return (1 - p) * self
+        elif p > 1 or p < 0:
+            raise ValueError("probability of misid must be between 0 and 1")
+        
+        F_new = (1 - p) ** 2 * self
+        for ii in range(self.sample_size + 1):
+            for jj in range(self.sample_size + 1 - ii):
+                for kk in range(self.sample_size + 1 - ii - jj):
+                    ll = self.sample_size - ii - jj - kk
+                    # left misid, right correct
+                    F_new.data[kk, ll, ii] += p * (1 - p) * self.data[ii, jj, kk]
+                    # right misid, left correct
+                    F_new.data[jj, ii, ll] += (1 - p) * p * self.data[ii, jj, kk]
+                    # both misid
+                    F_new.data[ll, kk, jj] += p ** 2 * self.data[ii, jj, kk]
+        return F_new
+
+    def S(self, nA=None, nB=None):
+        F = copy.copy(self)
+        F.mask_fixed()
+        if nA == None and nB == None:
+            return F.sum()
+        else:
+            if nA is not None:
+                for ii in range(self.sample_size + 1):
+                    for jj in range(self.sample_size + 1 - ii):
+                        if ii + jj != nA:
+                            F.mask[ii, jj, :] = True
+            if nB is not None:
+                for ii in range(self.sample_size + 1):
+                    for kk in range(self.sample_size + 1 - ii):
+                        if ii + kk != nB:
+                            F.mask[ii, :, kk] = True
+            return F.sum()
+
     def D(self, proj=True, nA=None, nB=None):
         """
         Return the expectation of D from the spectrum.
@@ -190,7 +231,7 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = len(self) - 1
+        n = self.sample_size
         DD = 0
         for ii in range(n + 1):
             for jj in range(n + 1 - ii):
@@ -213,16 +254,14 @@ class TLSpectrum(numpy.ma.masked_array):
                             )
                         elif nB != ii + kk:
                             continue
-
+                    ll = n - ii - jj - kk
                     if proj == True:
                         DD += self.data[ii, jj, kk] * (
-                            ii * (n - ii - jj - kk) / float(n * (n - 1))
-                            - jj * kk / float(n * (n - 1))
+                            (ii * ll - jj * kk) / (n * (n - 1))
                         )
                     else:
                         DD += self.data[ii, jj, kk] * (
-                            ii * (n - ii - jj - kk) / float(n ** 2)
-                            - jj * kk / float(n ** 2)
+                            (ii * ll - jj * kk) / n ** 2
                         )
         return DD
 
@@ -237,7 +276,7 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = len(self) - 1
+        n = self.sample_size
         DD2 = 0
         for ii in range(n + 1):
             for jj in range(n + 1 - ii):
@@ -260,38 +299,25 @@ class TLSpectrum(numpy.ma.masked_array):
                             )
                         elif nB != ii + kk:
                             continue
-
+                    ll = n - ii - jj - kk
                     if proj == True:
                         DD2 += (
                             self.data[ii, jj, kk]
-                            * 1.0
-                            / 3
                             * (
-                                scipy.special.binom(ii, 2)
-                                * scipy.special.binom(n - ii - jj - kk, 2)
-                                / scipy.special.binom(n, 4)
-                                + scipy.special.binom(jj, 2)
-                                * scipy.special.binom(kk, 2)
-                                / scipy.special.binom(n, 4)
-                                - 1.0
-                                / 2
-                                * ii
-                                * jj
-                                * kk
-                                * (n - ii - jj - kk)
-                                / scipy.special.binom(n, 4)
+                                ii * (ii - 1) * ll * (ll - 1)
+                                + jj * (jj - 1) * kk * (kk - 1)
+                                - 2 * ii * jj * kk * ll
                             )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
                         )
                     else:
                         DD2 += (
                             self.data[ii, jj, kk]
-                            * 2.0
-                            / n ** 4
                             * (
-                                ii ** 2 * (n - ii - jj - kk) ** 2
+                                ii ** 2 * ll ** 2
                                 + jj ** 2 * kk ** 2
-                                - 2 * ii * jj * kk * (n - ii - jj - kk)
-                            )
+                                - 2 * ii * jj * kk * ll
+                            ) / n ** 4
                         )
         return DD2
 
@@ -306,7 +332,7 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = len(self) - 1
+        n = self.sample_size
         stat = 0
         for ii in range(n + 1):
             for jj in range(n + 1 - ii):
@@ -334,31 +360,28 @@ class TLSpectrum(numpy.ma.masked_array):
                     if proj == True:
                         stat += (
                             self.data[ii, jj, kk]
-                            * 2.0
-                            / scipy.special.binom(n, 4)
                             * (
-                                ii * (ii - 1) / 2 * jj * kk / 12.0
-                                + ii * jj * (jj - 1) / 2 * kk / 12.0
-                                + ii * jj * kk * (kk - 1) / 2 / 12.0
-                                + jj * (jj - 1) / 2 * kk * (kk - 1) / 2 / 6.0
-                                + ii * (ii - 1) / 2 * jj * ll / 12.0
-                                + ii * jj * (jj - 1) / 2 * ll / 12.0
-                                + ii * (ii - 1) / 2 * kk * ll / 12.0
-                                + 2 * ii * jj * kk * ll / 24.0
-                                + jj * (jj - 1) / 2 * kk * ll / 12.0
-                                + ii * kk * (kk - 1) / 2 * ll / 12.0
-                                + jj * kk * (kk - 1) / 2 * ll / 12.0
-                                + ii * (ii - 1) / 2 * ll * (ll - 1) / 2 / 6.0
-                                + ii * jj * ll * (ll - 1) / 2 / 12.0
-                                + ii * kk * ll * (ll - 1) / 2 / 12.0
-                                + jj * kk * ll * (ll - 1) / 2 / 12.0
+                                ii * (ii - 1) * jj * kk
+                                + ii * jj * (jj - 1) * kk
+                                + ii * jj * kk * (kk - 1)
+                                + jj * (jj - 1) * kk * (kk - 1)
+                                + ii * (ii - 1) * jj * ll
+                                + ii * jj * (jj - 1) * ll
+                                + ii * (ii - 1) * kk * ll
+                                + 2 * ii * jj * kk * ll
+                                + jj * (jj - 1) * kk * ll
+                                + ii * kk * (kk - 1) * ll
+                                + jj * kk * (kk - 1) * ll
+                                + ii * (ii - 1) * ll * (ll - 1)
+                                + ii * jj * ll * (ll - 1)
+                                + ii * kk * ll * (ll - 1)
+                                + jj * kk * ll * (ll - 1)
                             )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
                         )
                     else:
                         stat += (
                             self.data[ii, jj, kk]
-                            * 2.0
-                            / n ** 4
                             * (
                                 ii ** 2 * jj * kk
                                 + ii * jj ** 2 * kk
@@ -376,28 +399,75 @@ class TLSpectrum(numpy.ma.masked_array):
                                 + ii * kk * ll ** 2
                                 + jj * kk * ll ** 2
                             )
+                            / n ** 4
                         )
         return stat
 
-    def Dz(self):
+    def Dz(self, proj=True, nA=None, nB=None):
         """
         Compute the expectation of D(1-2p)(1-2q) from the spectrum.
         """
-        F_proj = self.project(4)
-        stat = (
-            1.0 / 4 * F_proj[3, 0, 0]
-            - 1.0 / 3 * F_proj[2, 0, 0]
-            + 1.0 / 4 * F_proj[1, 0, 0]
-            - 1.0 / 12 * F_proj[2, 1, 1]
-            - 1.0 / 12 * F_proj[1, 2, 0]
-            - 1.0 / 12 * F_proj[1, 0, 2]
-            - 1.0 / 12 * F_proj[0, 1, 1]
-            + 1.0 / 4 * F_proj[0, 3, 1]
-            - 1.0 / 3 * F_proj[0, 2, 2]
-            + 1.0 / 4 * F_proj[0, 1, 3]
-            + 1.0 / 6 * F_proj[1, 1, 1]
-        )
-        return 2 * stat
+        n = self.sample_size
+        stat = 0
+        for ii in range(n + 1):
+            for jj in range(n + 1 - ii):
+                for kk in range(n + 1 - ii - jj):
+                    if self.mask[ii, jj, kk] == True:
+                        continue
+                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
+                        continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= self.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= self.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {self.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+                    ll = n - ii - jj - kk
+                    if proj == True:
+                        stat += (
+                            self.data[ii, jj, kk]
+                            * (
+                                -ii * (ii - 1) * jj * kk
+                                + jj * (jj - 1) * (jj - 2) * kk
+                                - 2 * jj * (jj - 1) * kk * (kk - 1)
+                                + jj * kk * (kk - 1) * (kk - 2)
+                                + ii * (ii - 1) * (ii - 2) * ll
+                                - ii * jj * (jj - 1) * ll
+                                + 4 * ii * jj * kk * ll
+                                - ii * kk * (kk - 1) * ll
+                                - 2 * ii * (ii - 1) * ll * (ll - 1)
+                                - jj * kk * ll * (ll - 1)
+                                + ii * ll * (ll - 1) * (ll - 2)
+                            )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
+                        )
+                    else:
+                        stat += (
+                            self.data[ii, jj, kk]
+                            * (
+                                -(ii ** 2) * jj * kk
+                                + jj ** 3 * kk
+                                - 2 * jj ** 2 * kk ** 2
+                                + jj * kk ** 3
+                                + ii ** 3 * ll
+                                - ii * jj ** 2 * ll
+                                + 4 * ii * jj * kk * ll
+                                - ii * kk ** 2 * ll
+                                - 2 * ii ** 2 * ll ** 2
+                                - jj * kk * ll ** 2
+                                + ii * ll ** 3
+                            )
+                            / n ** 4
+                        )
+        return stat
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
@@ -623,6 +693,7 @@ def %(method)s(self, other):
         rho=None,
         gamma=None,
         sel_params=None,
+        sel_params_general=None,
         theta=1.0,
         finite_genome=False,
         u=None,
@@ -648,6 +719,7 @@ def %(method)s(self, other):
         :param list sel_params: A list of selection parameters. See docstrings in
             Numerics. Selection parameters will be deprecated when we clean up the
             numerics and integration.
+        :param list sel_params_general: To be filled. ## TODO!!
         :param float theta: Population size scale mutation parameter.
         :param bool finite_genome: Defaults to False, in which case we use the
             infinite sites model. Otherwise, we use a reversible mutation model, and
@@ -674,6 +746,7 @@ def %(method)s(self, other):
             theta=theta,
             gamma=gamma,
             sel_params=sel_params,
+            sel_params_general=sel_params_general,
             finite_genome=finite_genome,
             u=u,
             v=v,

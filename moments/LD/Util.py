@@ -5,6 +5,7 @@ import numpy as np
 Heterozygosity and LD stat names
 """
 
+
 def het_names(num_pops):
     """
     Returns the heterozygosity statistic representation names.
@@ -40,9 +41,7 @@ def ld_names(num_pops):
                         continue
                     if ii == kk and ll < jj:
                         continue
-                    Ys.append(
-                        "pi2_{0}_{1}_{2}_{3}".format(ii, jj, kk, ll)
-                    )
+                    Ys.append("pi2_{0}_{1}_{2}_{3}".format(ii, jj, kk, ll))
     return Ys
 
 

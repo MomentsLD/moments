@@ -253,7 +253,9 @@ def steady_state(theta=0.001, rho=None, selfing_rate=None):
     else:
         h_ss = np.array([theta * (1 - selfing_rate / 2)])
     if hasattr(rho, "__len__"):  # list of rhos
-        ys_ss = [equilibrium_ld(theta=theta, rho=r, selfing_rate=selfing_rate) for r in rho]
+        ys_ss = [
+            equilibrium_ld(theta=theta, rho=r, selfing_rate=selfing_rate) for r in rho
+        ]
         return ys_ss + [h_ss]
     elif np.isscalar(rho):  # one rho value
         y_ss = equilibrium_ld(theta=theta, rho=rho, selfing_rate=selfing_rate)

@@ -76,7 +76,7 @@ def integrate(
             S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
         if sel_params_general is not None:
             compute_jk2 = True
-            S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
+            S = moments.TwoLocus.Numerics.selection_general(n, sel_params_general)
     else:
         if sel_params is not None:
             raise ValueError("if finite_genome is True, cannot use sel_params")

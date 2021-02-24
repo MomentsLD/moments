@@ -76,6 +76,7 @@ class ResultsTestCase(unittest.TestCase):
         fs2.integrate([2, 3], 0.3, gamma=gamma, h=h)
         self.assertTrue(np.allclose(fs.data, fs2.data))
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
 
 if __name__ == "__main__":
