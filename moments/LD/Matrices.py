@@ -256,6 +256,9 @@ def mutation_ld(num_pops, theta, frozen=None, selfing=None):
     row = []
     col = []
     data = []
+    if hasattr(selfing, "__len__"):
+        if np.all([s is None for s in selfing]):
+            selfing = None
 
     if frozen is None and selfing is None:
         for ii, mom in enumerate(names_ld):
@@ -313,6 +316,10 @@ def mutation_ld(num_pops, theta, frozen=None, selfing=None):
 
 
 def recombination(num_pops, r, frozen=None, selfing=None):
+    if hasattr(selfing, "__len__"):
+        if np.all([s is None for s in selfing]):
+            selfing = None
+
     names = Util.ld_names(num_pops)
     row = list(
         range(int(num_pops * (num_pops + 1) / 2 + num_pops ** 2 * (num_pops + 1) / 2))

@@ -26,6 +26,7 @@ def integrate(
     u=None,
     v=None,
     alternate_fg=False,
+    clustered_mutations=False,
 ):
     """
     There are two selection options:
@@ -67,7 +68,10 @@ def integrate(
             R = moments.TwoLocus.Numerics.recombination_reversible(n, rho)
 
     if finite_genome is False:
-        M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+        if clustered_mutations:
+            M_0to1 = moments.TwoLocus.Numerics.mutations_mnm(n, theta=theta)
+        else:
+            M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
         D = moments.TwoLocus.Numerics.drift(n)
         if sel_params is None and gamma != 0:
             sel_params = [2 * gamma, gamma, gamma]
@@ -78,6 +82,8 @@ def integrate(
             compute_jk2 = True
             S = moments.TwoLocus.Numerics.selection_general(n, sel_params_general)
     else:
+        if clustered_mutations:
+            raise ValueError("clustered mutations only allowed in ISM")
         if sel_params is not None:
             raise ValueError("if finite_genome is True, cannot use sel_params")
         if u is None or v is None:
@@ -109,7 +115,9 @@ def integrate(
 
         if t_elapsed == 0 or N_old != N or dt != dt_old:
             # recompute solver
-            Ab = M / 2.0 + D / (2.0 * N)
+            Ab = D / (2.0 * N)
+            if not clustered_mutations:
+                Ab += M / 2.0
             if rho != 0:
                 Ab += R.dot(J1)
             if (
@@ -150,7 +158,14 @@ def delete_rows_cols(A, b, indices):
     return A[mask][:, mask], b.compress(mask), remaining
 
 
-def steady_state(n, rho=0.0, theta=1.0, sel_params=None, sel_params_general=None):
+def steady_state(
+    n,
+    rho=0.0,
+    theta=1.0,
+    sel_params=None,
+    sel_params_general=None,
+    clustered_mutations=False,
+):
     """
     Compute the steady state distribution for the additive or general selection model
     and infinite sites.
@@ -163,10 +178,15 @@ def steady_state(n, rho=0.0, theta=1.0, sel_params=None, sel_params_general=None
     if sel_params is not None and sel_params_general is not None:
         raise ValueError("pick one selection model or the other")
 
-    M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
+    if clustered_mutations:
+        M_0to1 = moments.TwoLocus.Numerics.mutations_mnm(n, theta=theta)
+    else:
+        M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
     D = moments.TwoLocus.Numerics.drift(n)
 
-    Ab = M / 2.0 + D / 2.0
+    Ab = D / 2.0
+    if not clustered_mutations:
+        Ab += M / 2.0
 
     computed_jk1 = False
     if rho > 0:

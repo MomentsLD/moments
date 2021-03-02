@@ -269,7 +269,7 @@ def equilibrium_ld(theta=0.001, rho=0.0, selfing_rate=None):
         h_ss = np.array([theta])
     else:
         h_ss = np.array([theta * (1 - selfing_rate / 2)])
-    U = Matrices.mutation_ld(1, theta, selfing=selfing_rate)
-    R = Matrices.recombination(1, rho, selfing=selfing_rate)
+    U = Matrices.mutation_ld(1, theta, selfing=[selfing_rate])
+    R = Matrices.recombination(1, rho, selfing=[selfing_rate])
     D = Matrices.drift_ld(1, [1.0])
     return factorized(D + R)(-U.dot(h_ss))

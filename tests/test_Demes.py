@@ -431,31 +431,27 @@ class TestMomentsSFS(unittest.TestCase):
 
     def test_num_lineages(self):
         # simple merge model
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=100, end_time=100)])
-        g.deme(
-            id="pop1",
-            epochs=[demes.Epoch(initial_size=100, end_time=10)],
-            ancestors=["anc"],
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
+        b.add_deme(
+            "pop1", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="pop2",
-            epochs=[demes.Epoch(initial_size=100, end_time=10)],
-            ancestors=["anc"],
+        b.add_deme(
+            "pop2", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="pop3",
-            epochs=[demes.Epoch(initial_size=100, end_time=10)],
-            ancestors=["anc"],
+        b.add_deme(
+            "pop3", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="pop",
+        b.add_deme(
+            "pop",
             ancestors=["pop1", "pop2", "pop3"],
             proportions=[0.1, 0.2, 0.7],
-            epochs=[demes.Epoch(start_time=10, end_time=0, initial_size=100)],
+            start_time=10,
+            epochs=[dict(end_time=0, start_size=100)],
         )
+        g = b.resolve()
         sampled_demes = ["pop"]
-        demes_demo_events = g.list_demographic_events()
+        demes_demo_events = g.discrete_demographic_events()
         demo_events, demes_present = Demes._get_demographic_events(
             g, demes_demo_events, sampled_demes
         )
@@ -468,31 +464,27 @@ class TestMomentsSFS(unittest.TestCase):
         )
 
         # simple admix model
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=100, end_time=100)])
-        g.deme(
-            id="pop1",
-            epochs=[demes.Epoch(initial_size=100, end_time=0)],
-            ancestors=["anc"],
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
+        b.add_deme(
+            "pop1", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="pop2",
-            epochs=[demes.Epoch(initial_size=100, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            id="pop2", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="pop3",
-            epochs=[demes.Epoch(initial_size=100, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            id="pop3", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
+        b.add_deme(
             id="pop",
             ancestors=["pop1", "pop2", "pop3"],
             proportions=[0.1, 0.2, 0.7],
-            epochs=[demes.Epoch(start_time=10, initial_size=100, end_time=0)],
+            start_time=10,
+            epochs=[dict(start_size=100, end_time=0)],
         )
+        g = b.resolve()
         sampled_demes = ["pop"]
-        demes_demo_events = g.list_demographic_events()
+        demes_demo_events = g.discrete_demographic_events()
         demo_events, demes_present = Demes._get_demographic_events(
             g, demes_demo_events, sampled_demes
         )
@@ -506,45 +498,49 @@ class TestMomentsSFS(unittest.TestCase):
 
     # test basic results against moments implementation
     def test_one_pop(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="Pop", epochs=[demes.Epoch(initial_size=1000, end_time=0)])
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("Pop", epochs=[dict(start_size=1000, end_time=0)])
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop"], [20])
         fs_m = moments.Demographics1D.snm([20])
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(
-            id="Pop",
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme(
+            "Pop",
             epochs=[
-                demes.Epoch(initial_size=1000, end_time=2000),
-                demes.Epoch(end_time=0, initial_size=10000),
+                dict(start_size=1000, end_time=2000),
+                dict(end_time=0, start_size=10000),
             ],
         )
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop"], [20])
         fs_m = moments.Demographics1D.snm([20])
         fs_m.integrate([10], 1)
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_more_than_5_demes(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=1000)])
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=1000)])
         for i in range(6):
-            g.deme(
-                id=f"pop{i}",
-                epochs=[demes.Epoch(initial_size=1000, end_time=0)],
+            b.add_deme(
+                f"pop{i}",
+                epochs=[dict(start_size=1000, end_time=0)],
                 ancestors=["anc"],
             )
+        g = b.resolve()
         with self.assertRaises(ValueError):
             Demes.SFS(g, ["pop{i}" for i in range(6)], [10 for i in range(6)])
 
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=1000)])
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=1000)])
         for i in range(3):
-            g.deme(
-                id=f"pop{i}",
-                epochs=[demes.Epoch(initial_size=1000, end_time=0)],
+            b.add_deme(
+                f"pop{i}",
+                epochs=[dict(start_size=1000, end_time=0)],
                 ancestors=["anc"],
             )
+        g = b.resolve()
         with self.assertRaises(ValueError):
             Demes.SFS(
                 g,
@@ -554,8 +550,9 @@ class TestMomentsSFS(unittest.TestCase):
             )
 
     def test_one_pop_ancient_samples(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="Pop", epochs=[demes.Epoch(initial_size=1000, end_time=0)])
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("Pop", epochs=[dict(start_size=1000, end_time=0)])
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop", "Pop"], [20, 4], sample_times=[0, 100])
         fs_m = moments.Demographics1D.snm([24])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 4)
@@ -563,24 +560,22 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_merge(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="Anc", epochs=[demes.Epoch(initial_size=1000, end_time=100)])
-        g.deme(
-            id="Source1",
-            epochs=[demes.Epoch(initial_size=2000, end_time=10)],
-            ancestors=["Anc"],
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme(
+            "Source1", epochs=[dict(start_size=2000, end_time=10)], ancestors=["Anc"],
         )
-        g.deme(
-            id="Source2",
-            epochs=[demes.Epoch(initial_size=3000, end_time=10)],
-            ancestors=["Anc"],
+        b.add_deme(
+            "Source2", epochs=[dict(start_size=3000, end_time=10)], ancestors=["Anc"],
         )
-        g.deme(
-            id="Pop",
+        b.add_deme(
+            "Pop",
             ancestors=["Source1", "Source2"],
             proportions=[0.8, 0.2],
-            epochs=[demes.Epoch(initial_size=4000, start_time=10, end_time=0)],
+            start_time=10,
+            epochs=[dict(start_size=4000, end_time=0)],
         )
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop"], [20])
 
         fs_m = moments.Demographics1D.snm([40])
@@ -591,24 +586,22 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_admixture(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="Anc", epochs=[demes.Epoch(initial_size=1000, end_time=100)])
-        g.deme(
-            id="Source1",
-            epochs=[demes.Epoch(initial_size=2000, end_time=0)],
-            ancestors=["Anc"],
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme(
+            "Source1", epochs=[dict(start_size=2000, end_time=0)], ancestors=["Anc"],
         )
-        g.deme(
-            id="Source2",
-            epochs=[demes.Epoch(initial_size=3000, end_time=0)],
-            ancestors=["Anc"],
+        b.add_deme(
+            "Source2", epochs=[dict(start_size=3000, end_time=0)], ancestors=["Anc"],
         )
-        g.deme(
-            id="Pop",
+        b.add_deme(
+            "Pop",
             ancestors=["Source1", "Source2"],
             proportions=[0.8, 0.2],
-            epochs=[demes.Epoch(start_time=10, initial_size=4000, end_time=0)],
+            start_time=10,
+            epochs=[dict(start_size=4000, end_time=0)],
         )
+        g = b.resolve()
         fs = Demes.SFS(g, ["Source1", "Source2", "Pop"], [10, 10, 10])
 
         fs_m = moments.Demographics1D.snm([40])
@@ -619,14 +612,15 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_growth_models(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(
-            id="Pop",
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme(
+            "Pop",
             epochs=[
-                demes.Epoch(end_time=1000, initial_size=1000),
-                demes.Epoch(initial_size=500, final_size=5000, end_time=0),
+                dict(end_time=1000, start_size=1000),
+                dict(start_size=500, end_size=5000, end_time=0),
             ],
         )
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop"], [100])
 
         fs_m = moments.Demographics1D.snm([100])
@@ -637,19 +631,17 @@ class TestMomentsSFS(unittest.TestCase):
         fs_m.integrate(nu_func, 0.5)
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(
-            id="Pop",
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme(
+            "Pop",
             epochs=[
-                demes.Epoch(end_time=1000, initial_size=1000),
-                demes.Epoch(
-                    initial_size=500,
-                    final_size=5000,
-                    end_time=0,
-                    size_function="linear",
+                dict(end_time=1000, start_size=1000),
+                dict(
+                    start_size=500, end_size=5000, end_time=0, size_function="linear",
                 ),
             ],
         )
+        g = b.resolve()
         fs = Demes.SFS(g, ["Pop"], [100])
 
         fs_m = moments.Demographics1D.snm([100])
@@ -661,19 +653,16 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_pulse_model(self):
-        g = demes.Graph(description="test", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=100)])
-        g.deme(
-            id="source",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme(
+            "source", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="dest",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            "dest", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.pulse(source="source", dest="dest", time=10, proportion=0.1)
+        b.add_pulse(source="source", dest="dest", time=10, proportion=0.1)
+        g = b.resolve()
         fs = Demes.SFS(g, ["source", "dest"], [20, 20])
 
         fs_m = moments.Demographics1D.snm([60])
@@ -684,23 +673,18 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_n_way_split(self):
-        g = demes.Graph(description="three-way", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=10)])
-        g.deme(
-            id="deme1",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b = demes.Builder(description="three-way", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=10)])
+        b.add_deme(
+            "deme1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="deme2",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            "deme2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="deme3",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            "deme3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
+        g = b.resolve()
         ns = [10, 15, 20]
         fs = Demes.SFS(g, ["deme1", "deme2", "deme3"], ns)
         self.assertTrue(np.all([fs.sample_sizes[i] == ns[i] for i in range(len(ns))]))
@@ -720,30 +704,25 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m2.data))
 
     def test_n_way_admixture(self):
-        g = demes.Graph(description="three-way merge", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=100)])
-        g.deme(
-            id="source1",
-            epochs=[demes.Epoch(initial_size=1000, end_time=10)],
-            ancestors=["anc"],
+        b = demes.Builder(description="three-way merge", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme(
+            "source1", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="source2",
-            epochs=[demes.Epoch(initial_size=1000, end_time=10)],
-            ancestors=["anc"],
+        b.add_deme(
+            "source2", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="source3",
-            epochs=[demes.Epoch(initial_size=1000, end_time=10)],
-            ancestors=["anc"],
+        b.add_deme(
+            "source3", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
         )
-        g.deme(
-            id="merged",
-            initial_size=1000,
+        b.add_deme(
+            "merged",
             ancestors=["source1", "source2", "source3"],
             proportions=[0.5, 0.2, 0.3],
-            epochs=[demes.Epoch(start_time=10, initial_size=1000, end_time=0)],
+            start_time=10,
+            epochs=[dict(start_size=1000, end_time=0)],
         )
+        g = b.resolve()
         ns = [10]
         fs = Demes.SFS(g, ["merged"], ns)
 
@@ -757,29 +736,25 @@ class TestMomentsSFS(unittest.TestCase):
 
         self.assertTrue(np.allclose(fs_m.data, fs.data))
 
-        g = demes.Graph(description="three-way admix", time_units="generations")
-        g.deme(id="anc", epochs=[demes.Epoch(initial_size=1000, end_time=100)])
-        g.deme(
-            id="source1",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b = demes.Builder(description="three-way admix", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme(
+            "source1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="source2",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            "source2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="source3",
-            epochs=[demes.Epoch(initial_size=1000, end_time=0)],
-            ancestors=["anc"],
+        b.add_deme(
+            "source3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        g.deme(
-            id="admixed",
+        b.add_deme(
+            "admixed",
             ancestors=["source1", "source2", "source3"],
             proportions=[0.5, 0.2, 0.3],
-            epochs=[demes.Epoch(start_time=10, initial_size=1000, end_time=0)],
+            start_time=10,
+            epochs=[dict(start_size=1000, end_time=0)],
         )
+        g = b.resolve()
         ns = [10]
         fs = Demes.SFS(g, ["admixed"], ns)
 

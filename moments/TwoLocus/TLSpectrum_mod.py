@@ -188,7 +188,7 @@ class TLSpectrum(numpy.ma.masked_array):
             return (1 - p) * self
         elif p > 1 or p < 0:
             raise ValueError("probability of misid must be between 0 and 1")
-        
+
         F_new = (1 - p) ** 2 * self
         for ii in range(self.sample_size + 1):
             for jj in range(self.sample_size + 1 - ii):
@@ -260,9 +260,7 @@ class TLSpectrum(numpy.ma.masked_array):
                             (ii * ll - jj * kk) / (n * (n - 1))
                         )
                     else:
-                        DD += self.data[ii, jj, kk] * (
-                            (ii * ll - jj * kk) / n ** 2
-                        )
+                        DD += self.data[ii, jj, kk] * ((ii * ll - jj * kk) / n ** 2)
         return DD
 
     def D2(self, proj=True, nA=None, nB=None):
@@ -317,7 +315,8 @@ class TLSpectrum(numpy.ma.masked_array):
                                 ii ** 2 * ll ** 2
                                 + jj ** 2 * kk ** 2
                                 - 2 * ii * jj * kk * ll
-                            ) / n ** 4
+                            )
+                            / n ** 4
                         )
         return DD2
 
@@ -699,6 +698,7 @@ def %(method)s(self, other):
         u=None,
         v=None,
         alternate_fg=None,
+        clustered_mutations=False,
     ):
         """
         Simulate the two-locus haplotype frequency spectrum forward in time.
@@ -751,6 +751,7 @@ def %(method)s(self, other):
             u=u,
             v=v,
             alternate_fg=alternate_fg,
+            clustered_mutations=clustered_mutations,
         )
 
         # return self # comment out (returned for testing earlier)

@@ -10,7 +10,11 @@ import numpy as np
 
 import moments
 import moments.LD
-import demes
+
+try:
+    import demes
+except ImportError:
+    raise ImportError("failed trying to import demes, try `pip install demes`")
 
 
 def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4):
@@ -51,8 +55,6 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         to n[i], where i is the deme index.
     :rtype: :class:`moments.Spectrum`
     """
-    import moments
-
     if len(sampled_demes) != len(sample_sizes):
         raise ValueError("sampled_demes and sample_sizes must be same length")
     if sample_times is not None and len(sampled_demes) != len(sample_times):
@@ -87,7 +89,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
 
     # get the list of demographic events from demes, which is a dictionary with
     # lists of splits, admixtures, mergers, branches, and pulses
-    demes_demo_events = g.list_demographic_events()
+    demes_demo_events = g.discrete_demographic_events()
 
     # get the dict of events and event times that partition integration epochs, in
     # descending order. events include demographic events, such as splits and
@@ -200,7 +202,7 @@ def LD(
 
     # get the list of demographic events from demes, which is a dictionary with
     # lists of splits, admixtures, mergers, branches, and pulses
-    demes_demo_events = g.list_demographic_events()
+    demes_demo_events = g.discrete_demographic_events()
 
     # get the dict of events and event times that partition integration epochs, in
     # descending order. events include demographic events, such as splits and
@@ -281,16 +283,19 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     the sample size).
     """
     frozen_demes = []
+    b = demes.Builder.fromdict(g.asdict())
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
         if st > 0:
             sd_frozen = sd + f"_sampled_{st}"
             frozen_demes.append(sd_frozen)
             sampled_demes[ii] = sd_frozen
-            g.deme(
-                id=sd_frozen,
-                epochs=[demes.Epoch(start_time=st, end_time=0, initial_size=1)],
+            b.add_deme(
+                sd_frozen,
+                start_time=st,
+                epochs=[dict(end_time=0, start_size=1)],
                 ancestors=[sd],
             )
+    g = b.resolve()
     return g, sampled_demes, frozen_demes
 
 
@@ -365,7 +370,7 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
 
     # if there are any unsampled demes that end before present and do not have
     # any descendent demes, we need to add marginalization events.
-    for deme_id, succs in g.successors.items():
+    for deme_id, succs in g.successors().items():
         if deme_id not in sampled_demes and (
             len(succs) == 0
             or np.all([g[succ].start_time > g[deme_id].end_time for succ in succs])
@@ -378,11 +383,11 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
 
 def _get_root_Ne(g):
     # get root population and set Ne to root size
-    for deme_id, preds in g.predecessors.items():
+    for deme_id, preds in g.predecessors().items():
         if len(preds) == 0:
             root_deme = deme_id
             break
-    Ne = g[root_deme].epochs[0].initial_size
+    Ne = g[root_deme].epochs[0].start_size
     return Ne
 
 
@@ -476,37 +481,33 @@ def _sizes_at_time(g, deme_id, time_interval):
     size_function = epoch.size_function
 
     if size_function == "constant":
-        start_size = end_size = epoch.initial_size
+        start_size = end_size = epoch.start_size
 
     if epoch.start_time == time_interval[0]:
-        start_size = epoch.initial_size
+        start_size = epoch.start_size
     else:
         if size_function == "exponential":
-            start_size = epoch.initial_size * np.exp(
-                np.log(epoch.final_size / epoch.initial_size)
+            start_size = epoch.start_size * np.exp(
+                np.log(epoch.end_size / epoch.start_size)
                 * (epoch.start_time - time_interval[0])
                 / epoch.time_span
             )
         elif size_function == "linear":
             frac = (epoch.start_time - time_interval[0]) / epoch.time_span
-            start_size = epoch.initial_size + frac * (
-                epoch.final_size - epoch.initial_size
-            )
+            start_size = epoch.start_size + frac * (epoch.end_size - epoch.start_size)
 
     if epoch.end_time == time_interval[1]:
-        end_size = epoch.final_size
+        end_size = epoch.end_size
     else:
         if size_function == "exponential":
-            end_size = epoch.initial_size * np.exp(
-                np.log(epoch.final_size / epoch.initial_size)
+            end_size = epoch.start_size * np.exp(
+                np.log(epoch.end_size / epoch.start_size)
                 * (epoch.start_time - time_interval[1])
                 / epoch.time_span
             )
         elif size_function == "linear":
             frac = (epoch.start_time - time_interval[1]) / epoch.time_span
-            end_size = epoch.initial_size + frac * (
-                epoch.final_size - epoch.initial_size
-            )
+            end_size = epoch.start_size + frac * (epoch.end_size - epoch.start_size)
 
     return start_size, end_size, size_function
 
@@ -517,9 +518,20 @@ def _migration_rate_in_interval(g, source, dest, time_interval):
     """
     rate = 0
     for mig in g.migrations:
-        if mig.source == source and mig.dest == dest:
-            if mig.start_time >= time_interval[0] and mig.end_time <= time_interval[1]:
-                rate = mig.rate
+        try:  # if asymmetric migration
+            if mig.source == source and mig.dest == dest:
+                if (
+                    mig.start_time >= time_interval[0]
+                    and mig.end_time <= time_interval[1]
+                ):
+                    rate = mig.rate
+        except AttributeError:  # symmetric migration
+            if source in mig.demes and dest in mig.demes:
+                if (
+                    mig.start_time >= time_interval[0]
+                    and mig.end_time <= time_interval[1]
+                ):
+                    rate = mig.rate
     return rate
 
 
@@ -935,7 +947,7 @@ def _get_selfing_rates(g, demes_present):
         for d in live_demes:
             # get the selfing rate for deme d in epoch that spans this interval
             for epoch in g[d].epochs:
-                if epoch.start_time <= interval[0] and epoch.end_time >= interval[1]:
+                if epoch.start_time >= interval[0] and epoch.end_time <= interval[1]:
                     interval_rates.append(epoch.selfing_rate)
         selfing_rates.append(interval_rates)
 
@@ -943,7 +955,7 @@ def _get_selfing_rates(g, demes_present):
 
 
 def _get_root_selfing_rate(g):
-    for deme_id, preds in g.predecessors.items():
+    for deme_id, preds in g.predecessors().items():
         if len(preds) == 0:
             root_deme = deme_id
             break

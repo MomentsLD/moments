@@ -292,6 +292,22 @@ def mutations(n, theta=1.0):
     return M_0to1, M_1to2
 
 
+def mutations_mnm(n, theta=1.0):
+    """
+    Instead of mutations falling on the background of already segregating mutations,
+    we assume clustered mutations occur, which create AB haplotypes directly, and
+    don't depend on the single locus distribution.
+
+    :param n: The sample size.
+    :param theta: The scaled mutation rate.
+    """
+    Msize = int((n + 1) * (n + 2) * (n + 3) / 6)
+    M_0to1 = np.zeros(Msize)
+    M_0to1[index_n(n, 0, 0, 1)] = M_0to1[index_n(n, 0, 1, 0)] = n * theta / 2.0
+    M_0to1[index_n(n, 1, 0, 0)] = n * theta / 2.0
+    return M_0to1
+
+
 def recombination(n, rho):
     """
     Returns the recombination operater for a given sample size.

@@ -1945,12 +1945,14 @@ class Spectrum(numpy.ma.masked_array):
             to n[i], where i is the deme index.
         :rtype: :class:`moments.Spectrum`
         """
+        global _imported_demes
         if not _imported_demes:
             try:
                 import demes
+                import moments.Demes
+                _imported_demes = True
             except ImportError:
-                raise ImportError("demes is not installed")
-            import moments.Demes
+                raise ImportError("demes is not installed, need to `pip install demes`")
 
         if isinstance(g, str):
             dg = demes.load(g)
