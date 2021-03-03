@@ -67,12 +67,48 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
     print(fs.pop_ids)
     print(fs.sample_sizes)
 
-It's that simple. We can similarly compute :ref:`LD statistics <sec_ld>`:
+It's that simple. We can also simulate data for a subset of the populations, while
+still accounting for migration with other non-sampled populations:
+
+.. jupyter-execute::
+
+    sampled_demes = ["YRI"]
+    sample_sizes = [40]
+
+    fs = moments.Spectrum.from_demes(
+         ooa_model, sampled_demes=sampled_demes, sample_sizes=sample_sizes
+    )
+ 
+    print(fs.pop_ids)
+    print(fs.sample_sizes)
+
+Or sample a combination of ancient and modern samples from a population:
+
+.. jupyter-execute::
+
+    sampled_demes = ["CEU", "CEU"]
+    sample_sizes = [10, 10]
+    # sample 10 from present, 10 from 20,000 years ago
+    sample_times = [0, 20000]
+
+    fs = moments.Spectrum.from_demes(
+         ooa_model,
+         sampled_demes=sampled_demes,
+         sample_sizes=sample_sizes, 
+         sample_times=sample_times
+    )
+
+    print(fs.pop_ids)
+    print(fs.sample_sizes)
+
+
+We can similarly compute :ref:`LD statistics <sec_ld>`:
 
 .. jupyter-execute::
 
     import moments.LD
     
+    sampled_demes = ["YRI", "CEU", "CHB"]
     y = moments.LD.LDstats.from_demes(
         ooa_model, sampled_demes=sampled_demes, rho=[0, 1, 2]
     )

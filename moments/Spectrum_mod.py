@@ -1948,8 +1948,11 @@ class Spectrum(numpy.ma.masked_array):
         global _imported_demes
         if not _imported_demes:
             try:
+                global demes
+                global Demes
                 import demes
-                import moments.Demes
+                import moments.Demes as Demes
+
                 _imported_demes = True
             except ImportError:
                 raise ImportError("demes is not installed, need to `pip install demes`")
@@ -1959,8 +1962,13 @@ class Spectrum(numpy.ma.masked_array):
         else:
             dg = g
 
-        fs = moments.Demes.SFS(
-            dg, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4
+        fs = Demes.SFS(
+            dg,
+            sampled_demes,
+            sample_sizes,
+            sample_times=sample_times,
+            Ne=Ne,
+            unsampled_n=unsampled_n,
         )
         return fs
 
