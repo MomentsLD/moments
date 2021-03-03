@@ -212,17 +212,17 @@ the SFS. That SFS is then projected to the needed sample size and chached.
 
 .. code-block:: python
 
-    def selection_spectrum(gamma):
+    def selection_spectrum(gamma, h=0.5):
         rerun = True
         ns_sim = 100
         while rerun:
             ns_sim = 2 * ns_sim
-            fs = moments.LinearSystem_1D.steady_state_1D(ns_sim, gamma=gamma)
+            fs = moments.LinearSystem_1D.steady_state_1D(ns_sim, gamma=gamma, h=h)
             fs = moments.Spectrum(fs)
-            fs.integrate([opt_params[0]], opt_params[2], gamma=gamma)
+            fs.integrate([opt_params[0]], opt_params[2], gamma=gamma, h=h)
             nu_func = lambda t: [opt_params[0] * np.exp(
                 np.log(opt_params[1] / opt_params[0]) * t / opt_params[3])]
-            fs.integrate(nu_func, opt_params[3], gamma=gamma)
+            fs.integrate(nu_func, opt_params[3], gamma=gamma, h=h)
             if abs(np.max(fs)) > 10 or np.any(np.isnan(fs)):
                 # large gamma-values can require large sample sizes for stability
                 rerun = True
@@ -304,7 +304,7 @@ To visualize the fit of our inferred model to the missense data, we run
 
     Gamma-DFE fit to the MSL missense data.
 
-Next, we LOF variants in exactly the same way:
+Next, we fit LOF variants in exactly the same way:
 
 .. jupyter-execute::
 
@@ -655,34 +655,6 @@ variants are inferred to be much more deleterious. This is because we did not ac
 for population size expansions in it history, which leads to an excess of rare variants
 for each class of mutations, and the model over-compensates for the excess of rare
 variants by fitting a DFE that is more skewed toward larger selection coefficients.
-
-********************************
-Non-additive models of selection
-********************************
-
-So far, we've assumed that all selection is additive, that is, the dominance coefficient
-:math:`h = 0.5`. Here, we'll fit:
-
-1. allow h to vary
-
-2. h is an exponental, from h = 0.5 for nearly neutral and decays to 0 or some value
-between 0 and 0.5 for very strongly deleterious mutations, with rate lambda for the
-exponential function
-
-.. todo::
-    Here, we've assumed that selective effects are additive. There is growing evidence
-    that deleterious mutations tend toward partial recessivity, and the relationship
-    between selection and domininance coefficients is non-trivial (strongly deleterious
-    mutations are likely to be more recessive on average than weakly deleterious
-    mutations). What happens if we try to take such effects into account?
-
-*********************************
-Are synonymous mutations neutral?
-*********************************
-
-.. todo::
-    Sneak preview: probably not. But how does it affect inference of the DFE of other
-    classes of mutations?
 
 **********
 References
