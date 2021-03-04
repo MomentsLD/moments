@@ -1,4 +1,4 @@
-# moments: tools for demographic inference
+# moments: tools for diversity statistics and inference
 
 `moments` implements methods for demographic history and selection inference
 from genetic data, based on diffusion approximations to the allele frequency spectrum.
@@ -26,10 +26,10 @@ If you use `moments.LD` in your research, please cite:
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
   from unphased data. Mol Biol Evol, 37(3), 923-932.
 
-`moments` is developed in
-[Simon Gravel's group](http://simongravel.lab.mcgill.ca/Home.html) in the Human
-Genetics department at McGill University, with maintenance and development by the
-Gravel Lab and [Aaron Ragsdale](http://apragsdale.github.io).
+`moments` is developed in [Simon Gravel's
+group](http://simongravel.lab.mcgill.ca/Home.html) in the Human Genetics
+department at McGill University, with with ongoing maintenance and development
+by the Gravel Lab and [Aaron Ragsdale](http://apragsdale.github.io).
 
 ## Getting started
 
@@ -123,6 +123,22 @@ additionally install
 - scikit-allel
 
 ## Changelog
+
+### 1.1.0
+
+- Completely rebuilt documentation, now hosted on [Read the
+  Docs](https://moments.readthedocs.io/)
+- Tutorials and modules in the documentation for running inference, inferring
+  the DFE, and exploring LD under a range of selection models
+- More helpful documentation in docstrings
+- Support for
+  [demes](https://moments.readthedocs.io/en/latest/extensions/demes.html)
+- Simpler functions to improve Spectrum manipulation and demographic events,
+  such as `fs.split()`, `fs.admix`, etc
+- API and numerics overhaul for Triallele and TwoLocus methods
+- Expanded selection models in the TwoLocus module
+- `moments.LD` methods are now zero-based (how embarrassing)
+- Reversible mutation model supports a single symmetric mutation rate - 
 
 ### 1.0.9
 

@@ -53,6 +53,38 @@ If you use ``moments.LD`` in your research, please cite:
 Change log
 **********
 
+1.1.0
+=====
+
+- Completely rebuilt documentation, now hosted on [Read the
+  Docs](https://moments.readthedocs.io/)
+
+- Tutorials and modules in the documentation for running inference, inferring
+  the DFE, and exploring LD under a range of selection models
+
+- More helpful documentation in docstrings
+
+- Support for
+  [demes](https://moments.readthedocs.io/en/latest/extensions/demes.html)
+
+- Simpler functions to improve Spectrum manipulation and demographic events,
+  such as fs.split(), fs.admix, etc
+
+- API and numerics overhaul for Triallele and TwoLocus methods
+
+- Expanded selection models in the TwoLocus module
+
+- moments.LD methods are now zero-based (how embarrassing)
+
+- Reversible mutation model supports a single symmetric mutation rate -
+
+1.0.9 
+=====
+
+- Numpy version bump from 0.19 to 0.20 creates incompatibility if cython extension
+  are built with different version than user environment. This more explicitly
+  specifies the numpy version to maintain compatibility (with thanks to Graham Gower)
+
 1.0.8
 =====
 
