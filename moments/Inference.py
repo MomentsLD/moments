@@ -347,7 +347,7 @@ def optimize_log_lbfgsb(
         args=args,
         iprint=-1,
         pgtol=pgtol,
-        maxfun=maxiter,
+        maxiter=maxiter,
         approx_grad=True,
     )
     xopt, fopt, info_dict = outputs
@@ -1168,7 +1168,7 @@ def optimize_lbfgsb(
         args=args,
         iprint=-1,
         pgtol=pgtol,
-        maxfun=maxiter,
+        maxiter=maxiter,
         approx_grad=True,
     )
     xopt, fopt, info_dict = outputs
