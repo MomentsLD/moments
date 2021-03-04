@@ -1,5 +1,8 @@
 # moments: tools for diversity statistics and inference
 
+Please see the [documentation](https://moments.readthedocs.io/)
+for more details, examples, and tutorials.
+
 `moments` implements methods for demographic history and selection inference
 from genetic data, based on diffusion approximations to the allele frequency spectrum.
 `moments` is based on the  [∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open
