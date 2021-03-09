@@ -519,6 +519,9 @@ def integrate_nomig(
     else:
         N = np.array(Npop)
 
+    if np.any(N <= 0):
+        raise ValueError("All population sizes must be positive")
+
     Nold = N.copy()
     # effective pop size for the integration
     Neff = N
@@ -568,6 +571,9 @@ def integrate_nomig(
 
         if callable(Npop):
             N = np.array(Npop((t + dt) / 2.0))
+            if np.any(N <= 0):
+                raise ValueError("All population sizes must be positive")
+
             Neff = Numerics.compute_N_effective(Npop, 0.5 * t, 0.5 * (t + dt))
             n_iter_max = 10
             n_iter = 0
@@ -575,6 +581,9 @@ def integrate_nomig(
             while np.max(np.abs(N - Nold) / Nold) > acceptable_change:
                 dt /= 2
                 N = np.array(Npop((t + dt) / 2.0))
+                if np.any(N <= 0):
+                    raise ValueError("All population sizes must be positive")
+
                 Neff = Numerics.compute_N_effective(Npop, 0.5 * t, 0.5 * (t + dt))
 
                 n_iter += 1
@@ -705,6 +714,9 @@ def integrate_neutral(
     else:
         N = np.array(Npop)
 
+    if np.any(N <= 0):
+        raise ValueError("All population sizes must be positive")
+
     Nold = N.copy()
     Neff = N
 
@@ -732,6 +744,9 @@ def integrate_neutral(
         # we update the value of N if a function was provided as argument
         if callable(Npop):
             N = np.array(Npop((t + dt) / 2.0))
+            if np.any(N <= 0):
+                raise ValueError("All population sizes must be positive")
+
             Neff = Numerics.compute_N_effective(Npop, 0.5 * t, 0.5 * (t + dt))
             n_iter_max = 10
             n_iter = 0
@@ -739,6 +754,9 @@ def integrate_neutral(
             while np.max(np.abs(N - Nold) / Nold) > acceptable_change:
                 dt /= 2
                 N = np.array(Npop((t + dt) / 2.0))
+                if np.any(N <= 0):
+                    raise ValueError("All population sizes must be positive")
+
                 Neff = Numerics.compute_N_effective(Npop, 0.5 * t, 0.5 * (t + dt))
 
                 n_iter += 1
