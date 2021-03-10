@@ -75,13 +75,22 @@ def _get_value(builder, values):
                                     f"can't get {attribute} from epoch {k2} "
                                     f"from deme {deme}"
                                 )
+                    elif k1 == "start_time":
+                        try:
+                            inputs.append(builder["demes"][deme_map[deme]][k1])
+                        except:
+                            raise ValueError(f"can't get {k1} from deme {deme}")
                     else:
-                        raise ValueError("set this up")
+                        raise ValueError("Cannot optimize {k1} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 inputs.append(builder["migrations"][mig_idx][attribute])
         if "pulses" in value.keys():
-            raise ValueError("set this up")
+            for pulse_idx, attribute in value["pulses"].items():
+                if attribute in ["time", "proportion"]:
+                    inputs.append(builder["pulses"][pulse_idx][attribute])
+                else:
+                    raise ValueError("Cannot optimize {attribute} from a pulse event")
     unique_inputs = set(inputs)
     if len(unique_inputs) == 0:
         raise ValueError("Didn't find inputs")
@@ -110,16 +119,25 @@ def _set_value(builder, values, new_val):
                                 ] = new_val
                             except:
                                 raise ValueError(
-                                    f"can't get {attribute} from epoch {k2} "
-                                    f"from deme {deme}"
+                                    f"can't set {attribute} for epoch {k2} "
+                                    f"in deme {deme}"
                                 )
+                    elif k1 == "start_time":
+                        try:
+                            builder["demes"][deme_map[deme]][k1] = new_val
+                        except:
+                            raise ValueError(f"can't set {k1} for deme {deme}")
                     else:
-                        raise ValueError("set this up")
+                        raise ValueError("can't set {k1} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 builder["migrations"][mig_idx][attribute] = new_val
         if "pulses" in value.keys():
-            raise ValueError("set this up")
+            for pulse_idx, attribute in value["pulses"].items():
+                if attribute in ["time", "proportion"]:
+                    builder["pulses"][pulse_idx][attribute] = new_val
+                else:
+                    raise ValueError("can't set new {attribute} in a pulse event")
     return builder
 
 
@@ -151,6 +169,23 @@ def _set_up_params_and_bounds(options, builder):
 
 def _set_up_constraints(options, param_names):
     if "constraints" in options:
+        # check that constraints are valid
+        if not np.all(
+            [
+                v["constraint"] in ["less_than", "greater_than"]
+                for v in options["constraints"]
+            ]
+        ):
+            raise ValueError("Constraints must be 'greater_than' or 'less_than'")
+        if not np.all([len(v["params"]) == 2 for v in options["constraints"]]):
+            raise ValueError("Constraints must be between two parameters")
+        params_to_fit = [o["name"] for o in options["parameters"]]
+        for v in options["constraints"]:
+            if v["params"][0] not in params_to_fit:
+                raise ValueError(f"parameter {v['params'][0]} not in parameters to fit")
+            if v["params"][1] not in params_to_fit:
+                raise ValueError(f"parameter {v['params'][1]} not in parameters to fit")
+        # set up constraints function
         constraints = lambda x: np.array(
             [
                 x[param_names.index(cons["params"][0])]
@@ -181,6 +216,9 @@ def _perturb_params_constrained(
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
+        tries += 1
+        if tries == reps:
+            raise ValueError("Failed to set up initial parameters with constraints")
     return p_guess
 
 
@@ -321,19 +359,13 @@ def optimize(
     # set other input options
     if "uL" in options:
         uL = options["uL"]
-    else:
-        uL = None
     if "verbose" in options:
         verbose = options["verbose"]
-    else:
-        verbose = 0
 
     # default is to optimize in log of parameters
     if "log" in options:
         log = options["log"]
         assert log in [True, False]
-    else:
-        log = True
 
     # determine method to use
     if "method" in options:
