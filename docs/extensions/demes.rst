@@ -16,11 +16,15 @@ Briefly, what is ``demes``?
 
 Demographic models specify the historical size changes, migrations, splits and
 mergers of related populations. Specifying demographic models using ``moments``
-or practically any other simulation can become very complicated and error
-prone, especially when we want to model more than one population (e.g.
-[Ragsdale]_). ``demes`` provides a human-readable specification of complex
-demography that is designed to make it easier to implement and share models and
-to be able to use that demography with multiple simulation engines.
+or practically any other simulation engine can become very complicated and
+error prone, especially when we want to model more than one population (e.g.
+[Ragsdale]_). Even worse, every individual software has its own language and
+methods for specifying a demographic model, so a user has to reimplement the
+same model across multiple software, which nobody enjoys. To resolve these
+issues of reproducibility, replication, and susceptibility to errors, ``demes``
+provides a human-readable specification of complex demography that is designed
+to make it easier to implement and share models and to be able to use that
+demography with multiple simulation engines.
 
 ``Demes`` models are written in YAML, and they are then automatically parsed to
 create an internal representation of the demography that is readable by
@@ -33,11 +37,11 @@ Simulating the SFS and LD using a ``demes`` model
 
 Computing expectations for the SFS or LD using a ``demes`` model is designed to
 be as simple as possible. In fact, there is no need for the user to specify any
-demographic models or integrate the SFS or LD objects. ``moments`` does all of
+demographic events or integrate the SFS or LD objects. ``moments`` does all of
 that for you.
 
 It's easiest to see the functionality through example. In the tests directory,
-there is a YAML description of the Gutenkunst Out-of-African model:
+there is a YAML description of the [Gutenkunst]_ Out-of-African model:
 
 .. literalinclude:: ../../tests/test_files/gutenkunst_ooa.yml
     :language: yaml
@@ -66,9 +70,10 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
 
     print(fs.pop_ids)
     print(fs.sample_sizes)
+    print("FST(CEU, CHB) =", f"{fs.marginalize([0]).Fst():.3}")
 
-It's that simple. We can also simulate data for a subset of the populations, while
-still accounting for migration with other non-sampled populations:
+It's that simple. We can also simulate data for a subset of the populations,
+while still accounting for migration with other non-sampled populations:
 
 .. jupyter-execute::
 
@@ -81,6 +86,7 @@ still accounting for migration with other non-sampled populations:
  
     print(fs.pop_ids)
     print(fs.sample_sizes)
+    print("Tajima's D =", f"{fs.Tajima_D():.3}")
 
 Or sample a combination of ancient and modern samples from a population:
 
@@ -100,6 +106,7 @@ Or sample a combination of ancient and modern samples from a population:
 
     print(fs.pop_ids)
     print(fs.sample_sizes)
+    print("FST(current, ancient) =", f"{fs.Fst():.3}")
 
 
 We can similarly compute :ref:`LD statistics <sec_ld>`:
@@ -128,20 +135,22 @@ data. The general idea is that we specify a parameterized model, compute the
 expected SFS under that model and it's likelihood given the data, and then
 update the model parameters to improve the fit. ``Moments`` uses ``scipy``'s
 `optimization functions
-<https://docs.scipy.org/doc/scipy/reference/optimize.html>`_.
+<https://docs.scipy.org/doc/scipy/reference/optimize.html>`_ to perform
+optimization.
 
-To run inference, we need three items: 1) the data (SFS) to be fit, 2) a
-parameterized demographic model, and 3) a way to tell the optimization function
-which parameters to fit and other options and rules for the optimizer to follow.
-We'll assume you already have a data SFS, with the ``pop_ids`` attribute given,
-saved using ``fs.tofile(data.fs)``. For example, the data could be a 3-dimensional
-SFS for the three sampled populations in the Out-of-Africa demography above, so
-that ``data.pop_ids = [YRI, CEU, CHB]``.
+To run the inference, we need three items: 1) the data (SFS) to be fit, 2)
+a parameterized demographic model, and 3) a way to tell the optimization
+function which parameters to fit along with other options and rules for the
+optimizer to follow. We'll assume you already have a data SFS, with the
+``pop_ids`` attribute given, saved using ``data.tofile("saved_data.fs")``. For
+example, the data could be a 3-dimensional SFS for the three sampled
+populations in the Out-of-Africa demography above, so that ``data.pop_ids
+= ["YRI", "CEU", "CHB"]``.
 
 The second item is the ``demes``-formatted demographic model, such as the model
 written above. In this model, the parameter values are the times, sizes, and
-migration rates, and the YAML file specifies all fixed parameters or the initial
-guesses for the parameters to be fit.
+migration rates, and the YAML file specifies all fixed parameters or the
+initial guesses for the parameters to be fit.
 
 The third item is a separate YAML-formatted file that tells the optimization
 function the variable parameters, any inequality constraints on the parameter
@@ -149,10 +158,11 @@ values and other optional arguments to pass to the optimization function.
 ``moments`` will read this YAML file into a dictionary using a YAML parser, so
 it needs to be valid and properly formatted YAML code. The only required field
 in the "options" YAML is ``parameters``. For each parameter to be fit, we must
-name that parameter, which can be any string, and we need to specify which
-values in the deme graph it points to. We can optionally include a description
-for our own sake, but the optimizer ignores that field.For example, to fit the
-bottleneck size in the Out-of-Africa model, we would include:
+name that parameter, which can be any unique string, and we need to specify
+which values in the deme graph it points to. We can optionally include
+a description for our own sake, but the optimizer ignores that field. For
+example, to fit the bottleneck size in the Out-of-Africa model, we would
+include:
 
 .. code-block:: YAML
 
@@ -166,13 +176,14 @@ bottleneck size in the Out-of-Africa model, we would include:
               0: start_size
 
 This says that the start size of the first (only) epoch of the OOA deme in the
-deme graph should be fit. All additional parameters to be fit are included here.
-Any parameter that is not included here is assumed to be a fixed parameter, and
-it will remain the value given in the deme graph.
+deme graph should be fit. All additional parameters to be fit are included here
+under ``parameters``. Any parameter that is not included here is assumed to be
+a fixed parameter, and it will remain the value given in the deme graph.
 
-The same parameter can affect multiple values in the deme graph. The size of the
-African population in the Out-of-Africa model is applied to both the AMH and the
-YRI demes. This simply requires adding additional keys in the ``values`` entry:
+The same parameter can affect multiple values in the deme graph. The size of
+the African population in the Out-of-Africa model is applied to both the AMH
+and the YRI demes. This simply requires adding additional keys in the
+``values`` entry:
 
 .. code-block:: YAML
 
@@ -242,8 +253,8 @@ list of constraints.
       constraint: greater_than
 
 This specifies each of the event timings in the OOA model to be fit, and the
-constraints say that ``TA`` is greater than ``TB``, and ``TB`` is greater than
-``TF``.
+constraints say that ``TA`` must be greater than ``TB``, and ``TB`` must be
+greater than ``TF``.
 
 Additional options can be passed to the optimization function using either
 keyword arguments in the ``moments.Demes.Inference.optimize`` function, or as
@@ -262,20 +273,22 @@ entries in this options YAML. These include
   mutation rate and the length of the callable genome used to compile the data
   SFS. If we don't give this scaled mutation rate, we optimize with theta as
   a free parameter. Otherwise, we optimize with theta given by :math:`\theta=4
-  \times N_e \times uL`, and :math:`N_e` is the size of the root/ancestral deme
-  (for which the size can be a parameter to be fit!).
+  \times N_e \times uL`, and :math:`N_e` is taken to be the size of the
+  root/ancestral deme (for which the size can be a either be a fixed parameter
+  or a parameter to be fit!).
 - ``log``: Defaults to True. If True, optimize the log of the parameters.
-- ``method``: The optimization method to use, which currently are "fmin"
+- ``method``: The optimization method to use, currently with the options "fmin"
   (Nelder-Mead), "powell", or "lbfgsb". Defaults to "fmin".
 
 
 Single-population inference example
 ===================================
 
-Here, we'll fit a simple single-population demographic model to the synonymous
-mutation SFS in the Mende (MSL) from the Thousand genomes data. The data for this
-population is stored in the docs/data directory. We previous parsed all coding
-variation and used a mutation model to estimate :math:`u\times L`.
+To demonstrate, we'll fit a simple single-population demographic model to the
+synonymous variant SFS in the Mende (MSL) from the Thousand Genomes data. The
+data for this population is stored in the docs/data directory. We previous
+parsed all coding variation and used a mutation model to estimate
+:math:`u\times L`.
 
 .. jupyter-execute::
 
@@ -321,12 +334,18 @@ And now we can run the inference:
         print(f"{n}\t{p:.3}")
 
 .. note:: We can tell the optimization function to write a new deme graph YAML
-    by passing the option ``output=new_deme_graph.yml``, and can specify whether
-    to overwrite an existing file with that name if ``overwrite=True``.
+    by passing the option ``output="new_deme_graph.yml"``, and can specify whether
+    to overwrite an existing file with that file path and name by setting
+    ``overwrite=True``.
 
 **********
 References
 **********
+
+.. [Gutenkunst]
+    Gutenkunst, Ryan N., et al. "Inferring the joint demographic history of
+    multiple populations from multidimensional SNP frequency data."
+    *PLoS genet* 5.10 (2009): e1000695.
 
 .. [Ragsdale]
     Ragsdale, Aaron P., et al. "Lessons learned from bugs in models of human
