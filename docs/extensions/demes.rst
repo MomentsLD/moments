@@ -298,6 +298,8 @@ parsed all coding variation and used a mutation model to estimate
     all_data = pickle.load(open("./data/msl_data.bp", "rb"))
     data = all_data["spectra"]["syn"]
     data.pop_ids = ["MSL"]
+    # infer using the folded SFS, since we aren't accounting for mispolarization here
+    data = data.fold()
     uL = all_data["rates"]["syn"]
     print("scaled mutation rate:", uL)
 
@@ -319,14 +321,16 @@ rate, we would not fit the ancestral size.)
 
 .. jupyter-execute::
 
-    deme_graph = "./data/msl_model.yml"
+    deme_graph = "./data/msl_initial_model.yml"
     options = "./data/msl_options.yml"
 
 And now we can run the inference:
 
 .. jupyter-execute::
 
-    ret = moments.Demes.Inference.optimize(deme_graph, options, data, uL=uL)
+    output = "./data/msl_best_fit_model.yml"
+    ret = moments.Demes.Inference.optimize(
+        deme_graph, options, data, uL=uL, output=output, overwrite=True)
     param_names, opt_params, LL = ret
     print("Log-likelihood:", -LL)
     print("Best fit parameters")
@@ -337,6 +341,19 @@ And now we can run the inference:
     by passing the option ``output="new_deme_graph.yml"``, and can specify whether
     to overwrite an existing file with that file path and name by setting
     ``overwrite=True``.
+
+.. todo:: Plot the inferred demographic model, using some upcoming demes plotting
+    tools that Graham Gower is developing.
+
+We can see how well our best fit model fits the data, using ``moments``'
+plotting features.
+
+.. jupyter-execute::
+
+    import matplotlib.pylab as plt
+    fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
+    moments.Plotting.plot_1d_comp_multinom(fs, data, show=False)
+    plt.gca().set_xlim([0, fs.sample_sizes[0] / 2 + 1]);
 
 **********
 References

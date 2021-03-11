@@ -5,9 +5,9 @@ generation_time: 29
 demes:
 - id: MSL
   epochs:
-  - end_time: 240000
-    start_size: 13000
-  - end_time: 15000
-    start_size: 26000
+  - end_time: 350000
+    start_size: 10000
+  - end_time: 20000
+    start_size: 25000
   - end_time: 0
-    end_size: 80000
+    end_size: 60000
