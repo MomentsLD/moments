@@ -1,0 +1,106 @@
+uL: 0.36
+parameters:
+- name: TA
+  description: Time before present of ancestral expansion
+  values:
+  - demes:
+      ancestral:
+        epochs:
+          0: end_time
+- name: TB
+  description: Time of YRI-OOA split
+  values:
+  - demes:
+      AMH:
+        epochs:
+          0: end_time
+- name: TF
+  description: Time of CEU-CHB split
+  upper_bound: 50000
+  lower_bound: 0
+  values:
+  - demes:
+      OOA:
+        epochs:
+          0: end_time
+- name: Ne
+  description: Ancestral effective size
+  values:
+  - demes:
+      ancestral:
+        epochs:
+          0: start_size
+- name: N_A
+  description: Expansion size
+  values:
+  - demes:
+      AMH:
+        epochs:
+          0: start_size
+      YRI:
+        epochs:
+          0: start_size
+- name: N_B
+  description: Bottleneck size
+  values:
+  - demes:
+      OOA:
+        epochs:
+          0: start_size
+- name: N_Eu0
+  description: Initial European size
+  values:
+  - demes:
+      CEU:
+        epochs:
+          0: start_size
+- name: N_EuF
+  description: Final European size
+  values:
+  - demes:
+      CEU:
+        epochs:
+          0: end_size
+- name: N_As0
+  description: Initial East Asian size
+  values:
+  - demes:
+      CHB:
+        epochs:
+          0: start_size
+- name: N_AsF
+  description: Final East Asian size
+  values:
+  - demes:
+      CHB:
+        epochs:
+          0: end_size
+- name: m_Af_OOA
+  description: Symmetric migration rate between Afr and OOA populations
+  upper_bound: 1e-3
+  values:
+  - migrations:
+      0: rate
+- name: m_Af_Eu
+  description: Symmetric migration rate between Afr and Eur populations
+  upper_bound: 1e-3
+  values:
+  - migrations:
+      1: rate
+- name: m_Af_As
+  description: Symmetric migration rate between Afr and E As populations
+  upper_bound: 1e-3
+  values:
+  - migrations:
+      2: rate
+- name: m_Eu_As
+  description: Symmetric migration rate between Eur and E As populations
+  upper_bound: 1e-3
+  values:
+  - migrations:
+      3: rate
+constraints:
+- params: [TA, TB]
+  constraint: greater_than
+- params: [TB, TF]
+  constraint: greater_than
