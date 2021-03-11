@@ -28,17 +28,15 @@ def _get_demes_dict(fname):
 def _get_params_dict(fname):
     """
     Options:
-    - data (required)
+    - data (optional)
     - uL (default to None)
     - perturb (default to 0)
     - verbose (default to 0)
     - parameters (what to fit)
     - constraints
     """
-    with open("inference_options.yml", "r") as fin:
+    with open(fname, "r") as fin:
         options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
-    if "data" not in options.keys():
-        raise ValueError("data frequency spectrum must be given")
     if "parameters" not in options.keys():
         raise ValueError("parameters to fit must be specified")
     return options
@@ -301,6 +299,8 @@ def optimize(
     log=True,
     method="fmin",
     output_stream=sys.stdout,
+    output=None,
+    overwrite=False,
 ):
     """
     Optimize demography given a deme graph of initial and fixed parameters and 
@@ -437,6 +437,19 @@ def optimize(
             approx_grad=True,
         )
         xopt, fopt, info_dict = outputs
+
     if log and method != "lbfgsb":
         xopt = np.exp(xopt)
+
+    if output is not None:
+        builder = _update_builder(builder, options, xopt)
+        g = demes.Graph.fromdict(builder)
+        if overwrite is False and os.path.isfile(output):
+            output_stream.write(
+                f"Did not write output YAML, {output} exists. "
+                "To overwrite, set overwrite=True." + os.linesep
+            )
+        else:
+            demes.dump(g, output)
+
     return param_names, xopt, fopt

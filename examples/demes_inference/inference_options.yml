@@ -1,6 +1,4 @@
-data: yri-ceu-chb.fs
 uL: 0.36
-verbose: 1
 parameters:
 - name: TA
   description: Time before present of ancestral expansion

@@ -8,7 +8,15 @@ options_file = "inference_options.yml"
 data_file = "data.uL_0.36.fs"
 
 ret = moments.Demes.Inference.optimize(
-    deme_graph, options_file, data_file, perturb=1, maxiter=1000, method="fmin"
+    deme_graph,
+    options_file,
+    data_file,
+    perturb=0.1,
+    verbose=20,
+    maxiter=100,
+    method="fmin",
+    output="output_test.yml",
+    overwrite=True,
 )
 
 param_names, opt_params, LL = ret
@@ -17,4 +25,3 @@ LL = -LL
 print("log-likelihood:", f"{LL:.1f}")
 for n, p in zip(param_names, opt_params):
     print(f"{n}\t{p:.3}")
-
