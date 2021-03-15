@@ -1,19 +1,27 @@
-imported_h5py = 0
-imported_allel = 0
+_imported_h5py = 0
+_imported_allel = 0
+_imported_pandas = 0
 import os
 
 try:
     os.environ["NUMEXPR_MAX_THREADS"] = "272"
     import allel
 
-    imported_allel = 1
+    _imported_allel = 1
 except ImportError:
     pass
 
 try:
     import h5py
 
-    imported_h5py = 1
+    _imported_h5py = 1
+except ImportError:
+    pass
+
+try:
+    import pandas
+
+    _imported_pandas = 1
 except ImportError:
     pass
 
@@ -21,19 +29,15 @@ from . import Util
 
 
 def check_imports():
-    if imported_allel == 0:
+    if _imported_allel == 0:
         raise ("Failed to import allel package needed for Parsing.")
-    if imported_h5py == 0:
+    if _imported_h5py == 0:
         raise ("Failed to import h5py package needed for Parsing.")
+    if _imported_pandas == 0:
+        raise ("Failed to import pandas package needed for Parsing.")
 
 
 import numpy as np
-
-try:
-    import pandas
-except ImportError:
-    print("pandas not found - moments.LD can be used but Parsing functions may fail")
-
 from collections import Counter, defaultdict
 
 # from . import stats_from_genotype_counts as sgc
@@ -54,7 +58,7 @@ except ImportError:
 # turn off UserWarnings from allel
 import warnings
 
-if imported_allel:
+if _imported_allel:
     warnings.filterwarnings(action="ignore", category=UserWarning)
 
 
