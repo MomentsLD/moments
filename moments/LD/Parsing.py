@@ -27,9 +27,13 @@ def check_imports():
         raise ("Failed to import h5py package needed for Parsing.")
 
 
-# later go through and trim the unneeded ones
 import numpy as np
-import pandas
+
+try:
+    import pandas
+except ImportError:
+    print("pandas not found - moments.LD can be used but Parsing functions may fail")
+
 from collections import Counter, defaultdict
 
 # from . import stats_from_genotype_counts as sgc
