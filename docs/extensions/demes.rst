@@ -309,7 +309,7 @@ directory as well.
 
 The YAML specification of this model is
 
-.. literalinclude:: ../data/msl_model.yml
+.. literalinclude:: ../data/msl_initial_model.yml
    :language: YAML
 
 And we can specify that we want to fit the times of the size changes, and all

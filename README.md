@@ -127,6 +127,13 @@ additionally install
 
 ## Changelog
 
+### 1.1.1
+
+- Fix RecursionError in moments.LD.Inference.sigmaD2
+- Fix bug when simulating LD using Demes if admixture timing coincides with
+  a deme's end time
+- Fix numpy.float deprecation warning in moments.LD.Numerics
+
 ### 1.1.0
 
 - Completely rebuilt documentation, now hosted on [Read the

@@ -31,7 +31,7 @@ class TestSplits(unittest.TestCase):
 
         rho = [0, 1]
         y = moments.LD.Demographics1D.snm(rho=rho, pop_ids=["O"])
-        out = Demes._apply_LD_events(y, ("split", "O", pop_ids), 0, pop_ids)
+        out = Demes._apply_LD_event(y, ("split", "O", pop_ids), 0, pop_ids)
         y = y.split(0, new_ids=pop_ids)
         self.assertTrue(np.all([x == y for x, y in zip(pop_ids, out.pop_ids)]))
         for s0, s1 in zip(y, out):
@@ -59,7 +59,7 @@ class TestSplits(unittest.TestCase):
             pop_ids=["A", "B"],
             num_pops=2,
         )
-        out = Demes._apply_LD_events(y, ("split", "B", child_ids), 0, ["A"] + child_ids)
+        out = Demes._apply_LD_event(y, ("split", "B", child_ids), 0, ["A"] + child_ids)
         self.assertTrue(out.num_pops == 4)
         self.assertTrue(
             np.all([i == j for i, j in zip(out.pop_ids, ["A"] + child_ids)])
@@ -87,7 +87,7 @@ class TestSplits(unittest.TestCase):
             pop_ids=["A", "B"],
             num_pops=2,
         )
-        out = Demes._apply_LD_events(y, ("split", "A", child_ids), 0, ["B"] + child_ids)
+        out = Demes._apply_LD_event(y, ("split", "A", child_ids), 0, ["B"] + child_ids)
         self.assertTrue(out.num_pops == 4)
         self.assertTrue(
             np.all([i == j for i, j in zip(out.pop_ids, ["C1", "B", "C2", "C3"])])
@@ -386,6 +386,75 @@ class CompareOOA(unittest.TestCase):
         for x, y in zip(y_demes, y_moments):
             self.assertTrue(np.allclose(x, y))
 
+
+class ComputeFromGraphs(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_admixture_with_marginalization(self):
+        # admixture scenario where two populations admix, one continues and the other is marginalized
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
+        b.add_deme(
+            "A", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+        )
+        b.add_deme(
+            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+        )
+        b.add_deme(
+            "C",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["A", "B"],
+            proportions=[0.75, 0.25],
+            start_time=50,
+        )
+        g = b.resolve()
+
+        fs = moments.Demographics1D.snm([30])
+        fs = fs.split(0, 20, 10)
+        fs.integrate([1, 1], 50 / 2 / 100)
+        fs = fs.admix(0, 1, 10, 0.75)
+        fs.integrate([1, 1], 50 / 2 / 100)
+        fs_demes = moments.Demes.SFS(g, sampled_demes=["A", "C"], sample_sizes=[10, 10])
+        self.assertTrue(np.allclose(fs.data, fs_demes.data))
+
+        y = moments.LD.Demographics1D.snm()
+        y = y.split(0)
+        y.integrate([1, 1], 50 / 2 / 100)
+        y = y.admix(0, 1, 0.75)
+        y = y.marginalize([1])
+        y.integrate([1, 1], 50 / 2 / 100)
+        y_demes = moments.Demes.LD(g, sampled_demes=["A", "C"])
+
+    def test_migration_end_and_marginalize(self):
+        # ghost population with migration that ends before time zero
+        b = demes.Builder(description="test", time_units="generations")
+        b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
+        b.add_deme(
+            "A", epochs=[dict(start_size=100, end_time=25)], ancestors=["anc"],
+        )
+        b.add_deme(
+            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+        )
+        b.add_deme(
+            "C", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+        )
+        b.add_deme(
+            "D", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+        )
+        b.add_migration
+        g = b.resolve()
+
+        fs_demes = moments.Demes.SFS(g, sampled_demes=["C", "D"], sample_sizes=[4, 4])
+        y_demes = moments.Demes.LD(g, sampled_demes=["C", "D"])
+        self.assertTrue(fs_demes.ndim == 2)
+        self.assertTrue(np.all([x == y for x, y in zip(fs_demes.pop_ids, ["C" ,"D"])]))
+        self.assertTrue(y_demes.num_pops == 2)
+        self.assertTrue(np.all([x == y for x, y in zip(y_demes.pop_ids, ["C" ,"D"])]))
 
 ### tests from demes
 

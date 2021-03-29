@@ -1009,14 +1009,20 @@ def _compute_LD(
 
         events = demo_events[interval[1]]
         for event in events:
-            y = _apply_LD_events(y, event, interval[1], demes_present)
+            y = _apply_LD_event(y, event, interval[1], demes_present)
 
         if interval[1] > 0:
             # rearrange to next order of demes
             next_interval = integration_intervals[
                 [x[0] for x in integration_intervals].index(interval[1])
             ]
+            # marginalize populations that are not in next interval
+            # possibly due to admixture event coinciding with deme end time
             next_deme_order = demes_present[next_interval]
+            to_marginalize = [x for x in y.pop_ids if x not in next_deme_order]
+            for marg_deme in to_marginalize:
+                event = ("marginalize", marg_deme)
+                y = _apply_LD_event(y, event, interval[1], demes_present)
             assert y.num_pops == len(next_deme_order)
             assert np.all([d in next_deme_order for d in y.pop_ids])
             y = _reorder_LD(y, next_deme_order)
@@ -1024,7 +1030,7 @@ def _compute_LD(
     return y
 
 
-def _apply_LD_events(y, event, t, demes_present):
+def _apply_LD_event(y, event, t, demes_present):
     e = event[0]
     if e == "marginalize":
         y = y.marginalize([y.pop_ids.index(event[1])])
