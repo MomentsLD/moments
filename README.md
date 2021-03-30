@@ -134,6 +134,7 @@ additionally install
   a deme's end time
 - Fix numpy.float deprecation warning in moments.LD.Numerics
 - Update demes methods to work with demes version 0.1.0a4
+- Improve some of the plotting outputs
 
 ### 1.1.0
 
