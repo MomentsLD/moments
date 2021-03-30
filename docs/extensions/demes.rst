@@ -10,9 +10,9 @@ describe a demographic model using ``demes``, head to the `demes repository
 <https://popsim-consortium.github.io/demes-docs/main/index.html>`_ to learn
 about specifying multi-population demographic models using ``demes``.
 
-***************************
-Briefly, what is ``demes``?
-***************************
+******************
+What is ``demes``?
+******************
 
 Demographic models specify the historical size changes, migrations, splits and
 mergers of related populations. Specifying demographic models using ``moments``

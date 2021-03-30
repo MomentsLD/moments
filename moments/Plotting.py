@@ -32,7 +32,7 @@ from moments import Numerics, Inference
 ## 1-population functions
 ##
 
-def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=1):
+def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
     """
     Plot a 1-dimensional frequency spectrum.
 
@@ -45,7 +45,7 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=
         If None, a new figure window is created.
     :param show: If True, execute pylab.show command to make sure plot displays.
     :param ax: If None, uses new or specified figure. Otherwise plots in axes object
-        that is given.
+        that is given after clearing.
     :param out: If file name is given, saves before showing.
     """
 
@@ -54,12 +54,14 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=
             fig = pylab.gcf()
         else:
             fig = pylab.figure(fig_num, figsize=(7, 7))
-        fig.clear()
+        plt.clf()
         axes = fig.add_subplot(1, 1, 1)
     else:
         axes = ax
+        plt.cla()
+        
 
-    axes.semilogy(fs, "-o", markersize=markersize, lw=lw)
+    axes.semilogy(fs, "-o", ms=ms, lw=lw)
 
     axes.set_xlim(0, fs.sample_sizes[0])
 
@@ -140,25 +142,34 @@ def plot_1d_comp_Poisson(
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
     ax = pylab.subplot(2, 1, 1)
-    pylab.semilogy(masked_data, "-ob")
-    pylab.semilogy(masked_model, "-or")
+    ax.semilogy(masked_data, "-o", ms=6, lw=1, mfc="w", label="Data")
+    ax.semilogy(masked_model, "-o", ms=3, lw=1, label="Model")
 
     if plot_masked:
-        pylab.semilogy(masked_data.data, "--ob", mfc="w", zorder=-100)
-        pylab.semilogy(masked_model.data, "--or", mfc="w", zorder=-100)
+        ax.semilogy(masked_data.data, "--o", ms=6, lw=1, mfc="w", zorder=-100, label=None)
+        ax.semilogy(masked_model.data, "--o", ms=4, lw=1, mfc="w", zorder=-100, label=None)
 
-    pylab.subplot(2, 1, 2, sharex=ax)
+    ax2 = pylab.subplot(2, 1, 2, sharex=ax)
     if residual == "Anscombe":
         resid = Inference.Anscombe_Poisson_residual(masked_model, masked_data)
     elif residual == "linear":
         resid = Inference.linear_Poisson_residual(masked_model, masked_data)
     else:
         raise ValueError("Unknown class of residual '%s'." % residual)
-    pylab.plot(resid, "-og")
+    
+    ax2.plot([], [])
+    ax2.plot([], [])
+    ax2.plot(resid, "-o", ms=4, lw=1)
     if plot_masked:
-        pylab.plot(resid.data, "--og", mfc="w", zorder=-100)
+        ax2.plot(resid.data, "--o", ms=4, lw=1, mfc="w", zorder=-100)
 
-    ax.set_xlim(0, data.shape[0] - 1)
+    ax.set_xlim(0, (data.shape[0] - 1) // (1 + data.folded * (1 - plot_masked)) + data.folded)
+
+    ax2.set_xlabel("Allele frequency")
+    ax.set_ylabel("Count")
+    ax2.set_ylabel("Residual")
+    ax.legend()
+
     if out is not None:
         f.tight_layout()
         pylab.savefig(out)
