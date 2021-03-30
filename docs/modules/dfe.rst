@@ -247,10 +247,11 @@ the SFS. That SFS is then projected to the needed sample size and chached.
 Optimization of the DFE
 -----------------------
 
-.. note::
-    fit a gamma DFE, with alpha and beta
-
-Set up thetas and functions:
+We'll fit a gamma distribution for the DFE, which has parameters alpha and beta.
+First, we set up the expected thetas for both missense and LOF mutations, as well
+as the function that weights the cached spectra based on the gamma distribution.
+The parameters we fit are then alpha and beta (or shape and scale) of the gamma
+distribution and the misidentification rate.
 
 .. jupyter-execute::
 
