@@ -133,6 +133,7 @@ additionally install
 - Fix bug when simulating LD using Demes if admixture timing coincides with
   a deme's end time
 - Fix numpy.float deprecation warning in moments.LD.Numerics
+- Update demes methods to work with demes version 0.1.0a4
 
 ### 1.1.0
 
