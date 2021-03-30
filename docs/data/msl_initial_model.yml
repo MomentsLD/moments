@@ -3,7 +3,7 @@ description: A single-population model to be fit to the MSL data. Initial guesse
 time_units: years
 generation_time: 29
 demes:
-- id: MSL
+- name: MSL
   epochs:
   - end_time: 350000
     start_size: 10000

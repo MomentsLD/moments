@@ -43,7 +43,7 @@ def _get_params_dict(fname):
 
 
 def _get_deme_map(builder):
-    deme_map = {deme["id"]: i for i, deme in enumerate(builder["demes"])}
+    deme_map = {deme["name"]: i for i, deme in enumerate(builder["demes"])}
     return deme_map
 
 
@@ -59,7 +59,7 @@ def _get_value(builder, values):
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
-                        "which has {[d['id'] for d in builder['demes']]}"
+                        "which has {[d['name'] for d in builder['demes']]}"
                     )
                 for k1 in value["demes"][deme].keys():
                     if k1 == "epochs":
@@ -106,7 +106,7 @@ def _set_value(builder, values, new_val):
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
-                        "which has {[d['id'] for d in builder['demes']]}"
+                        "which has {[d['name'] for d in builder['demes']]}"
                     )
                 for k1 in value["demes"][deme].keys():
                     if k1 == "epochs":
