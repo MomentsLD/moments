@@ -53,7 +53,7 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
         if fig_num is None:
             fig = pylab.gcf()
         else:
-            fig = pylab.figure(fig_num, figsize=(7, 7))
+            fig = pylab.figure(fig_num, figsize=(8, 4))
         plt.clf()
         axes = fig.add_subplot(1, 1, 1)
     else:
@@ -133,7 +133,7 @@ def plot_1d_comp_Poisson(
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(7, 7))
+        f = pylab.figure(fig_num, figsize=(8, 8))
     pylab.clf()
 
     if data.folded and not model.folded:
