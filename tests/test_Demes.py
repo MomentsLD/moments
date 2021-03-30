@@ -539,13 +539,13 @@ class TestMomentsSFS(unittest.TestCase):
             "pop1", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
         b.add_deme(
-            id="pop2", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop2", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
         b.add_deme(
-            id="pop3", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop3", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
         )
         b.add_deme(
-            id="pop",
+            "pop",
             ancestors=["pop1", "pop2", "pop3"],
             proportions=[0.1, 0.2, 0.7],
             start_time=10,

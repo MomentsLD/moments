@@ -330,7 +330,7 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     # add demes as they appear from past to present to end of lists
     deme_start_times = defaultdict(list)
     for deme in g.demes:
-        deme_start_times[deme.start_time].append(deme.id)
+        deme_start_times[deme.start_time].append(deme.name)
 
     if math.inf not in deme_start_times.keys():
         raise ValueError("Root deme must have start time as inf")
