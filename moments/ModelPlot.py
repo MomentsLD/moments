@@ -25,9 +25,17 @@ try:
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
+    _imported_mpl = True
 except ImportError:
-    print("matplotlib not found - moments can be used but plotting features "
-          "will not work")
+    _imported_mpl = False
+
+
+def _check_mpl_imported():
+    if not_imported_mpl:
+        raise ValueError(
+            "matplotlib not found - moments can be used but "
+            "plotting features will not work"
+        )
 
 import numpy as np
 
@@ -52,6 +60,7 @@ def generate_model(model_func, params, ns, precision=100):
 
     Returns a _ModelInfo object storing the information.
     """
+    _check_mpl_imported()
     # Initialize model and collect necessary information from model function
     model = _ModelInfo(precision)
     model_func(params, ns)
@@ -149,6 +158,7 @@ def plot_model(
 
     arrow_color : Color of the arrows showing migrations between populations.
     """
+    _check_mpl_imported()
     # Set up the plot with a title and axis labels
     fig_kwargs = {
         "figsize": (9.6, 5.4),

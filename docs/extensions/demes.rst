@@ -353,7 +353,6 @@ plotting features.
     import matplotlib.pylab as plt
     fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
     moments.Plotting.plot_1d_comp_multinom(fs, data, show=False)
-    plt.gca().set_xlim([0, fs.sample_sizes[0] / 2 + 1]);
 
 **********
 References

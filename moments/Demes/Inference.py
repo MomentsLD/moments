@@ -4,6 +4,7 @@
 
 try:
     import demes
+    import ruamel
     _imported_demes = True
 except ImportError:
     _imported_demes = False

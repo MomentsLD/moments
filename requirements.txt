@@ -6,4 +6,5 @@ matplotlib
 ipython
 pandas
 jupyter_sphinx
-demes
+demes==0.1.0a4
+ruamel.yaml

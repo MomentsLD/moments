@@ -1,7 +1,8 @@
+import numpy as np
 import matplotlib
 import pylab
-import numpy
 import matplotlib.pyplot as plt
+
 
 #: Custom ticks that label only the lowest and highest bins in an FS plot.
 class _sfsTickLocator(matplotlib.ticker.Locator):
@@ -19,8 +20,7 @@ class _sfsTickLocator(matplotlib.ticker.Locator):
         tmin = max(vmin, dmin)
         tmax = min(vmax, dmax)
 
-        return numpy.array([round(tmin) + 0.5, round(tmax) - 0.5])
-
+        return np.array([round(tmin) + 0.5, round(tmax) - 0.5])
 
 #: Custom tick formatter
 _ctf = matplotlib.ticker.FuncFormatter(lambda x, pos: "%i" % (x - 0.4))
@@ -48,7 +48,6 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
         that is given after clearing.
     :param out: If file name is given, saves before showing.
     """
-
     if ax is None:
         if fig_num is None:
             fig = pylab.gcf()
@@ -238,7 +237,7 @@ def plot_single_2d_sfs(
         )
         format = None
     mappable = axes.pcolor(
-        numpy.ma.masked_where(sfs < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
+        np.ma.masked_where(sfs < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
     )
     cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:
@@ -523,7 +522,7 @@ def plot_2d_comp_Poisson(
     ax3.set_title("residuals")
 
     ax = pylab.subplot(2, 2, 4)
-    flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), resid.ravel())
+    flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
     ax.hist(flatresid, bins=20, density=True)
     ax.set_title("residuals")
     ax.set_yticks([])
@@ -739,7 +738,7 @@ def plot_3d_comp_Poisson(
         )
 
         ax = pylab.subplot(4, 3, sax + 10)
-        flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), resid.ravel())
+        flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
         ax.hist(flatresid, bins=20, density=True)
         ax.set_yticks([])
 
@@ -778,12 +777,12 @@ def plot_3d_spectrum(
         vmax = fs.max()
 
     # Which entries should I plot?
-    toplot = numpy.logical_not(fs.mask)
-    toplot = numpy.logical_and(toplot, fs.data >= vmin)
+    toplot = np.logical_not(fs.mask)
+    toplot = np.logical_and(toplot, fs.data >= vmin)
 
     # Figure out the color mapping.
-    normalized = (numpy.log(fs) - numpy.log(vmin)) / (numpy.log(vmax) - numpy.log(vmin))
-    normalized = numpy.minimum(normalized, 1)
+    normalized = (np.log(fs) - np.log(vmin)) / (np.log(vmax) - np.log(vmin))
+    normalized = np.minimum(normalized, 1)
     colors = pylab.cm.hsv(normalized)
 
     # We draw by calculating which faces are visible and including each as a
@@ -1107,8 +1106,8 @@ def plot_4d_comp_Poisson(
             )
 
             ax = pylab.subplot(4, 6, cptr + 19)
-            flatresid = numpy.compress(
-                numpy.logical_not(resid.mask.ravel()), resid.ravel()
+            flatresid = np.compress(
+                np.logical_not(resid.mask.ravel()), resid.ravel()
             )
             ax.hist(flatresid, bins=20, density=True)
             ax.set_yticks([])
