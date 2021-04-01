@@ -40,10 +40,11 @@ def sigmaD2(y, normalization=0):
         (normalized by pi2_i_i_i_i and H_i_i), default set to 0.
     :type normalization: int, optional
     """
-    if normalization > y.num_pops - 1:
+    if normalization >= y.num_pops or normalization < 0:
         raise ValueError("Normalization index must be for a present population")
 
-    out = copy.deepcopy(y)
+    
+    out = LDstats(copy.deepcopy(y[:]), num_pops=y.num_pops, pop_ids=y.pop_ids)
 
     for i in range(len(y))[:-1]:
         out[i] /= y[i][y.names()[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))]

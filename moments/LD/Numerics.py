@@ -149,7 +149,7 @@ def integrate(
     if callable(nu):
         nus = nu(0)
     else:
-        nus = [np.float(nu_pop) for nu_pop in nu]
+        nus = [float(nu_pop) for nu_pop in nu]
 
     Uh, Uld = mutation(num_pops, theta, frozen=frozen, selfing=selfing)
 

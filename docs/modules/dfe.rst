@@ -160,15 +160,14 @@ Note that I initialized the model parameters fairly close to the optimal paramet
 In practice, you would want to test a wide range of initial conditions to make sure
 our inference didn't get stuck at a local minimum.
 
-We can see how well our model fit the synonymous data by calling
-``moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")``:
+We can see how well our model fit the synonymous data:
 
-.. _syn_fit:
-.. figure:: ../figures/msl_syn_comparison.png
-    :align: center
+.. jupyter-execute::
+    
+    moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
 
-    Demographic model fit to the MSL synonymous data. Top: model (red) and synonymous
-    data (blue) SFS. Bottom: residuals, plotted as ``(model - data) / sqrt(data)``.
+    # Demographic model fit to the MSL synonymous data. Top: model (red) and synonymous
+    # data (blue) SFS. Bottom: residuals, plotted as ``(model - data) / sqrt(data)``.
 
 That's a pretty good fit! Now that we have our inferred demographic model, let's
 move on to inferring the DFEs for missense and LOF variants.
@@ -247,10 +246,11 @@ the SFS. That SFS is then projected to the needed sample size and chached.
 Optimization of the DFE
 -----------------------
 
-.. note::
-    fit a gamma DFE, with alpha and beta
-
-Set up thetas and functions:
+We'll fit a gamma distribution for the DFE, which has parameters alpha and beta.
+First, we set up the expected thetas for both missense and LOF mutations, as well
+as the function that weights the cached spectra based on the gamma distribution.
+The parameters we fit are then alpha and beta (or shape and scale) of the gamma
+distribution and the misidentification rate.
 
 .. jupyter-execute::
 
@@ -295,14 +295,13 @@ Fit missense variants:
     print("scale:", f"{opt_params_mis[1]:.1f}")
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
 
-To visualize the fit of our inferred model to the missense data, we run
-``moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")``:
+To visualize the fit of our inferred model to the missense data:
 
-.. _mis_fit:
-.. figure:: ../figures/msl_mis_comparison.png
-    :align: center
-
-    Gamma-DFE fit to the MSL missense data.
+.. jupyter-execute:: 
+    
+    moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")
+    
+    # Gamma-DFE fit to the MSL missense data.
 
 Next, we fit LOF variants in exactly the same way:
 
@@ -323,14 +322,13 @@ Next, we fit LOF variants in exactly the same way:
     print("scale:", f"{opt_params_lof[1]:.1f}")
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
 
-And again we visualize the fit of our inferred model to the LOF data with
-``moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")``:
+And again we visualize the fit of our inferred model to the LOF data:
 
-.. _lof_fit:
-.. figure:: ../figures/msl_lof_comparison.png
-    :align: center
+.. jupyter-execute::
 
-    Gamma-DFE fit to the MSL loss-of-function data.
+    moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")
+
+    # Gamma-DFE fit to the MSL loss-of-function data.
 
 Using the inferred :math:`N_e` from fitting the demographic model to the synonymous
 data and the function ``scipy.stats.gamma.cdf()``, we can compute the proportions

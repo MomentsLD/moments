@@ -1,7 +1,8 @@
+import numpy as np
 import matplotlib
 import pylab
-import numpy
 import matplotlib.pyplot as plt
+
 
 #: Custom ticks that label only the lowest and highest bins in an FS plot.
 class _sfsTickLocator(matplotlib.ticker.Locator):
@@ -19,8 +20,7 @@ class _sfsTickLocator(matplotlib.ticker.Locator):
         tmin = max(vmin, dmin)
         tmax = min(vmax, dmax)
 
-        return numpy.array([round(tmin) + 0.5, round(tmax) - 0.5])
-
+        return np.array([round(tmin) + 0.5, round(tmax) - 0.5])
 
 #: Custom tick formatter
 _ctf = matplotlib.ticker.FuncFormatter(lambda x, pos: "%i" % (x - 0.4))
@@ -32,7 +32,7 @@ from moments import Numerics, Inference
 ## 1-population functions
 ##
 
-def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=1):
+def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
     """
     Plot a 1-dimensional frequency spectrum.
 
@@ -45,21 +45,22 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, markersize=2, lw=
         If None, a new figure window is created.
     :param show: If True, execute pylab.show command to make sure plot displays.
     :param ax: If None, uses new or specified figure. Otherwise plots in axes object
-        that is given.
+        that is given after clearing.
     :param out: If file name is given, saves before showing.
     """
-
     if ax is None:
         if fig_num is None:
             fig = pylab.gcf()
         else:
-            fig = pylab.figure(fig_num, figsize=(7, 7))
-        fig.clear()
+            fig = pylab.figure(fig_num, figsize=(8, 4))
+        plt.clf()
         axes = fig.add_subplot(1, 1, 1)
     else:
         axes = ax
+        plt.cla()
+        
 
-    axes.semilogy(fs, "-o", markersize=markersize, lw=lw)
+    axes.semilogy(fs, "-o", ms=ms, lw=lw)
 
     axes.set_xlim(0, fs.sample_sizes[0])
 
@@ -131,7 +132,7 @@ def plot_1d_comp_Poisson(
     if fig_num is None:
         f = pylab.gcf()
     else:
-        f = pylab.figure(fig_num, figsize=(7, 7))
+        f = pylab.figure(fig_num, figsize=(8, 8))
     pylab.clf()
 
     if data.folded and not model.folded:
@@ -140,25 +141,34 @@ def plot_1d_comp_Poisson(
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
     ax = pylab.subplot(2, 1, 1)
-    pylab.semilogy(masked_data, "-ob")
-    pylab.semilogy(masked_model, "-or")
+    ax.semilogy(masked_data, "-o", ms=6, lw=1, mfc="w", label="Data")
+    ax.semilogy(masked_model, "-o", ms=3, lw=1, label="Model")
 
     if plot_masked:
-        pylab.semilogy(masked_data.data, "--ob", mfc="w", zorder=-100)
-        pylab.semilogy(masked_model.data, "--or", mfc="w", zorder=-100)
+        ax.semilogy(masked_data.data, "--o", ms=6, lw=1, mfc="w", zorder=-100, label=None)
+        ax.semilogy(masked_model.data, "--o", ms=4, lw=1, mfc="w", zorder=-100, label=None)
 
-    pylab.subplot(2, 1, 2, sharex=ax)
+    ax2 = pylab.subplot(2, 1, 2, sharex=ax)
     if residual == "Anscombe":
         resid = Inference.Anscombe_Poisson_residual(masked_model, masked_data)
     elif residual == "linear":
         resid = Inference.linear_Poisson_residual(masked_model, masked_data)
     else:
         raise ValueError("Unknown class of residual '%s'." % residual)
-    pylab.plot(resid, "-og")
+    
+    ax2.plot([], [])
+    ax2.plot([], [])
+    ax2.plot(resid, "-o", ms=4, lw=1)
     if plot_masked:
-        pylab.plot(resid.data, "--og", mfc="w", zorder=-100)
+        ax2.plot(resid.data, "--o", ms=4, lw=1, mfc="w", zorder=-100)
 
-    ax.set_xlim(0, data.shape[0] - 1)
+    ax.set_xlim(0, (data.shape[0] - 1) // (1 + data.folded * (1 - plot_masked)) + data.folded)
+
+    ax2.set_xlabel("Allele frequency")
+    ax.set_ylabel("Count")
+    ax2.set_ylabel("Residual")
+    ax.legend()
+
     if out is not None:
         f.tight_layout()
         pylab.savefig(out)
@@ -227,7 +237,7 @@ def plot_single_2d_sfs(
         )
         format = None
     mappable = axes.pcolor(
-        numpy.ma.masked_where(sfs < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
+        np.ma.masked_where(sfs < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
     )
     cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:
@@ -512,7 +522,7 @@ def plot_2d_comp_Poisson(
     ax3.set_title("residuals")
 
     ax = pylab.subplot(2, 2, 4)
-    flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), resid.ravel())
+    flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
     ax.hist(flatresid, bins=20, density=True)
     ax.set_title("residuals")
     ax.set_yticks([])
@@ -728,7 +738,7 @@ def plot_3d_comp_Poisson(
         )
 
         ax = pylab.subplot(4, 3, sax + 10)
-        flatresid = numpy.compress(numpy.logical_not(resid.mask.ravel()), resid.ravel())
+        flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
         ax.hist(flatresid, bins=20, density=True)
         ax.set_yticks([])
 
@@ -767,12 +777,12 @@ def plot_3d_spectrum(
         vmax = fs.max()
 
     # Which entries should I plot?
-    toplot = numpy.logical_not(fs.mask)
-    toplot = numpy.logical_and(toplot, fs.data >= vmin)
+    toplot = np.logical_not(fs.mask)
+    toplot = np.logical_and(toplot, fs.data >= vmin)
 
     # Figure out the color mapping.
-    normalized = (numpy.log(fs) - numpy.log(vmin)) / (numpy.log(vmax) - numpy.log(vmin))
-    normalized = numpy.minimum(normalized, 1)
+    normalized = (np.log(fs) - np.log(vmin)) / (np.log(vmax) - np.log(vmin))
+    normalized = np.minimum(normalized, 1)
     colors = pylab.cm.hsv(normalized)
 
     # We draw by calculating which faces are visible and including each as a
@@ -1096,8 +1106,8 @@ def plot_4d_comp_Poisson(
             )
 
             ax = pylab.subplot(4, 6, cptr + 19)
-            flatresid = numpy.compress(
-                numpy.logical_not(resid.mask.ravel()), resid.ravel()
+            flatresid = np.compress(
+                np.logical_not(resid.mask.ravel()), resid.ravel()
             )
             ax.hist(flatresid, bins=20, density=True)
             ax.set_yticks([])

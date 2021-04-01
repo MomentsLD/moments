@@ -11,10 +11,20 @@ import numpy as np
 import moments
 import moments.LD
 
+
 try:
     import demes
+    _imported_demes = True
 except ImportError:
-    raise ImportError("failed trying to import demes, try `pip install demes`")
+    _imported_demes = False
+
+
+def _check_demes_imported():
+    if not _imported_demes:
+        raise ImportError(
+            "To simulate using demes, it must be installed -- "
+            "try `pip install demes`"
+        )
 
 
 def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4):
@@ -55,6 +65,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         to n[i], where i is the deme index.
     :rtype: :class:`moments.Spectrum`
     """
+    _check_demes_imported()
     if len(sampled_demes) != len(sample_sizes):
         raise ValueError("sampled_demes and sample_sizes must be same length")
     if sample_times is not None and len(sampled_demes) != len(sample_times):
@@ -175,6 +186,7 @@ def LD(
         to the length of ``sampled_demes``.
     :rtype: :class:`moments.LD.LDstats`
     """
+    _check_demes_imported()
     if sample_times is not None and len(sampled_demes) != len(sample_times):
         raise ValueError("sample_times must have same length as sampled_demes")
     for deme in sampled_demes:
@@ -330,7 +342,7 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     # add demes as they appear from past to present to end of lists
     deme_start_times = defaultdict(list)
     for deme in g.demes:
-        deme_start_times[deme.start_time].append(deme.id)
+        deme_start_times[deme.start_time].append(deme.name)
 
     if math.inf not in deme_start_times.keys():
         raise ValueError("Root deme must have start time as inf")
@@ -1009,14 +1021,20 @@ def _compute_LD(
 
         events = demo_events[interval[1]]
         for event in events:
-            y = _apply_LD_events(y, event, interval[1], demes_present)
+            y = _apply_LD_event(y, event, interval[1], demes_present)
 
         if interval[1] > 0:
             # rearrange to next order of demes
             next_interval = integration_intervals[
                 [x[0] for x in integration_intervals].index(interval[1])
             ]
+            # marginalize populations that are not in next interval
+            # possibly due to admixture event coinciding with deme end time
             next_deme_order = demes_present[next_interval]
+            to_marginalize = [x for x in y.pop_ids if x not in next_deme_order]
+            for marg_deme in to_marginalize:
+                event = ("marginalize", marg_deme)
+                y = _apply_LD_event(y, event, interval[1], demes_present)
             assert y.num_pops == len(next_deme_order)
             assert np.all([d in next_deme_order for d in y.pop_ids])
             y = _reorder_LD(y, next_deme_order)
@@ -1024,7 +1042,7 @@ def _compute_LD(
     return y
 
 
-def _apply_LD_events(y, event, t, demes_present):
+def _apply_LD_event(y, event, t, demes_present):
     e = event[0]
     if e == "marginalize":
         y = y.marginalize([y.pop_ids.index(event[1])])

@@ -1,0 +1,39 @@
+parameters:
+- name: T1
+  description: Time before present of ancestral expansion
+  values:
+  - demes:
+      MSL:
+        epochs:
+          0: end_time
+- name: T2
+  description: Time before present of start of exponential growth.
+  values:
+  - demes:
+      MSL:
+        epochs:
+          1: end_time
+- name: Ne
+  description: Effective (ancestral/root) size
+  values:
+  - demes:
+      MSL:
+        epochs:
+          0: start_size
+- name: NA
+  description: Ancestral expansion size
+  values:
+  - demes:
+      MSL:
+        epochs:
+          1: start_size
+- name: NF
+  description: Final population size
+  values:
+  - demes:
+      MSL:
+        epochs:
+          2: end_size
+constraints:
+- params: [T1, T2]
+  constraint: greater_than

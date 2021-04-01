@@ -701,6 +701,10 @@ class Spectrum(numpy.ma.masked_array):
             populations at the corresponding index.
         :type frozen: list of bools
         """
+
+        if tf < 0:
+            raise ValueError("Integration time cannot be negative")
+
         n = numpy.array(self.shape) - 1
 
         if m is not None and not callable(m):

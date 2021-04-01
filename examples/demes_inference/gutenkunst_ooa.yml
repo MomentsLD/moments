@@ -9,37 +9,37 @@ doi:
 time_units: years
 generation_time: 25
 demes:
-  - name: ancestral
+  - id: ancestral
     description: Equilibrium/root population
     epochs:
     - end_time: 220e3
       start_size: 7300
-  - name: AMH
+  - id: AMH
     description: Anatomically modern humans
     ancestors: [ancestral]
     epochs:
     - end_time: 140e3
       start_size: 12300
-  - name: OOA
+  - id: OOA
     description: Bottleneck out-of-Africa population
     ancestors: [AMH]
     epochs:
     - end_time: 21.2e3
       start_size: 2100
-  - name: YRI
+  - id: YRI
     description: Yoruba in Ibadan, Nigeria
     ancestors: [AMH]
     epochs:
     - start_size: 12300
       end_time: 0
-  - name: CEU
+  - id: CEU
     description: Utah Residents (CEPH) with Northern and Western European Ancestry
     ancestors: [OOA]
     epochs:
     - start_size: 1000
       end_size: 29725
       end_time: 0
-  - name: CHB
+  - id: CHB
     description: Han Chinese in Beijing, China
     ancestors: [OOA]
     epochs:
