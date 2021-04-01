@@ -4,12 +4,18 @@
 
 try:
     import demes
+    _imported_demes = True
 except ImportError:
-    raise ImportError("failed trying to import demes, try `pip install demes`")
-try:
-    import ruamel
-except ImportError:
-    raise ImportError("failed trying to import ruamel, should be shipped with demes")
+    _imported_demes = False
+
+
+def _check_demes_imported():
+    if not _imported_demes:
+        raise ImportError(
+            "To simulate using demes, it must be installed -- "
+            "try `pip install demes`"
+        )
+
 
 import moments
 import numpy as np
@@ -332,6 +338,7 @@ def optimize(
     :output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
     """
+    _check_demes_imported()
     # load file, data,
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
