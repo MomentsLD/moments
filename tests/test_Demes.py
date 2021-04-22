@@ -700,26 +700,27 @@ class TestMomentsSFS(unittest.TestCase):
         fs_m.integrate(nu_func, 0.5)
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
-        b = demes.Builder(description="test", time_units="generations")
-        b.add_deme(
-            "Pop",
-            epochs=[
-                dict(end_time=1000, start_size=1000),
-                dict(
-                    start_size=500, end_size=5000, end_time=0, size_function="linear",
-                ),
-            ],
-        )
-        g = b.resolve()
-        fs = Demes.SFS(g, ["Pop"], [100])
-
-        fs_m = moments.Demographics1D.snm([100])
-
-        def nu_func(t):
-            return [0.5 + t / 0.5 * (5 - 0.5)]
-
-        fs_m.integrate(nu_func, 0.5)
-        self.assertTrue(np.allclose(fs.data, fs_m.data))
+        # Linear size functions are not currently supported in Demes
+        #b = demes.Builder(description="test", time_units="generations")
+        #b.add_deme(
+        #    "Pop",
+        #    epochs=[
+        #        dict(end_time=1000, start_size=1000),
+        #        dict(
+        #            start_size=500, end_size=5000, end_time=0, size_function="linear",
+        #        ),
+        #    ],
+        #)
+        #g = b.resolve()
+        #fs = Demes.SFS(g, ["Pop"], [100])
+        #
+        #fs_m = moments.Demographics1D.snm([100])
+        #
+        #def nu_func(t):
+        #    return [0.5 + t / 0.5 * (5 - 0.5)]
+        #
+        #fs_m.integrate(nu_func, 0.5)
+        #self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_pulse_model(self):
         b = demes.Builder(description="test", time_units="generations")
