@@ -263,9 +263,10 @@ entries in this options YAML. These include
 - ``maxiter``: Maximum number of iterations to run optimization. Defaults to
   1,000.
 - ``perturb``: Defaults to 0 (no perturbation of initial parameters). If
-  greater than zero, it perturbs the initial parameters by that average
-  percentage, with larger values resulting in stronger perturbation of initial
-  guesses.
+  greater than zero, it perturbs the initial parameters by up to
+  ``perturb``-fold. So if ``perturb`` is 1, initial parameters are randomly
+  chosen from :math:`[1/2\times p_0, 2\times p_0]`. Larger values result in
+  stronger perturbation of initial guesses.
 - ``verbose``: Defaults to 0. If greater than zero, it prints an update to the
   specified ``output_stream`` (which defaults to ``sys.stdout``) every
   ``verbose`` iterations.

@@ -5,6 +5,7 @@
 try:
     import demes
     import ruamel
+
     _imported_demes = True
 except ImportError:
     _imported_demes = False
@@ -326,7 +327,8 @@ def optimize(
         appears to be a bug within scipy.optimize.
     :param perturb: The perturbation amount of the initial parameters. Defaults to
         zero, in which case we do not perturb the initial parameters in the input
-        demes YAML.
+        demes YAML. If perturb is greater than zero, the initial parameters in the input
+        YAML are randomly perturbed by up to `perturb`-fold.
     :param verbose: The frequency to print updates to `output_stream` if greater than 1.
     :param uL: The mutuation rate scaled by number of callable sites, so that theta
         is the compound parameter 4*Ne*uL. If given, we optimize with `multinom=False`,
@@ -361,7 +363,11 @@ def optimize(
     # make sure p0 satisfies constraints and perturb if needed
     if "perturb" in options:
         perturb = options["perturb"]
-    if perturb > 0:
+    if not (isinstance(perturb, float) or isinstance(perturb, int)):
+        raise ValueError("perturb must be a non-negative number")
+    if perturb < 0:
+        raise ValueError("perturb must be non-negative")
+    elif perturb > 0:
         p0 = _perturb_params_constrained(p0, perturb, lower_bound, upper_bound, cons)
 
     # set other input options

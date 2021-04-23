@@ -452,11 +452,9 @@ class ComputeFromGraphs(unittest.TestCase):
         fs_demes = moments.Demes.SFS(g, sampled_demes=["C", "D"], sample_sizes=[4, 4])
         y_demes = moments.Demes.LD(g, sampled_demes=["C", "D"])
         self.assertTrue(fs_demes.ndim == 2)
-        self.assertTrue(np.all([x == y for x, y in zip(fs_demes.pop_ids, ["C" ,"D"])]))
+        self.assertTrue(np.all([x == y for x, y in zip(fs_demes.pop_ids, ["C", "D"])]))
         self.assertTrue(y_demes.num_pops == 2)
-        self.assertTrue(np.all([x == y for x, y in zip(y_demes.pop_ids, ["C" ,"D"])]))
-
-### tests from demes
+        self.assertTrue(np.all([x == y for x, y in zip(y_demes.pop_ids, ["C", "D"])]))
 
 
 def moments_ooa(ns):
@@ -494,9 +492,12 @@ def moments_ooa(ns):
 
 
 class TestMomentsSFS(unittest.TestCase):
-    # test function operations
-    def test_convert_to_generations(self):
-        pass
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
 
     def test_num_lineages(self):
         # simple merge model
@@ -701,8 +702,8 @@ class TestMomentsSFS(unittest.TestCase):
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
         # Linear size functions are not currently supported in Demes
-        #b = demes.Builder(description="test", time_units="generations")
-        #b.add_deme(
+        # b = demes.Builder(description="test", time_units="generations")
+        # b.add_deme(
         #    "Pop",
         #    epochs=[
         #        dict(end_time=1000, start_size=1000),
@@ -710,17 +711,17 @@ class TestMomentsSFS(unittest.TestCase):
         #            start_size=500, end_size=5000, end_time=0, size_function="linear",
         #        ),
         #    ],
-        #)
-        #g = b.resolve()
-        #fs = Demes.SFS(g, ["Pop"], [100])
+        # )
+        # g = b.resolve()
+        # fs = Demes.SFS(g, ["Pop"], [100])
         #
-        #fs_m = moments.Demographics1D.snm([100])
+        # fs_m = moments.Demographics1D.snm([100])
         #
-        #def nu_func(t):
+        # def nu_func(t):
         #    return [0.5 + t / 0.5 * (5 - 0.5)]
         #
-        #fs_m.integrate(nu_func, 0.5)
-        #self.assertTrue(np.allclose(fs.data, fs_m.data))
+        # fs_m.integrate(nu_func, 0.5)
+        # self.assertTrue(np.allclose(fs.data, fs_m.data))
 
     def test_simple_pulse_model(self):
         b = demes.Builder(description="test", time_units="generations")

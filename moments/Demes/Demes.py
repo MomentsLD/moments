@@ -14,6 +14,7 @@ import moments.LD
 
 try:
     import demes
+
     _imported_demes = True
 except ImportError:
     _imported_demes = False

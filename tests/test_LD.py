@@ -72,7 +72,9 @@ class LDTestCase(unittest.TestCase):
                     f"test_files/two_locus_equilibrium_rho_{rho}_theta_{theta}_ns_{ns}.fs",
                 )
             )
-            self.assertTrue(np.allclose(y[ii], [2 * F.D2(), 2 * F.Dz(), 2 * F.pi2()], rtol=2e-2))
+            self.assertTrue(
+                np.allclose(y[ii], [2 * F.D2(), 2 * F.Dz(), 2 * F.pi2()], rtol=2e-2)
+            )
 
 
 class SplitStats(unittest.TestCase):
