@@ -76,6 +76,7 @@ class ResultsTestCase(unittest.TestCase):
         fs2.integrate([2, 3], 0.3, gamma=gamma, h=h)
         self.assertTrue(np.allclose(fs.data, fs2.data))
 
+
 class IntegrationValidityTestCase(unittest.TestCase):
     def test_negative_integration_time(self):
         fs = moments.Demographics1D.snm([20])
@@ -102,6 +103,7 @@ class IntegrationValidityTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             nu_func = lambda t: [1, -1]
             fs.integrate(nu_func, 1)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
 

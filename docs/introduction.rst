@@ -53,6 +53,14 @@ If you use ``moments.LD`` in your research, please cite:
 Change log
 **********
 
+1.1.2
+=====
+
+- Fix bug when checking if matplotlib is installed for model plotting  (issue #68)
+
+- Now compatible with demes >= 0.1
+
+
 1.1.1
 =====
 
