@@ -127,6 +127,11 @@ additionally install
 
 ## Changelog
 
+### 1.1.2
+
+- Fix bug when checking if matplotlib is installed for model plotting  (issue #68)
+- Now compatible with demes >= 0.1
+
 ### 1.1.1
 
 - Fix RecursionError in `moments.LD.Inference.sigmaD2`

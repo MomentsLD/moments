@@ -31,7 +31,7 @@ except ImportError:
 
 
 def _check_mpl_imported():
-    if not imported_mpl:
+    if not _imported_mpl:
         raise ValueError(
             "matplotlib not found - moments can be used but "
             "plotting features will not work"
