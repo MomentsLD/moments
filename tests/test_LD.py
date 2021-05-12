@@ -8,6 +8,7 @@ import moments.LD
 import moments.TwoLocus
 import pickle
 import time
+import copy
 
 
 class LDTestCase(unittest.TestCase):
@@ -393,3 +394,27 @@ class TestDemographics1D(unittest.TestCase):
         self.assertTrue(np.allclose(y_2[1], y_3a[1]))
         self.assertTrue(np.allclose(y_2[0], y_3b[0]))
         self.assertTrue(np.allclose(y_2[1], y_3b[1]))
+
+class CopyAndPickle(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_copy(self):
+        y = moments.LD.Demographics2D.snm(rho=[0, 1, 2], pop_ids=["A", "B"])
+        y2 = copy.deepcopy(y)
+
+    def test_pickle(self):
+        y = moments.LD.Demographics2D.snm(rho=[0, 1, 2], pop_ids=["A", "B"])
+        temp_file = "temp.bp"
+        with open(temp_file, "wb+") as fout:
+            pickle.dump(y, fout)
+        y2 = pickle.load(open(temp_file, "rb"))
+        self.assertEqual(y.num_pops, y2.num_pops)
+        self.assertEqual(y.pop_ids, y2.pop_ids)
+        for x1, x2 in zip(y[:], y2[:]):
+            self.assertTrue(np.all(x1 == x2))
+        os.remove(temp_file)

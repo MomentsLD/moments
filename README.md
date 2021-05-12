@@ -127,6 +127,13 @@ additionally install
 
 ## Changelog
 
+### 1.1.3
+
+- Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data
+- Fix numpy deprecation warning when projecting
+- Documentation updates for miscellaneous functions
+- Fix bug where copying and pickling LDstats objects resulted in a recursion error (#66)
+
 ### 1.1.2
 
 - Fix bug when checking if matplotlib is installed for model plotting  (issue #68)

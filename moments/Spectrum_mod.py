@@ -1699,7 +1699,7 @@ class Spectrum(numpy.ma.masked_array):
             iter = zip(projections, successful_calls, derived_calls)
             for pop_ii, (p_to, p_from, hits) in enumerate(iter):
                 contrib = Numerics._cached_projection(p_to, p_from, hits)[
-                    slices[pop_ii]
+                    tuple(slices[pop_ii])
                 ]
                 pop_contribs.append(contrib)
             fs += functools.reduce(operator.mul, pop_contribs)

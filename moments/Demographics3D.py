@@ -12,11 +12,17 @@ def out_of_Africa(params, ns, pop_ids=["YRI", "CEU", "CHB"]):
 
     :param params: List of parameters, in the order (nuA, TA, nuB, TB, nuEu0,
         nuEuF, nuAs0, nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs).
-    :param ns: List of population sizes in first and second populations.
-    :param pop_ids: List of population IDs.
+    :type params: list of floats
+    :param ns: List of population sizes in each population, in order given
+        by `pop_ids`.
+    :type ns: list of ints
+    :param pop_ids: List of population IDs, defaults to ["YRI", "CEU", "CHB"].
+    :type pop_ids: list of strings, optional
     """
     if pop_ids is not None and len(pop_ids) != 3:
         raise ValueError("pop_ids must be a list of three population IDs")
+    if len(ns) != 3:
+        raise ValueError("ns must have length 3")
     (
         nuA,
         TA,
