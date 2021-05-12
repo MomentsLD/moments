@@ -62,6 +62,7 @@ Change log
 
 - Documentation updates for miscellaneous functions
 
+- Fix bug where copying and pickling LDstats objects resulted in a recursion error (#66)
 
 1.1.2
 =====
