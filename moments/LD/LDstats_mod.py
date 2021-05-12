@@ -814,11 +814,11 @@ except:
 
 
 def LDstats_pickler(y):
-    return LDstats_unpickler, (y, y.num_pops, y.pop_ids)
+    return LDstats_unpickler, (y[:], y.num_pops, y.pop_ids)
 
 
 def LDstats_unpickler(data, num_pops, pop_ids):
-    return LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
+    return LDstats(data[:], num_pops=num_pops, pop_ids=pop_ids)
 
 
 try:
