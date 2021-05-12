@@ -60,6 +60,8 @@ Change log
 
 - Fix numpy deprecation warning when projecting
 
+- Documentation updates for miscellaneous functions
+
 
 1.1.2
 =====

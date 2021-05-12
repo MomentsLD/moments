@@ -131,6 +131,7 @@ additionally install
 
 - Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data
 - Fix numpy deprecation warning when projecting
+- Documentation updates for miscellaneous functions
 
 ### 1.1.2
 

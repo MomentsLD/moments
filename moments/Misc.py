@@ -115,14 +115,17 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
 
 def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     """
-    Generate a perturbed set of parameters.
-
-    Each element of params is radomly perturbed <fold> factors of 2 up or down.
-    fold: Number of factors of 2 to perturb by
-    lower_bound: If not None, the resulting parameter set is adjusted to have 
-                 all value greater than lower_bound.
-    upper_bound: If not None, the resulting parameter set is adjusted to have 
-                 all value less than upper_bound.
+    Generate a perturbed set of parameters. Each element of params is randomly
+    perturbed `fold` factors of 2 up or down.
+    
+    :param fold: Number of factors of 2 to perturb by, defaults to 1.
+    :type fold: float, optional
+    :param lower_bound: If not None, the resulting parameter set is adjusted
+        to have all value greater than lower_bound.
+    :type lower_bound: list of floats, optional
+    :param upper_bound: If not None, the resulting parameter set is adjusted
+        to have all value less than upper_bound.
+    :type upper_bound: list of floats, optional
     """
     pnew = params * 2 ** (fold * (2 * numpy.random.random(len(params)) - 1))
     if lower_bound is not None:
@@ -323,14 +326,16 @@ def count_data_dict(data_dict, pop_ids):
     """
     Summarize data in data_dict by mapping SNP configurations to counts.
 
-    data_dict: data_dict formatted as in Misc.make_data_dict
-    pop_ids: IDs of populations to collect data for.
-    
     Returns a dictionary with keys (successful_calls, derived_calls,
     polarized) mapping to counts of SNPs. Here successful_calls is a tuple
     with the number of good calls per population, derived_calls is a tuple
     of derived calls per pop, and polarized indicates whether that SNP was
     polarized using an ancestral state.
+
+    :param data_dict: data_dict formatted as in Misc.make_data_dict
+    :type data_dict: data dictionary
+    :param pop_ids: IDs of populations to collect data for
+    :type pop_ids: list of strings
     """
     count_dict = collections.defaultdict(int)
     for snp, snp_info in data_dict.items():
@@ -384,6 +389,11 @@ def make_data_dict_vcf(
     Each file may be zipped (.zip) or gzipped (.gz). If a file is zipped,
     it must be the only file in the archive, and the two files cannot be zipped
     together. Both files must be present for the function to work.
+
+    .. note:: We forbid certain characters in chromosome names. Namely,
+        underscores cannot be included in the chromosome or position columns,
+        as this conflicts with the naming scheme for the keys of the output
+        data dictionary.
     
     :param vcf_filename: Name of VCF file to work with. The function currently works 
         for biallelic SNPs only, so if REF or ALT is anything other 
@@ -490,6 +500,11 @@ def make_data_dict_vcf(
 
         # Read SNP data
         cols = line.split()
+        if "_" in cols[0] or "_" in cols[1]:
+            raise ValueError(
+                "Chromosome and position names cannot include underscores. "
+                "Dashes or other non-whitespace characters are permitted."
+            )
         snp_id = "_".join(cols[:2])  # CHROM_POS
         snp_dict = {}
 
@@ -637,34 +652,40 @@ def bootstrap(
     This function either returns a list of all the newly created SFS, or writes
     them to disk in a specified directory.
 
-    data_dict : Dictionary containing properly formatted SNP information (i.e.
-                created using one of the make_data_dict methods). 
+    See :func:`moments.Spectrum.from_data_dict` for more details about the options for
+    creating spectra.
 
-    pop_ids, projections, 
-    mask_corners, polarized : Arguments to be passed to Spectrum.from_data_dict
-                              when creating the new frequency spectra. See 
-                              Spectrum_mod.py for details.
-
-    bed_filename : If None, chromosomes will be used as the units for 
-                   resampling. Otherwise, this should be the filename of a BED
-                   file specifying the regions to be used as resampling units.
-
-                   Chromosome names must be consistent between the BED file and
-                   the data dictionary, or bootstrap will not work. For example,
-                   if an entry in the data dict has ID X_Y, then the value in 
-                   in the chromosome field of the BED file must also be X (not 
-                   chrX, chromosomeX, etc.).
-                   
-                   If the name field is provided in the BED file, then any
-                   regions with the same name will be considered to be part of
-                   the same unit. This may be useful for sampling as one unit a
-                   gene that is located across non-continuous regions.
-
-    num_boots : Number of resampled SFS to generate.
-
-    save_dir : If None, the SFS are returned as a list. Otherwise this should be
-               a string specifying the name of a new directory under which all
-               of the new SFS should be saved.
+    :param data_dict: Dictionary containing properly formatted SNP information (i.e.
+        created using one of the make_data_dict methods). 
+    :type data_dict: dict of SNP information
+    :param pop_ids: List of population IDs.
+    :type pop_ids: list of strings
+    :param projections: Projection sizes for the given population IDs.
+    :type projections: list of ints
+    :param mask_corners: If True, mask the invariant bins of the SFS.
+    :type mask_corners: bool, optional
+    :param polarized: If True, we assume we know the ancestral allele. If False,
+        return folded spectra.
+    :type polarized: bool, optional
+    :param bed_filename: If None, chromosomes will be used as the units for 
+        resampling. Otherwise, this should be the filename of a BED
+        file specifying the regions to be used as resampling units.
+        Chromosome names must be consistent between the BED file and
+        the data dictionary, or bootstrap will not work. For example,
+        if an entry in the data dict has ID X_Y, then the value in 
+        in the chromosome field of the BED file must also be X (not 
+        chrX, chromosomeX, etc.).
+        If the name field is provided in the BED file, then any
+        regions with the same name will be considered to be part of
+        the same unit. This may be useful for sampling as one unit a
+        gene that is located across non-continuous regions.
+    :type bed_filename: string as path to bed file
+    :param num_boots: Number of resampled SFS to generate.
+    :type num_boots: int, optional
+    :param save_dir: If None, the SFS are returned as a list. Otherwise this should be
+        a string specifying the name of a new directory under which all
+        of the new SFS should be saved.
+    :type save_dir: str, optional
     """
     # Read in information from BED file if present and store by chromosome
     if bed_filename is not None:

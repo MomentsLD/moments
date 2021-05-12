@@ -12,7 +12,16 @@ The Spectrum object
         from_file, to_file, fixed_size_sample, sample,
         from_data_dict, from_demes
 
+Miscellaneous functions
+-----------------------
+
+.. autofunction:: moments.Misc.perturb_params
+
 .. autofunction:: moments.Misc.make_data_dict_vcf
+
+.. autofunction:: moments.Misc.count_data_dict
+
+.. autofunction:: moments.Misc.bootstrap
 
 Demographic functions
 ---------------------
