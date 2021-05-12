@@ -503,7 +503,8 @@ def make_data_dict_vcf(
         if "_" in cols[0] or "_" in cols[1]:
             raise ValueError(
                 "Chromosome and position names cannot include underscores. "
-                "Dashes or other non-whitespace characters are permitted."
+                "Dashes or other non-whitespace characters are permitted. "
+                f"Attempted with chrom {cols[0]} and pos {cols[1]}."
             )
         snp_id = "_".join(cols[:2])  # CHROM_POS
         snp_dict = {}
