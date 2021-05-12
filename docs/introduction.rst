@@ -53,6 +53,14 @@ If you use ``moments.LD`` in your research, please cite:
 Change log
 **********
 
+1.1.3
+=====
+
+- Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data
+
+- Fix numpy deprecation warning when projecting
+
+
 1.1.2
 =====
 

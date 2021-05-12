@@ -370,7 +370,11 @@ def count_data_dict(data_dict, pop_ids):
 
 
 def make_data_dict_vcf(
-    vcf_filename, popinfo_filename, filter=True, flanking_info=[None, None]
+    vcf_filename,
+    popinfo_filename,
+    filter=True,
+    flanking_info=[None, None],
+    skip_multiallelic=True,
 ):
     """
     Parse a VCF file containing genomic sequence information, along with a file
@@ -410,7 +414,16 @@ def make_data_dict_vcf(
         base-pair is the one immediately preceding the SNP, and the
         last base-pair is the one immediately following the SNP.
     :type flanking_info: list of strings, optional
+    :param skip_multiallelic: If True, only keep biallelic sites, and skip sites that
+        have more than one ALT allele.
+    :type skip_multiallelic: bool, optional
     """
+    if not skip_multiallelic:
+        raise ValueError(
+            "We can only keep biallelic sites, and multiallelic tallying is not "
+            "currently supported. Set skip_multiallelic to True."
+        )
+
     # Read population information from file based on extension
     if os.path.splitext(popinfo_filename)[1] == ".gz":
         import gzip
@@ -533,24 +546,18 @@ def make_data_dict_vcf(
 
         # Add reference and alternate allele calls for each population
         calls_dict = {}
-        full_info = True
         gtindex = cols[8].split(":").index("GT")
         for pop, sample in zip(poplist, cols[9:]):
             if pop is None:
                 continue
             gt = sample.split(":")[gtindex]
             g1, g2 = gt[0], gt[2]
-            if g1 == "." or g2 == ".":
-                full_info = False
-                break
             if pop not in calls_dict:
                 calls_dict[pop] = (0, 0)
             refcalls, altcalls = calls_dict[pop]
             refcalls += int(g1 == "0") + int(g2 == "0")
             altcalls += int(g1 == "1") + int(g2 == "1")
             calls_dict[pop] = (refcalls, altcalls)
-        if not full_info:
-            continue
         snp_dict["calls"] = calls_dict
         data_dict[snp_id] = snp_dict
 
@@ -764,7 +771,7 @@ def bootstrap(
                 call_iter = zip(projections, successful_calls, derived_calls)
                 for pop_index, (p_to, p_from, hits) in enumerate(call_iter):
                     contrib = Numerics._cached_projection(p_to, p_from, hits)[
-                        slices[pop_index]
+                        tuple(slices[pop_index])
                     ]
                     pop_contribs.append(contrib)
                 new_sfs += functools.reduce(operator.mul, pop_contribs)
