@@ -8,3 +8,4 @@ pandas
 jupyter_sphinx
 demes>=0.1.0
 ruamel.yaml
+attrs
