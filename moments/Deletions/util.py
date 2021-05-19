@@ -3,6 +3,9 @@ import numpy as np
 from scipy.special import gammaln
 
 
+def get_n_from_length(l):
+    return (np.sqrt(1 + 8 * l) - 1) / 2 - 1
+
 def choose(n, i):
     return np.exp(gammaln(n + 1) - gammaln(n - i + 1) - gammaln(i + 1))
 
@@ -22,8 +25,8 @@ def get_idx(n, i, j):
 def cache_idx(n):
     indexes = {}
     c = 0
-    for j in range(n + 1):
-        for i in range(n + 1 - j):
+    for i in range(n + 1):
+        for j in range(n + 1 - i):
             indexes[(i, j)] = c
             c += 1
     return indexes

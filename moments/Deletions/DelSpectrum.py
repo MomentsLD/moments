@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 from . import util
+from . import integration
 
 
 def positive(self, attribute, value):
@@ -58,16 +59,13 @@ class Spectrum:
     folded: bool = attr.ib(default=False)
 
     def __attrs_post_init__(self):
-        def _get_n_from_length(l):
-            return (np.sqrt(1 + 8 * l) - 1) / 2 - 1
-
         if self.data is None and self.sample_size is None:
             raise ValueError("Either a data array or sample size must be provided")
         if self.data is None:
             self.data = np.zeros((self.sample_size + 1) * (self.sample_size + 2) // 2)
 
         # ensure data length and sample size match
-        sample_size_from_data = _get_n_from_length(len(self.data))
+        sample_size_from_data = util.get_n_from_length(len(self.data))
         if not np.isclose(sample_size_from_data, np.rint(sample_size_from_data)):
             raise ValueError("Length of data is not valid")
         sample_size_from_data = np.rint(sample_size_from_data).astype(int)
@@ -120,3 +118,41 @@ class Spectrum:
 
         data_proj = util.project(self.data, n_proj)
         return Spectrum(data_proj)
+
+    def integrate(
+        self,
+        nu,
+        T,
+        dt=0.002,
+        theta_del=(0.001, 0.001),
+        theta_snp=(0.001, 0.001),
+        sel_coeffs=None,
+    ):
+        """
+        :param nu: relative population size (to Ne)
+        :param T: integration time (in units of 2Ne generations)
+        :param dt: time step
+        :theta_del: mutation rates for indels (can be single symmetric rate or list fwd
+            and bwd rates)
+        :theta_snp: mutation rates for SNPs (can be single symmetric rate or list fwd
+            and bwd rates)
+        :sel_coeffs: selection coefficients, list of length 5, giving
+            [gamma(A/a), gamma(A/A), gamma(a/X), gamma(A/X), gamma(X/X)],
+            where X denotes deletion genotypes, A is the derived SNP, and genotype
+            a/a is assumed to have relative fitness 1
+        """
+        if len(sel_coeffs) != 5:
+            raise ValueError("selection coefficients must be list of length 5 (see docs)")
+
+        if dt <= 0:
+            raise ValueError("dt must be positive")
+
+        self.data = integration.integrate_crank_nicolson(
+            self.data,
+            nu,
+            T,
+            dt=dt,
+            theta_del=theta_del,
+            theta_snp=theta_snp,
+            sel_coeffs=sel_coeffs,
+        )
