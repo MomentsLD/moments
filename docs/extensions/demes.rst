@@ -168,7 +168,7 @@ include:
 
     parameters:
     - name: N_B
-      descrption: Bottleneck size for Eurasian populations
+      description: Bottleneck size for Eurasian populations
       values:
       - demes:
           OOA:
