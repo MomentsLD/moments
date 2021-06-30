@@ -53,6 +53,14 @@ If you use ``moments.LD`` in your research, please cite:
 Change log
 **********
 
+1.1.4
+=====
+
+- Fix bugs in Plotting multi-population SFS comparisons that were showing each
+  subplot in a new figure instead of in a single plot.
+
+- Hide the intrusive scale bar in ModelPlot by default.
+
 1.1.3
 =====
 
