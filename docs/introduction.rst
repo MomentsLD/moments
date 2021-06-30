@@ -49,6 +49,14 @@ If you use ``moments.LD`` in your research, please cite:
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
   from unphased data. *Mol Biol Evol*, 37(3), 923-932.
 
+
+If you use ``moments.TwoLocus`` in your research, please cite:
+
+- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
+  from linkage disequilibrium? BioRxiv, doi:
+  `https://doi.org/10.1101/2021.03.25.437004 <https://doi.org/10.1101/2021.03.25.437004>`
+
+
 **********
 Change log
 **********
