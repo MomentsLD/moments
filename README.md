@@ -29,6 +29,11 @@ If you use `moments.LD` in your research, please cite:
 - Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
   from unphased data. Mol Biol Evol, 37(3), 923-932.
 
+If you use `moments.TwoLocus` in your research, please cite:
+
+- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
+  from linkage disequilibrium? BioRxiv, doi: https://doi.org/10.1101/2021.03.25.437004
+
 `moments` is developed in [Simon Gravel's
 group](http://simongravel.lab.mcgill.ca/Home.html) in the Human Genetics
 department at McGill University, with with ongoing maintenance and development
@@ -61,7 +66,12 @@ pip install numpy, cython
 pip install .
 ```
 
-Coming soon: `moments` will be available via `bioconda` in the near future.
+If you use `conda`, `moments` is available via `bioconda`:
+
+```
+conda config --add channels bioconda
+conda install moments
+```
 
 ### Dependencies and details
 
@@ -126,6 +136,12 @@ additionally install
 - scikit-allel
 
 ## Changelog
+
+### 1.1.4
+
+- Fix bugs in Plotting multi-population SFS comparisons that were showing each
+  subplot in a new figure instead of in a single plot.
+- Hide the intrusive scale bar in ModelPlot by default.
 
 ### 1.1.3
 

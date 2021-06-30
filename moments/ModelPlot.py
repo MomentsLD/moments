@@ -88,6 +88,7 @@ def plot_model(
     draw_ancestors=True,
     draw_migrations=True,
     draw_scale=True,
+    scale_bar=False,
     arrow_size=0.01,
     transition_size=0.05,
     gen_time=0,
@@ -129,6 +130,9 @@ def plot_model(
     draw_migrations : Specify whether migration arrows are drawn.
 
     draw_scale : Specify whether scale bar should be shown in top-left corner.
+
+    scale_bar : If True, draw the scale bar. If False (default), only draw
+                arrows for scale.
 
     arrow_size : Float to control the size of the migration arrows.
 
@@ -252,7 +256,11 @@ def plot_model(
         # Appropriate label depending on scale
         label = mbox.TextArea(str(nref) if nref else "Nref")
         label.get_children()[0].set_color(text_color)
-        bars = mbox.HPacker(children=[label, arrow, bar], pad=0, sep=2, align="center")
+        if scale_bar:
+            children = [label, arrow, bar]
+        else:
+            children = [label, arrow]
+        bars = mbox.HPacker(children=children, pad=0, sep=2, align="center")
         scalebar = mbox.AnchoredOffsetbox(
             2, pad=0.25, borderpad=0.25, child=bars, frameon=False
         )
