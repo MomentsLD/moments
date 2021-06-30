@@ -22,6 +22,7 @@ class _sfsTickLocator(matplotlib.ticker.Locator):
 
         return np.array([round(tmin) + 0.5, round(tmax) - 0.5])
 
+
 #: Custom tick formatter
 _ctf = matplotlib.ticker.FuncFormatter(lambda x, pos: "%i" % (x - 0.4))
 
@@ -31,6 +32,7 @@ from moments import Numerics, Inference
 ##
 ## 1-population functions
 ##
+
 
 def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
     """
@@ -58,7 +60,6 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
     else:
         axes = ax
         plt.cla()
-        
 
     axes.semilogy(fs, "-o", ms=ms, lw=lw)
 
@@ -145,8 +146,12 @@ def plot_1d_comp_Poisson(
     ax.semilogy(masked_model, "-o", ms=3, lw=1, label="Model")
 
     if plot_masked:
-        ax.semilogy(masked_data.data, "--o", ms=6, lw=1, mfc="w", zorder=-100, label=None)
-        ax.semilogy(masked_model.data, "--o", ms=4, lw=1, mfc="w", zorder=-100, label=None)
+        ax.semilogy(
+            masked_data.data, "--o", ms=6, lw=1, mfc="w", zorder=-100, label=None
+        )
+        ax.semilogy(
+            masked_model.data, "--o", ms=4, lw=1, mfc="w", zorder=-100, label=None
+        )
 
     ax2 = pylab.subplot(2, 1, 2, sharex=ax)
     if residual == "Anscombe":
@@ -155,14 +160,16 @@ def plot_1d_comp_Poisson(
         resid = Inference.linear_Poisson_residual(masked_model, masked_data)
     else:
         raise ValueError("Unknown class of residual '%s'." % residual)
-    
+
     ax2.plot([], [])
     ax2.plot([], [])
     ax2.plot(resid, "-o", ms=4, lw=1)
     if plot_masked:
         ax2.plot(resid.data, "--o", ms=4, lw=1, mfc="w", zorder=-100)
 
-    ax.set_xlim(0, (data.shape[0] - 1) // (1 + data.folded * (1 - plot_masked)) + data.folded)
+    ax.set_xlim(
+        0, (data.shape[0] - 1) // (1 + data.folded * (1 - plot_masked)) + data.folded
+    )
 
     ax2.set_xlabel("Allele frequency")
     ax.set_ylabel("Count")
@@ -179,6 +186,7 @@ def plot_1d_comp_Poisson(
 ##
 ## 2-population functions
 ##
+
 
 def plot_single_2d_sfs(
     sfs,
@@ -492,13 +500,25 @@ def plot_2d_comp_Poisson(
 
     ax = pylab.subplot(2, 2, 1)
     plot_single_2d_sfs(
-        masked_data, vmin=vmin, vmax=vmax, pop_ids=data_pop_ids, colorbar=False, show=False
+        masked_data,
+        vmin=vmin,
+        vmax=vmax,
+        ax=ax,
+        pop_ids=data_pop_ids,
+        colorbar=False,
+        show=False,
     )
     ax.set_title("data")
 
     ax2 = pylab.subplot(2, 2, 2, sharex=ax, sharey=ax)
     plot_single_2d_sfs(
-        masked_model, vmin=vmin, vmax=vmax, pop_ids=model_pop_ids, extend=extend, show=False
+        masked_model,
+        vmin=vmin,
+        vmax=vmax,
+        ax=ax2,
+        pop_ids=model_pop_ids,
+        extend=extend,
+        show=False,
     )
     ax2.set_title("model")
 
@@ -518,14 +538,21 @@ def plot_2d_comp_Poisson(
     ]
 
     ax3 = pylab.subplot(2, 2, 3, sharex=ax, sharey=ax)
-    plot_2d_resid(resid, resid_range, pop_ids=resid_pop_ids, extend=resid_extend, show=False)
+    plot_2d_resid(
+        resid,
+        resid_range,
+        pop_ids=resid_pop_ids,
+        extend=resid_extend,
+        ax=ax3,
+        show=False,
+    )
     ax3.set_title("residuals")
 
-    ax = pylab.subplot(2, 2, 4)
+    ax4 = pylab.subplot(2, 2, 4)
     flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
-    ax.hist(flatresid, bins=20, density=True)
-    ax.set_title("residuals")
-    ax.set_yticks([])
+    ax4.hist(flatresid, bins=20, density=True)
+    ax4.set_title("residuals")
+    ax4.set_yticks([])
 
     plt.tight_layout()
     if out is not None:
@@ -712,35 +739,41 @@ def plot_3d_comp_Poisson(
             marg_data,
             vmin=vmin,
             vmax=vmax,
+            ax=ax,
             pop_ids=curr_ids[0],
             extend=extend,
             colorbar=plot_colorbar,
+            show=False,
         )
 
-        pylab.subplot(4, 3, sax + 4, sharex=ax, sharey=ax)
+        ax2 = pylab.subplot(4, 3, sax + 4, sharex=ax, sharey=ax)
         plot_single_2d_sfs(
             marg_model,
             vmin=vmin,
             vmax=vmax,
+            ax=ax2,
             pop_ids=curr_ids[1],
             extend=extend,
             colorbar=False,
+            show=False,
         )
 
         resid = resids[sax]
-        pylab.subplot(4, 3, sax + 7, sharex=ax, sharey=ax)
+        ax3 = pylab.subplot(4, 3, sax + 7, sharex=ax, sharey=ax)
         plot_2d_resid(
             resid,
             resid_range,
+            ax=ax3,
             pop_ids=curr_ids[2],
             extend=resid_extend,
             colorbar=plot_colorbar,
+            show=False,
         )
 
-        ax = pylab.subplot(4, 3, sax + 10)
+        ax4 = pylab.subplot(4, 3, sax + 10)
         flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
-        ax.hist(flatresid, bins=20, density=True)
-        ax.set_yticks([])
+        ax4.hist(flatresid, bins=20, density=True)
+        ax4.set_yticks([])
 
     f.tight_layout()
     if out is not None:
@@ -1080,37 +1113,41 @@ def plot_4d_comp_Poisson(
                 marg_data,
                 vmin=vmin,
                 vmax=vmax,
+                ax=ax,
                 pop_ids=curr_ids[0],
                 extend=extend,
                 colorbar=plot_colorbar,
+                show=False,
             )
 
-            pylab.subplot(4, 6, cptr + 7, sharex=ax, sharey=ax)
+            ax2 = pylab.subplot(4, 6, cptr + 7, sharex=ax, sharey=ax)
             plot_single_2d_sfs(
                 marg_model,
                 vmin=vmin,
                 vmax=vmax,
+                ax=ax2,
                 pop_ids=curr_ids[1],
                 extend=extend,
                 colorbar=False,
+                show=False,
             )
 
             resid = resids[cptr]
-            pylab.subplot(4, 6, cptr + 13, sharex=ax, sharey=ax)
+            ax3 = pylab.subplot(4, 6, cptr + 13, sharex=ax, sharey=ax)
             plot_2d_resid(
                 resid,
                 resid_range,
+                ax=ax3,
                 pop_ids=curr_ids[2],
                 extend=resid_extend,
                 colorbar=plot_colorbar,
+                show=False,
             )
 
-            ax = pylab.subplot(4, 6, cptr + 19)
-            flatresid = np.compress(
-                np.logical_not(resid.mask.ravel()), resid.ravel()
-            )
-            ax.hist(flatresid, bins=20, density=True)
-            ax.set_yticks([])
+            ax4 = pylab.subplot(4, 6, cptr + 19)
+            flatresid = np.compress(np.logical_not(resid.mask.ravel()), resid.ravel())
+            ax4.hist(flatresid, bins=20, density=True)
+            ax4.set_yticks([])
             cptr += 1
 
     f.tight_layout()
