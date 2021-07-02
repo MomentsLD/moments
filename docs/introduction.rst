@@ -61,6 +61,13 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.5
+=====
+
+- Use (chrom, pos) tuple as data dictionary key, to avoid conflicts with underscores.
+  Underscores in contig/chromosome names are again supported.
+
+
 1.1.4
 =====
 
