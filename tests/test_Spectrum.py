@@ -729,3 +729,33 @@ class TestPulseMigrateFunction(unittest.TestCase):
         out = fs.pulse_migrate(0, 1, 5, 0.01)
         self.assertTrue(np.all([i == j for i, j in zip(out.sample_sizes, [5, 10, 10])]))
         self.assertTrue(np.all([i == j for i, j in zip(out.pop_ids, fs.pop_ids)]))
+
+
+class TestBranchFunction(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_branch(self):
+        fs = moments.Spectrum(np.ones((11, 11)))
+        with self.assertRaises(ValueError):
+            fs.branch(2, 5)
+        with self.assertRaises(ValueError):
+            fs.branch(-1, 5)
+        with self.assertRaises(ValueError):
+            fs.branch(1, 12)
+        with self.assertRaises(ValueError):
+            fs.branch(0, 5, new_id="a")
+
+    def test_branch_func(self):
+        fs = moments.Spectrum(np.ones((11, 11)))
+        fs.pop_ids = ["A", "B"]
+        out0 = fs.branch(0, 4, new_id="C")
+        out1 = fs.branch(1, 6, new_id="C")
+        self.assertTrue(np.all([i == j for i, j in zip(out0.sample_sizes, [6, 10, 4])]))
+        self.assertTrue(np.all([i == j for i, j in zip(out0.pop_ids, ["A", "B", "C"])]))
+        self.assertTrue(np.all([i == j for i, j in zip(out1.sample_sizes, [10, 4, 6])]))
+        self.assertTrue(np.all([i == j for i, j in zip(out1.pop_ids, ["A", "B", "C"])]))

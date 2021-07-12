@@ -555,6 +555,39 @@ class Spectrum(numpy.ma.masked_array):
             fs_split.pop_ids.append(new_ids[1])
         return fs_split
 
+    def branch(self, idx, n, new_id=None):
+        """
+        A "branch" event, where a population gives rise to a child population, while
+        persisting. This is conceptually similar to the split event. The number of
+        lineages in the new population is provided, and the number of lineages in the
+        source/parental population is the original sample size minus the number
+        requested for the branched population. Returns a new frequency spectrum.
+
+        :param idx: The index of the population to branch.
+        :type idx: int
+        :param n: The sample size of the new population.
+        :type n: int
+        :param new_id: The population ID of the branch populations. The parental
+            population retains its original population ID. Can only be
+            used if pop_ids are given for the input spectrum.
+        :type new_ids: str, optional
+        """
+        if self.folded:
+            raise ValueError("Cannot perform branch on folded spectrum.")
+        if self.pop_ids is None and new_id is not None:
+            raise ValueError("Trying to assign ids to a SFS with no pop_ids.")
+        if idx < 0 or idx >= self.Npop:
+            raise ValueError(
+                f"Cannot branch population index {idx} in SFS of size {self.Npop}"
+            )
+        n_parent = self.sample_sizes[idx]
+        n0 = n_parent - n
+        fs_branch = moments.Manips.split_by_index(self, idx, n0, n)
+        if new_id is not None:
+            fs_branch.pop_ids = self.pop_ids
+            fs_branch.pop_ids.append(new_id)
+        return fs_branch
+
     def admix(self, idx0, idx1, num_lineages, proportion, new_id=None):
         """
         Returns a new frequency spectrum with an admixed population that arose through
