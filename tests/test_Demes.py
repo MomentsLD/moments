@@ -852,3 +852,53 @@ class TestMomentsSFS(unittest.TestCase):
         fs[0, 0] = fs[-1, -1] = 0
         fs_m[0, 0] = fs_m[-1, -1] = 0
         self.assertTrue(np.allclose(fs_m.data[1:-1], fs.data[1:-1]))
+
+
+class TestConcurrentEvents(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_branches_at_same_time(self):
+        def from_old_style(sample_sizes):
+            fs = moments.Demographics1D.snm([4 + sum(sample_sizes)])
+            fs = fs.branch(0, sample_sizes[0])
+            fs = fs.branch(0, sample_sizes[1])
+            fs.integrate([1, 1, 1], 0.5)
+            fs = fs.marginalize([0])
+            return fs
+
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=100)])
+        b.add_deme("a", ancestors=["x"], start_time=100, epochs=[dict(start_size=100)])
+        b.add_deme("b", ancestors=["x"], start_time=100, epochs=[dict(start_size=100)])
+        graph = b.resolve()
+
+        ns = [10, 10]
+        fs_demes = moments.Spectrum.from_demes(
+            graph, sampled_demes=["a", "b"], sample_sizes=ns
+        )
+
+        fs_moments = from_old_style(ns)
+
+        self.assertTrue(np.allclose(fs_demes.data, fs_moments.data))
+
+        b2 = demes.Builder()
+        b2.add_deme("x", epochs=[dict(start_size=100)])
+        b2.add_deme("a", ancestors=["x"], start_time=100, epochs=[dict(start_size=100)])
+        b2.add_deme(
+            "b", ancestors=["x"], start_time=99.9999, epochs=[dict(start_size=100)]
+        )
+        graph2 = b2.resolve()
+
+        fs_demes2 = moments.Spectrum.from_demes(
+            graph2, sampled_demes=["a", "b"], sample_sizes=ns
+        )
+
+        self.assertTrue(
+            np.all([a == b for a, b, in zip(fs_demes.pop_ids, fs_demes2.pop_ids)])
+        )
+        self.assertTrue(np.allclose(fs_demes.data, fs_demes2.data))
