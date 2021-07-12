@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.misc as misc
+import warnings
 
 from . import ModelPlot
 from . import Spectrum_mod
@@ -465,7 +466,7 @@ def split_by_index(sfs, idx, n0, n1):
     """
     Npop = sfs.Npop
     if idx < 0 or idx + 1 > Npop:
-        raise ValueError("Cannot split index {idx} in SFS of size {sfs.Npop}")
+        raise ValueError(f"Cannot split index {idx} in SFS of size {sfs.Npop}")
 
     if Npop == 1:
         sfs_split = split_1D_to_2D(sfs, n0, n1)
@@ -659,7 +660,7 @@ def __nnls_mod__(A, b):
     except:
         x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
-        print("Warning: too many iterations in nnls")  # SG my modification
+        warnings.warn("Too many iterations in nnls")  # SG my modification
 
     return x, rnorm
 
@@ -895,11 +896,10 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     weights = __nnls_mod__(gamma.transpose(), target)  # find a positive definite set of
     # parameters that imitates the target
     if weights[1] > 0.001:
-        print(
-            "warning, in binomial distribution approximation is %2.3f, consider\
-        including more lineages. If more lineages don't resolve the situation,\
-        consider using the exact admixture model"
-            % weights[1]
+        warnings.warn(
+            f"In binomial distribution approximation is {weights[1]:2.3f}, "
+            "consider including more lineages. If more lineages don't resolve the "
+            "situation, consider using the exact admixture model (admix_into_new)."
         )
     # Following could be optimized by making it a dot product
     new_sfs = 0

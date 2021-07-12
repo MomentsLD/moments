@@ -313,11 +313,11 @@ def make_data_dict(filename):
         data_this_snp["calls"] = calls_dict
 
         # We name our SNPs using the final columns
-        snp_id = "_".join(spl[allele2_index + 1 + len(pops) :])
-        if snp_id == "":
-            snp_id = "SNP_{0}".format(SNP_ii)
+        snp_key = (spl[allele2_index + len(pops) + 1], spl[allele2_index + len(pops) + 2])
+        if snp_key == "":
+            snp_key = ("SNP", f"{SNP_ii}")
 
-        data_dict[snp_id] = data_this_snp
+        data_dict[snp_key] = data_this_snp
 
     return data_dict
 
@@ -338,7 +338,7 @@ def count_data_dict(data_dict, pop_ids):
     :type pop_ids: list of strings
     """
     count_dict = collections.defaultdict(int)
-    for snp, snp_info in data_dict.items():
+    for snp_key, snp_info in data_dict.items():
         # Skip SNPs that aren't biallelic.
         if len(snp_info["segregating"]) != 2:
             continue
@@ -389,11 +389,6 @@ def make_data_dict_vcf(
     Each file may be zipped (.zip) or gzipped (.gz). If a file is zipped,
     it must be the only file in the archive, and the two files cannot be zipped
     together. Both files must be present for the function to work.
-
-    .. note:: We forbid certain characters in chromosome names. Namely,
-        underscores cannot be included in the chromosome or position columns,
-        as this conflicts with the naming scheme for the keys of the output
-        data dictionary.
     
     :param vcf_filename: Name of VCF file to work with. The function currently works 
         for biallelic SNPs only, so if REF or ALT is anything other 
@@ -500,13 +495,7 @@ def make_data_dict_vcf(
 
         # Read SNP data
         cols = line.split()
-        if "_" in cols[0] or "_" in cols[1]:
-            raise ValueError(
-                "Chromosome and position names cannot include underscores. "
-                "Dashes or other non-whitespace characters are permitted. "
-                f"Attempted with chrom {cols[0]} and pos {cols[1]}."
-            )
-        snp_id = "_".join(cols[:2])  # CHROM_POS
+        snp_key = (cols[0], cols[1])  # (CHROM, POS)
         snp_dict = {}
 
         # Skip SNP if filter is set to True and it fails a filter test
@@ -575,7 +564,7 @@ def make_data_dict_vcf(
             altcalls += int(g1 == "1") + int(g2 == "1")
             calls_dict[pop] = (refcalls, altcalls)
         snp_dict["calls"] = calls_dict
-        data_dict[snp_id] = snp_dict
+        data_dict[snp_key] = snp_dict
 
     vcf_file.close()
     return data_dict
@@ -716,8 +705,8 @@ def bootstrap(
         # Dictionary will map region labels to the SNPs contained in that region
         region_dict = {}
         # Iterate through data_dict and add SNPs to proper region
-        for snp_id in data_dict:
-            chrom, pos = snp_id.split("_")
+        for snp_key in data_dict:
+            chrom, pos = snp_key
             pos = int(pos)
             # Quickly locate proper region in sorted list
             loc = bisect.bisect_right(start_dict[chrom], pos) - 1
@@ -725,15 +714,15 @@ def bootstrap(
                 label = bed_info_dict[chrom][loc][2]
                 if label not in region_dict:
                     region_dict[label] = []
-                region_dict[label].append(snp_id)
+                region_dict[label].append(snp_key)
     # Separate by chromosome if no BED file provided
     else:
         region_dict = {}
-        for snp_id in data_dict:
-            chrom, pos = snp_id.split("_")
+        for snp_key in data_dict:
+            chrom, pos = snp_key
             if chrom not in region_dict:
                 region_dict[chrom] = []
-            region_dict[chrom].append(snp_id)
+            region_dict[chrom].append(snp_key)
 
     # Each entry of list represents single region, with a tuple
     # containing the IDs of all SNPs in the region.
@@ -752,8 +741,8 @@ def bootstrap(
         choices = numpy.random.randint(0, num_regions, num_regions)
         # For each selected region, add its SNP info to SFS
         for choice in choices:
-            for snp_id in sample_regions[choice]:
-                snp_info = data_dict[snp_id]
+            for snp_key in sample_regions[choice]:
+                snp_info = data_dict[snp_key]
                 # Skip SNPs that aren't biallelic.
                 if len(snp_info["segregating"]) != 2:
                     continue

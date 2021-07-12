@@ -61,6 +61,15 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.5
+=====
+
+- Use (chrom, pos) tuple as data dictionary key, to avoid conflicts with underscores.
+  Underscores in contig/chromosome names are again supported.
+- Add branch function to Spectrum class.
+- Fix bug when computing SFS from demes with branches occurring simultaneously (#71).
+- Fix bug when computing SFS from demes with pulses occurring simultaneously (#72).
+
 1.1.4
 =====
 

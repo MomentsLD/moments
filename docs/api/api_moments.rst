@@ -7,7 +7,7 @@ The Spectrum object
 
 .. autoclass:: moments.Spectrum
     :members: project, marginalize, swap_axes, log, fold, unfold,
-        split, admix, pulse_migrate, integrate,
+        split, branch, admix, pulse_migrate, integrate,
         Fst, S, Watterson_theta, theta_L, Zengs_E, pi, Tajima_D,
         from_file, to_file, fixed_size_sample, sample,
         from_data_dict, from_demes

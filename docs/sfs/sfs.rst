@@ -184,8 +184,8 @@ operations often change the dimension or size of the SFS, so they do not
 act in-place. Instead, they return a new Spectrum object, similar to the
 manipulations in the previous section.
 
-Population splits
-=================
+Population splits and branches
+==============================
 
 New in ``moments`` version 1.1, the Spectrum class includes functions to
 directly apply demographic events. A population split is called using
@@ -218,6 +218,20 @@ a split event:
 
     fs_split = fs.split(0, 4, 2, new_ids=["C", "D"])
     fs_split
+
+As of version 1.1.5, we can apply a "branch" event. This is conceptually similar
+to a split, but simpler in that a child population branches off from a parental
+population. In this case, we just need to give the sample size of the new child
+population (and it's new population ID), and the parental population is left
+with the same number of lineages minus the size of the new population, and its
+population ID (if given) remains unchanged.
+
+.. jupyter-execute::
+
+    fs = moments.Demographics1D.snm([5])
+    fs.pop_ids = ["A"]
+    fs_branch = fs.branch(0, 2, new_id="B")
+    fs_branch
 
 .. note::
     Previous versions of ``moments`` required calling functions such as
