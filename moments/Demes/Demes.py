@@ -580,7 +580,7 @@ def _get_deme_sample_sizes(
     # lineages to a branch (branches, pulses). Marginalize events add the deme
     # sample size with unsampled_n.
     for t, events in sorted(demo_events.items()):
-        for event in events:
+        for event in events[::-1]:
             if event[0] == "marginalize":
                 deme_id = event[1]
                 # add unsampled deme
@@ -630,7 +630,7 @@ def _get_deme_sample_sizes(
                 source = event[1]
                 dest = event[2]
                 for interval in sorted(ns.keys()):
-                    if interval[0] == t:
+                    if interval[1] == t:
                         dest_size = ns[interval][demes_present[interval].index(dest)]
                     if (
                         interval[0] <= g[source].start_time
@@ -819,13 +819,13 @@ def _apply_event(fs, event, t, deme_sample_sizes, demes_present):
         source = event[1]
         dest = event[2]
         proportion = event[3]
-        for i, ns in deme_sample_sizes.items():
-            if i[0] == t:
-                target_sizes = [
-                    deme_sample_sizes[i][demes_present[i].index(source)],
-                    deme_sample_sizes[i][demes_present[i].index(dest)],
-                ]
-        fs = _pulse_fs(fs, source, dest, proportion, target_sizes)
+        #for i, ns in deme_sample_sizes.items():
+        #    if i[0] == t:
+        #        target_sizes = [
+        #            deme_sample_sizes[i][demes_present[i].index(source)],
+        #            deme_sample_sizes[i][demes_present[i].index(dest)],
+        #        ]
+        fs = _pulse_fs(fs, source, dest, proportion)
     else:
         raise ValueError(f"Haven't implemented methods for event type {e}")
     return fs
@@ -905,15 +905,13 @@ def _admix_fs(fs, parents, proportions, child, child_size):
     return fs
 
 
-def _pulse_fs(fs, source, dest, proportion, target_sizes):
+def _pulse_fs(fs, source, dest, proportion):
     # uses admix in place
     source_idx = fs.pop_ids.index(source)
     dest_idx = fs.pop_ids.index(dest)
-    fs = fs.pulse_migrate(source_idx, dest_idx, target_sizes[0], proportion)
-
-    assert fs.sample_sizes[source_idx] == target_sizes[0]
-    assert fs.sample_sizes[dest_idx] == target_sizes[1]
-
+    # in the source deme, we keep that size minus the dest size
+    keep_from = fs.sample_sizes[source_idx] - fs.sample_sizes[dest_idx]
+    fs = fs.pulse_migrate(source_idx, dest_idx, keep_from, proportion)
     return fs
 
 

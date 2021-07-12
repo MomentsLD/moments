@@ -270,11 +270,13 @@ class TestPulse(unittest.TestCase):
         print("%s: %.3f seconds" % (self.id(), t))
 
     def test_pulse_function(self):
-        fs = moments.Demographics2D.snm([20, 10], pop_ids=["A", "B"])
-        out = Demes._pulse_fs(fs, "A", "B", 0.2, [10, 10])
-        self.assertTrue(out.sample_sizes[0] == 10)
-        self.assertTrue(out.sample_sizes[1] == 10)
-        fs2 = fs.pulse_migrate(0, 1, 10, 0.2)
+        n0 = 30
+        n1 = 10
+        fs = moments.Demographics2D.snm([n0, n1], pop_ids=["A", "B"])
+        out = Demes._pulse_fs(fs, "A", "B", 0.2)
+        self.assertTrue(out.sample_sizes[0] == n0 - n1)
+        self.assertTrue(out.sample_sizes[1] == n1)
+        fs2 = fs.pulse_migrate(0, 1, n0 - n1, 0.2)
         self.assertTrue(np.allclose(fs2.data, out.data))
 
 
@@ -902,3 +904,58 @@ class TestConcurrentEvents(unittest.TestCase):
             np.all([a == b for a, b, in zip(fs_demes.pop_ids, fs_demes2.pop_ids)])
         )
         self.assertTrue(np.allclose(fs_demes.data, fs_demes2.data))
+
+    def test_concurrent_pulses_AtoB_BtoC(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_pulse(source="a", dest="b", time=50, proportion=0.5)
+        b.add_pulse(source="b", dest="c", time=50, proportion=0.5)
+        graph = b.resolve()
+
+        n = 20
+        fs = moments.Spectrum.from_demes(graph, sampled_demes=["c"], sample_sizes=[n])
+
+        self.assertEqual(fs.Npop, 1)
+        self.assertEqual(fs.sample_sizes[0], n)
+        self.assertEqual(fs.pop_ids[0], "c")
+
+    def test_concurrent_pulses_AtoB_AtoC(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_pulse(source="a", dest="b", time=50, proportion=0.5)
+        b.add_pulse(source="a", dest="c", time=50, proportion=0.5)
+        graph = b.resolve()
+
+        n = 20
+        fs = moments.Spectrum.from_demes(
+            graph, sampled_demes=["b", "c"], sample_sizes=[n, n]
+        )
+
+        self.assertEqual(fs.Npop, 2)
+        self.assertEqual(fs.sample_sizes[0], n)
+        self.assertEqual(fs.sample_sizes[1], n)
+        self.assertEqual(fs.pop_ids[0], "b")
+        self.assertEqual(fs.pop_ids[1], "c")
+
+    def test_concurrent_pulses_AtoC_BtoC(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_pulse(source="a", dest="c", time=50, proportion=0.5)
+        b.add_pulse(source="b", dest="c", time=50, proportion=0.5)
+        graph = b.resolve()
+
+        n = 20
+        fs = moments.Spectrum.from_demes(graph, sampled_demes=["c"], sample_sizes=[n])
+
+        self.assertEqual(fs.Npop, 1)
+        self.assertEqual(fs.sample_sizes[0], n)
+        self.assertEqual(fs.pop_ids[0], "c")
