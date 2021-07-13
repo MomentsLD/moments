@@ -25,6 +25,7 @@ try:
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
+
     _imported_mpl = True
 except ImportError:
     _imported_mpl = False
@@ -36,6 +37,7 @@ def _check_mpl_imported():
             "matplotlib not found - moments can be used but "
             "plotting features will not work"
         )
+
 
 import numpy as np
 
@@ -601,7 +603,7 @@ class _ModelInfo:
         if callable(migrations):
             sum_mig = 0
             step = 1 / (self.precision - 1)
-            for t in np.arange(0, 1+step, step):
+            for t in np.arange(0, 1 + step, step):
                 sum_mig += migrations(t)
             migrations = sum_mig / self.precision
         # Transpose because plotting assumes m[i,j] corresponds to migration from i to j

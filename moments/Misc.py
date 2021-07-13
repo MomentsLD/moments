@@ -313,7 +313,10 @@ def make_data_dict(filename):
         data_this_snp["calls"] = calls_dict
 
         # We name our SNPs using the final columns
-        snp_key = (spl[allele2_index + len(pops) + 1], spl[allele2_index + len(pops) + 2])
+        snp_key = (
+            spl[allele2_index + len(pops) + 1],
+            spl[allele2_index + len(pops) + 2],
+        )
         if snp_key == "":
             snp_key = ("SNP", f"{SNP_ii}")
 

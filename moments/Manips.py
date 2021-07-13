@@ -739,12 +739,7 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
 
     if n_lineages > min(M, N):
         raise ValueError(
-            "not enough lineages to produce %d, M=%d,N=%d"
-            % (
-                n_lineages,
-                M,
-                N,
-            )
+            "not enough lineages to produce %d, M=%d,N=%d" % (n_lineages, M, N,)
         )
     project_dimensions = [
         n - 1 for n in new_dimensions
@@ -820,7 +815,7 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     # remove pop_ids so that we don't get ValueErrors
     pop_ids = sfs.pop_ids
     sfs.pop_ids = None
-    
+
     dimensions = sfs.shape
     M = (
         dimensions[source_population_index] - 1
@@ -835,11 +830,13 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     target_dimensions[target_population_index] = target_N
 
     if keep_1 > M:
-        raise ValueError((
-        "Cannot keep more lineages than we started with, keep_1=%d,\
+        raise ValueError(
+            (
+                "Cannot keep more lineages than we started with, keep_1=%d,\
     M=%d"
-        % (keep_1, M)
-    ))
+                % (keep_1, M)
+            )
+        )
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()

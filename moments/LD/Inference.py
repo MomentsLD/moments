@@ -43,7 +43,6 @@ def sigmaD2(y, normalization=0):
     if normalization >= y.num_pops or normalization < 0:
         raise ValueError("Normalization index must be for a present population")
 
-    
     out = LDstats(copy.deepcopy(y[:]), num_pops=y.num_pops, pop_ids=y.pop_ids)
 
     for i in range(len(y))[:-1]:

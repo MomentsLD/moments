@@ -406,7 +406,9 @@ class TriSpectrum(numpy.ma.masked_array):
             #            if self.mask_infeasible == True:
             #                output.mask_infeasible()
             #            return output
-            raise ValueError("finite_genome is not yet implemented")  # still to implement
+            raise ValueError(
+                "finite_genome is not yet implemented"
+            )  # still to implement
 
     def pi(self):
         """
