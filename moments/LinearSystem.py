@@ -43,7 +43,7 @@ def index_nD(id, dims):
     return np.array(res)
 
 
-# Mutations
+# Mutations (infinite sites model. Finite site model are in LinearSystem1D.pyx and reversible.py)
 def calcB(u, dims):
     B = np.zeros(dims)
     for k in range(len(dims)):
