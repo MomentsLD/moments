@@ -1,3 +1,16 @@
+.. _sec_demes:
+
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib, matplotlib.pylab as plt
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=9)
+    matplotlib.rc('ytick', labelsize=9)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 ================================
 Specifying models with ``demes``
 ================================
@@ -18,7 +31,7 @@ Demographic models specify the historical size changes, migrations, splits and
 mergers of related populations. Specifying demographic models using ``moments``
 or practically any other simulation engine can become very complicated and
 error prone, especially when we want to model more than one population (e.g.
-[Ragsdale]_). Even worse, every individual software has its own language and
+[Ragsdale2020]_). Even worse, every individual software has its own language and
 methods for specifying a demographic model, so a user has to reimplement the
 same model across multiple software, which nobody enjoys. To resolve these
 issues of reproducibility, replication, and susceptibility to errors, ``demes``
@@ -41,7 +54,7 @@ demographic events or integrate the SFS or LD objects. ``moments`` does all of
 that for you.
 
 It's easiest to see the functionality through example. In the tests directory,
-there is a YAML description of the [Gutenkunst]_ Out-of-African model:
+there is a YAML description of the [Gutenkunst2009]_ Out-of-African model:
 
 .. literalinclude:: ../../tests/test_files/gutenkunst_ooa.yml
     :language: yaml
@@ -343,27 +356,37 @@ And now we can run the inference:
     to overwrite an existing file with that file path and name by setting
     ``overwrite=True``.
 
-.. todo:: Plot the inferred demographic model, using some upcoming demes plotting
-    tools that Graham Gower is developing.
+********************
+Plotting the results
+********************
 
-We can see how well our best fit model fits the data, using ``moments``'
-plotting features.
+We can see how well our best fit model fits the data, using ``moments``
+plotting features:
 
 .. jupyter-execute::
 
     import matplotlib.pylab as plt
     fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
-    moments.Plotting.plot_1d_comp_multinom(fs, data, show=False)
+    moments.Plotting.plot_1d_comp_multinom(fs, data)
+
+And we can illustrate the best fit model using
+`demesdraw <https://github.com/grahamgower/demesdraw>`_:
+
+.. jupyter-execute::
+
+    import demes, demesdraw
+    opt_model = demes.load(output)
+    demesdraw.size_history(opt_model, invert_x=True, log_time=True);
 
 **********
 References
 **********
 
-.. [Gutenkunst]
+.. [Gutenkunst2009]
     Gutenkunst, Ryan N., et al. "Inferring the joint demographic history of
     multiple populations from multidimensional SNP frequency data."
     *PLoS genet* 5.10 (2009): e1000695.
 
-.. [Ragsdale]
+.. [Ragsdale2020]
     Ragsdale, Aaron P., et al. "Lessons learned from bugs in models of human
     history." *The American Journal of Human Genetics* 107.4 (2020): 583-588.

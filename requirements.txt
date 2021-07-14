@@ -7,4 +7,5 @@ ipython
 pandas
 jupyter_sphinx
 demes>=0.1.0
+demesdraw
 ruamel.yaml

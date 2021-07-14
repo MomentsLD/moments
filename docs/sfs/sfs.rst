@@ -1,3 +1,16 @@
+.. _sec_sfs:
+
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib, matplotlib.pylab as plt
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=9)
+    matplotlib.rc('ytick', labelsize=9)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 ===========================
 The Site Frequency Spectrum
 ===========================
@@ -9,7 +22,7 @@ a VCF.
 
 If you use the SFS methods in ``moments`` in your research, please cite
 
-- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017).
+- [Jouganous2017]_ Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017).
   Inferring the joint demographic history of multiple populations:
   beyond the diffusion approximation. *Genetics*, 206(3), 1549-1567.
 
@@ -584,3 +597,9 @@ functions can be used out-of-the-box, or serve as inspiration for your own
 ``matplotlib`` adventures. To see what plotting functions are available and view
 their documentation, head *here*.
 
+**********
+References
+**********
+
+.. [Jouganous2017]
+    Jouganous, Julien, et al. "Inferring the joint demographic history of multiple populations: beyond the diffusion approximation." *Genetics* 206.3 (2017): 1549-1567.

@@ -25,13 +25,20 @@ Welcome to moments's documentation!
    sfs/inference
 
 .. toctree::
+   :caption: Linkage disequilibrium
+   :maxdepth: 1
+   
+   ld/ld
+   ld/parsing
+   ld/inference
+
+.. toctree::
    :caption: Extensions
    :maxdepth: 1
    
-   extensions/ld
+   extensions/demes
    extensions/two_locus
    extensions/triallele
-   extensions/demes
 
 .. toctree::
    :caption: Modules

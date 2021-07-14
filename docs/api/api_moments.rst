@@ -1,3 +1,5 @@
+.. _sec_sfs_api:
+
 ==============================
 API for site frequency spectra
 ==============================

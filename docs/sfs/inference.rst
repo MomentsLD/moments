@@ -1,3 +1,16 @@
+.. _sec_sfs_inferenc:
+
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib, matplotlib.pylab as plt
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=9)
+    matplotlib.rc('ytick', labelsize=9)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 =============
 SFS Inference
 =============
@@ -6,12 +19,11 @@ SFS Inference
 Computing likelihoods
 *********************
 
-Following `Sawyer and Hartl (1992) <https://www.genetics.org/content/132/4/1161.short>`_
-the distribution of mutation frequencies is treated as a Poisson random field, so
-that composite likelihoods (in which we assume mutations are independent) are computed
-by taking Poisson likelihoods over bins in the SFS. We typically work with
-log-likelihoods, so that the log-likelihood of the data (:math:`D`) given the model
-(:math:`M`) is
+Following [Sawyer1992]_ the distribution of mutation frequencies is treated as
+a Poisson random field, so that composite likelihoods (in which we assume
+mutations are independent) are computed by taking Poisson likelihoods over bins
+in the SFS. We typically work with log-likelihoods, so that the log-likelihood
+of the data (:math:`D`) given the model (:math:`M`) is
 
 .. math::
     \log{\mathcal{L}} = \sum_{i} D_i \log{M_i} - M_i - \log{D_i !}
@@ -73,28 +85,37 @@ a demographic model defined by a set of parameters, we try to find those paramet
 that minimize the negative log-likelihood of the data given the model. There are
 a number of optimization functions available in ``moments.Inference``:
 
-- ``optimize`` and ``optimize_log``:
-- ``optimize_lbfgsb`` and ``optimize_log_lbfgsb``:
-- ``optimize_log_fmin``:
-- ``optimize_powell`` and ``optimize_log_powell``:
+- ``optimize`` and ``optimize_log``: Uses the BFGS algorithm.
+- ``optimize_lbfgsb`` and ``optimize_log_lbfgsb``: Uses the L-BFGS-B algorithm.
+- ``optimize_log_fmin``: Uses the downhill simplex algorithm on the log of
+  the parameters.
+- ``optimize_powell`` and ``optimize_log_powell``: Uses the modified Powell's
+  method, which optimizes slices of parameter space sequentially.
+
+More information about optimization algorithms can be found in the
+`scipy documentation <https://docs.scipy.org/doc/scipy/reference/optimize.html>`.
 
 With each method, we require at least three inputs: 1) the initial guess, 2) the
 data SFS, and 3) the model function that returns a SFS of the same size as the data.
 
 Additionally, it is common to set the following:
 
-- ``lower_bound`` and ``upper_bound``:
-- ``fixed_params``:
-- ``verbose``:
+- ``lower_bound`` and ``upper_bound``: Constraints on the lower and upper bounds
+  during optimization. These are given as lists of the same length of the parameters.
+- ``fixed_params``: A list of the same length of the parameters, with fixed values
+  given matching the order of the input parameters. ``None`` is used to specify
+  parameters that are still to be optimized.
+- ``verbose``: If an integer greater than 0, prints updates of the optimization
+  procedure at intervals given by that spacing.
 
-For a full description of the various inference functions, please see the *SFS inference
-API*.
+For a full description of the various inference functions, please see the
+:ref:`SFS inference API <sec_sfs_api>`.
 
 Example
 -------
 
-Here, we've created some fake data for a two-population split-migration model, and
-we reinfer the input parameters to the model used to create that data. This example
+Here, we will create some fake data for a two-population split-migration model, and
+then re-infer the input parameters to the model used to create that data. This example
 uses the ``optimize_log_fmin`` optimization function.
 
 .. jupyter-execute::
@@ -129,3 +150,10 @@ uses the ``optimize_log_fmin`` optimization function.
 
     moments.Plotting.plot_2d_comp_multinom(
         model_func(opt_params, data.sample_sizes), data)
+
+**********
+References
+**********
+
+.. [Sawyer1992]
+    Sawyer, Stanley A., and Daniel L. Hartl. "Population genetics of polymorphism and divergence." *Genetics* 132.4 (1992): 1161-1176.
