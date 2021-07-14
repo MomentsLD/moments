@@ -131,7 +131,9 @@ class LDstats(list):
             if pops is not None:
                 to_marginalize = list(set(range(self.num_pops)) - set(pops))
                 Y_new = self.marginalize(to_marginalize)
-            return Y_new[:-1]
+                return np.array(Y_new[:-1])
+            else:
+                return np.array(self[:-1])
 
     def H(self, pops=None):
         """
@@ -143,7 +145,9 @@ class LDstats(list):
         if pops is not None:
             to_marginalize = list(set(range(self.num_pops)) - set(pops))
             Y_new = self.marginalize(to_marginalize)
-        return Y_new[-1]
+            return Y_new[-1]
+        else:
+            return self[-1]
 
     # demographic and manipulation functions
     def split(self, pop_to_split, new_ids=None):
