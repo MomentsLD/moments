@@ -15,12 +15,12 @@
 Multi-population LD statistics
 ==============================
 
-Using moment equations for the two-locus haplotype distribution, ``moments.LD`` lets
-us compute a large family of linkage disequilibrium statistics in models with
-arbitrary mutation and recombination rates and flexible demographic history with any
-number of populations. The statistics are stored in a different way that the SFS, but
-much of the API for implementing demographic events and integration is largely
-consistent between the SFS and LD methods.
+Using moment equations for the two-locus haplotype distribution, ``moments.LD``
+lets us compute a large family of linkage disequilibrium statistics in models
+with arbitrary mutation and recombination rates and flexible demographic
+history with any number of populations. The statistics are stored in
+a different way that the SFS, but much of the API for implementing demographic
+events and integration is largely consistent between the SFS and LD methods.
 
 If you use ``moments.LD`` in your research, please cite:
 
@@ -36,19 +36,20 @@ If you use ``moments.LD`` in your research, please cite:
 Linkage disequilibrium
 **********************
 
-The LD statistics that ``moments.LD`` computes are low-order summaries of expected
-LD between pairs of loci. In particular, we compute :math:`\mathbb{E}[D^2]`, the
-expectation of the numerator of the familiar `r^2` measure of LD. From this system of
-equations, we also compute :math:`\mathbb{E}[Dz] = \mathbb{E}[D(1-2p)(1-2q)]`, where
-:math:`p` and :math:`q` are the allele frequencies at the left and right loci,
-respectively; and we also compute :math:`\pi_2=\mathbb{E}[p(1-p)q(1-q)]`, a measure
-of the "joint heterozygosity" of the two loci [Hill1968]_.
+The LD statistics that ``moments.LD`` computes are low-order summaries of
+expected LD between pairs of loci. In particular, we compute
+:math:`\mathbb{E}[D^2]`, the expectation of the numerator of the familiar
+:math:`r^2` measure of LD. From this system of equations, we also compute
+:math:`\mathbb{E}[Dz] = \mathbb{E}[D(1-2p)(1-2q)]`, where :math:`p` and
+:math:`q` are the allele frequencies at the left and right loci, respectively;
+and we also compute :math:`\pi_2=\mathbb{E}[p(1-p)q(1-q)]`, a measure of the
+"joint heterozygosity" of the two loci [Hill1968]_.
 
-These statistics are stored in a list of arrays, where each list element corresponds
-to a given recombination rate, :math:`\rho = 4N_er`, where `r` is the recombination
-probability separating loci. The length of the list is the length of the number of
-recombination rates given, plus one, as the last entry stores the single-locus
-expected heterozygosity:
+These statistics are stored in a list of arrays, where each list element
+corresponds to a given recombination rate, :math:`\rho = 4N_er`, where `r` is
+the recombination probability separating loci. The length of the list is the
+length of the number of recombination rates given, plus one, as the last entry
+stores the single-locus expected heterozygosity:
 
 .. jupyter-execute::
 
@@ -58,20 +59,21 @@ expected heterozygosity:
     y = moments.LD.Demographics1D.snm(rho=rho, theta=theta) # steady-state expectations
     y
 
-Here, we can see the decay of LD with increasing recombination rate, and also that
-the heterozygosity equals the scaled mutation rate at steady-state, as expected.
-On any LD object, we can get the list of statistics present by calling:
+Here, we can see the decay of LD with increasing recombination rate, and also
+that the heterozygosity equals the scaled mutation rate at steady-state, as
+expected. On any LD object, we can get the list of statistics present by
+calling:
 
 .. jupyter-execute::
     
     y.names()
 
-The underscores index the populations for that statistic, so ``DD_0_0`` represents
-:math:`\mathbb{E}[D_0 D_0] = \mathbb{E}[D_0^2]`, ``Dz_0_0_0`` represents
-:math:`\mathbb{E}[D_0(1-2p_0)(1-2q_0)]`, and ``pi2_0_0_0_0`` represents
-:math:`\mathbb{E}[p_0(1-p_0)q_0(1-q_0)]`. Here, there is only the one population
-(indexed by zero), but it should be clear how the indexing extends to additional
-populations.
+The underscores index the populations for that statistic, so ``DD_0_0``
+represents :math:`\mathbb{E}[D_0 D_0] = \mathbb{E}[D_0^2]`, ``Dz_0_0_0``
+represents :math:`\mathbb{E}[D_0(1-2p_0)(1-2q_0)]`, and ``pi2_0_0_0_0``
+represents :math:`\mathbb{E}[p_0(1-p_0)q_0(1-q_0)]`. Here, there is only the
+one population (indexed by zero), but it should be clear how the indexing
+extends to additional populations.
 
 One of the great strengths of ``moments.LD`` is that while it only computes
 low-order moments of the full two-locus haplotype distribution, it allows us to
