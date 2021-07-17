@@ -216,7 +216,9 @@ def get_genotypes(
     relevant_column[0:2] = True
     biallelic_allele_counts = biallelic_allele_counts.compress(relevant_column, axis=1)
 
-    sample_ids = callset["samples"]
+    sample_ids = np.array(
+        [sid if sid.isalnum() else sid.decode() for sid in callset["samples"]]
+    )
 
     return biallelic_positions, biallelic_genotypes, biallelic_allele_counts, sample_ids
 
@@ -782,7 +784,7 @@ def _call_sgc(stat, Cs, use_genotypes=True):
     ), "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
 
     s = stat.split("_")[0]
-    pop_nums = [int(p) - 1 for p in stat.split("_")[1:]]
+    pop_nums = [int(p) for p in stat.split("_")[1:]]
     if s == "DD":
         if use_genotypes == True:
             return gcs_mp.DD(Cs, pop_nums)
@@ -959,7 +961,7 @@ def _get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tr
             print("computing " + stat)
             sys.stdout.flush()
         # set counts of non-used stats to zeros, then take set
-        pops_in_stat = sorted(list(set(int(p) - 1 for p in stat.split("_")[1:])))
+        pops_in_stat = sorted(list(set(int(p) for p in stat.split("_")[1:])))
         stat_counts = {}
         for b in bs:
             for cs in type_counts[b].keys():
@@ -1181,7 +1183,7 @@ def _get_reported_stats(
         pops = ["ALL"]
     for s in stats_to_compute[1]:
         reported_stats["sums"][-1][stats_to_compute[1].index(s)] = Hs[
-            (pops[int(s.split("_")[1]) - 1], pops[int(s.split("_")[2]) - 1])
+            (pops[int(s.split("_")[1])], pops[int(s.split("_")[2])])
         ]
     reported_stats["stats"] = stats_to_compute
     reported_stats["pops"] = pops
