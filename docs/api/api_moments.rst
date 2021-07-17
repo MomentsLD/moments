@@ -60,6 +60,8 @@ Inference functions
 
 .. autofunction:: moments.Inference.optimize_log_lbfgsb
 
+.. _sec_sfs_api_plotting:
+
 Plotting features
 -----------------
 

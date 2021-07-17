@@ -386,7 +386,7 @@ def optimize_log_fmin(
 
     means = data[0]
     varcovs = data[1]
-    if use_afs == True:
+    if use_afs is True:
         try:
             fs = data[2]
         except IndexError:
@@ -394,24 +394,18 @@ def optimize_log_fmin(
                 "if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]"
             )
 
-        if ns == None:
+        if ns is None:
             raise ValueError("need to set ns if we are fitting frequency spectrum")
 
     else:
         fs = None
 
-    if use_afs == True:
-        raise ValueError("which mutation/theta parameters do we need to check and pass")
-
     if rs is None:
         raise ValueError("need to pass rs as bin edges")
 
-    # if Ne is None:
-    #    print("Warning: using last parameter in list of params as Ne")
-
     # get num_pops
-    if Ne == None:
-        if pass_Ne == False:
+    if Ne is None:
+        if not pass_Ne:
             y = model_func[0](p0[:-1])
         else:
             y = model_func[0](p0[:])
@@ -419,12 +413,11 @@ def optimize_log_fmin(
         y = model_func[0](p0)
     num_pops = y.num_pops
 
-    # remove normalized statistics (or how should we handle the masking?)
+    # remove normalized statisticsd
     ms = copy.copy(means)
     vcs = copy.copy(varcovs)
-    if (
-        statistics == None
-    ):  # if statistics is not None, assume we already filtered out the data
+    if statistics is None:
+        # if statistics is not None, assume we already filtered out the data
         ms, vcs = remove_normalized_data(
             ms, vcs, normalization=normalization, num_pops=num_pops
         )
@@ -479,7 +472,7 @@ def optimize_log_powell(
     upper_bound=None,
     verbose=0,
     flush_delay=0.5,
-    normalization=1,
+    normalization=0,
     func_args=[],
     func_kwargs={},
     fixed_params=None,
@@ -527,7 +520,7 @@ def optimize_log_powell(
 
     means = data[0]
     varcovs = data[1]
-    if use_afs == True:
+    if use_afs:
         try:
             fs = data[2]
         except IndexError:
@@ -535,40 +528,33 @@ def optimize_log_powell(
                 "if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]"
             )
 
-        if ns == None:
+        if ns is None:
             raise ValueError("need to set ns if we are fitting frequency spectrum")
 
     else:
         fs = None
 
-    if use_afs == True:
-        raise ValueError("which mutation/theta parameters do we need to check and pass")
-
     if rs is None:
         raise ValueError("need to pass rs as bin edges")
 
-    # if Ne is None:
-    #    print("Warning: using last parameter in list of params as Ne")
-
-    # remove normalized statistics (or how should we handle the masking?)
-    ms = copy.copy(means)
-    vcs = copy.copy(varcovs)
-    if (
-        statistics == None
-    ):  # if statistics is not None, assume we already filtered out the data
-        ms, vcs = remove_normalized_data(
-            ms, vcs, normalization=normalization, num_pops=num_pops
-        )
-
     # get num_pops
-    if Ne == None:
-        if pass_Ne == False:
+    if Ne is None:
+        if not pass_Ne:
             y = model_func[0](p0[:-1])
         else:
             y = model_func[0](p0[:])
     else:
         y = model_func[0](p0)
     num_pops = y.num_pops
+
+    # remove normalized statistics
+    ms = copy.copy(means)
+    vcs = copy.copy(varcovs)
+    if statistics is None:
+        # if statistics is not None, assume we already filtered out the data
+        ms, vcs = remove_normalized_data(
+            ms, vcs, normalization=normalization, num_pops=num_pops
+        )
 
     args = (
         model_func,

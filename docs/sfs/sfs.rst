@@ -40,6 +40,67 @@ given by the index of that entry. That is, ``fs[j, k, l]`` is the number
 in population 1, and ``l`` in population 2. (Note that all indexing, as is
 typical in Python, is zero-based.)
 
+Examples
+========
+
+It can be helpful to visualize site-frequency spectra if you are new to working
+with them. In the single-population case, a SFS is a one-dimensional array. For
+variable biallelic loci and steady-state demography (no historical size changes,
+migrants, etc), the SFS is proportional to :math:`1/i`, with total size depending
+on the mutation rate and sequence length. Historical size changes and demographic
+events perturb the SFS from this shape, as does negative or positive selection,
+skewing the SFS to lower or higher frequencies, resp.
+
+.. jupyter-execute::
+
+    import moments
+    import numpy as np
+    import matplotlib.pylab as plt
+
+    sample_size = 40
+
+    # A neutral SFS
+    fs_neu = moments.Demographics1D.snm([sample_size])
+    # SFS under negative selection
+    fs_neg = moments.Spectrum(
+        moments.LinearSystem_1D.steady_state_1D(sample_size, gamma=-10)
+    )
+    # SFS under positive selection
+    fs_pos = moments.Spectrum(
+        moments.LinearSystem_1D.steady_state_1D(sample_size, gamma=10)
+    )
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+    ax.plot(fs_neu, ".-", ms=8, lw=1, label="Neutral")
+    ax.plot(fs_neg, "x-", ms=8, lw=1, label="Neg. selection")
+    ax.plot(fs_pos, "+-", ms=8, lw=1, label="Pos. selection")
+    ax.set_xlabel("Allele frequency")
+    ax.set_ylabel("Density")
+    ax.legend();
+
+Multi-population SFS can be illustrated as multi-dimensional histograms, such
+as 2D heat maps. Here, we consider a very simple model of a population split
+and both derived populations are the same size as the ancestral population and
+do not exchange migrants. Allele frequencies in populations that split more
+recently will still be quite similar, while more distantly related populations
+are expected to have larger allele frequency differences.
+
+.. jupyter-execute::
+
+    sample_sizes = [50, 50]
+
+    # parameters of `split_mig` are (nu0, nu1, T, m)
+    # T is measured in units of 2Ne generations
+    fs_recent = moments.Demographics2D.split_mig((1, 1, 0.02, 0), sample_sizes)
+    fs_older = moments.Demographics2D.split_mig((1, 1, 0.15, 0), sample_sizes)
+
+    # assume theta = 20000, and then resample to fake data
+    fs_recent = (20000 * fs_recent).sample()
+    fs_older = (20000 * fs_older).sample()
+
+    moments.Plotting.plot_single_2d_sfs(fs_recent)
+    moments.Plotting.plot_single_2d_sfs(fs_older)
+
 *******************************
 Spectrum objects in ``moments``
 *******************************
@@ -83,12 +144,6 @@ Folding
 Folding a SFS removes information about how SNPs are polarized, so that the
 Spectrum stores counts of mutations with a given minor allele frequency. To
 fold a SFS, we call ``fold()``, which returns a folded Spectrum object.
-
-.. jupyter-execute::
-    :hide-code:
-
-    import moments
-    import numpy as np
 
 For example, the standard neutral model of sample size 10,
 
@@ -595,7 +650,7 @@ called from ``moments.Plotting``. These include functions to plot individual
 SFS, or to compare two SFS (for example, to compare a model to data). These
 functions can be used out-of-the-box, or serve as inspiration for your own
 ``matplotlib`` adventures. To see what plotting functions are available and view
-their documentation, head *here*.
+their documentation, head to the :ref:`moments API <sec_sfs_api_plotting>`.
 
 **********
 References

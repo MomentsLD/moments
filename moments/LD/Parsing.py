@@ -1252,6 +1252,9 @@ def compute_ld_statistics(
 
     check_imports()
 
+    if not np.all([r1 - r0 > 0 for r0, r1 in zip(r_bins[:-1], r_bins[1:])]):
+        raise ValueError("r_bins must be a monotonically increasing list")
+
     positions, genotypes, counts, sample_ids = get_genotypes(
         vcf_file,
         bed_file=bed_file,
@@ -1307,6 +1310,51 @@ def compute_ld_statistics(
     return reported_stats
 
 
+def _get_means_from_region_data(all_data, stats, norm_stats):
+    # get means
+    means = [0 * sums for sums in all_data[list(all_data.keys())[0]]["sums"]]
+    for reg in all_data.keys():
+        for ii in range(len(means)):
+            means[ii] += all_data[reg]["sums"][ii]
+
+    for ii in range(len(means) - 1):
+        means[ii] /= means[ii][stats[0].index(norm_stats[0])]
+    means[-1] /= means[-1][stats[1].index(norm_stats[1])]
+    return means
+
+
+def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
+    """
+    From a dictionary of all the regional data, resample with replacement
+    to construct bootstrap data.
+
+    Returns a list of bootstrapped datasets of mean statistics.
+    """
+    norm_stats = [
+        "pi2_{0}_{0}_{0}_{0}".format(normalization),
+        "H_{0}_{0}".format(normalization),
+    ]
+
+    regions = list(all_data.keys())
+    reg = regions[0]
+    stats = all_data[reg]["stats"]
+
+    num_regions = len(all_data)
+    if num_bootstraps is None:
+        num_bootstraps = num_regions
+
+    all_boot = []
+
+    for rep in range(num_bootstraps):
+        print(f"running rep {rep}")
+        temp_data = {}
+        choices = np.random.choice(regions, num_regions, replace=True)
+        for i, c in enumerate(choices):
+            temp_data[i] = all_data[c]
+        all_boot.append(_get_means_from_region_data(temp_data, stats, norm_stats))
+    return all_boot
+
+
 def bootstrap_data(all_data, normalization=0):
     """
     Returns bootstrapped variances for LD statistics.
@@ -1334,15 +1382,7 @@ def bootstrap_data(all_data, normalization=0):
     stats = all_data[reg]["stats"]
     N = len(regions)
 
-    # get means
-    means = [0 * sums for sums in all_data[reg]["sums"]]
-    for reg in regions:
-        for ii in range(len(means)):
-            means[ii] += all_data[reg]["sums"][ii]
-
-    for ii in range(len(means) - 1):
-        means[ii] /= means[ii][stats[0].index(norm_stats[0])]
-    means[-1] /= means[-1][stats[1].index(norm_stats[1])]
+    means = _get_means_from_region_data(all_data, stats, norm_stats)
 
     # construct bootstrap data
     bootstrap_data = [np.zeros((len(sums), N)) for sums in means]
