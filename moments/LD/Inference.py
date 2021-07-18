@@ -110,7 +110,7 @@ def remove_normalized_lds(y, normalization=0):
     Returns LD statistics with the normalizing statistic removed.
 
     :param y: An LDstats object that has been normalized to get
-        :math:`\sigma_D^2`-formatted statistics.
+        :math:`\\sigma_D^2`-formatted statistics.
     :type y: :class:`LDstats` object
     :param normalization: The index of the normalizing population.
     :type normalization: int
@@ -147,9 +147,9 @@ def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
     vcs = []
     for i in range(len(means) - 1):
         if (
-            len(means[i]) != len(stats[0]) or 
-            varcovs[i].shape[0] != len(stats[0]) or 
-            varcovs[i].shape[1] != len(stats[0])
+            len(means[i]) != len(stats[0])
+            or varcovs[i].shape[0] != len(stats[0])
+            or varcovs[i].shape[1] != len(stats[0])
         ):
             raise ValueError(
                 "Data and statistics mismatch. Some statistics are missing "

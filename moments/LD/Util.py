@@ -148,12 +148,17 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
 
 def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
     """
-    Times in params must be specified so that earlier epochs are earlier in the
-    param list, because we return rescaled cumulative times.
+    Rescale parameters to physical units, so that times are in generations, size in
+    effective instead of relative sizes, and migration probabilities in per-generation
+    units.
+
+    For generation times of events to be correctly rescaled, times in the
+    parameters list must be specified so that earlier epochs are earlier
+    in the list, because we return rescaled cumulative times.
 
     :param list params: List of parameters.
     :param list types: List of parameter types. Times are given by "T", sizes by "nu",
-        effective size by "Ne", migration rates by "n", and fractions by "x" or "f".
+        effective size by "Ne", migration rates by "m", and fractions by "x" or "f".
     :param float Ne: The effective population size, typically as the last entry in
         ``params``.
     :param float gens: The generation time.
@@ -161,13 +166,21 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
     """
     if Ne is not None and "Ne" in types:
         raise ValueError(
-            "Ne must be passed as a keywork argument or specified in types, but not both."
+            "Ne must be passed as a keywork argument or "
+            "specified in types, but not both."
         )
+    elif Ne is None and "Ne" not in types:
+        raise ValueError("Ne must be given or must exist in the types list")
+
+    if types.count("Ne") > 1:
+        raise ValueError("Ne can only be defined once in the parameters list")
 
     if Ne is None:
         Ne = params[types.index("Ne")]
 
-    assert len(params) == len(types), "types and params must have same length"
+    if len(params) != len(types):
+        raise ValueError("types and params must have same length")
+
     if uncerts is not None:
         assert len(params) == len(uncerts)
 
@@ -183,8 +196,10 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
             rescaled_params[ii] = p / 2 / Ne
         elif types[ii] == "nu":
             rescaled_params[ii] = p * Ne
-        else:
+        elif types[ii] in ["x", "f"]:
             rescaled_params[ii] = p
+        else:
+            raise ValueError("Unrecognized parameter type", types[ii])
 
     if uncerts is None:
         return rescaled_params

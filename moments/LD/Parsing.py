@@ -382,12 +382,8 @@ def _sparsify_haplotype_matrix(G):
 
 def compute_pairwise_stats(Gs, genotypes=True):
     """
-    Computes D^2, Dz, pi_2, and D for every pair of loci
-    within a block of SNPs, coded as a genotype matrix.
-    We use the sparse genotype matrix representation, where
-    we first "sparsify" the genotype matrix, and then count
-    two-locus genotype configurations from that, from which
-    we compute two-locus statistics.
+    Computes :math:`D^2`, :math:`Dz`, :math:`pi_2`, and :math:`D` for every
+    pair of loci within a block of SNPs, coded as a genotype matrix.
 
     :param Gs: A genotype matrix, of size L-by-n, where
         L is the number of loci and n is the sample size.
@@ -1373,8 +1369,8 @@ def bootstrap_data(all_data, normalization=0):
         is LD statistics computed from a distinct region. all_data[reg]
         stats from each region has keys, 'bins', 'sums', 'stats', and
         optional 'pops'.
-    :param int normalization: we work with sigma_d^2 statistics, and by default
-        we use population 0 to normalize stats
+    :param int normalization: we work with :math:`\\sigma_d^2` statistics,
+        and by default we use population 0 to normalize stats
     """
     norm_stats = [
         "pi2_{0}_{0}_{0}_{0}".format(normalization),
@@ -1425,7 +1421,7 @@ def subset_data(
     Take the output data and get r_edges, ms, vcs, and stats to pass to inference
     machinery. ``pops_to`` are the subset of the populations to marginalize the data
     to. ``r_min`` and ``r_max`` trim bins that fall outside of this range, and
-    ``remove_Dz`` allows us to remove all :math:`\sigma_{Dz}` statistics.
+    ``remove_Dz`` allows us to remove all :math:`\\sigma_{Dz}` statistics.
 
     :param data: The output of ``bootstrap_data``, which contains
         bins, statistics, populations, means, and variance-covariance matrices.
