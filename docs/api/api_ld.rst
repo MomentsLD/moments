@@ -2,9 +2,9 @@
 API for linkage disequilibrium
 ==============================
 
-*******************
-The LDstats object
-*******************
+********************************
+LD statistics class and function
+********************************
 
 .. autoclass:: moments.LD.LDstats
     :members:
@@ -22,19 +22,9 @@ Demographic functions
 .. automodule:: moments.LD.Demographics3D
     :members:
 
-*******************
-Inference functions
-*******************
-
-.. note::
-    These docstrings need attention!
-
-.. automodule:: moments.LD.Inference
-    :members:
-
-**************
-Util functions
-**************
+*****************
+Utility functions
+*****************
 
 .. automodule:: moments.LD.Util
     :members:
@@ -43,5 +33,27 @@ Util functions
 Parsing functions
 *****************
 
+.. note::
+    These docstrings need attention!
+
 .. automodule:: moments.LD.Parsing
+    :members:
+
+********************************************
+Inference and computing confidence intervals
+********************************************
+
+.. note::
+    These docstrings need attention!
+
+Inference methods
+_________________
+
+.. automodule:: moments.LD.Inference
+    :members:
+
+Confidence intervals
+____________________
+
+.. automodule:: moments.LD.Godambe
     :members:

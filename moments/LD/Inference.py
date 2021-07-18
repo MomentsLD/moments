@@ -35,7 +35,7 @@ def sigmaD2(y, normalization=0):
     in a given population.
 
     :param y: The input data.
-    :type y: :class:LDstats object
+    :type y: :class:`LDstats` object
     :param normalization: The index of the normalizing population
         (normalized by pi2_i_i_i_i and H_i_i), default set to 0.
     :type normalization: int, optional
@@ -61,12 +61,16 @@ def bin_stats(model_func, params, rho=[], theta=0.001, spread=None, kwargs={}):
 
     :param model_func: The model function that takes parameters in the form
         ``model_func(params, rho=rho, theta=theta, **kwargs)``.
-    :param params: 
+    :param params: The parameters to evaluate the model at.
+    :type params: list of floats
     :param rho: The scaled recombination rate bin edges.
+    :type rho: list of floats
     :param theta: The mutation rate
+    :type theta: float, optional
     :param spread: A list of length rho-1 (number of bins), where each entry is an
         array of length rho+1 (number of bins plus amount outside bin range to each
         side). Each array must sum to one.
+    :type spread: list of arrays
     :param kwargs: Extra keyword arguments to pass to ``model_func``.
     """
     if len(rho) < 2:
@@ -103,7 +107,13 @@ def bin_stats(model_func, params, rho=[], theta=0.001, spread=None, kwargs={}):
 
 def remove_normalized_lds(y, normalization=0):
     """
+    Returns LD statistics with the normalizing statistic removed.
 
+    :param y: An LDstats object that has been normalized to get
+        :math:`\sigma_D^2`-formatted statistics.
+    :type y: :class:`LDstats` object
+    :param normalization: The index of the normalizing population.
+    :type normalization: int
     """
     to_delete_ld = y.names()[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
     to_delete_h = y.names()[1].index("H_{0}_{0}".format(normalization))
@@ -115,14 +125,36 @@ def remove_normalized_lds(y, normalization=0):
 
 def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
     """
+    Returns data means and covariance matrices with the normalizing
+    statistics removed.
 
+    :param means: List of means normalized statistics, where each entry is the
+        full set of statistics for a given recombination distance.
+    :type means: list of arrays
+    :param varcovs: List of the corresponding variance covariance matrices.
+    :type varcovs: list of arrays
+    :param normalization: The index of the normalizing population.
+    :type normalization: int
+    :param num_pops: The number of populations in the data set.
+    :type num_pops: int
     """
+    if len(means) != len(varcovs):
+        raise ValueError("Different lengths of means and covariances")
     stats = Util.moment_names(num_pops)
     to_delete_ld = stats[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
     to_delete_h = stats[1].index("H_{0}_{0}".format(normalization))
     ms = []
     vcs = []
     for i in range(len(means) - 1):
+        if (
+            len(means[i]) != len(stats[0]) or 
+            varcovs[i].shape[0] != len(stats[0]) or 
+            varcovs[i].shape[1] != len(stats[0])
+        ):
+            raise ValueError(
+                "Data and statistics mismatch. Some statistics are missing "
+                "or the incorrect number of populations was given."
+            )
         ms.append(np.delete(means[i], to_delete_ld))
         vcs.append(
             np.delete(np.delete(varcovs[i], to_delete_ld, axis=0), to_delete_ld, axis=1)
@@ -136,7 +168,10 @@ def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
 
 def remove_nonpresent_statistics(y, statistics=[[], []]):
     """
-    :param y: LD statistics object.
+    Removes data not found in the given set of statistics.
+
+    :param y: LD statistics.
+    :type y: :class:`LDstats` object.
     :param statistics: A list of lists for two and one locus statistics to keep.
     """
     to_delete = [[], []]
@@ -338,6 +373,9 @@ def optimize_log_fmin(
     spread=None,
 ):
     """
+    .. todo::
+       Description of inference method and paramaters.
+
     We can either pass a fixed mutation rate theta = 4*N*u,
     or we pass u and Ne (and compute theta),
     or we pass u and Ne is a parameter of our model to fit
@@ -485,6 +523,9 @@ def optimize_log_powell(
     spread=None,
 ):
     """
+    .. todo::
+       Description of inference method and paramaters.
+
     :param p0: initial guess (demography parameters + theta)
     :param data: [means, varcovs, fs (optional, use if use_afs=True)]
     :param means: list of mean statistics matching bins (has length len(rs)-1)

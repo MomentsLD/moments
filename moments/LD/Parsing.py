@@ -65,7 +65,8 @@ if _imported_allel:
 def _load_h5(vcf_file, report=True):
     check_imports()
     ## open the h5 callset, create if doesn't exist
-    ## note that if the h5 file exists, but isn't properly written, you will need to delete and recreate
+    ## note that if the h5 file exists, but isn't properly written,
+    ## you will need to delete and recreate
     ## saves h5 callset as same name and path, but with h5 extension instead of vcf or vcf.gz
     h5_file_path = vcf_file.split(".vcf")[0] + ".h5"  # kinda hacky, sure
     try:
@@ -98,6 +99,9 @@ def get_genotypes(
     If use_h5 is True, we try to load the h5 file, which has the same path/name as
     vcf_file, but with {fname}.h5 instead of {fname}.vcf or {fname}.vcf.gz. If the h5
     file does not exist, we create it and save it as {fname}.h5
+
+    Returns (biallelic positions, biallelic genotypes, biallelic allele counts,
+    sampled ids).
 
     :param vcf_file: A VCF-formatted file.
     :type vcf_file: str
@@ -293,7 +297,7 @@ def _assign_recombination_rates(
 ## If there is any missing data, we also store set of individuals with -1's
 
 
-def sparsify_genotype_matrix(G):
+def _sparsify_genotype_matrix(G):
     G_dict = {}
     if np.any(G == -1):
         missing = True
@@ -309,7 +313,7 @@ def sparsify_genotype_matrix(G):
     return G_dict, missing
 
 
-def sparsify_haplotype_matrix(G):
+def _sparsify_haplotype_matrix(G):
     G_dict = {}
     if np.any(G == -1):
         missing = True
@@ -322,10 +326,6 @@ def sparsify_haplotype_matrix(G):
         if missing == True:
             G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
     return G_dict, missing
-
-
-# def tally_sparse_haplotypes():
-#    pass
 
 
 # def tally_sparse(G1, G2, n, missing=False):
@@ -403,10 +403,10 @@ def compute_pairwise_stats(Gs, genotypes=True):
     L, n = np.shape(Gs)
 
     if genotypes:
-        G_dict, any_missing = sparsify_genotype_matrix(Gs)
+        G_dict, any_missing = _sparsify_genotype_matrix(Gs)
         Counts = spt.count_genotypes_sparse(G_dict, n, missing=any_missing)
     else:
-        G_dict, any_missing = sparsify_haplotype_matrix(Gs)
+        G_dict, any_missing = _sparsify_haplotype_matrix(Gs)
         Counts = spt.count_haplotypes_sparse(G_dict, n, missing=any_missing)
 
     if genotypes:
@@ -471,11 +471,11 @@ def compute_pairwise_stats_between(Gs1, Gs2, genotypes=True):
         n = n1
 
     if genotypes:
-        G_dict1, any_missing1 = sparsify_genotype_matrix(Gs1)
-        G_dict2, any_missing2 = sparsify_genotype_matrix(Gs2)
+        G_dict1, any_missing1 = _sparsify_genotype_matrix(Gs1)
+        G_dict2, any_missing2 = _sparsify_genotype_matrix(Gs2)
     else:
-        G_dict1, any_missing1 = sparsify_haplotype_matrix(Gs1)
-        G_dict2, any_missing2 = sparsify_haplotype_matrix(Gs2)
+        G_dict1, any_missing1 = _sparsify_haplotype_matrix(Gs1)
+        G_dict2, any_missing2 = _sparsify_haplotype_matrix(Gs2)
 
     any_missing = np.logical_or(any_missing1, any_missing2)
 
@@ -532,28 +532,6 @@ def _count_types_sparse(
     normalized_by=None,
     ac_filter=None,
 ):
-    """
-    genotypes:
-    bins:
-    sample_ids: list of ordered samples, as output by get_genotypes
-    positions: list of base pair positions for each SNP in genotypes
-    pos_rs: list of genetic map positions for each SNP in genotypes
-    pop_file: sample-population file
-    pops: list of populations to keep. If None, uses all samples and treats them
-        as a single population
-    use_genotypes: if True, assumes unphased data. If False, assumes phasing is given
-        in genotypes.
-    use_cache: if True, caches genotype tally counts to compute statistics at end
-        together. If False, computes statistics for each pair on the fly. Can result
-        in recomputing many times, but memory can become an issue when there are many
-        populations.
-    stats_to_compute: list of lists of two-locus and single-locus statist to compute.
-        If None, computes all relevant statistics.
-    normalized_by: population that we are normalizing by. We need to have at least
-        four two-locus counts for the focal pop in order to include this pair.
-        If we set to None, then we should be sure that we won't run into this issue,
-        for example if we know that we don't have missing data.
-    """
     assert (
         ld_extensions == 1
     ), "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
@@ -645,7 +623,7 @@ def _count_types_sparse(
         any_missing = False
         for pop in pops:
             temp_genotypes = genotypes_pops_012.compress(pop_indexes[pop], axis=1)
-            genotypes_by_pop[pop], this_missing = sparsify_genotype_matrix(
+            genotypes_by_pop[pop], this_missing = _sparsify_genotype_matrix(
                 temp_genotypes
             )
             any_missing = np.logical_or(any_missing, this_missing)
@@ -654,7 +632,7 @@ def _count_types_sparse(
         any_missing = False
         for pop in pops:
             temp_haplotypes = haplotypes_pops_01.compress(pop_indexes_haps[pop], axis=1)
-            haplotypes_by_pop[pop], this_missing = sparsify_haplotype_matrix(
+            haplotypes_by_pop[pop], this_missing = _sparsify_haplotype_matrix(
                 temp_haplotypes
             )
             any_missing = np.logical_or(any_missing, this_missing)
@@ -680,8 +658,9 @@ def _count_types_sparse(
             for stat in stats_to_compute[0]:
                 sums[b][stat] = 0
 
-    ## loop through left positions and pair with positions to the right within the bin windows
-    ## very inefficient, naive approach
+    ## loop through left positions and pair with positions to the right
+    ## within the bin windows
+    ## this is a very inefficient, naive approach
     for ii, r in enumerate(rs[:-1]):
         if report is True:
             if ii % report_spacing == 0:
@@ -690,7 +669,8 @@ def _count_types_sparse(
                 )
                 sys.stdout.flush()
 
-        ## loop through each bin, picking out the positions to the right of the left locus that fall within the given bin
+        ## loop through each bin, picking out the positions to the right
+        ## of the left locus that fall within the given bin
         if pos_rs is not None:
             distances = pos_rs - r
         else:
@@ -703,7 +683,8 @@ def _count_types_sparse(
         filt[ii] = False  # don't compare to mutations at same base pair position
         right_indices = np.where(filt == True)[0]
 
-        ## if there are no variants within the bin's distance to the right, continue to next bin
+        ## if there are no variants within the bin's distance to the right,
+        ## continue to next bin
         if len(right_indices) == 0:
             continue
 
@@ -711,9 +692,6 @@ def _count_types_sparse(
         right_end = right_indices[-1] + 1
 
         if use_cache == False:
-            # create counts for each bin, call stats from gentoype counts from here
-            # format to pass to _call_sgc, for each bin, is
-            #
             counts_ii = {}
             for b in bs:
                 counts_ii[b] = [[] for pop_ind in range(len(pops))]
@@ -995,13 +973,15 @@ def _get_H_statistics(
     genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False, report=True
 ):
     """
-    Het values are not normalized by sequence length, would need to compute L from bed file.
+    Het values are not normalized by sequence length,
+    would need to compute L from bed file.
     """
 
     if pop_file == None and pops == None:
         if report == True:
             print(
-                "No population file or population names given, assuming all samples as single pop."
+                "No population file or population names given, "
+                "assuming all samples as single pop."
             )
             sys.stdout.flush()
     elif pops == None:
@@ -1022,7 +1002,8 @@ def _get_H_statistics(
         ### should use this above when counting two locus genotypes
         sample_ids_list = list(sample_ids)
         subpops = {
-            # for each population, get the list of samples that belong to the population
+            # for each population, get the list of samples that
+            # belong to the population
             pop_iter: [
                 sample_ids_list.index(ind)
                 for ind in samples[samples["pop"] == pop_iter]["sample"]
@@ -1118,9 +1099,13 @@ def _get_reported_stats(
         )
 
         # if report is True: print("counted genotypes"); sys.stdout.flush()
-        # statistics_cache = _cache_ld_statistics(type_counts, stats_to_compute[0], bins, use_genotypes=use_genotypes, report=report)
+        # statistics_cache = _cache_ld_statistics(
+        #      type_counts, stats_to_compute[0], bins,
+        #      use_genotypes=use_genotypes, report=report)
         #
-        # if report is True: print("summing over genotype counts and statistics cache"); sys.stdout.flush()
+        # if report is True:
+        #     print("summing over genotype counts and statistics cache")
+        #     sys.stdout.flush()
         # sums = {}
         # for b in bs:
         #    sums[b] = {}
@@ -1212,42 +1197,53 @@ def compute_ld_statistics(
     use_cache=True,
 ):
     """
-    Computes LD statistics for a given VCF, with many options.
+    Computes LD statistics for a given VCF. Binning can be done by base pair
+    or recombination distances, the latter requiring a recombination map. For
+    more than one population, we include a population file that maps samples
+    to populations, and specify with populations to compute statistics fro.
 
-    Future versions need to accept HapMap formatted recombination maps and deprecate
-    map_sep.
+    If data is phased, we can set ``use_genotypes`` to False, and there are
+    other options for masking data.
 
-    :param vcf_file: The input VCF.
-    :param bed_file: An optional bed file that specifies regions over which to compute
-        LD statistics. If None, computes statistics for all positions in vcf_file.
-    :param chromosome: If None, treats all positions in VCF as coming from same
+    .. note::
+        Currently, the recombination map is not given in HapMap format.
+        Future versions will accept HapMap formatted recombination maps
+        and deprecate some of the boutique handling of map options here.
+
+    :param str vcf_file: The input VCF file name.
+    :param str bed_file: An optional bed file that specifies regions over which
+        to compute LD statistics. If None, computes statistics for all positions
+        in VCF.
+    :param str chromosome: If None, treats all positions in VCF as coming from same
         chromosome. If multiple chromosomes are reported in the same VCF, we need to
         specify which chromosome to keep variants from.
-    :param rec_map_file: The input recombination map - **need to specify format**.
-    :param map_name: If None, takes the first map column, otherwise takes the
-        specified map column.
-    :param map_sep: Tells pandas how to parse the recombination map. Default is tabs,
-        though I've been working with space delimitted map files
-    :param pop_file: A file the specifies the population for each sample in the VCF.
+    :param str rec_map_file: The input recombination map. The format is
+        {pos}\t{map (cM)}\t{additional maps}\n
+    :param str map_name: If None, takes the first map column, otherwise takes the
+        specified map column with the name matching the recombination map file header.
+    :param str map_sep: Tells pandas how to parse the recombination map.
+        Default is tabs, though this should be updated to be any whitespace (see note).
+    :param str pop_file: A file the specifies the population for each sample in the VCF.
         Each sample is listed on its own line, in the format "{sample}\t{pop}". The
         first line must be "sample\tpop".
-    :param pops: List of populations to compute statistics for. If none are given, it
-        treates every sample as coming from the same population.
-    :param cM: If True, the recombination map is specified in cM. If False, the map is
-        given in units of Morgans.
-    :param r_bins: A list of raw recombination rate bin edges.
-    :param bp_bins: If ``r_bins`` are not given, a list of bp bin edges (for use when
-        no recombination map is specified).
-    :param min_bp: The minimum bp allowed for a segment specified by the bed file.
-    :param use_genotypes: If True, we assume the data in the VCF is unphased. Otherwise,
-        we use phased information.
-    :param use_h5: If True, we use the h5 format.
-    :param stats_to_compute: If given, we compute only the statistics specified.
+    :param list(str) pops: List of populations to compute statistics for.
+        If none are given, it treates every sample as coming from the same population.
+    :param bool cM: If True, the recombination map is specified in cM. If False,
+        the map is given in units of Morgans.
+    :param list(float) r_bins: A list of raw recombination rate bin edges.
+    :param list(float) bp_bins: If ``r_bins`` are not given, a list of bp bin
+        edges (for use when no recombination map is specified).
+    :param int, float min_bp: The minimum bp allowed for a segment specified
+        by the bed file.
+    :param bool use_genotypes: If True, we assume the data in the VCF is unphased.
+        Otherwise, we use phased information.
+    :param bool use_h5: If True, we use the h5 format.
+    :param list stats_to_compute: If given, we compute only the statistics specified.
         Otherwise, we compute all possible statistics for the populations given.
-    :param report: If True, we report the progress of our parsing.
-    :param report_spacing: We track the number of "left" variants we compute, and report
-        our progress with the given spacing.
-    :param use_cache: If True, cache intermediate results.
+    :param bool report: If True, we report the progress of our parsing.
+    :param int report_spacing: We track the number of "left" variants we compute,
+        and report our progress with the given spacing.
+    :param bool use_cache: If True, cache intermediate results.
     """
 
     check_imports()
@@ -1329,6 +1325,14 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
     to construct bootstrap data.
 
     Returns a list of bootstrapped datasets of mean statistics.
+
+    :param dict all_data: Dictionary of regional LD statistics. Keys are region
+        identifiers and must be unique, and the items are the outputs of
+        ``compute_ld_statistics``.
+    :param int num_bootstraps: The number of bootstrap replicates to compute. If
+        None, it computes the same number as the nubmer of regions in ``all_data``.
+    :param int normalization: The index of the population to normalize by. Defaults
+        to 0.
     """
     norm_stats = [
         "pi2_{0}_{0}_{0}_{0}".format(normalization),
@@ -1365,11 +1369,11 @@ def bootstrap_data(all_data, normalization=0):
     If there are N total regions, we compute N bootstrap replicates
     by sampling N times with replacement and summing over all 'sums'.
 
-    :param all_data: A dictionary (with arbitrary keys), where each value
+    :param dict all_data: A dictionary (with arbitrary keys), where each value
         is LD statistics computed from a distinct region. all_data[reg]
         stats from each region has keys, 'bins', 'sums', 'stats', and
         optional 'pops'.
-    :param normalization: we work with sigma_d^2 statistics, and by default
+    :param int normalization: we work with sigma_d^2 statistics, and by default
         we use population 0 to normalize stats
     """
     norm_stats = [
@@ -1418,15 +1422,19 @@ def subset_data(
     data, pops_to, normalization=0, r_min=None, r_max=None, remove_Dz=False
 ):
     """
-    Take the output data and get r_edges, ms, vcs, and stats
-    to pass to inference machinery.
+    Take the output data and get r_edges, ms, vcs, and stats to pass to inference
+    machinery. ``pops_to`` are the subset of the populations to marginalize the data
+    to. ``r_min`` and ``r_max`` trim bins that fall outside of this range, and
+    ``remove_Dz`` allows us to remove all :math:`\sigma_{Dz}` statistics.
 
-    :param data:
-    :param pops_to:
-    :param normalization:
-    :param r_min:
-    :param r_max:
-    :param remove_Dz:
+    :param data: The output of ``bootstrap_data``, which contains
+        bins, statistics, populations, means, and variance-covariance matrices.
+    :param pops_to: A list of populations to subset to.
+    :param normalization: The population index that the original data was
+        normalized by.
+    :param r_min: The minimum recombination distance to keep.
+    :param r_max: The maximum recombination distance to keep.
+    :param remove_Dz: If True, remove all Dz statistics. Otherwise keep them.
     """
     pops_from = data["pops"]
     if not np.all([p in pops_from for p in pops_to]):

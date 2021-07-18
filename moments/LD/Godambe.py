@@ -1,6 +1,6 @@
 """
 Parameter uncertainties are computed using Godambe information, described in
-Coffman et al, MBE (2016). doi: 
+Coffman et al, MBE (2016). doi: https://doi.org/10.1093/molbev/msv255
 
 If you use moments.LD.Godambe to compute parameter uncertainties, please cite
 that paper. This was first developed by Alec Coffman for computing uncertainties
@@ -17,15 +17,15 @@ def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
-        
-    func: Model function
-    f0: Evaluation of func at p0
-    p0: Parameters for func
-    eps: List of absolute step sizes to use for each parameter when taking
-         finite differences.
-    args: Additional arguments to func
-    one_sided: Optionally, pass in a sequence of length p0 that determines
-               whether a one-sided derivative will be used for each parameter.
+    
+    :param func: Model function
+    :param f0: Evaluation of func at p0
+    :param p0: Parameters for func
+    :param eps: List of absolute step sizes to use for each parameter when taking
+        finite differences.
+    :param args: Additional arguments to func
+    :param one_sided: Optionally, pass in a sequence of length p0 that determines
+        whether a one-sided derivative will be used for each parameter.
     """
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
@@ -103,13 +103,13 @@ def get_hess(func, p0, eps, args=()):
     Calculate Hessian matrix of partial second derivatives. 
     Hij = dfunc/(dp_i dp_j)
     
-    func: Model function
-    p0: Parameter values to take derivative around
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    args: Additional arguments to func
+    :param func: Model function
+    :param p0: Parameter values to take derivative around
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param args: Additional arguments to func
     """
     # Calculate step sizes for finite-differences.
     eps_in = eps
@@ -142,13 +142,13 @@ def get_grad(func, p0, eps, args=()):
     """
     Calculate gradient vector
     
-    func: Model function
-    p0: Parameters for func
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    args: Additional arguments to func
+    :param func: Model function
+    :param p0: Parameters for func
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param args: Additional arguments to func
     """
     # Calculate step sizes for finite-differences.
     eps_in = eps
@@ -199,16 +199,18 @@ def get_godambe(
     """
     Godambe information and Hessian matrices
 
-    func_ex: Model function
-    all_boot: List of bootstrap frequency spectra
-    p0: Best-fit parameters for func_ex.
-    ms, vcs: Original data
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    log: If True, calculate derivatives in terms of log-parameters
-    just_hess: If True, only evaluate and return the Hessian matrix
+    :param func_ex: Model function
+    :param all_boot: List of bootstrap frequency spectra
+    :param p0: Best-fit parameters for func_ex.
+    :param ms: Original data of statistics means.
+    :param vcs: Original data of statistics variance covariance matrices.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param statistics:
+    :param log: If True, calculate derivatives in terms of log-parameters
+    :param just_hess: If True, only evaluate and return the Hessian matrix
     """
     # Cache evaluations of the LDstats inside our hessian/J
     # evaluation function
@@ -300,29 +302,34 @@ def GIM_uncert(
     statistics=None,
 ):
     """
-    Parameter uncertainties from Godambe Information Matrix (GIM)
+    Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
+    method, please cite 
+    `Coffman et al., MBE (2016) <https://doi.org/10.1093/molbev/msv255>_.
 
     Returns standard deviations of parameter values.
 
-    model_func: Model function
-    all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
-    p0: Best-fit parameters for model_func, with inferred Ne in last entry of
+    :param model_func: Model function
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
+    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
-    ms, vcs: Original means and covariances of statistics from data. If statistics
+    :param ms: See below..
+    :param vcs: Original means and covariances of statistics from data. If statistics
         are not give, we remove the normalizing statistics. Otherwise, these need
         to be pared down so that the normalizing statistics are removed.
-    eps: Fractional stepsize to use when taking finite-difference derivatives.
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    log: If True, assume log-normal distribution of parameters. Returned values
-         are then the standard deviations of the *logs* of the parameter values,
-         which can be interpreted as relative parameter uncertainties.
-    return_GIM: If true, also return the full GIM.
-    r_edges: The bin edges for LD statistics.
-    normalization: The index of the population that we normalized by.
-    pass_Ne: 
-    statistics: Statistics that we have included given as a list of lists:
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param log: If True, assume log-normal distribution of parameters. Returned values
+        are then the standard deviations of the *logs* of the parameter values,
+        which can be interpreted as relative parameter uncertainties.
+    :param return_GIM: If true, also return the full GIM.
+    :param r_edges: The bin edges for LD statistics.
+    :param normalization: The index of the population that we normalized by.
+    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
+        is the last entry in the parameters list. If False, Ne is only used to scale
+        recombination rates.
+    :param statistics: Statistics that we have included given as a list of lists:
         [ld_stats, h_stats]. If statistics is not given, we assume all statistics
         are included except for the normalizing statistic in each
     """
@@ -379,9 +386,35 @@ def FIM_uncert(
     statistics=None,
 ):
     """
-    Parameter uncertainties from Fisher Information Matrix
+    Parameter uncertainties from Fisher Information Matrix. This approach typically
+    underestimates the size of the true confidence intervals, as it does not take
+    into account linkage between loci that causes data to be non-independent.
 
     Returns standard deviations of parameter values.
+
+    :param model_func: Model function
+    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
+        parameter list.
+    :param ms: See below..
+    :param vcs: Original means and covariances of statistics from data. If statistics
+        are not give, we remove the normalizing statistics. Otherwise, these need
+        to be pared down so that the normalizing statistics are removed.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param log: If True, assume log-normal distribution of parameters. Returned values
+        are then the standard deviations of the *logs* of the parameter values,
+        which can be interpreted as relative parameter uncertainties.
+    :param return_GIM: If true, also return the full GIM.
+    :param r_edges: The bin edges for LD statistics.
+    :param normalization: The index of the population that we normalized by.
+    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
+        is the last entry in the parameters list. If False, Ne is only used to scale
+        recombination rates.
+    :param statistics: Statistics that we have included given as a list of lists:
+        [ld_stats, h_stats]. If statistics is not given, we assume all statistics
+        are included except for the normalizing statistic in each
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
