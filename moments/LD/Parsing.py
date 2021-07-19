@@ -436,8 +436,9 @@ def compute_average_stats(Gs, genotypes=True):
 
 def compute_pairwise_stats_between(Gs1, Gs2, genotypes=True):
     """
-    Computes D^2, Dz, pi_2, and D for every pair of loci
-    between two blocks of SNPs, coded as a genotype matrices.
+    Computes :math:`D^2`, :math:`Dz`, :math:`\\pi_2`, and :math:`D`
+    for every pair of loci between two blocks of SNPs, coded as
+    genotype matrices.
 
     The Gs are matrices, where rows correspond to loci and columns to individuals.
     Both matrices must have the same number of individuals. If Gs1 has length L1

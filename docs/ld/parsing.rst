@@ -210,10 +210,55 @@ Example
 LD statistics in genotype blocks
 ********************************
 
-.. todo::
-    - compute pairwise stats withing block (genotypes and haplotypes)
-    - compute averages within block
-    - compute pairwise and average stats between blocks
+``moments.LD.Parsing`` also includes some functions for computing LD from
+genotype (or haplotype) blocks. Genotype blocks are arrays of shape
+:math:`L\times n`, where *L* is the number of loci and *n* is the sample size.
+We assume a single population, and so we compute :math:`D^2`, :math:`Dz`,
+:math:`\pi_2`, and :math:`D`, either pairwise or averaged over all pairwise
+comparisons.
+
+If we have a genotype matrix containing *n* diploid samples, genotypes are
+coded as 0, 1, and 2, and we set ``genotypes=True``. If we have a haplotype
+matrix with data from *n* haploid copies, genotypes are coded as 0 and 1 only,
+and we set ``genotypes=False``.
+
+For example, given a single genotype matrix, we compute all pairwise statistics
+and average statistics as shown below:
+
+.. jupyter-execute::
+
+    L = 10
+    n = 5
+    G = np.random.randint(3, size=L * n).reshape(L, n)
+
+    # all pairwise comparisons:
+    D2_pw, Dz_pw, pi2_pw, D_pw = moments.LD.Parsing.compute_pairwise_stats(G)
+
+    # averages:
+    D2_ave, Dz_ave, pi2_ave, D_ave = moments.LD.Parsing.compute_average_stats(G)
+
+    assert np.mean(D2_pw) == D2_ave
+
+Similarly, we can compute the pairwise or average statistics between two
+genotype matrices. The matrices can have differing number of loci, but they
+must have the same number of samples, as the genotype matrices are assumed to
+come from different regions within the same samples.
+
+.. jupyter-execute::
+
+    L2 = 12
+    n = 5
+    
+    G2 = np.random.randint(3, size=L2 * n).reshape(L2, n)
+
+    # all pairwise comparisons:
+    D2_pw, Dz_pw, pi2_pw, D_pw = moments.LD.Parsing.compute_pairwise_stats_between(G, G2)
+
+    # averages:
+    D2_ave, Dz_ave, pi2_ave, D_ave = moments.LD.Parsing.compute_average_stats_between(G, G2)
+
+    assert np.mean(D2_pw) == D2_ave
+
 
 **********
 References
