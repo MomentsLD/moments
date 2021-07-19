@@ -250,17 +250,18 @@ def _assign_r_pos(positions, rec_map):
 
 
 def _assign_recombination_rates(
-    positions, map_file, map_name=None, map_sep="\t", cM=True, report=True
+    positions, map_file, map_name=None, map_sep=None, cM=True, report=True
 ):
+    ## map_sep is now deprecated. we split by any white space
     if map_file == None:
         raise ValueError(
             "Need to pass a recombination map file. Otherwise can bin by physical distance."
         )
         sys.stdout.flush()
     try:
-        rec_map = pandas.read_csv(map_file, sep=map_sep)
+        rec_map = pandas.read_csv(map_file, delim_whitespace=True)
     except:
-        raise ValueError("Error loading map.")
+        raise ValueError("Error loading recombination map.")
         sys.stdout.flush()
 
     map_positions = rec_map[rec_map.keys()[0]]
@@ -274,7 +275,7 @@ def _assign_recombination_rates(
             map_values = rec_map[map_name]
         except KeyError:
             print(
-                "WARNING: map_name did not match map names in recombination map file. Using first column..."
+                "WARNING: map_name did not match map names in recombination map file. Using the first column."
             )
             map_values = rec_map[rec_map.keys()[1]]
 
@@ -1177,7 +1178,7 @@ def compute_ld_statistics(
     chromosome=None,
     rec_map_file=None,
     map_name=None,
-    map_sep="\t",
+    map_sep=None,
     pop_file=None,
     pops=None,
     cM=True,
@@ -1217,8 +1218,8 @@ def compute_ld_statistics(
         {pos}\t{map (cM)}\t{additional maps}\n
     :param str map_name: If None, takes the first map column, otherwise takes the
         specified map column with the name matching the recombination map file header.
-    :param str map_sep: Tells pandas how to parse the recombination map.
-        Default is tabs, though this should be updated to be any whitespace (see note).
+    :param str map_sep: Deprecated! We now read the recombination map, splitting by
+        any white space. Previous behaviour: Tells pandas how to parse the recombination map.
     :param str pop_file: A file the specifies the population for each sample in the VCF.
         Each sample is listed on its own line, in the format "{sample}\t{pop}". The
         first line must be "sample\tpop".
@@ -1268,7 +1269,6 @@ def compute_ld_statistics(
             positions,
             rec_map_file,
             map_name=map_name,
-            map_sep=map_sep,
             cM=cM,
             report=report,
         )
