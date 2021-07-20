@@ -225,7 +225,7 @@ and we set ``genotypes=False``.
 For example, given a single genotype matrix, we compute all pairwise statistics
 and average statistics as shown below:
 
-.. jupyter-execute::
+.. code-block:: python
 
     L = 10
     n = 5
@@ -237,14 +237,12 @@ and average statistics as shown below:
     # averages:
     D2_ave, Dz_ave, pi2_ave, D_ave = moments.LD.Parsing.compute_average_stats(G)
 
-    assert np.mean(D2_pw) == D2_ave
-
 Similarly, we can compute the pairwise or average statistics between two
 genotype matrices. The matrices can have differing number of loci, but they
 must have the same number of samples, as the genotype matrices are assumed to
 come from different regions within the same samples.
 
-.. jupyter-execute::
+.. code-block:: python
 
     L2 = 12
     n = 5
@@ -257,8 +255,13 @@ come from different regions within the same samples.
     # averages:
     D2_ave, Dz_ave, pi2_ave, D_ave = moments.LD.Parsing.compute_average_stats_between(G, G2)
 
-    assert np.mean(D2_pw) == D2_ave
+.. note::
 
+    Computing LD in genotype blocks uses C-extensions that are not built by
+    default, so are only available if these are built when compiling the
+    C-extensions. In order to use these methods, we need to build these
+    extensions using the ``--ld_extensions`` flag, as ``python setup.py
+    build_ext --ld_extensions -i``.
 
 **********
 References
