@@ -1,5 +1,16 @@
  .. _sec_ld_parsing:
 
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib, matplotlib.pylab as plt
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=10)
+    matplotlib.rc('ytick', labelsize=10)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 =====================
 Parsing LD statistics
 =====================
@@ -196,15 +207,197 @@ compared to model expectations and used in inference.
 Example
 *******
 
-.. todo::
+Using `msprime <https://tskit.dev/msprime/docs/latest/intro.html>`_
+[Kelleher2016]_, we'll simulate some data under an isolation-with-migration
+(IM) model and then compute LD and heterozygosity statistics using the
+``LD.Parsing`` methods. First, the simulation will use the
+``demes``-``msprime`` interface, which are then written as a VCF.
 
-    Some simulated data from msprime replicates, for two populations, dumped to VCF,
-    and then parsed.
+The YAML-file specifying the model is
 
+.. literalinclude:: ../data/im-parsing-example.yaml
+   :language: yaml
 
-.. todo::
-    Also show how bootstrapping is used to compute the variance-covariance matrix,
-    which is required for inference.
+And we use msprime to simulate 1Mb of data, using a constant recombination
+and mutation rate.
+
+.. code-block:: python
+    
+    import msprime
+    import demes
+    import os
+
+    # set up simulation parameters
+    L = 1e6
+    u = r = 1.5e-8
+    n = 10
+    
+    g = demes.load("data/im-parsing-example.yaml")
+    demog = msprime.Demography.from_demes(g)
+
+    trees = msprime.sim_ancestry(
+        {"deme0": n, "deme1": n},
+        demography=demog,
+        sequence_length=L,
+        recombination_rate=r,
+        random_seed=321,
+    )
+
+    trees = msprime.sim_mutations(trees, rate=u, random_seed=123)
+
+    with open("data/im-parsing-example.vcf", "w+") as fout:
+        trees.write_vcf(fout)
+
+This simulation had 10 diploid individuals per population, and
+``msprime``/``tskit`` writes their IDs as ``tsk_0``, ``tsk_1``, etc:
+
+.. literalinclude:: ../data/im-parsing-example.vcf
+    :lines: 1-10
+
+To parse this data, we need the file that maps samples to populations and
+the recombination map file (the total map length is found by
+:math:`1 \times 10^{6} \text{ bp} \times 1.5 \times 10^{-8} \text{ M/bp} \times 100 \text{ cM/M}`):
+
+.. literalinclude:: ../data/im-parsing-example.samples.pops.txt
+
+.. literalinclude:: ../data/im-parsing-example.map.txt
+
+With all this, we can now compute LD based on recombination distance bins:
+
+.. code-block:: python
+
+    r_bins = np.array(
+        [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3]
+    )
+
+    vcf_file = "data/im-parsing-example.vcf"
+    map_file = "data/im-parsing-example.map.txt"
+    pop_file = "data/im-parsing-example.samples.pops.txt"
+    pops = ["deme0", "deme1"]
+    ld_stats = moments.LD.Parsing.compute_ld_statistics(
+        vcf_file,
+        rec_map_file=map_file,
+        pop_file=pop_file,
+        pops=["deme0", "deme1"],
+        r_bins=r_bins,
+        report=False,
+    )
+
+.. jupyter-execute::
+    :hide-code:
+
+    import pickle
+    r_bins = np.array([0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3])
+    ld_stats = pickle.load(open("data/im-parsing-example.ld_stats.bp", "rb"))
+
+The output, ``ld_stats``, is a dictionary with the keys ``bins``, ``stats``,
+``pops``, and ``sums``. To get the average statistics over multiple regions
+(here, we only have a single region that we simulated), we use
+``means_from_region_data``:
+
+.. jupyter-execute::
+
+    means = moments.LD.Parsing.means_from_region_data(
+        {0: ld_stats}, ld_stats["stats"], norm_idx=0
+    )
+    
+This provides :math:`\sigma_d^2`-type statistics relative to `\pi_2` in
+``deme0``, and relative heterozygosities (also relative to ``deme0``).
+These statistics were computed from only a single relatively small region,
+so they will be quite noisy. But we can still compare to expectations under
+the input IM demographic model.
+
+.. jupyter-execute::
+
+    import demes
+    g = demes.load("data/im-parsing-example.yaml")
+
+    y = moments.Demes.LD(
+        g,
+        sampled_demes=["deme0", "deme1"],
+        rho=4 * g["anc"].epochs[0].start_size * r_bins,
+    )
+    
+    # stats are computed at the bin edges - average to get midpoint estimates
+    y = moments.LD.LDstats(
+        [(y_l + y_r) / 2 for y_l, y_r in zip(y[:-2], y[1:-1])] + [y[-1]],
+        num_pops=y.num_pops,
+        pop_ids=y.pop_ids,
+    )
+    y = moments.LD.Inference.sigmaD2(y)
+
+    # plot LD decay curves for some statistics
+    moments.LD.Plotting.plot_ld_curves_comp(
+        y,
+        means[:-1],
+        [],
+        rs=r_bins,
+        stats_to_plot=[
+            ["DD_0_0", "DD_0_1", "DD_1_1"],
+            ["Dz_0_0_0", "Dz_0_1_1", "Dz_1_1_1"],
+            ["pi2_0_0_1_1", "pi2_0_1_0_1", "pi2_1_1_1_1"]
+        ],
+        labels=[[r"$D_0^2$", r"$D_0 D_1$", r"$D_1^2$"],
+            [r"$Dz_{0,0,0}$", r"$Dz_{0,1,1}$", r"$Dz_{1,1,1}$"],
+            [r"$\pi_{2;0,0,1,1}$", r"$\pi_{2;0,1,0,1}$", r"$\pi_{2;1,1,1,1}$"]
+        ],
+        plot_vcs=False,
+        fig_size=(8, 3),
+        show=True,
+    )
+
+Bootstrapping over multiple regions
+-----------------------------------
+
+Normally, we'll want more data than from a single 1Mb region to compute
+averages and variances of statistics. Using the same approach as the above
+example, ``ld_stats`` for 100 replicates we computed (see example in the
+``moments`` repository `here
+<https://bitbucket.org/simongravel/moments/src/master/examples/LD/>`_). From
+this, each replicate set of statistics were placed in a dictionary, as
+``rep_stats = {0: ld_stats_0, 1: ld_stats_1, ..., 99: ld_stats_99}``. This
+dictionary can then be used to compute means and covariances of statistics.
+
+.. code-block:: python
+
+    mv = moments.LD.Parsing.bootstrap_data(ld_stats)
+
+.. jupyter-execute::
+    :hide-code:
+
+    mv = pickle.load(open("data/means.varcovs.split_mig.100_reps.bp", "rb"))
+
+By simulating more data, the LD decay curves are much less noisy, and by
+simulating multiple replicates, we also compute the variance-covariance
+matrices for each bin and can include standard errors in the plots.
+
+.. jupyter-execute::
+
+    # plot LD decay curves for some statistics
+    moments.LD.Plotting.plot_ld_curves_comp(
+        y,
+        mv["means"][:-1],
+        mv["varcovs"][:-1],
+        rs=r_bins,
+        stats_to_plot=[
+            ["DD_0_0", "DD_0_1", "DD_1_1"],
+            ["Dz_0_0_0", "Dz_0_1_1", "Dz_1_1_1"],
+            ["pi2_0_0_1_1", "pi2_0_1_0_1", "pi2_1_1_1_1"]
+        ],
+        labels=[[r"$D_0^2$", r"$D_0 D_1$", r"$D_1^2$"],
+            [r"$Dz_{0,0,0}$", r"$Dz_{0,1,1}$", r"$Dz_{1,1,1}$"],
+            [r"$\pi_{2;0,0,1,1}$", r"$\pi_{2;0,1,0,1}$", r"$\pi_{2;1,1,1,1}$"]
+        ],
+        plot_vcs=True,
+        fig_size=(8, 3),
+        show=True,
+    )
+
+.. note::
+
+    The means-covariances data is required for inference using LD statistics.
+    In :ref:`Inferring demography with LD <sec_ld_inference>`, we'll use the
+    same ``mv`` data dictionary to refit the IM model as an example.
 
 ********************************
 LD statistics in genotype blocks
@@ -267,11 +460,16 @@ come from different regions within the same samples.
 References
 **********
 
-.. [Harris2014]
-    Harris, Kelley, and Rasmus Nielsen. "Error-prone polymerase activity causes
-    multinucleotide mutations in humans." *Genome research* 24.9 (2014): 1445-1454.
-
 .. [Ardlie2001]
     Ardlie, Kristin, et al. "Lower-than-expected linkage disequilibrium between
     tightly linked markers in humans suggests a role for gene conversion."
     *The American Journal of Human Genetics* 69.3 (2001): 582-589.
+
+.. [Harris2014]
+    Harris, Kelley, and Rasmus Nielsen. "Error-prone polymerase activity causes
+    multinucleotide mutations in humans." *Genome research* 24.9 (2014): 1445-1454.
+
+.. [Kelleher2016]
+    Kelleher, Jerome, Alison M. Etheridge, and Gilean McVean. "Efficient
+    coalescent simulation and genealogical analysis for large sample sizes."
+    *PLoS computational biology* 12.5 (2016): e1004842.

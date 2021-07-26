@@ -1267,11 +1267,7 @@ def compute_ld_statistics(
             print("assigning recombination rates to positions")
             sys.stdout.flush()
         pos_rs = _assign_recombination_rates(
-            positions,
-            rec_map_file,
-            map_name=map_name,
-            cM=cM,
-            report=report,
+            positions, rec_map_file, map_name=map_name, cM=cM, report=report,
         )
         bins = r_bins
     else:
@@ -1303,8 +1299,17 @@ def compute_ld_statistics(
     return reported_stats
 
 
-def _get_means_from_region_data(all_data, stats, norm_stats):
-    # get means
+def means_from_region_data(all_data, stats, norm_idx=0):
+    """
+    Get means over all parsed regions.
+
+    :param dict all_data: A dictionary with keys as unique identifiers of the
+        regions and values as reported stats from ``compute_ld_statistics``.
+    :param list of lists stats: The list of LD and H statistics that are present
+        in the data replicates.
+    :param int, optional norm_idx: The index of the population to normalize by.
+    """
+    norm_stats = ["pi2_{0}_{0}_{0}_{0}".format(norm_idx), "H_{0}_{0}".format(norm_idx)]
     means = [0 * sums for sums in all_data[list(all_data.keys())[0]]["sums"]]
     for reg in all_data.keys():
         for ii in range(len(means)):
@@ -1352,7 +1357,7 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
         choices = np.random.choice(regions, num_regions, replace=True)
         for i, c in enumerate(choices):
             temp_data[i] = all_data[c]
-        all_boot.append(_get_means_from_region_data(temp_data, stats, norm_stats))
+        all_boot.append(means_from_region_data(temp_data, stats, norm_stats))
     return all_boot
 
 
@@ -1383,7 +1388,7 @@ def bootstrap_data(all_data, normalization=0):
     stats = all_data[reg]["stats"]
     N = len(regions)
 
-    means = _get_means_from_region_data(all_data, stats, norm_stats)
+    means = means_from_region_data(all_data, stats, norm_stats)
 
     # construct bootstrap data
     bootstrap_data = [np.zeros((len(sums), N)) for sums in means]
