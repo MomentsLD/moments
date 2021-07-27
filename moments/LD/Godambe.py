@@ -1,6 +1,6 @@
 """
 Parameter uncertainties are computed using Godambe information, described in
-Coffman et al, MBE (2016). doi: 
+Coffman et al, MBE (2016). doi: https://doi.org/10.1093/molbev/msv255
 
 If you use moments.LD.Godambe to compute parameter uncertainties, please cite
 that paper. This was first developed by Alec Coffman for computing uncertainties
@@ -10,21 +10,22 @@ from inferences performed with dadi, modified here to handle LD decay curves.
 import numpy as np, numpy
 from moments.LD import Inference
 from moments.LD.LDstats_mod import LDstats
+import copy
 
 
-def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
+def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
-        
-    func: Model function
-    f0: Evaluation of func at p0
-    p0: Parameters for func
-    eps: List of absolute step sizes to use for each parameter when taking
-         finite differences.
-    args: Additional arguments to func
-    one_sided: Optionally, pass in a sequence of length p0 that determines
-               whether a one-sided derivative will be used for each parameter.
+    
+    :param func: Model function
+    :param f0: Evaluation of func at p0
+    :param p0: Parameters for func
+    :param eps: List of absolute step sizes to use for each parameter when taking
+        finite differences.
+    :param args: Additional arguments to func
+    :param one_sided: Optionally, pass in a sequence of length p0 that determines
+        whether a one-sided derivative will be used for each parameter.
     """
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
@@ -97,18 +98,18 @@ def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     return element
 
 
-def get_hess(func, p0, eps, args=()):
+def _get_hess(func, p0, eps, args=()):
     """
     Calculate Hessian matrix of partial second derivatives. 
     Hij = dfunc/(dp_i dp_j)
     
-    func: Model function
-    p0: Parameter values to take derivative around
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    args: Additional arguments to func
+    :param func: Model function
+    :param p0: Parameter values to take derivative around
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param args: Additional arguments to func
     """
     # Calculate step sizes for finite-differences.
     eps_in = eps
@@ -130,24 +131,24 @@ def get_hess(func, p0, eps, args=()):
     hess = numpy.empty((len(p0), len(p0)))
     for ii in range(len(p0)):
         for jj in range(ii, len(p0)):
-            hess[ii][jj] = hessian_elem(
+            hess[ii][jj] = _hessian_elem(
                 func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided
             )
             hess[jj][ii] = hess[ii][jj]
     return hess
 
 
-def get_grad(func, p0, eps, args=()):
+def _get_grad(func, p0, eps, args=()):
     """
     Calculate gradient vector
     
-    func: Model function
-    p0: Parameters for func
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    args: Additional arguments to func
+    :param func: Model function
+    :param p0: Parameters for func
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param args: Additional arguments to func
     """
     # Calculate step sizes for finite-differences.
     eps_in = eps
@@ -192,22 +193,24 @@ def get_grad(func, p0, eps, args=()):
 ld_cache = {}
 
 
-def get_godambe(
+def _get_godambe(
     func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False, just_hess=False
 ):
     """
     Godambe information and Hessian matrices
 
-    func_ex: Model function
-    all_boot: List of bootstrap frequency spectra
-    p0: Best-fit parameters for func_ex.
-    ms, vcs: Original data
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    log: If True, calculate derivatives in terms of log-parameters
-    just_hess: If True, only evaluate and return the Hessian matrix
+    :param func_ex: Model function
+    :param all_boot: List of bootstrap frequency spectra
+    :param p0: Best-fit parameters for func_ex.
+    :param ms: Original data of statistics means.
+    :param vcs: Original data of statistics variance covariance matrices.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param statistics:
+    :param log: If True, calculate derivatives in terms of log-parameters
+    :param just_hess: If True, only evaluate and return the Hessian matrix
     """
     # Cache evaluations of the LDstats inside our hessian/J
     # evaluation function
@@ -224,9 +227,9 @@ def get_godambe(
 
     # First calculate the observed hessian.
     if not log:
-        hess = -get_hess(func, p0, eps, args=[ms, vcs])
+        hess = -_get_hess(func, p0, eps, args=[ms, vcs])
     else:
-        hess = -get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
+        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
 
     if just_hess:
         return hess
@@ -238,9 +241,9 @@ def get_godambe(
     for bs_ms in all_boot:
         # boot = LDstats(boot)
         if not log:
-            grad_temp = get_grad(func, p0, eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
-            grad_temp = get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
@@ -251,6 +254,34 @@ def get_godambe(
     J_inv = numpy.linalg.inv(J)
     godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
     return godambe, hess, J, cU
+
+
+def _remove_normalized_data(statistics, normalization, means, varcovs, all_boot):
+    # get indexes to remove
+    pi2_idx_to_del = statistics[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
+    H_idx_to_del = statistics[1].index("H_{0}_{0}".format(normalization))
+    # remove from means
+    for ii in range(len(means) - 1):
+        means[ii] = np.delete(means[ii], pi2_idx_to_del)
+    means[-1] = np.delete(means[-1], H_idx_to_del)
+    # remove from varcovs
+    for ii in range(len(varcovs) - 1):
+        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=0)
+        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=1)
+    varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=0)
+    varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=1)
+    # remove from all_boot
+    if len(all_boot) > 0:
+        for jj, boot in enumerate(all_boot):
+            for ii in range(len(boot) - 1):
+                all_boot[jj][ii] = np.delete(boot[ii], pi2_idx_to_del)
+            all_boot[jj][-1] = np.delete(boot[-1], H_idx_to_del)
+    else:
+        all_boot = []
+    # remove from statistics lists
+    statistics[0].pop(pi2_idx_to_del)
+    statistics[1].pop(H_idx_to_del)
+    return statistics, means, varcovs, all_boot
 
 
 func_calls = 0
@@ -266,42 +297,64 @@ def GIM_uncert(
     eps=0.01,
     return_GIM=False,
     r_edges=None,
-    normalization=1,
+    normalization=0,
     pass_Ne=False,
     statistics=None,
 ):
     """
-    Parameter uncertainties from Godambe Information Matrix (GIM)
+    Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
+    method, please cite 
+    `Coffman et al., MBE (2016) <https://doi.org/10.1093/molbev/msv255>`_.
 
     Returns standard deviations of parameter values.
 
-    model_func: Model function
-    all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
-    p0: Best-fit parameters for model_func, with inferred Ne in last entry of
+    :param model_func: Model function
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
+    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
-    ms, vcs: Original means and covariances of statistics from data.
-    eps: Fractional stepsize to use when taking finite-difference derivatives.
-         Note that if eps*param is < 1e-6, then the step size for that parameter
-         will simply be eps, to avoid numerical issues with small parameter
-         perturbations.
-    log: If True, assume log-normal distribution of parameters. Returned values
-         are then the standard deviations of the *logs* of the parameter values,
-         which can be interpreted as relative parameter uncertainties.
-    return_GIM: If true, also return the full GIM.
-    
-    Specific for LD stats computations
-    r_edges: 
-    normalization:
-    pass_Ne: 
+    :param ms: See below..
+    :param vcs: Original means and covariances of statistics from data. If statistics
+        are not give, we remove the normalizing statistics. Otherwise, these need
+        to be pared down so that the normalizing statistics are removed.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param log: If True, assume log-normal distribution of parameters. Returned values
+        are then the standard deviations of the *logs* of the parameter values,
+        which can be interpreted as relative parameter uncertainties.
+    :param return_GIM: If true, also return the full GIM.
+    :param r_edges: The bin edges for LD statistics.
+    :param normalization: The index of the population that we normalized by.
+    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
+        is the last entry in the parameters list. If False, Ne is only used to scale
+        recombination rates.
+    :param statistics: Statistics that we have included given as a list of lists:
+        [ld_stats, h_stats]. If statistics is not given, we assume all statistics
+        are included except for the normalizing statistic in each
     """
-    assert statistics is not None, "need to pass statistics"
+    means = copy.deepcopy(ms)
+    varcovs = copy.deepcopy(vcs)
+    all_boots = copy.deepcopy(all_boot)
+    rs = np.array(r_edges)
+
+    if statistics is None:
+        # get statistics
+        if pass_Ne:
+            y = model_func(p0)
+        else:
+            y = model_func(p0[:-1])
+        statistics = y.names()
+        statistics, means, varcovs, all_boots = _remove_normalized_data(
+            statistics, normalization, means, varcovs, all_boots
+        )
 
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
         # print(f"called {func_calls} times")
         # print(params)
-        rho = 4 * params[-1] * r_edges
+        rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:
@@ -310,8 +363,8 @@ def GIM_uncert(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
-    GIM, H, J, cU = get_godambe(
-        pass_func, all_boot, p0, ms, vcs, eps, statistics, log=log
+    GIM, H, J, cU = _get_godambe(
+        pass_func, all_boots, p0, means, varcovs, eps, statistics, log=log
     )
 
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(GIM)))
@@ -329,24 +382,62 @@ def FIM_uncert(
     log=False,
     eps=0.01,
     r_edges=None,
-    normalization=1,
+    normalization=0,
     pass_Ne=False,
     statistics=None,
 ):
     """
-    Parameter uncertainties from Fisher Information Matrix
+    Parameter uncertainties from Fisher Information Matrix. This approach typically
+    underestimates the size of the true confidence intervals, as it does not take
+    into account linkage between loci that causes data to be non-independent.
 
     Returns standard deviations of parameter values.
-    """
 
-    assert statistics is not None, "need to pass statistics = ..."
+    :param model_func: Model function
+    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
+        parameter list.
+    :param ms: See below..
+    :param vcs: Original means and covariances of statistics from data. If statistics
+        are not give, we remove the normalizing statistics. Otherwise, these need
+        to be pared down so that the normalizing statistics are removed.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+        Note that if eps*param is < 1e-6, then the step size for that parameter
+        will simply be eps, to avoid numerical issues with small parameter
+        perturbations.
+    :param log: If True, assume log-normal distribution of parameters. Returned values
+        are then the standard deviations of the *logs* of the parameter values,
+        which can be interpreted as relative parameter uncertainties.
+    :param return_GIM: If true, also return the full GIM.
+    :param r_edges: The bin edges for LD statistics.
+    :param normalization: The index of the population that we normalized by.
+    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
+        is the last entry in the parameters list. If False, Ne is only used to scale
+        recombination rates.
+    :param statistics: Statistics that we have included given as a list of lists:
+        [ld_stats, h_stats]. If statistics is not given, we assume all statistics
+        are included except for the normalizing statistic in each
+    """
+    means = copy.deepcopy(ms)
+    varcovs = copy.deepcopy(vcs)
+    rs = np.array(r_edges)
+
+    if statistics is None:
+        # get statistics
+        if pass_Ne:
+            y = model_func(p0)
+        else:
+            y = model_func(p0[:-1])
+        statistics = y.names()
+        statistics, means, varcovs, _ = _remove_normalized_data(
+            statistics, normalization, means, varcovs, []
+        )
 
     def pass_func(params, statistics):
         global func_calls
         func_calls += 1
         # print(f"called {func_calls} times")
         # print(params)
-        rho = 4 * params[-1] * r_edges
+        rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:
@@ -355,6 +446,8 @@ def FIM_uncert(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
-    H = get_godambe(pass_func, 0, p0, ms, vcs, eps, statistics, log=log, just_hess=True)
+    H = _get_godambe(
+        pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
+    )
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
     return uncerts

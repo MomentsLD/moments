@@ -853,6 +853,7 @@ def integrate_nD(
                 mig_matrix[:, pop_num] = 0.0
                 mig_matrix[pop_num, :] = 0.0
             return mig_matrix
+
         if callable(mm):
             mm_func = copy.copy(mm)
             mm = lambda t: fix_migrations(mm_func(t))
@@ -961,13 +962,13 @@ def integrate_nD(
                     )
                     print("currently %2.2f" % dt_fac)
                     break
-        
+
         # update migration matrix if callable and check non-negative rates
         if callable(mm):
             mig = mm((t + dt / 2) / 2.0)
         if np.any(mig < 0):
             raise ValueError(f"Migration rate is below zero in matrix:\n{mig}")
-        
+
         # we recompute the matrix only if N or mig matrix has changed:
         if (
             t == 0.0
@@ -1034,7 +1035,6 @@ def integrate_nD(
             Nold = N
             t += dt
             mig_old = mig
-
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)

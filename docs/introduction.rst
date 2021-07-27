@@ -61,6 +61,16 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.6
+=====
+
+- Many small bug fixes and API improvements to LD parsing, inference, and confidence
+  interval methods.
+- Expanded documentation for computing, parsing, and running inference using LD
+  statistics (#73).
+- Expand LD examples in repository and bring them up to date with current API (#74).
+- Minor improvements to 1D SFS plotting (#64).
+
 1.1.5
 =====
 

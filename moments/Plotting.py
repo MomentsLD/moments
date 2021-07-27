@@ -63,9 +63,12 @@ def plot_1d_fs(fs, fig_num=None, show=True, ax=None, out=None, ms=3, lw=1):
 
     axes.semilogy(fs, "-o", ms=ms, lw=lw)
 
-    axes.set_xlim(0, fs.sample_sizes[0])
-
-    axes.set_xlabel("Allele frequency")
+    if fs.folded:
+        axes.set_xlim(0, fs.sample_sizes[0] // 2 + 1)
+        axes.set_xlabel("Minor allele frequency")
+    else:
+        axes.set_xlim(0, fs.sample_sizes[0])
+        axes.set_xlabel("Allele frequency")
 
     axes.set_ylabel("Count")
 
@@ -167,11 +170,13 @@ def plot_1d_comp_Poisson(
     if plot_masked:
         ax2.plot(resid.data, "--o", ms=4, lw=1, mfc="w", zorder=-100)
 
-    ax.set_xlim(
-        0, (data.shape[0] - 1) // (1 + data.folded * (1 - plot_masked)) + data.folded
-    )
+    if data.folded:
+        ax.set_xlim(0, data.sample_sizes[0] // 2 + 1)
+        ax2.set_xlabel("Minor allele frequency")
+    else:
+        ax.set_xlim(0, data.sample_sizes[0])
+        ax2.set_xlabel("Allele frequency")
 
-    ax2.set_xlabel("Allele frequency")
     ax.set_ylabel("Count")
     ax2.set_ylabel("Residual")
     ax.legend()

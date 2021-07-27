@@ -131,7 +131,9 @@ class LDstats(list):
             if pops is not None:
                 to_marginalize = list(set(range(self.num_pops)) - set(pops))
                 Y_new = self.marginalize(to_marginalize)
-            return Y_new[:-1]
+                return np.array(Y_new[:-1])
+            else:
+                return np.array(self[:-1])
 
     def H(self, pops=None):
         """
@@ -143,7 +145,9 @@ class LDstats(list):
         if pops is not None:
             to_marginalize = list(set(range(self.num_pops)) - set(pops))
             Y_new = self.marginalize(to_marginalize)
-        return Y_new[-1]
+            return Y_new[-1]
+        else:
+            return self[-1]
 
     # demographic and manipulation functions
     def split(self, pop_to_split, new_ids=None):
@@ -397,7 +401,7 @@ class LDstats(list):
     @staticmethod
     def from_file(fid, return_statistics=False, return_comments=False):
         """
-        Read LD statistics from file
+        Read LD statistics from file.
 
         :param fid: The file name to read from or an open file object.
         :type fid: str
@@ -751,16 +755,15 @@ def %(method)s(self, other):
             return
 
         if rho is None and len(self) > 1:
-            print("Rho not set, must specify.")
-            return
+            raise ValueError("There are LD statistics, but rho is None.")
         elif rho is not None and np.isscalar(rho) and len(self) != 2:
-            print("Single rho passed but LD object has additional statistics.")
-            return
+            raise ValueError(
+                "Single rho passed but LD object does have correct number of entries."
+            )
         elif (
             rho is not None and np.isscalar(rho) == False and len(rho) != len(self) - 1
         ):
-            print("Mismatch of rhos passed and size of LD object.")
-            return
+            raise ValueError("Mismatch length of input rho and size of LD object.")
 
         if rho is not None and np.isscalar(rho) == False and len(rho) == 1:
             rho = rho[0]

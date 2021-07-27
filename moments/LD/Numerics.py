@@ -89,9 +89,12 @@ def admix(Y, num_pops, pop1, pop2, f):
 ### transition matrices
 
 
-def drift(num_pops, nus, frozen=None):
+def drift(num_pops, nus, frozen=None, rho=None):
     Dh = Matrices.drift_h(num_pops, nus, frozen=frozen)
-    Dld = Matrices.drift_ld(num_pops, nus, frozen=frozen)
+    if rho is not None:
+        Dld = Matrices.drift_ld(num_pops, nus, frozen=frozen)
+    else:
+        Dld = None
     return Dh, Dld
 
 
@@ -154,11 +157,13 @@ def integrate(
     Uh, Uld = mutation(num_pops, theta, frozen=frozen, selfing=selfing)
 
     if rho is not None:
-        # if rho is a scalar, return single matrix, if rho is a list, returns list of matrices
+        # if rho is a scalar, return single matrix, if rho is a list,
+        # returns list of matrices
         R = recombination(num_pops, rho=rho, frozen=frozen, selfing=selfing)
 
     if num_pops > 1 and m is not None:
-        Mh, Mld = migration(num_pops, m, frozen=frozen)
+        if np.any(np.array(m) != 0):
+            Mh, Mld = migration(num_pops, m, frozen=frozen)
 
     dt_last = dt
     nus_last = nus
@@ -171,20 +176,18 @@ def integrate(
         if callable(nu):
             nus = nu(elapsed_t + dt / 2.0)
 
+        # recompute matrices if dt or sizes have changed
         if dt != dt_last or nus != nus_last or elapsed_t == 0:
-            Dh, Dld = drift(num_pops, nus, frozen=frozen)
-            # check if we need migration matrics
-            if num_pops > 1 and m is not None:  # with migration
+            Dh, Dld = drift(num_pops, nus, frozen=frozen, rho=rho)
+            if num_pops > 1 and m is not None and np.any(np.array(m) != 0):
                 Ab_h = Dh + Mh
-                # check if we need LD matrices, and then if we need one or many
                 if rho is not None:
                     if np.isscalar(rho):
                         Ab_ld = Dld + Mld + R
                     else:
                         Ab_ld = [Dld + Mld + R[i] for i in range(len(rho))]
-            else:  # no migration
+            else:
                 Ab_h = Dh
-                # check if we need LD matrices, and then if we need one or many
                 if rho is not None:
                     if np.isscalar(rho):
                         Ab_ld = Dld + R

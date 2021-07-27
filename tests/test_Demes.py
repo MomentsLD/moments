@@ -9,6 +9,7 @@ from moments.Demes import Demes
 import time
 
 import demes
+import warnings
 
 
 class TestSplits(unittest.TestCase):
@@ -911,9 +912,11 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.5)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.5)
-        graph = b.resolve()
+        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
+        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            graph = b.resolve()
 
         n = 20
         fs = moments.Spectrum.from_demes(graph, sampled_demes=["c"], sample_sizes=[n])
@@ -928,9 +931,11 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.5)
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.5)
-        graph = b.resolve()
+        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
+        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            graph = b.resolve()
 
         n = 20
         fs = moments.Spectrum.from_demes(
@@ -949,9 +954,11 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.5)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.5)
-        graph = b.resolve()
+        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
+        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            graph = b.resolve()
 
         n = 20
         fs = moments.Spectrum.from_demes(graph, sampled_demes=["c"], sample_sizes=[n])

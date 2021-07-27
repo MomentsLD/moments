@@ -819,7 +819,7 @@ def _apply_event(fs, event, t, deme_sample_sizes, demes_present):
         source = event[1]
         dest = event[2]
         proportion = event[3]
-        #for i, ns in deme_sample_sizes.items():
+        # for i, ns in deme_sample_sizes.items():
         #    if i[0] == t:
         #        target_sizes = [
         #            deme_sample_sizes[i][demes_present[i].index(source)],

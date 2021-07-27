@@ -1,3 +1,5 @@
+.. _sec_sfs_api:
+
 ==============================
 API for site frequency spectra
 ==============================
@@ -57,6 +59,8 @@ Inference functions
 .. autofunction:: moments.Inference.optimize_log_powell
 
 .. autofunction:: moments.Inference.optimize_log_lbfgsb
+
+.. _sec_sfs_api_plotting:
 
 Plotting features
 -----------------

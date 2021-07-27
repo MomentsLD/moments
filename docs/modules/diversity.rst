@@ -1,3 +1,16 @@
+.. _sec_diversity:
+
+.. jupyter-execute::
+    :hide-code:
+
+    import matplotlib, matplotlib.pylab as plt
+    plt.rcParams['legend.title_fontsize'] = 'xx-small'
+    matplotlib.rc('xtick', labelsize=9)
+    matplotlib.rc('ytick', labelsize=9)
+    matplotlib.rc('axes', labelsize=12)
+    matplotlib.rc('axes', titlesize=12)
+    matplotlib.rc('legend', fontsize=10)
+
 ================================
 Demography and genetic diversity
 ================================
