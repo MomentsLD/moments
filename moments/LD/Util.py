@@ -198,6 +198,8 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
             rescaled_params[ii] = p * Ne
         elif types[ii] in ["x", "f"]:
             rescaled_params[ii] = p
+        elif types[ii] == "Ne":
+            rescaled_params[ii] = Ne
         else:
             raise ValueError("Unrecognized parameter type", types[ii])
 

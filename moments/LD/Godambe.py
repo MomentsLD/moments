@@ -336,6 +336,7 @@ def GIM_uncert(
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
     all_boots = copy.deepcopy(all_boot)
+    rs = np.array(r_edges)
 
     if statistics is None:
         # get statistics
@@ -353,7 +354,7 @@ def GIM_uncert(
         func_calls += 1
         # print(f"called {func_calls} times")
         # print(params)
-        rho = 4 * params[-1] * r_edges
+        rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:
@@ -418,6 +419,7 @@ def FIM_uncert(
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
+    rs = np.array(r_edges)
 
     if statistics is None:
         # get statistics
@@ -435,7 +437,7 @@ def FIM_uncert(
         func_calls += 1
         # print(f"called {func_calls} times")
         # print(params)
-        rho = 4 * params[-1] * r_edges
+        rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
         else:
