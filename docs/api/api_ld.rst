@@ -1,3 +1,5 @@
+.. _sec_api_ld:
+
 ==============================
 API for linkage disequilibrium
 ==============================
@@ -8,6 +10,8 @@ LD statistics class and function
 
 .. autoclass:: moments.LD.LDstats
     :members:
+
+.. _sec_api_ld_demog:
 
 *********************
 Demographic functions

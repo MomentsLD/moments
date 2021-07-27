@@ -384,7 +384,7 @@ def optimize_log_fmin(
     or we pass r and Ne is a 
     parameter of our model, just as for the mutation rate.
 
-    :param p0: initial guess (demography parameters + theta)
+    :param p0: initial guess (demography parameters + Ne)
     :param data: [means, varcovs, fs (optional, use if use_afs=True)]
     :param means: list of mean statistics matching bins (has length len(rs)-1)
     :param varcovs: list of varcov matrices matching means
@@ -526,7 +526,7 @@ def optimize_log_powell(
     .. todo::
        Description of inference method and paramaters.
 
-    :param p0: initial guess (demography parameters + theta)
+    :param p0: initial guess (demography parameters + Ne)
     :param data: [means, varcovs, fs (optional, use if use_afs=True)]
     :param means: list of mean statistics matching bins (has length len(rs)-1)
     :param varcovs: list of varcov matrices matching means

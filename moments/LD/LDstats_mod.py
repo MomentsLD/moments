@@ -755,16 +755,15 @@ def %(method)s(self, other):
             return
 
         if rho is None and len(self) > 1:
-            print("Rho not set, must specify.")
-            return
+            raise ValueError("There are LD statistics, but rho is None.")
         elif rho is not None and np.isscalar(rho) and len(self) != 2:
-            print("Single rho passed but LD object has additional statistics.")
-            return
+            raise ValueError(
+                "Single rho passed but LD object does have correct number of entries."
+            )
         elif (
             rho is not None and np.isscalar(rho) == False and len(rho) != len(self) - 1
         ):
-            print("Mismatch of rhos passed and size of LD object.")
-            return
+            raise ValueError("Mismatch length of input rho and size of LD object.")
 
         if rho is not None and np.isscalar(rho) == False and len(rho) == 1:
             rho = rho[0]

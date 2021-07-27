@@ -100,11 +100,12 @@ data SFS, and 3) the model function that returns a SFS of the same size as the d
 
 Additionally, it is common to set the following:
 
-- ``lower_bound`` and ``upper_bound``: Constraints on the lower and upper bounds
-  during optimization. These are given as lists of the same length of the parameters.
-- ``fixed_params``: A list of the same length of the parameters, with fixed values
-  given matching the order of the input parameters. ``None`` is used to specify
-  parameters that are still to be optimized.
+- ``lower_bound`` and ``upper_bound``: Constraints on the lower and upper
+  bounds during optimization. These are given as lists of the same length of
+  the parameters.
+- ``fixed_params``: A list of the same length of the parameters, with fixed
+  values given matching the order of the input parameters. ``None`` is used to
+  specify parameters that are still to be optimized.
 - ``verbose``: If an integer greater than 0, prints updates of the optimization
   procedure at intervals given by that spacing.
 

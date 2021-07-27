@@ -203,6 +203,8 @@ default, the normalizing population is the first (index 0).
 statistics and variance-covariance matrices. This data can then be directly
 compared to model expectations and used in inference.
 
+.. _sec_ld_parsing_example:
+
 *******
 Example
 *******
