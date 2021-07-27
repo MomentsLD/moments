@@ -37,18 +37,12 @@ Utility functions
 Parsing functions
 *****************
 
-.. note::
-    These docstrings need attention!
-
 .. automodule:: moments.LD.Parsing
     :members:
 
 ********************************************
 Inference and computing confidence intervals
 ********************************************
-
-.. note::
-    These docstrings need attention!
 
 Inference methods
 _________________

@@ -401,7 +401,7 @@ class LDstats(list):
     @staticmethod
     def from_file(fid, return_statistics=False, return_comments=False):
         """
-        Read LD statistics from file
+        Read LD statistics from file.
 
         :param fid: The file name to read from or an open file object.
         :type fid: str

@@ -14,18 +14,6 @@ from moments.LD.LDstats_mod import LDstats
 from scipy.special import gammaln
 import scipy.optimize
 
-"""
-Adapted from moments/dadi to infer input parameters of demographic model
-Usage is the same as moments.Inference, but inference using LD statistics 
-requires a bit more for inputs
-There are two options: run inference with LD stats alone, or LD+AFS
-If we are using LD stats alone, data = [means, varcovs], a list of statistics 
-means and the bootstrapped variance-covariance matrix
-If we use LD+AFS, data = [means, varcovs, fs]
-To use the frequency spectrum in the inference, we set the flag use_afs=True
-
-"""
-
 _counter = 0
 
 
@@ -373,52 +361,90 @@ def optimize_log_fmin(
     spread=None,
 ):
     """
-    .. todo::
-       Description of inference method and paramaters.
+    Optimize (using the log of) the parameters using a downhill simplex
+    algorithm. Initial parameters ``p0``, the data ``[means, varcovs]``,
+    the demographic ``model_func``, and ``rs`` to specify recombination
+    bin edges are required. ``Ne`` must either be specified as a keyword
+    argument or is included as the *last* parameter in ``p0``.
 
-    We can either pass a fixed mutation rate theta = 4*N*u,
-    or we pass u and Ne (and compute theta),
-    or we pass u and Ne is a parameter of our model to fit
-    (which scales both the mutation rate and the recombination rates).
-    We can either pass fixed rho values for the bins, or we pass r and Ne,
-    or we pass r and Ne is a 
-    parameter of our model, just as for the mutation rate.
-
-    :param p0: initial guess (demography parameters + Ne)
-    :param data: [means, varcovs, fs (optional, use if use_afs=True)]
-    :param means: list of mean statistics matching bins (has length len(rs)-1)
-    :param varcovs: list of varcov matrices matching means
-    :param model_func: demographic model to compute statistics for a given rho
-        If we are using AFS, it's a list of the two models [LD, AFS]
-        If it's LD stats alone, it's just a single LD model (still passed as a list)
-    :param rs: list of raw recombination rates, to be scaled by Ne
-        (either passed or last value in list of params)
-    :param theta: this is population scaled per base mutation rate
-        (4*Ne*mu, not 4*Ne*mu*L)
-    :param u: raw per base mutation rate, theta found by 4*Ne*u
-    :param Ne: pass if we want a fixed effective population size to scale u and r
-    :param lower_bound: 
-    :param upper_bound:
-    :param verbose: 
-    :param flush_delay: 
-    :param func_args: 
-    :param func_kwargs: 
-    :param fixed_params: 
-    :param use_afs: we pass a model to compute the frequency spectrum and use that
-        instead of heterozygosity statistics
-    :param Leff: effective length of genome from which the fs was generated
-        (only used if fitting to afs)
-    :param multinom: only relevant if we are using the AFS,
-        likelihood computed for scaled FS 
-        vs fixed scale of FS from theta and Leff
-    :param ns: sample size (only needed if we are using the frequency spectrum,
-        as the ns does not affect mean LD stats) 
-    :param statistics: If None, we only remove the normalizing statistic. Otherwise, we only
-        compute likelihoods over statistics passed here as
-        [ld_stats (list), het_stats (list)]
-    :param pass_Ne: if the function doesn't take Ne as the last parameter
-        (which is used with the recombination map), set to False.
-        If the function also needs Ne, set to True.
+    :param p0: The initial guess for demographic parameters, 
+        demography parameters plus (optionally) Ne.
+    :type p0: list
+    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
+        fs is optional, and used only if use_afs=True.
+        
+        - Means: The list of mean statistics within each bin
+          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
+          not using the AFS, which is typical, the heterozygosity statistics
+          come last.
+        - varcovs: The list of varcov matrices matching the data in ``means``.
+    
+    :type data: list
+    :param model_func: The demographic model to compute statistics
+        for a given rho. If we are using AFS, it's a list of the two models
+        [LD func, AFS func]. If we're using LD stats alone, we pass a single LD
+        model  as a list: [LD func].
+    :type model_func: list
+    :param rs: The list of raw recombination rates defining bin edges.
+    :type rs: list
+    :param theta: The population scaled per base mutation rate
+        (4*Ne*mu, not 4*Ne*mu*L).
+    :type theta: float, optional
+    :param u: The raw per base mutation rate.
+        Cannot be used with ``theta``.
+    :type u: float, optional
+    :param Ne: The fixed effective population size to scale
+        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter
+        in ``p0``.
+    :type Ne: float, optional
+    :param lower_bound: Defaults to ``None``. Constraints on the
+        lower bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type lower_bound: list, optional
+    :param upper_bound: Defaults to ``None``. Constraints on the
+        upper bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type upper_bound: list, optional
+    :param verbose: If an integer greater than 0, prints updates
+        of the optimization procedure at intervals given by that spacing.
+    :type verbose: int, optional
+    :param func_args: Additional arguments to be passed
+        to ``model_func``.
+    :type func_args: list, optional
+    :param func_kwargs: Additional keyword arguments to be
+        passed to ``model_func``.
+    :type func_kwargs: dict, optional
+    :param fixed_params: Defaults to ``None``. To fix some
+        parameters, this should be a list of equal length as ``p0``, with 
+        ``None`` for parameters to be fit and fixed values at corresponding
+        indexes.
+    :type fixed_params: list, optional
+    :param use_afs: Defaults to ``False``. We can pass a model
+        to compute the frequency spectrum and use
+        that instead of heterozygosity statistics for single-locus data.
+    :type use_afs: bool, optional
+    :param Leff: The effective length of genome from which 
+        the fs was generated (only used if fitting to afs).
+    :type Leff: float, optional
+    :param multinom: Only used if we are fitting the AFS.
+        If ``True``, the likelihood is computed for an optimally rescaled FS.
+        If ``False``, the likelihood is computed for a fixed scaling of the FS
+        found by theta=4*Ne*u and Leff
+    :type multinom: bool, optional
+    :param ns: The sample size, which is only needed
+        if we are using the frequency spectrum, as the sample size does not
+        affect mean LD statistics.
+    :type ns: list of ints, optional
+    :param statistics: Defaults to ``None``, which assumes that
+        all statistics are present and in the conventional default order. If
+        the data is missing some statistics, we must specify which statistics
+        are present using the subset of statistic names given by 
+        ``moments.LD.Util.moment_names(num_pops)``.
+    :type statistics: list, optional
+    :param pass_Ne: Defaults to ``False``. If ``True``, the
+        demographic model includes ``Ne`` as a parameter (in the final position
+        of input parameters).
+    :type pass_Ne: bool, optional
     """
     output_stream = sys.stdout
 
@@ -523,39 +549,91 @@ def optimize_log_powell(
     spread=None,
 ):
     """
-    .. todo::
-       Description of inference method and paramaters.
+    Optimize (using the log of) the parameters using the modified Powell's
+    method, which optimizes slices of parameter space sequentially. Initial
+    parameters ``p0``, the data ``[means, varcovs]``,
+    the demographic ``model_func``, and ``rs`` to specify recombination
+    bin edges are required. ``Ne`` must either be specified as a keyword
+    argument or is included as the *last* parameter in ``p0``.
 
-    :param p0: initial guess (demography parameters + Ne)
-    :param data: [means, varcovs, fs (optional, use if use_afs=True)]
-    :param means: list of mean statistics matching bins (has length len(rs)-1)
-    :param varcovs: list of varcov matrices matching means
-    :param model_func: demographic model to compute statistics for a given rho
-        If we are using AFS, it's a list of the two models [LD, AFS]
-        If it's LD stats alone, it's just a single LD model
-        (still passed as a list)
-    :param rs: list of raw recombination rates, to be scaled by Ne
-        (either passed or last value in list of params)
-    :param theta: this is population scaled per base mutation rate
-        (4*Ne*mu, not 4*Ne*mu*L)
-    :param u: raw per base mutation rate, theta found by 4*Ne*u
-    :param Ne: pass if we want a fixed effective population size to scale u and r
-    :param lower_bound: 
-    :param upper_bound: 
-    :param verbose: 
-    :param flush_delay: 
-    :param func_args: 
-    :param func_kwargs: 
-    :param fixed_params: 
-    :param use_afs: we pass a model to compute the frequency spectrum and use
-        that instead of heterozygosity statistics
-    :param Leff: effective length of genome from which the fs was generated
-        (only used if fitting to afs)
-    :param multinom: only relevant if we are using the AFS,
-        likelihood computed for scaled FS 
-        vs fixed scale of FS from theta and Leff
-    :param ns: sample size (only needed if we are using the frequency spectrum,
-        as ns does not affect mean LD stats) 
+    :param p0: The initial guess for demographic parameters, 
+        demography parameters plus (optionally) Ne.
+    :type p0: list
+    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
+        fs is optional, and used only if use_afs=True.
+        
+        - Means: The list of mean statistics within each bin
+          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
+          not using the AFS, which is typical, the heterozygosity statistics
+          come last.
+        - varcovs: The list of varcov matrices matching the data in ``means``.
+    
+    :type data: list
+    :param model_func: The demographic model to compute statistics
+        for a given rho. If we are using AFS, it's a list of the two models
+        [LD func, AFS func]. If we're using LD stats alone, we pass a single LD
+        model  as a list: [LD func].
+    :type model_func: list
+    :param rs: The list of raw recombination rates defining bin edges.
+    :type rs: list
+    :param theta: The population scaled per base mutation rate
+        (4*Ne*mu, not 4*Ne*mu*L).
+    :type theta: float, optional
+    :param u: The raw per base mutation rate.
+        Cannot be used with ``theta``.
+    :type u: float, optional
+    :param Ne: The fixed effective population size to scale
+        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter
+        in ``p0``.
+    :type Ne: float, optional
+    :param lower_bound: Defaults to ``None``. Constraints on the
+        lower bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type lower_bound: list, optional
+    :param upper_bound: Defaults to ``None``. Constraints on the
+        upper bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type upper_bound: list, optional
+    :param verbose: If an integer greater than 0, prints updates
+        of the optimization procedure at intervals given by that spacing.
+    :type verbose: int, optional
+    :param func_args: Additional arguments to be passed
+        to ``model_func``.
+    :type func_args: list, optional
+    :param func_kwargs: Additional keyword arguments to be
+        passed to ``model_func``.
+    :type func_kwargs: dict, optional
+    :param fixed_params: Defaults to ``None``. To fix some
+        parameters, this should be a list of equal length as ``p0``, with 
+        ``None`` for parameters to be fit and fixed values at corresponding
+        indexes.
+    :type fixed_params: list, optional
+    :param use_afs: Defaults to ``False``. We can pass a model
+        to compute the frequency spectrum and use
+        that instead of heterozygosity statistics for single-locus data.
+    :type use_afs: bool, optional
+    :param Leff: The effective length of genome from which 
+        the fs was generated (only used if fitting to afs).
+    :type Leff: float, optional
+    :param multinom: Only used if we are fitting the AFS.
+        If ``True``, the likelihood is computed for an optimally rescaled FS.
+        If ``False``, the likelihood is computed for a fixed scaling of the FS
+        found by theta=4*Ne*u and Leff
+    :type multinom: bool, optional
+    :param ns: The sample size, which is only needed
+        if we are using the frequency spectrum, as the sample size does not
+        affect mean LD statistics.
+    :type ns: list of ints, optional
+    :param statistics: Defaults to ``None``, which assumes that
+        all statistics are present and in the conventional default order. If
+        the data is missing some statistics, we must specify which statistics
+        are present using the subset of statistic names given by 
+        ``moments.LD.Util.moment_names(num_pops)``.
+    :type statistics: list, optional
+    :param pass_Ne: Defaults to ``False``. If ``True``, the
+        demographic model includes ``Ne`` as a parameter (in the final position
+        of input parameters).
+    :type pass_Ne: bool, optional
     """
     output_stream = sys.stdout
 

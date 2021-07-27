@@ -125,27 +125,29 @@ as a linear scaling factor and is absorbed by the scaled mutation rate
 :math:`\theta`, which is treated as a free parameter. Here, :math:`N_e` instead
 rescales recombination rates, and because we use a recombination map to
 determine the binning of data by recombination distances separating loci,
-:math:`N_e` is a parameter that must be simultaneously fit in the optimization.
+:math:`N_e` is a parameter that must be either passed as a fixed value or
+simultaneously fit in the optimization.
 
-Thus, our list of parameters to fit by convention includes ``Ne`` in the final
-position in the list. Typically, ``Ne`` is not a parameter of the demographic
-model, as we work in rescaled genetic units, so the parameters that get passed
-to ``model_func`` are ``params[:-1]``. However, it is also possible to write
-a demographic model that also uses ``Ne`` as a parameter. In this case we set
-``pass_Ne`` to ``True``, so that ``Ne`` both rescales recombination rates and
-is a model parameter, and all ``params`` are passed to ``model_func``.
+If ``Ne`` is a fixed value, we specify the population size using that keyword
+argument. Otherwise, if ``Ne`` is to be fit, our list of parameters to fit by
+convention includes ``Ne`` in the final position in the list. Typically, ``Ne``
+is not a parameter of the demographic model, as we work in rescaled genetic
+units, so the parameters that get passed to ``model_func`` are ``params[:-1]``.
+However, it is also possible to write a demographic model that also uses ``Ne``
+as a parameter. In this case we set ``pass_Ne`` to ``True``, so that ``Ne``
+both rescales recombination rates and is a model parameter, and all ``params``
+are passed to ``model_func``.
 
 - ``Ne``: The effective population size, used to rescale ``rs`` to get ``rhos
   = 4 * Ne * rs``.
-- ``pass_ne``: Defaults to ``False``. If ``True``, the demographic model
+- ``pass_Ne``: Defaults to ``False``. If ``True``, the demographic model
   includes ``Ne`` as a parameter (in the final position of input parameters).
 
 Other commonly used options include
 
 - ``fixed_params``: Defaults to ``None``. To fix some parameters, this should
   be a list of equal length as ``p0``, with ``None`` for parameters to be fit
-  and fixed values at corresponding indexes. (Note that we can also fix ``Ne``
-  in the final position.)
+  and fixed values at corresponding indexes.
 - ``lower_bound``: Defaults to ``None``. Constraints on the lower bounds during
   optimization. These are given as lists of the same length of the parameters.
 - ``upper_bound``: Defaults to ``None``. Constraints on the upper bounds during

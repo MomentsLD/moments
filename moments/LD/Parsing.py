@@ -383,7 +383,7 @@ def _sparsify_haplotype_matrix(G):
 
 def compute_pairwise_stats(Gs, genotypes=True):
     """
-    Computes :math:`D^2`, :math:`Dz`, :math:`pi_2`, and :math:`D` for every
+    Computes :math:`D^2`, :math:`Dz`, :math:`\pi_2`, and :math:`D` for every
     pair of loci within a block of SNPs, coded as a genotype matrix.
 
     :param Gs: A genotype matrix, of size L-by-n, where

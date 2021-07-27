@@ -13,7 +13,7 @@ from moments.LD.LDstats_mod import LDstats
 import copy
 
 
-def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
+def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
@@ -98,7 +98,7 @@ def hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     return element
 
 
-def get_hess(func, p0, eps, args=()):
+def _get_hess(func, p0, eps, args=()):
     """
     Calculate Hessian matrix of partial second derivatives. 
     Hij = dfunc/(dp_i dp_j)
@@ -131,14 +131,14 @@ def get_hess(func, p0, eps, args=()):
     hess = numpy.empty((len(p0), len(p0)))
     for ii in range(len(p0)):
         for jj in range(ii, len(p0)):
-            hess[ii][jj] = hessian_elem(
+            hess[ii][jj] = _hessian_elem(
                 func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided
             )
             hess[jj][ii] = hess[ii][jj]
     return hess
 
 
-def get_grad(func, p0, eps, args=()):
+def _get_grad(func, p0, eps, args=()):
     """
     Calculate gradient vector
     
@@ -193,7 +193,7 @@ def get_grad(func, p0, eps, args=()):
 ld_cache = {}
 
 
-def get_godambe(
+def _get_godambe(
     func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False, just_hess=False
 ):
     """
@@ -227,9 +227,9 @@ def get_godambe(
 
     # First calculate the observed hessian.
     if not log:
-        hess = -get_hess(func, p0, eps, args=[ms, vcs])
+        hess = -_get_hess(func, p0, eps, args=[ms, vcs])
     else:
-        hess = -get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
+        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
 
     if just_hess:
         return hess
@@ -241,9 +241,9 @@ def get_godambe(
     for bs_ms in all_boot:
         # boot = LDstats(boot)
         if not log:
-            grad_temp = get_grad(func, p0, eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
-            grad_temp = get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
@@ -304,7 +304,7 @@ def GIM_uncert(
     """
     Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
     method, please cite 
-    `Coffman et al., MBE (2016) <https://doi.org/10.1093/molbev/msv255>_.
+    `Coffman et al., MBE (2016) <https://doi.org/10.1093/molbev/msv255>`_.
 
     Returns standard deviations of parameter values.
 
@@ -363,7 +363,7 @@ def GIM_uncert(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
-    GIM, H, J, cU = get_godambe(
+    GIM, H, J, cU = _get_godambe(
         pass_func, all_boots, p0, means, varcovs, eps, statistics, log=log
     )
 
@@ -446,7 +446,7 @@ def FIM_uncert(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
-    H = get_godambe(
+    H = _get_godambe(
         pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
     )
     uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
