@@ -1336,11 +1336,6 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
     :param int normalization: The index of the population to normalize by. Defaults
         to 0.
     """
-    norm_stats = [
-        "pi2_{0}_{0}_{0}_{0}".format(normalization),
-        "H_{0}_{0}".format(normalization),
-    ]
-
     regions = list(all_data.keys())
     reg = regions[0]
     stats = all_data[reg]["stats"]
@@ -1357,7 +1352,7 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
         choices = np.random.choice(regions, num_regions, replace=True)
         for i, c in enumerate(choices):
             temp_data[i] = all_data[c]
-        all_boot.append(means_from_region_data(temp_data, stats, norm_stats))
+        all_boot.append(means_from_region_data(temp_data, stats, normalization))
     return all_boot
 
 
@@ -1388,7 +1383,7 @@ def bootstrap_data(all_data, normalization=0):
     stats = all_data[reg]["stats"]
     N = len(regions)
 
-    means = means_from_region_data(all_data, stats, norm_stats)
+    means = means_from_region_data(all_data, stats, normalization)
 
     # construct bootstrap data
     bootstrap_data = [np.zeros((len(sums), N)) for sums in means]
