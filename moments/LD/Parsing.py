@@ -195,8 +195,19 @@ def get_genotypes(
             sys.stdout.flush()
     elif chromosome is not None:
         # only keep variants that are in the given chromosome number
-        all_chromosomes = callset["variants/CHROM"][:]
+        try:
+            all_chromosomes = np.array(
+                [c.decode() for c in callset["variants/CHROM"][:]]
+            )
+        except AttributeError:
+            all_chromosomes = callset["variants/CHROM"][:]
         in_chromosome = all_chromosomes == str(chromosome)
+        if not np.any(in_chromosome):
+            raise ValueError(
+                "No SNPs found in chromosome",
+                chromosome,
+                "- double check the input chromosome name is correct."
+            )
         all_positions = all_positions.compress(in_chromosome)
         all_genotypes = all_genotypes.compress(in_chromosome)
 
