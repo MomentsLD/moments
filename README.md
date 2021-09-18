@@ -62,7 +62,7 @@ git clone https://bitbucket.org/simongravel/moments.git
 and then from within the moments directory (`cd moments`), run
 
 ```
-pip install numpy, cython
+pip install numpy, cython, scipy, mpmath
 pip install .
 ```
 
@@ -75,7 +75,8 @@ conda install moments
 
 ### Dependencies and details
 
-`moments` and `moments.LD` requires a number of dependencies. These are
+`moments` and `moments.LD` requires a number of dependencies. At a minimum,
+these include
 
 - numpy
 
@@ -84,12 +85,6 @@ conda install moments
 - cython
 
 - mpmath
-
-- matplotlib
-
-- networkx
-
-- pandas
 
 Dependencies can be installed using pip. For example to install `cython`,
 
@@ -119,13 +114,17 @@ Once dependencies are installed, to install `moments`, run the following command
 in the moments directory:
 
 ```
-sudo python setup.py install
+python setup.py build_ext -i
+python setup.py install
 ```
 
 You should then be able to import `moments` in your python scripts. Entering an
-ipython or python session, type `import moments`. If, for any reason, you have
-trouble installing moments after following these steps, please submit an
-[Issue](https://bitbucket.org/simongravel/moments/issues).
+ipython or python session, type `import moments`. More details on installation
+can be found in the
+[documentation](https://moments.readthedocs.io/en/latest/installation.html).
+If, for any reason, you have trouble installing moments after following these
+steps, please submit an
+[issue](https://bitbucket.org/simongravel/moments/issues).
 
 If you use `Parsing` from `moments.LD`, which reads vcf files and computes LD
 statistics to compare to predictions from `moments.LD`, you will need to
@@ -135,116 +134,9 @@ additionally install
 
 - scikit-allel
 
+and you will need to build the extensions using the ``--ld_extensions`` flag.
+
 ## Changelog
 
-### 1.1.6
-
-- Many small bug fixes and API improvements to LD parsing, inference, and confidence
-  interval methods.
-- Expanded documentation for computing, parsing, and running inference using LD
-  statistics (#73).
-- Expand LD examples in repository and bring them up to date with current API (#74).
-- Minor improvements to 1D SFS plotting (#64).
-
-### 1.1.5
-
-- Use (chrom, pos) tuple as data dictionary key, to avoid conflicts with underscores.
-  Underscores in contig/chromosome names are again supported.
-- Add branch function to Spectrum class.
-- Fix bug when computing SFS from demes with branches occurring simultaneously (#71).
-- Fix bug when computing SFS from demes with pulses occurring simultaneously (#72).
-
-### 1.1.4
-
-- Fix bugs in Plotting multi-population SFS comparisons that were showing each
-  subplot in a new figure instead of in a single plot.
-- Hide the intrusive scale bar in ModelPlot by default.
-
-### 1.1.3
-
-- Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data
-- Fix numpy deprecation warning when projecting
-- Documentation updates for miscellaneous functions
-- Fix bug where copying and pickling LDstats objects resulted in a recursion error (#66)
-
-### 1.1.2
-
-- Fix bug when checking if matplotlib is installed for model plotting  (issue #68)
-- Now compatible with demes >= 0.1
-
-### 1.1.1
-
-- Fix RecursionError in `moments.LD.Inference.sigmaD2`
-- Fix bug when simulating LD using Demes if admixture timing coincides with
-  a deme's end time
-- Fix numpy.float deprecation warning in moments.LD.Numerics
-- Update demes methods to work with demes version 0.1.0a4
-- Improve (or at least change) some of the plotting outputs
-- Protect import of `demes` if not installed
-
-### 1.1.0
-
-- Completely rebuilt documentation, now hosted on [Read the
-  Docs](https://moments.readthedocs.io/)
-- Tutorials and modules in the documentation for running inference, inferring
-  the DFE, and exploring LD under a range of selection models
-- More helpful documentation in docstrings
-- Support for
-  [demes](https://moments.readthedocs.io/en/latest/extensions/demes.html)
-- Simpler functions to improve Spectrum manipulation and demographic events,
-  such as `fs.split()`, `fs.admix`, etc
-- API and numerics overhaul for Triallele and TwoLocus methods
-- Expanded selection models in the TwoLocus module
-- `moments.LD` methods are now zero-based (how embarrassing)
-- Reversible mutation model supports a single symmetric mutation rate - 
-
-### 1.0.9
-
-- Numpy version bump from 0.19 to 0.20 creates incompatibility if cython extension
-  are built with different version than user environment. This more explicitly
-  specifies the numpy version to maintain compatibility (with thanks to Graham Gower)
-
-### 1.0.8
-
-- Allow for variable migration rate by passing a function as the migration matrix
-  (with thanks to Ekaterina Noskova/noscode)
-
-- Fixes an issue with ModelPlot when splitting 3D and 4D SFS
-
-### 1.0.7
-
-- Bug fixes and haplotype parsing in `moments.LD.Parsing`. (Issues #38-42,
-  with thanks to Nathaniel Pope)
-
-### 1.0.6
-
-- Updates to installation, so that `pip` installs dependencies automatically
-
-- Protect against importing `matplotlib` if not installed
-
-- `Triallele` and `TwoLocus` now ensure using CSC format sparse matrix to avoid
-  sparse efficiency warnings
-
-- Streamline test suite, which now works with `pytest`, as
-  `python -m pytests tests`
-
-### 1.0.5
-
-- Fixes install issues using pip: `pip install .` or
-  `pip install git+https://bitbucket.org/simongravel/moments.git` is now functional
-
-### 1.0.4
-
-- Stable importing of scipy.optimize nnls function
-
-- Fixes a plotting bug when ax was set to None (from noscode)
-
-### 1.0.3
-
-- Options in plotting scripts for showing and saving output
-
-- Add confidence interval computation for LD
-
-- Add parsing script for ANGSD frequency spectrum output
-
-Started tracking changes between versions with version 1.0.2.
+See the
+[documentation](https://moments.readthedocs.io/en/latest/introduction.html#change-log).

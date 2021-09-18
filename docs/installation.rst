@@ -85,9 +85,10 @@ in the moments directory:
 
 .. code-block:: bash
 
-   sudo python setup.py build_ext --inplace
-   sudo python setup.py install
+   python setup.py build_ext --inplace
+   python setup.py install
 
+Note that you might need sudo privileges to install in this way.
 
 You should then be able to import ``moments`` in your python scripts. Entering an
 ipython or python session, type ``import moments``. If, for any reason, you have
@@ -102,3 +103,9 @@ additionally install
 
 - scikit-allel
 
+and then you will need to build moments using the LD extensions flag:
+
+.. code-block:: bash
+
+   python setup.py build_ext --inplace --ld_extensions
+   python setup.py install
