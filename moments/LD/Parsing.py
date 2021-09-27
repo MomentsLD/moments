@@ -206,7 +206,7 @@ def get_genotypes(
             raise ValueError(
                 "No SNPs found in chromosome",
                 chromosome,
-                "- double check the input chromosome name is correct."
+                "- double check the input chromosome name is correct.",
             )
         all_positions = all_positions.compress(in_chromosome)
         all_genotypes = all_genotypes.compress(in_chromosome)
