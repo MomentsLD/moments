@@ -304,6 +304,13 @@ data for this population is stored in the docs/data directory. We previous
 parsed all coding variation and used a mutation model to estimate
 :math:`u\times L`.
 
+We can either fold the frequency spectrum, which is useful when we do not know
+the ancestral states of mutations. Alternatively, we can fit with the unfolded
+spectrum, and if we suspect that some proportion of SNPs have their ancestral
+state misidentified, we can additionally fit a parameter that corrects for this
+uncertainty. We'll take the second approach here, and fit the unfolded
+spectrum.
+
 .. jupyter-execute::
 
     import moments
@@ -312,8 +319,6 @@ parsed all coding variation and used a mutation model to estimate
     all_data = pickle.load(open("./data/msl_data.bp", "rb"))
     data = all_data["spectra"]["syn"]
     data.pop_ids = ["MSL"]
-    # infer using the folded SFS, since we aren't accounting for mispolarization here
-    data = data.fold()
     uL = all_data["rates"]["syn"]
     print("scaled mutation rate:", uL)
 
@@ -344,7 +349,15 @@ And now we can run the inference:
 
     output = "./data/msl_best_fit_model.yml"
     ret = moments.Demes.Inference.optimize(
-        deme_graph, options, data, uL=uL, output=output, overwrite=True)
+        deme_graph,
+        options,
+        data,
+        uL=uL,
+        fit_ancestral_misid=True,
+        misid_guess=0.01,
+        output=output,
+        overwrite=True
+    )
     param_names, opt_params, LL = ret
     print("Log-likelihood:", -LL)
     print("Best fit parameters")
@@ -367,6 +380,7 @@ plotting features:
 
     import matplotlib.pylab as plt
     fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
+    fs = moments.Misc.flip_ancestral_misid(fs, opt_params[-1])
     moments.Plotting.plot_1d_comp_multinom(fs, data)
 
 And we can illustrate the best fit model using

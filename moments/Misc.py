@@ -4,7 +4,7 @@ Miscellaneous utility functions. Including ms simulation.
 
 import bisect, collections, operator, os, sys, time
 
-import numpy
+import numpy as np
 import scipy.linalg
 
 from . import Numerics
@@ -53,7 +53,7 @@ def ensure_1arg_func(var):
     trivial functions of time for use in integrations where parameters are
     allowed to change over time.
     """
-    if numpy.isscalar(var):
+    if np.isscalar(var):
         # If a constant was passed in, use lambda to make it a nice
         #  simple function.
         var_f = lambda t: var
@@ -94,7 +94,7 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
         if not rsites:
             rsites = theta * 10
     sub_dict = {
-        "total_chrom": numpy.sum(ns),
+        "total_chrom": np.sum(ns),
         "iter": iter,
         "theta": theta,
         "numpops": len(ns),
@@ -127,17 +127,17 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
         to have all value less than upper_bound.
     :type upper_bound: list of floats, optional
     """
-    pnew = params * 2 ** (fold * (2 * numpy.random.random(len(params)) - 1))
+    pnew = params * 2 ** (fold * (2 * np.random.random(len(params)) - 1))
     if lower_bound is not None:
         for ii, bound in enumerate(lower_bound):
             if bound is None:
-                lower_bound[ii] = -numpy.inf
-        pnew = numpy.maximum(pnew, 1.01 * numpy.asarray(lower_bound))
+                lower_bound[ii] = -np.inf
+        pnew = np.maximum(pnew, 1.01 * np.asarray(lower_bound))
     if upper_bound is not None:
         for ii, bound in enumerate(upper_bound):
             if bound is None:
-                upper_bound[ii] = numpy.inf
-        pnew = numpy.minimum(pnew, 0.99 * numpy.asarray(upper_bound))
+                upper_bound[ii] = np.inf
+        pnew = np.minimum(pnew, 0.99 * np.asarray(upper_bound))
     return pnew
 
 
@@ -233,7 +233,7 @@ def tri_freq_dict_to_array(tri_freq_dict):
     """
     Convert dictionary of trinucleotide frequencies to array in correct order.
     """
-    tripi = numpy.zeros(64)
+    tripi = np.zeros(64)
     for ii, left in enumerate(code):
         for jj, center in enumerate(code):
             for kk, right in enumerate(code):
@@ -247,7 +247,7 @@ def total_instantaneous_rate(Q, pi):
     Total instantaneous substitution rate.
     """
     Qzero = zero_diag(Q)
-    return numpy.dot(pi, Qzero).sum()
+    return np.dot(pi, Qzero).sum()
 
 
 def make_data_dict(filename):
@@ -739,9 +739,9 @@ def bootstrap(
     for bootnum in range(num_boots):
         # Set up new SFS
         npops = len(pop_ids)
-        new_sfs = numpy.zeros(numpy.asarray(projections) + 1)
+        new_sfs = np.zeros(np.asarray(projections) + 1)
         # Make random selection of regions (with replacement)
-        choices = numpy.random.randint(0, num_regions, num_regions)
+        choices = np.random.randint(0, num_regions, num_regions)
         # For each selected region, add its SNP info to SFS
         for choice in choices:
             for snp_key in sample_regions[choice]:
@@ -776,7 +776,7 @@ def bootstrap(
                 )
 
                 # Slicing allows handling of arbitray population numbers
-                slices = [[numpy.newaxis] * npops for i in range(npops)]
+                slices = [[np.newaxis] * npops for i in range(npops)]
                 for i in range(npops):
                     slices[i][i] = slice(None, None, None)
 
@@ -802,3 +802,12 @@ def bootstrap(
             new_sfs.to_file(filename)
 
     return new_sfs_list if save_dir is None else None
+
+
+def flip_ancestral_misid(fs, p_misid):
+    if p_misid < 0 or p_misid > 1:
+        raise ValueError(
+            "probability of misidentification must be between zero and one."
+        )
+    fs_misid = (1 - p_misid) * fs + p_misid * np.flip(fs)
+    return fs_misid
