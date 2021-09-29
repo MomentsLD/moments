@@ -13,6 +13,7 @@ import numpy, numpy as np
 from numpy import newaxis as nuax
 import scipy.misc as misc
 import copy
+import itertools
 
 # Account for difference in scipy installations.
 try:
@@ -860,7 +861,7 @@ class Spectrum(numpy.ma.masked_array):
                 )
 
     # Functions for computing statistics from frequency spetra.
-    def Fst(self):
+    def Fst(self, pairwise=False):
         """
         Wright's Fst between the populations represented in the fs.
 
@@ -871,53 +872,71 @@ class Spectrum(numpy.ma.masked_array):
         (1984).  For a single SNP, the relevant formula is at the top of page
         1363. To combine results between SNPs, we use the weighted average
         indicated by equation 10.
+
+        :param pairwise: Defaults to False. If True, returns a dictionary
+            of all pairwise Fst within the multi-dimensional spectrum.
+        :type pairwise: bool
         """
-        # This gets a little obscure because we want to be able to work with
-        # spectra of arbitrary dimension.
+        if pairwise:
+            Fsts = {}
+            for pair in itertools.combinations(range(self.ndim), 2):
+                to_marginalize = list(range(self.ndim))
+                to_marginalize.pop(to_marginalize.index(pair[0]))
+                to_marginalize.pop(to_marginalize.index(pair[1]))
+                fs_marg = self.marginalize(to_marginalize)
+                if self.pop_ids is not None:
+                    pair_key = (self.pop_ids[pair[0]], self.pop_ids[pair[1]])
+                else:
+                    pair_key = pair
+                Fsts[pair_key] = fs_marg.Fst()
+            return Fsts
+        else:
+            # This gets a little obscure because we want to be able to work with
+            # spectra of arbitrary dimension.
 
-        # First quantities from page 1360
-        r = self.Npop
-        ns = self.sample_sizes
-        nbar = numpy.mean(ns)
-        nsum = numpy.sum(ns)
-        nc = (nsum - numpy.sum(ns ** 2) / nsum) / (r - 1)
+            # First quantities from page 1360
+            r = self.Npop
+            ns = self.sample_sizes
+            nbar = numpy.mean(ns)
+            nsum = numpy.sum(ns)
+            nc = (nsum - numpy.sum(ns ** 2) / nsum) / (r - 1)
 
-        # counts_per_pop is an r+1 dimensional array, where the last axis simply
-        # records the indices of the entry.
-        # For example, counts_per_pop[4,19,8] = [4,19,8]
-        counts_per_pop = numpy.indices(self.shape)
-        counts_per_pop = numpy.transpose(
-            counts_per_pop, axes=list(range(1, r + 1)) + [0]
-        )
+            # counts_per_pop is an r+1 dimensional array, where the last axis simply
+            # records the indices of the entry.
+            # For example, counts_per_pop[4,19,8] = [4,19,8]
+            counts_per_pop = numpy.indices(self.shape)
+            counts_per_pop = numpy.transpose(
+                counts_per_pop, axes=list(range(1, r + 1)) + [0]
+            )
 
-        # The last axis of ptwiddle is now the relative frequency of SNPs in
-        # that bin in each of the populations.
-        ptwiddle = 1.0 * counts_per_pop / ns
+            # The last axis of ptwiddle is now the relative frequency of SNPs in
+            # that bin in each of the populations.
+            ptwiddle = 1.0 * counts_per_pop / ns
 
-        # Note that pbar is of the same shape as fs...
-        pbar = numpy.sum(ns * ptwiddle, axis=-1) / nsum
+            # Note that pbar is of the same shape as fs...
+            pbar = numpy.sum(ns * ptwiddle, axis=-1) / nsum
 
-        # We need to use 'this_slice' to get the proper aligment between
-        # ptwiddle and pbar.
-        this_slice = [slice(None)] * r + [numpy.newaxis]
-        s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
-            (r - 1) * nbar
-        )
+            # We need to use 'this_slice' to get the proper aligment between
+            # ptwiddle and pbar.
+            this_slice = [slice(None)] * r + [numpy.newaxis]
+            s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
+                (r - 1) * nbar
+            )
 
-        # Note that this 'a' differs from equation 2, because we've used
-        # equation 3 and b = 0 to solve for hbar.
-        a = (
-            nbar
-            / nc
-            * (s2 - 1 / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2))
-        )
-        d = 2 * nbar / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2)
+            # Note that this 'a' differs from equation 2, because we've used
+            # equation 3 and b = 0 to solve for hbar.
+            a = (
+                nbar
+                / nc
+                * (s2 - 1 / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2))
+            )
+            d = 2 * nbar / (2 * nbar - 1) * (pbar * (1 - pbar) - (r - 1) / r * s2)
 
-        # The weighted sum over loci.
-        asum = (self * a).sum()
-        dsum = (self * d).sum()
+            # The weighted sum over loci.
+            asum = (self * a).sum()
+            dsum = (self * d).sum()
 
-        return asum / (asum + dsum)
+            return asum / (asum + dsum)
 
     def S(self):
         """
