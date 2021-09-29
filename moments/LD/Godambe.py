@@ -290,6 +290,10 @@ _func_calls = 0
 _output_stream = sys.stdout
 
 
+def _expected_number_of_calls(params):
+    n = len(params)
+    return 4 * n * (n - 1) // 2 + 2 * n + 1
+
 def GIM_uncert(
     model_func,
     all_boot,
@@ -345,6 +349,13 @@ def GIM_uncert(
     varcovs = copy.deepcopy(vcs)
     all_boots = copy.deepcopy(all_boot)
     rs = np.array(r_edges)
+
+    if verbose > 0:
+        _output_stream.write(
+            "Expected number of function calls: " +
+            str(_expected_number_of_calls(p0)) +
+            os.linesep
+        )
 
     if statistics is None:
         # get statistics
@@ -439,6 +450,13 @@ def FIM_uncert(
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
     rs = np.array(r_edges)
+
+    if verbose > 0:
+        _output_stream.write(
+            "Expected number of function calls: " +
+            str(_expected_number_of_calls(p0)) +
+            os.linesep
+        )
 
     if statistics is None:
         # get statistics
