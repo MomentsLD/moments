@@ -102,6 +102,7 @@ for i in range(1, num_chrom + 1):
     print("parsing chromosome", i)
     ld_stats_sep[i] = moments.LD.Parsing.compute_ld_statistics(
         f"chr{i}.vcf.gz",
+        bed_file="multichrom.bed",
         rec_map_file="rec_map.txt",
         r_bins=r_bins,
         report=False,
@@ -109,6 +110,7 @@ for i in range(1, num_chrom + 1):
     ld_stats_all[i] = moments.LD.Parsing.compute_ld_statistics(
         "chrALL.vcf.gz",
         chromosome=i,
+        bed_file="multichrom.bed",
         rec_map_file="rec_map.txt",
         r_bins=r_bins,
         report=False,
