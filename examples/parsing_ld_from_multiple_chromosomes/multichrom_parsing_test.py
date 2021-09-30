@@ -118,13 +118,24 @@ for i in range(1, num_chrom + 1):
         use_h5=True,
     )
 
-
-
-os.system("rm *.vcf.gz *.h5")
-
 for i in range(1, num_chrom + 1):
     for arr1, arr2 in zip(ld_stats_sep[i]["sums"], ld_stats_all[i]["sums"]):
         assert np.allclose(arr1, arr2)
 
+# parse a chromosome without the bed, and check that the results are *different*
+ld_stats_no_bed = moments.LD.Parsing.compute_ld_statistics(
+    "chr1.vcf.gz",
+    rec_map_file="rec_map.txt",
+    r_bins=r_bins,
+    report=False,
+    use_h5=True,
+)
+
+for arr1, arr2 in zip(ld_stats_sep[i]["sums"], ld_stats_no_bed["sums"]):
+    assert not np.allclose(arr1, arr2)
+
 # if you got here, it all worked
 print("Success!")
+
+print("cleaning up")
+os.system("rm *.vcf.gz *.h5")

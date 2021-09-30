@@ -664,7 +664,11 @@ def __nnls_mod__(A, b):
     except:
         x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
-        warnings.warn("Too many iterations in nnls")  # SG my modification
+        warnings.warn(
+            "Too many iterations in nnls. This usually occurs under "
+            "strong migration models, and is often fixed by increasing "
+            "the sample size prior to a large pulse migration event."
+        )
 
     return x, rnorm
 
