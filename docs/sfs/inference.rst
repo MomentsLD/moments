@@ -35,6 +35,7 @@ Likelihoods can be computed from ``moments.Inference``:
 .. jupyter-execute::
 
     import moments
+    import numpy as np
 
     theta = 1000
     model = theta * moments.Demographics1D.snm([10])
@@ -112,12 +113,27 @@ Additionally, it is common to set the following:
 For a full description of the various inference functions, please see the
 :ref:`SFS inference API <sec_sfs_api>`.
 
+Confidence intervals
+____________________
+
+We're often interested in estimating the precision of the inferred parameters
+from our best fit model. To do this, we can compute a *confidence interval* for
+each free parameter from the model fit. Methods implemented in ``moments`` to
+compute, particularly the method based on the Godambe Information Matrix
+[Coffman2016]_, were first implemented in dadi by Alec Coffman, who's paper
+should be cited if these methods are used.
+
+See the :ref:`API documentation for uncertainty functions <sec_sfs_api>` for
+information on their usage.
+
 Example
 -------
 
-Here, we will create some fake data for a two-population split-migration model, and
-then re-infer the input parameters to the model used to create that data. This example
-uses the ``optimize_log_fmin`` optimization function.
+Here, we will create some fake data for a two-population split-migration model,
+and then re-infer the input parameters to the model used to create that data.
+This example uses the ``optimize_log_fmin`` optimization function. We'll also
+use the ``FIM_uncert`` function to compute uncertainties (reported as standard
+errors).
 
 .. jupyter-execute::
 
@@ -140,14 +156,19 @@ uses the ``optimize_log_fmin`` optimization function.
         lower_bound=lower_bound, upper_bound=upper_bound,
         verbose=20) # report every 20 iterations
 
-    print("Input parameters:", params)
-    print("Refit parameters:", opt_params)
+    refit_theta = moments.Inference.optimal_sfs_scaling(
+        model_func(opt_params, data.sample_sizes), data)
 
-    print("Input theta:", input_theta)
-    print("Refit theta:",
-        moments.Inference.optimal_sfs_scaling(
-            model_func(opt_params, data.sample_sizes),
-            data))
+    uncerts = moments.Godambe.FIM_uncert(
+        model_func, opt_params, data)
+
+    print_params = params + [input_theta]
+    print_opt = np.concatenate((opt_params, [refit_theta]))
+
+    print("Params\tnu1\tnu2\tT_div\tm_sym\ttheta")
+    print(f"Input\t" + "\t".join([str(p) for p in print_params]))
+    print(f"Refit\t" + "\t".join([f"{p:.4}" for p in print_opt]))
+    print(f"Std-err\t" + "\t".join([f"{u:.3}" for u in uncerts]))
 
     moments.Plotting.plot_2d_comp_multinom(
         model_func(opt_params, data.sample_sizes), data)
@@ -156,18 +177,6 @@ Above, we can see that we recovered the parameters used to simulate the data
 very closely, and we used ``moments``'s plotting features to visually compare
 the data to the model fit.
 
-Confidence intervals
-____________________
-
-We're often interested in estimating the precision of the inferred parameters
-from our best fit model. To do this, we can compute a *confidence interval* for
-each free parameter from the model fit. Methods implemented in ``moments`` to
-compute, particularly the method based on the Godambe Information Matrix
-[Coffman2016]_, were first implemented in dadi by Alec Coffman, who's paper
-should be cited if these methods are used.
-
-See the :ref:`API documentation for uncertainty functions <sec_sfs_api>` for
-information on their usage.
 
 **********
 References
