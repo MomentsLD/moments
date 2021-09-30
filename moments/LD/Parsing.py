@@ -136,28 +136,28 @@ def get_genotypes(
 
     # if there are multiple chromosomes in the VCF, we require a specified chromosome
     try:
-        all_chromosomes = np.array(
-            [c.decode() for c in callset["variants/CHROM"][:]]
-        )
+        all_chromosomes = np.array([c.decode() for c in callset["variants/CHROM"][:]])
     except AttributeError:
         all_chromosomes = callset["variants/CHROM"][:]
 
-    if len(set(all_chromosomes)) > 1:
+    num_chromosomes = len(set(all_chromosomes))
+    if num_chromosomes == 1:
+        if chromosome is None:
+            chromosome = all_chromosomes[0]
+    elif num_chromosomes > 1:
         if chromosome is None:
             raise ValueError(
                 "The input VCF has more than one chromosome present. "
                 "The `chromosome` must be specified."
             )
-    else:
-        if chromosome is None:
-            chromosome = all_chromosomes[0]
 
-    if chromosome is not None and len(set(all_chromosomes)) > 1:
-        if str(chromosome) not in all_chromosomes:
-            raise ValueError(
-                f"The specified chromosome, {chromosome}, was not found among "
-                "sites in the VCF. Double check the input chromosome name."
-            )
+    if str(chromosome) not in all_chromosomes:
+        raise ValueError(
+            f"The specified chromosome, {chromosome}, was not found among "
+            "sites in the VCF. Double check the input chromosome name."
+        )
+    
+    if num_chromosomes > 1:
         in_chromosome = all_chromosomes == str(chromosome)
         all_positions = all_positions.compress(in_chromosome)
         all_genotypes = all_genotypes.compress(in_chromosome)
