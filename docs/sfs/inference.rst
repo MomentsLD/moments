@@ -163,10 +163,11 @@ We're often interested in estimating the precision of the inferred parameters
 from our best fit model. To do this, we can compute a *confidence interval* for
 each free parameter from the model fit. Methods implemented in ``moments`` to
 compute, particularly the method based on the Godambe Information Matrix
-[Coffman2016]_, were first implemented in dadi by Alec Coffman.
+[Coffman2016]_, were first implemented in dadi by Alec Coffman, who's paper
+should be cited if these methods are used.
 
-- parametric
-- godambe via bootstraps to replace parametric bootstrap (?)
+See the :ref:`API documentation for uncertainty functions <sec_sfs_api>` for
+information on their usage.
 
 **********
 References
