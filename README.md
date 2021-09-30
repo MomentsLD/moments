@@ -138,5 +138,5 @@ and you will need to build the extensions using the ``--ld_extensions`` flag.
 
 ## Changelog
 
-See the
+All changes are detailed in the
 [documentation](https://moments.readthedocs.io/en/latest/introduction.html#change-log).

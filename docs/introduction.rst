@@ -64,11 +64,15 @@ Change log
 1.1.7
 =====
 
+- Inference using demes allows for ancestral misidentification estimation
+  (#81).
+- Fst computation now has option for all pairwise computations (#80).
 - Bug fix when computing LD with an input VCF that includes multiple
   chromosomes (#78).
 - Bug fix when computing LD means over multiple regions.
-- Clarification of installation steps in docs when using LD parsing methods
-  (#79).
+- Expanded documentation, particularly for clarification of installation steps
+  in docs when using LD parsing methods (#79), usage of Godambe methods for
+  computing confidence intervals (#77), and more details for LD methods.
 
 1.1.6
 =====
