@@ -59,7 +59,9 @@ except ImportError:
 import warnings
 
 if _imported_allel:
-    warnings.filterwarnings(action="ignore", category=UserWarning)
+    warnings.filterwarnings(
+        action="ignore", message="'GQ' FORMAT", category=UserWarning
+    )
 
 
 def _load_h5(vcf_file, report=True):
@@ -67,8 +69,9 @@ def _load_h5(vcf_file, report=True):
     ## open the h5 callset, create if doesn't exist
     ## note that if the h5 file exists, but isn't properly written,
     ## you will need to delete and recreate
-    ## saves h5 callset as same name and path, but with h5 extension instead of vcf or vcf.gz
-    h5_file_path = vcf_file.split(".vcf")[0] + ".h5"  # kinda hacky, sure
+    ## saves h5 callset as same name and path,
+    ## but with h5 extension instead of vcf or vcf.gz
+    h5_file_path = vcf_file.split(".vcf")[0] + ".h5"
     try:
         callset = h5py.File(h5_file_path, mode="r")
     except (OSError, IOError):  # IOError merged into OSError in python 3
@@ -86,7 +89,6 @@ def _load_h5(vcf_file, report=True):
     return callset
 
 
-### genotype function
 def get_genotypes(
     vcf_file, bed_file=None, chromosome=None, min_bp=None, use_h5=True, report=True
 ):
@@ -128,8 +130,7 @@ def get_genotypes(
     if use_h5 is True:
         callset = _load_h5(vcf_file, report=report)
     else:
-        ## read the vcf directly
-        raise ValueError("Use hdf5 format.")
+        callset = allel.read_vcf(vcf_file)
 
     all_genotypes = allel.GenotypeChunkedArray(callset["calldata/GT"])
     all_positions = callset["variants/POS"][:]
@@ -156,7 +157,7 @@ def get_genotypes(
             f"The specified chromosome, {chromosome}, was not found among "
             "sites in the VCF. Double check the input chromosome name."
         )
-    
+
     if num_chromosomes > 1:
         in_chromosome = all_chromosomes == str(chromosome)
         all_positions = all_positions.compress(in_chromosome)
@@ -214,9 +215,11 @@ def get_genotypes(
     relevant_column[0:2] = True
     biallelic_allele_counts = biallelic_allele_counts.compress(relevant_column, axis=1)
 
-    sample_ids = np.array(
-        [sid if sid.isalnum() else sid.decode() for sid in callset["samples"]]
-    )
+    # protect against variable encoding of sample id strings
+    try:
+        sample_ids = np.array([sid.decode() for sid in callset["samples"]])
+    except AttributeError:
+        sample_ids = callset["samples"]
 
     return biallelic_positions, biallelic_genotypes, biallelic_allele_counts, sample_ids
 
