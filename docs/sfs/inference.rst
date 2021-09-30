@@ -93,7 +93,7 @@ a number of optimization functions available in ``moments.Inference``:
   method, which optimizes slices of parameter space sequentially.
 
 More information about optimization algorithms can be found in the
-`scipy documentation <https://docs.scipy.org/doc/scipy/reference/optimize.html>`.
+`scipy documentation <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_.
 
 With each method, we require at least three inputs: 1) the initial guess, 2) the
 data SFS, and 3) the model function that returns a SFS of the same size as the data.
@@ -152,9 +152,29 @@ uses the ``optimize_log_fmin`` optimization function.
     moments.Plotting.plot_2d_comp_multinom(
         model_func(opt_params, data.sample_sizes), data)
 
+Above, we can see that we recovered the parameters used to simulate the data
+very closely, and we used ``moments``'s plotting features to visually compare
+the data to the model fit.
+
+Confidence intervals
+____________________
+
+We're often interested in estimating the precision of the inferred parameters
+from our best fit model. To do this, we can compute a *confidence interval* for
+each free parameter from the model fit. Methods implemented in ``moments`` to
+compute, particularly the method based on the Godambe Information Matrix
+[Coffman2016]_, were first implemented in dadi by Alec Coffman, who's paper
+should be cited if these methods are used.
+
+See the :ref:`API documentation for uncertainty functions <sec_sfs_api>` for
+information on their usage.
+
 **********
 References
 **********
 
 .. [Sawyer1992]
     Sawyer, Stanley A., and Daniel L. Hartl. "Population genetics of polymorphism and divergence." *Genetics* 132.4 (1992): 1161-1176.
+
+.. [Coffman2016]
+   Coffman, Alec J., et al. "Computationally efficient composite likelihood statistics for demographic inference." *Molecular biology and evolution* 33.2 (2016): 591-593.

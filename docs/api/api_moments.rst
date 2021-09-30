@@ -62,6 +62,12 @@ Inference functions
 
 .. _sec_sfs_api_plotting:
 
+Uncertainty functions
+---------------------
+
+.. automodule:: moments.Godambe
+    :members:
+
 Plotting features
 -----------------
 
