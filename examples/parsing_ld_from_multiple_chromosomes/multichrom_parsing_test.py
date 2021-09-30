@@ -102,22 +102,25 @@ for i in range(1, num_chrom + 1):
     print("parsing chromosome", i)
     ld_stats_sep[i] = moments.LD.Parsing.compute_ld_statistics(
         f"chr{i}.vcf.gz",
+        bed_file="multichrom.bed",
         rec_map_file="rec_map.txt",
         r_bins=r_bins,
         report=False,
+        use_h5=True,
     )
     ld_stats_all[i] = moments.LD.Parsing.compute_ld_statistics(
         "chrALL.vcf.gz",
         chromosome=i,
+        bed_file="multichrom.bed",
         rec_map_file="rec_map.txt",
         r_bins=r_bins,
         report=False,
+        use_h5=True,
     )
 
 
 
-os.system("rm *.vcf.gz")
-os.system("rm *.h5")
+os.system("rm *.vcf.gz *.h5")
 
 for i in range(1, num_chrom + 1):
     for arr1, arr2 in zip(ld_stats_sep[i]["sums"], ld_stats_all[i]["sums"]):

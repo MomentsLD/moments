@@ -59,7 +59,9 @@ except ImportError:
 import warnings
 
 if _imported_allel:
-    warnings.filterwarnings(action="ignore", category=UserWarning)
+    warnings.filterwarnings(
+        action="ignore", message="'GQ' FORMAT", category=UserWarning
+    )
 
 
 def _load_h5(vcf_file, report=True):
@@ -67,8 +69,9 @@ def _load_h5(vcf_file, report=True):
     ## open the h5 callset, create if doesn't exist
     ## note that if the h5 file exists, but isn't properly written,
     ## you will need to delete and recreate
-    ## saves h5 callset as same name and path, but with h5 extension instead of vcf or vcf.gz
-    h5_file_path = vcf_file.split(".vcf")[0] + ".h5"  # kinda hacky, sure
+    ## saves h5 callset as same name and path,
+    ## but with h5 extension instead of vcf or vcf.gz
+    h5_file_path = vcf_file.split(".vcf")[0] + ".h5"
     try:
         callset = h5py.File(h5_file_path, mode="r")
     except (OSError, IOError):  # IOError merged into OSError in python 3
@@ -86,7 +89,6 @@ def _load_h5(vcf_file, report=True):
     return callset
 
 
-### genotype function
 def get_genotypes(
     vcf_file, bed_file=None, chromosome=None, min_bp=None, use_h5=True, report=True
 ):
@@ -105,7 +107,9 @@ def get_genotypes(
 
     :param vcf_file: A VCF-formatted file.
     :type vcf_file: str
-    :param bed_file: A bed file specifying regions to compute statistics from.
+    :param bed_file: A bed file specifying regions to compute statistics from. The
+        chromosome name formatting must match the chromosome name formatting of the
+        input VCF (i.e., both carry the leading "chr" or both omit it).
     :type bed_file: str, optional
     :param min_bp: only used with bed file, filters out features that are smaller
         than ``min_bp``.
@@ -126,90 +130,74 @@ def get_genotypes(
     if use_h5 is True:
         callset = _load_h5(vcf_file, report=report)
     else:
-        ## read the vcf directly
-        raise ValueError("Use hdf5 format.")
+        callset = allel.read_vcf(vcf_file)
 
     all_genotypes = allel.GenotypeChunkedArray(callset["calldata/GT"])
     all_positions = callset["variants/POS"][:]
 
-    if report is True:
-        print("loaded genotypes")
-        sys.stdout.flush()
+    # if there are multiple chromosomes in the VCF, we require a specified chromosome
+    try:
+        all_chromosomes = np.array([c.decode() for c in callset["variants/CHROM"][:]])
+    except AttributeError:
+        all_chromosomes = callset["variants/CHROM"][:]
 
-    # filter SNPs not in bed file, if one is given
-    if bed_file is not None:  # filter genotypes and positions
-        mask_bed = pandas.read_csv(bed_file, sep="\t", header=None)
-        chroms = [c for c in list(set(callset["variants/CHROM"][:]))]
-
-        # because of the variation of chrom labels (with our without chr (22 vs chr22)),
-        # we check that chroms start with chr
-
-        for ii, c in enumerate(chroms):
-            if "chr" in c:
-                chroms[ii] = c[3:]
-
-        chrom_filter = [False] * len(mask_bed)
-        if chromosome is not None:
-            chrom_filter = np.logical_or(
-                chrom_filter,
-                np.logical_or(
-                    mask_bed[0].values.astype(str) == str(chromosome),
-                    mask_bed[0].values.astype(str) == "chr" + str(chromosome),
-                ),
-            )
-        else:
-            for chrom in chroms:
-                chrom_filter = np.logical_or(
-                    chrom_filter,
-                    np.logical_or(
-                        mask_bed[0].values.astype(str) == chrom,
-                        mask_bed[0].values.astype(str) == "chr" + chrom,
-                    ),
-                )
-
-        mask_bed = mask_bed.loc[chrom_filter]
-
-        # if we want a minimum length of feature, only keep long enough features
-        if min_bp is not None:
-            mask_bed = mask_bed.loc[mask_bed[2] - mask_bed[1] >= min_bp]
-
-        n_features = mask_bed.shape[0]
-
-        in_mask = all_positions < 0
-        for _index, feature in mask_bed.iterrows():
-            start = feature[1]
-            end = feature[2]
-
-            in_mask = np.logical_or(
-                in_mask, np.logical_and(all_positions >= start, all_positions < end)
-            )
-        if report is True:
-            print("created bed filter")
-            sys.stdout.flush()
-
-        all_positions = all_positions.compress(in_mask)
-        all_genotypes = all_genotypes.compress(in_mask)
-
-        if report is True:
-            print("filtered by bed")
-            sys.stdout.flush()
-    elif chromosome is not None:
-        # only keep variants that are in the given chromosome number
-        try:
-            all_chromosomes = np.array(
-                [c.decode() for c in callset["variants/CHROM"][:]]
-            )
-        except AttributeError:
-            all_chromosomes = callset["variants/CHROM"][:]
-        in_chromosome = all_chromosomes == str(chromosome)
-        if not np.any(in_chromosome):
+    num_chromosomes = len(set(all_chromosomes))
+    if num_chromosomes == 1:
+        if chromosome is None:
+            chromosome = all_chromosomes[0]
+    elif num_chromosomes > 1:
+        if chromosome is None:
             raise ValueError(
-                "No SNPs found in chromosome",
-                chromosome,
-                "- double check the input chromosome name is correct.",
+                "The input VCF has more than one chromosome present. "
+                "The `chromosome` must be specified."
             )
+
+    if str(chromosome) not in all_chromosomes:
+        raise ValueError(
+            f"The specified chromosome, {chromosome}, was not found among "
+            "sites in the VCF. Double check the input chromosome name."
+        )
+
+    if num_chromosomes > 1:
+        in_chromosome = all_chromosomes == str(chromosome)
         all_positions = all_positions.compress(in_chromosome)
         all_genotypes = all_genotypes.compress(in_chromosome)
+
+    if bed_file is not None:
+        bed_file_data = pandas.read_csv(bed_file, delim_whitespace=True, header=None)
+        bed_chromosomes = np.array(bed_file_data[0])
+        bed_lefts = np.array(bed_file_data[1])
+        bed_rights = np.array(bed_file_data[2])
+
+        # only keep rows of bed file that match our chromosome
+        bed_chrom_filter = bed_chromosomes.astype(str) == str(chromosome)
+        bed_chromosomes = bed_chromosomes.compress(bed_chrom_filter)
+        if len(bed_chromosomes) == 0:
+            raise ValueError(
+                "No regions of the bed file matched the input chromosome. "
+                "Check that chromosome names match between bed file and VCF."
+            )
+        bed_lefts = bed_lefts.compress(bed_chrom_filter)
+        bed_rights = bed_rights.compress(bed_chrom_filter)
+
+        # if a minimum length of feature is specified, only keep long enough features
+        if min_bp is not None:
+            bp_filter = bed_rights - bed_lefts >= min_bp
+            bed_lefts = bed_lefts.compress(bp_filter)
+            bed_rights = bed_rights.compress(bp_filter)
+            if len(bed_lefts) == 0:
+                raise ValueError(
+                    "No features in bed file were at least {min_bp} in length."
+                )
+
+        in_bed = all_positions < 0
+        for left, right in zip(bed_lefts, bed_rights):
+            in_bed = np.logical_or(
+                in_bed, np.logical_and(all_positions >= left, all_positions < right)
+            )
+
+        all_positions = all_positions.compress(in_bed)
+        all_genotypes = all_genotypes.compress(in_bed)
 
     all_genotypes_012 = all_genotypes.to_n_alt(fill=-1)
 
@@ -223,17 +211,15 @@ def get_genotypes(
     biallelic_allele_counts = allele_counts.compress(is_biallelic)
     biallelic_genotypes = all_genotypes.compress(is_biallelic)
 
-    if report is True:
-        print("kept biallelic positions")
-        sys.stdout.flush()
-
     relevant_column = np.array([False] * biallelic_allele_counts.shape[1])
     relevant_column[0:2] = True
     biallelic_allele_counts = biallelic_allele_counts.compress(relevant_column, axis=1)
 
-    sample_ids = np.array(
-        [sid if sid.isalnum() else sid.decode() for sid in callset["samples"]]
-    )
+    # protect against variable encoding of sample id strings
+    try:
+        sample_ids = np.array([sid.decode() for sid in callset["samples"]])
+    except AttributeError:
+        sample_ids = callset["samples"]
 
     return biallelic_positions, biallelic_genotypes, biallelic_allele_counts, sample_ids
 

@@ -107,5 +107,5 @@ and then you will need to build moments using the LD extensions flag:
 
 .. code-block:: bash
 
-   python setup.py build_ext --inplace --ld_extensions
-   python setup.py install
+   python setup.py build_ext --inplace
+   python setup.py install --ld_extensions
