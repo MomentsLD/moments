@@ -11,6 +11,8 @@ import numpy as np, numpy
 from moments.LD import Inference
 from moments.LD.LDstats_mod import LDstats
 import copy
+from moments.Misc import delayed_flush
+import sys, os
 
 
 def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
@@ -190,7 +192,7 @@ def _get_grad(func, p0, eps, args=()):
     return grad
 
 
-ld_cache = {}
+_ld_cache = {}
 
 
 def _get_godambe(
@@ -216,9 +218,9 @@ def _get_godambe(
     # evaluation function
     def func(params, m, v):
         key = tuple(params)
-        if key not in ld_cache:
-            ld_cache[key] = func_ex(params, statistics)
-        y = ld_cache[key]
+        if key not in _ld_cache:
+            _ld_cache[key] = func_ex(params, statistics)
+        y = _ld_cache[key]
         ll = Inference.ll_over_bins(y, m, v)
         return ll
 
@@ -284,8 +286,13 @@ def _remove_normalized_data(statistics, normalization, means, varcovs, all_boot)
     return statistics, means, varcovs, all_boot
 
 
-func_calls = 0
+_func_calls = 0
+_output_stream = sys.stdout
 
+
+def _expected_number_of_calls(params):
+    n = len(params)
+    return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 def GIM_uncert(
     model_func,
@@ -300,6 +307,7 @@ def GIM_uncert(
     normalization=0,
     pass_Ne=False,
     statistics=None,
+    verbose=0,
 ):
     """
     Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
@@ -332,11 +340,22 @@ def GIM_uncert(
     :param statistics: Statistics that we have included given as a list of lists:
         [ld_stats, h_stats]. If statistics is not given, we assume all statistics
         are included except for the normalizing statistic in each
+    :param verbose: If an integer greater than 0, prints updates
+        of the number of function calls and tested parameters
+        at intervals given by that spacing.
+    :type verbose: int, optional
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
     all_boots = copy.deepcopy(all_boot)
     rs = np.array(r_edges)
+
+    if verbose > 0:
+        _output_stream.write(
+            "Expected number of function calls: " +
+            str(_expected_number_of_calls(p0)) +
+            os.linesep
+        )
 
     if statistics is None:
         # get statistics
@@ -350,10 +369,9 @@ def GIM_uncert(
         )
 
     def pass_func(params, statistics):
-        global func_calls
-        func_calls += 1
-        # print(f"called {func_calls} times")
-        # print(params)
+        global _func_calls
+        _func_calls += 1
+        
         rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
@@ -361,6 +379,13 @@ def GIM_uncert(
             y = Inference.bin_stats(model_func, params[:-1], rho=rho)
         y = Inference.sigmaD2(y, normalization=normalization)
         y = Inference.remove_nonpresent_statistics(y, statistics)
+        
+        if (verbose > 0) and (_func_calls % verbose == 0):
+            param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
+            _output_stream.write(
+                "%-8i, %s%s" % (_func_calls, param_str, os.linesep)
+            )
+        
         return y
 
     GIM, H, J, cU = _get_godambe(
@@ -385,6 +410,7 @@ def FIM_uncert(
     normalization=0,
     pass_Ne=False,
     statistics=None,
+    verbose=1,
 ):
     """
     Parameter uncertainties from Fisher Information Matrix. This approach typically
@@ -416,10 +442,21 @@ def FIM_uncert(
     :param statistics: Statistics that we have included given as a list of lists:
         [ld_stats, h_stats]. If statistics is not given, we assume all statistics
         are included except for the normalizing statistic in each
+    :param verbose: If an integer greater than 0, prints updates
+        of the number of function calls and tested parameters
+        at intervals given by that spacing.
+    :type verbose: int, optional
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
     rs = np.array(r_edges)
+
+    if verbose > 0:
+        _output_stream.write(
+            "Expected number of function calls: " +
+            str(_expected_number_of_calls(p0)) +
+            os.linesep
+        )
 
     if statistics is None:
         # get statistics
@@ -433,10 +470,9 @@ def FIM_uncert(
         )
 
     def pass_func(params, statistics):
-        global func_calls
-        func_calls += 1
-        # print(f"called {func_calls} times")
-        # print(params)
+        global _func_calls
+        _func_calls += 1
+        
         rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
@@ -444,6 +480,13 @@ def FIM_uncert(
             y = Inference.bin_stats(model_func, params[:-1], rho=rho)
         y = Inference.sigmaD2(y, normalization=normalization)
         y = Inference.remove_nonpresent_statistics(y, statistics)
+
+        if (verbose > 0) and (_func_calls % verbose == 0):
+            param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
+            _output_stream.write(
+                "%-8i, %s%s" % (_func_calls, param_str, os.linesep)
+            )
+        
         return y
 
     H = _get_godambe(

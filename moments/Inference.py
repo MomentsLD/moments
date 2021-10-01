@@ -606,6 +606,7 @@ def optimize_log_fmin(
     flush_delay=0.5,
     multinom=True,
     maxiter=None,
+    maxfun=None,
     full_output=False,
     func_args=[],
     func_kwargs={},
@@ -639,7 +640,8 @@ def optimize_log_fmin(
     :param multinom: If True, do a multinomial fit where model is optimially scaled to
         data at each step. If False, assume theta is a parameter and do
         no scaling.
-    :param maxiter: Maximum iterations to run for.
+    :param maxiter: Maximum number of iterations to run optimization.
+    :param maxfun: Maximum number of objective function calls to perform.
     :param full_output: If True, return full outputs as in described in 
         help(scipy.optimize.fmin_bfgs)
     :param func_args: Additional arguments to model_func. It is assumed that 
@@ -684,6 +686,7 @@ def optimize_log_fmin(
         args=args,
         disp=False,
         maxiter=maxiter,
+        maxfun=maxfun,
         full_output=True,
     )
     xopt, fopt, iter, funcalls, warnflag = outputs

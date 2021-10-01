@@ -248,6 +248,7 @@ def _object_func(
     cons=None,
     verbose=0,
     uL=None,
+    fit_ancestral_misid=False,
     output_stream=sys.stdout,
 ):
     # check bounds
@@ -263,13 +264,16 @@ def _object_func(
     _counter += 1
 
     # update builder
-    builder = _update_builder(builder, options, params)
+    demo_params = params[:len(params) - fit_ancestral_misid]
+    builder = _update_builder(builder, options, demo_params)
 
     # build graph and compute SFS
     g = demes.Graph.fromdict(builder)
     sampled_demes = data.pop_ids
     sample_sizes = data.sample_sizes
     model = moments.Demes.SFS(g, sampled_demes, sample_sizes)
+    if fit_ancestral_misid:
+        model = moments.Misc.flip_ancestral_misid(model, params[-1])
 
     # get log-likelihood
     if uL is not None:
@@ -306,6 +310,8 @@ def optimize(
     uL=None,
     log=True,
     method="fmin",
+    fit_ancestral_misid=False,
+    misid_guess=None,
     output_stream=sys.stdout,
     output=None,
     overwrite=False,
@@ -338,8 +344,16 @@ def optimize(
     :param log: If True, optimize over log of the parameters.
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb". Defaults to "fmin".
+    :param fit_ancestral_misid: If True, we fit the probability that the ancestral
+        state of a given SNP is misidenitified, resulting in ancestral/derived
+        labels being flipped. Note: this is only allowed with *unfolded* spectra.
+        Defaults to False.
+    :param misid_guess: Defaults to 0.01.
     :output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
+    :param output: If given, the filename for the output best-fit model YAML.
+    :param overwrite: If True, overwrites any existing file with the same output
+        name.
     """
     _check_demes_imported()
     # load file, data,
@@ -358,6 +372,14 @@ def optimize(
         options, builder
     )
     cons = _set_up_constraints(options, param_names)
+
+    if fit_ancestral_misid:
+        if misid_guess is None:
+            misid_guess = 0.02
+        param_names.append("p_misid")
+        p0 = np.concatenate((p0, [misid_guess]))
+        lower_bound = np.concatenate((lower_bound, [0]))
+        upper_bound = np.concatenate((upper_bound, [1]))
 
     # set up extra inputs
     # make sure p0 satisfies constraints and perturb if needed
@@ -410,6 +432,7 @@ def optimize(
         cons,
         verbose,
         uL,
+        fit_ancestral_misid,
         output_stream,
     )
 

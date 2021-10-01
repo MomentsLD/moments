@@ -5,10 +5,6 @@ generation_time: 29
 demes:
 - name: MSL
   epochs:
-  - end_time: 404590.76774543594
-    start_size: 11156.431648581372
-  - end_time: 25218.63818084964
-    start_size: 25361.191998825245
-  - end_time: 0
-    start_size: 25361.191998825245
-    end_size: 61953.05071950274
+  - {end_time: 392733.7395361065, start_size: 11372.88865064761}
+  - {end_time: 26964.574954885433, start_size: 25194.63805530212}
+  - {end_time: 0, start_size: 25194.63805530212, end_size: 60252.03084248474}

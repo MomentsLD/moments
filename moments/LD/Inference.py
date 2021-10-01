@@ -180,21 +180,20 @@ def _multivariate_normal_pdf(x, mu, Sigma):
     )
 
 
-def _ll(x, mu, Sigma):
+def _ll(x, mu, Sigma_inv):
     """
     x = data
     mu = model function output
-    Sigma = variance-covariance matrix
+    Sigma_inv = inverse of the variance-covariance matrix
     """
     if len(x) == 0:
         return 0
     else:
-        return (
-            -1.0
-            / 2
-            * np.dot(np.dot((x - mu).transpose(), np.linalg.inv(Sigma)), x - mu)
-        )
+        return -1.0 / 2 * np.dot(np.dot((x - mu).transpose(), Sigma_inv), x - mu)
         # - len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma))
+
+
+_varcov_inv_cache = {}
 
 
 def ll_over_bins(xs, mus, Sigmas):
@@ -215,7 +214,12 @@ def ll_over_bins(xs, mus, Sigmas):
         )
     ll_vals = []
     for ii in range(len(xs)):
-        ll_vals.append(_ll(xs[ii], mus[ii], Sigmas[ii]))
+        try:
+            Sigma_inv = _varcov_inv_cache[ii]
+        except KeyError:
+            Sigma_inv = np.linalg.inv(Sigmas[ii])
+            _varcov_inv_cache[ii] = Sigma_inv
+        ll_vals.append(_ll(xs[ii], mus[ii], Sigma_inv))
     ll_val = np.sum(ll_vals)
     return ll_val
 
@@ -359,6 +363,8 @@ def optimize_log_fmin(
     statistics=None,
     pass_Ne=False,
     spread=None,
+    maxiter=None,
+    maxfun=None,
 ):
     """
     Optimize (using the log of) the parameters using a downhill simplex
@@ -445,6 +451,10 @@ def optimize_log_fmin(
         demographic model includes ``Ne`` as a parameter (in the final position
         of input parameters).
     :type pass_Ne: bool, optional
+    :param maxiter: Defaults to None. Maximum number of iterations to perform.
+    :type maxiter: int
+    :param maxfun: Defaults to None. Maximum number of function evaluations to make.
+    :type maxfun: int
     """
     output_stream = sys.stdout
 
@@ -455,7 +465,8 @@ def optimize_log_fmin(
             fs = data[2]
         except IndexError:
             raise ValueError(
-                "if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]"
+                "if use_afs=True, need to pass frequency spectrum, "
+                "as data=[means,varcovs,fs]"
             )
 
         if ns is None:
@@ -515,13 +526,23 @@ def optimize_log_fmin(
 
     p0 = _project_params_down(p0, fixed_params)
     outputs = scipy.optimize.fmin(
-        _object_func_log, np.log(p0), args=args, full_output=True, disp=False
+        _object_func_log,
+        np.log(p0),
+        args=args,
+        full_output=True,
+        disp=False,
+        maxiter=maxiter,
+        maxfun=maxfun,
     )
 
     xopt, fopt, iter, funcalls, warnflag = outputs
     xopt = _project_params_up(np.exp(xopt), fixed_params)
 
     return xopt, fopt
+
+
+### todo: add maxiter (or maxfun) to powell method as well
+### might need to call it maxfun instead of maxiter
 
 
 def optimize_log_powell(
@@ -547,6 +568,8 @@ def optimize_log_powell(
     statistics=None,
     pass_Ne=False,
     spread=None,
+    maxiter=None,
+    maxfun=None,
 ):
     """
     Optimize (using the log of) the parameters using the modified Powell's
@@ -634,6 +657,10 @@ def optimize_log_powell(
         demographic model includes ``Ne`` as a parameter (in the final position
         of input parameters).
     :type pass_Ne: bool, optional
+    :param maxiter: Defaults to None. Maximum number of iterations to perform.
+    :type maxiter: int
+    :param maxfun: Defaults to None. Maximum number of function evaluations to make.
+    :type maxfun: int
     """
     output_stream = sys.stdout
 
@@ -704,7 +731,13 @@ def optimize_log_powell(
 
     p0 = _project_params_down(p0, fixed_params)
     outputs = scipy.optimize.fmin_powell(
-        _object_func_log, np.log(p0), args=args, full_output=True, disp=False
+        _object_func_log,
+        np.log(p0),
+        args=args,
+        full_output=True,
+        disp=False,
+        maxiter=maxiter,
+        maxfun=maxfun,
     )
 
     xopt, fopt, direc, iter, funcalls, warnflag = outputs

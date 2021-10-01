@@ -462,7 +462,9 @@ def split_4D_to_5D_2(sfs, n2new, n5):
 def split_by_index(sfs, idx, n0, n1):
     """
     Depending on the size of the SFS and the index that is split, we call
-    one of the split functions.
+    one of the split functions. This acts as a wrapper for the various split
+    functions, and is called by the Spectrum class function
+    `fs.split(idx, n0, n1)`.
     """
     Npop = sfs.Npop
     if idx < 0 or idx + 1 > Npop:
@@ -569,9 +571,11 @@ def __drop_first_slice__(sfs, dimension):
 
 
 def __migrate_1__(sfs, source_population_index, target_population_index):
-    """Takes SFS , pick one individual from population source_population_index and migrate it to
-    population target_population_index. If sfs has dimension (m,n), the new sfs will have dimension
-    (m-1,n+1)"""
+    """
+    Takes SFS, picks one individual from population source_population_index
+    and migrates it to population target_population_index. If sfs has dimension
+    (m,n), the new sfs will have dimension (m-1,n+1).
+    """
 
     ns = sfs.shape
     new_ns = list(ns)
@@ -660,14 +664,19 @@ def __nnls_mod__(A, b):
     except:
         x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
     if mode != 1:
-        warnings.warn("Too many iterations in nnls")  # SG my modification
+        warnings.warn(
+            "Too many iterations in nnls. This usually occurs under "
+            "strong migration models, and is often fixed by increasing "
+            "the sample size prior to a large pulse migration event."
+        )
 
     return x, rnorm
 
 
 def __Gamma__(n_draws, n_lineages):
-    """The gamma matrix element i,j gives the probability that a sequential sample of i
-    lineages with replacement gives j distinct lineages
+    """
+    The gamma matrix element i,j gives the probability that a sequential sample
+    of i lineages with replacement gives j distinct lineages 
     """
     # the first row is the probability that a sample of 0 lineages gives j distinct
     # lineages: it is always 0 distinct lineages
@@ -696,25 +705,29 @@ def __Gamma__(n_draws, n_lineages):
 
 def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=None):
     """
-    creates n_lineages in a new dimension to the SFS by drawing each from
+    Creates n_lineages in a new dimension to the SFS by drawing each from
     populations indexed by dimension1 (with probability m1) and dimension2
     (with probability 1-m1).
 
     The resulting frequency spectrum has
-    (dimension1 - n_lineages) lineages in dimension 1
-    (dimension2 - n_lineages) lineages in dimension 2
-    (n_lineages) lineages in new dimension
+    - (dimension1 - n_lineages) lineages in dimension 1
+    - (dimension2 - n_lineages) lineages in dimension 2
+    - (n_lineages) lineages in new dimension
 
-    dimension1: integer index of population 1
-    dimension2: integer index of population 2
-    m1 proportion of lineages drawn from pop 1
-    creates a last dimension in which to insert the new population
+    By default, the new population is assigned the last dimension. We may wish
+    to place the new population between the two admixed groups, and can specify
+    the new dimension to place the admixed population. Note that this doesn't
+    matter for integration, but to more naturally plot the model using
+    ModelPlot.
 
-    by default, the new population is assigned the last dimension
-    we may wish to place the new population between the two admixed groups, and can
-    specify the new dimension to place the admixed population
-    note that this doesn't matter for integration, but to more naturally plot the
-    model using ModelPlot
+    :param sfs: the input frequency spectrum object
+    :param int dimension1: integer index of first source population
+    :param int dimension2: integer index of second source population
+    :param int n_lineages: number of lineages in the new admixed population
+    :param float m1: proportion of lineages drawn from source
+    :param int new_dimension: by default places the new population in the last
+        dimension, but can be placed elsewhere in the order of population IDs by
+        specifying an index
     """
     # Check if corners are masked - if they are, keep corners masked after event
     # If they are unmasked, keep spectrum corners unmasked after event
@@ -789,17 +802,20 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
 
 
 def admix_inplace(sfs, source_population_index, target_population_index, keep_1, m1):
-    """admixes from source_population to target_population in place, sending migrants one by one,
-    and normalizing so that in the end we have approximately the correct distribution of
-    replaced lineages.
+    """
+    
+    Admixes from source_population to target_population in place, sending
+    migrants one by one, and normalizing so that in the end we have
+    approximately the correct distribution of replaced lineages.
 
-    source_population_index: integer index of source population
-    target_population_index: integer index of target population
-    m1 proportion of offspring in target population drawn from parents in source population
-        Note that the number of tracked lineages in the sample that have migrated is a
-        random variable!
-    keep_1: number of lineages from the source population that we want to keep tracking
-        after admixture.
+    :param sfs: the input spectrum object
+    :param int source_population_index: integer index of source population
+    :param int target_population_index: integer index of target population
+    :param int keep_1: number of lineages from the source population that we
+        want to keep tracking after admixture.
+    :param float m1: proportion of offspring in target population drawn from
+        parents in source population. Note that the number of tracked lineages
+        in the sample that have migrated is a random variable!
     """
     # Check if corners are masked - if they are, keep corners masked after event
     # If they are unmasked, keep spectrum corners unmasked after event
