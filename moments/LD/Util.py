@@ -146,15 +146,16 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     return pnew
 
 
-def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
+def rescale_params(params, types, Ne=None, gens=1, uncerts=None, time_offset=0):
     """
-    Rescale parameters to physical units, so that times are in generations, size in
-    effective instead of relative sizes, and migration probabilities in per-generation
-    units.
+    Rescale parameters to physical units, so that times are in generations or years,
+    sizes in effective instead of relative sizes, and migration probabilities in
+    per-generation units.
 
     For generation times of events to be correctly rescaled, times in the
     parameters list must be specified so that earlier epochs are earlier
-    in the list, because we return rescaled cumulative times.
+    in the list, because we return rescaled cumulative times. All time parameters
+    must refer to consecutive epochs, as the 
 
     :param list params: List of parameters.
     :param list types: List of parameter types. Times are given by "T", sizes by "nu",
@@ -163,6 +164,10 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
         ``params``.
     :param float gens: The generation time.
     :param list uncerts: List of uncertainties, same length as ``params``.
+    :param time_offset: The amount of time added to each rescaled time point. This
+        lets us have consecutive epochs that stop short of time 0 (final sampling
+        time).
+    :type time_offset: int or float
     """
     if Ne is not None and "Ne" in types:
         raise ValueError(
@@ -191,7 +196,7 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
     for ii, p in reversed(list(enumerate(params))):
         if types[ii] == "T":
             elapsed_t += p * 2 * Ne * gens
-            rescaled_params[ii] = elapsed_t
+            rescaled_params[ii] = elapsed_t + time_offset
         elif types[ii] == "m":
             rescaled_params[ii] = p / 2 / Ne
         elif types[ii] == "nu":
@@ -211,7 +216,7 @@ def rescale_params(params, types, Ne=None, gens=1, uncerts=None):
         rescaled_uncerts = [0 for _ in params]
         for ii, p in enumerate(uncerts):
             if types[ii] == "T":
-                rescaled_uncerts[ii] = p * 2 * Ne * gens
+                rescaled_uncerts[ii] = p * 2 * Ne * gens + time_offset
             elif types[ii] == "m":
                 rescaled_uncerts[ii] = p / 2 / Ne
             elif types[ii] == "nu":
