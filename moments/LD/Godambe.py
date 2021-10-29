@@ -249,8 +249,8 @@ def _get_godambe(
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
-    J = J / len(all_boot[0])
-    cU = cU / len(all_boot[0])
+    J = J / len(all_boot)
+    cU = cU / len(all_boot)
 
     # G = H*J^-1*H
     J_inv = numpy.linalg.inv(J)
