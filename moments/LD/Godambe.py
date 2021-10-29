@@ -410,7 +410,7 @@ def FIM_uncert(
     normalization=0,
     pass_Ne=False,
     statistics=None,
-    verbose=1,
+    verbose=0,
 ):
     """
     Parameter uncertainties from Fisher Information Matrix. This approach typically
