@@ -374,7 +374,7 @@ def recombination(n, rho):
 
 def selection_two_locus(n, sel_params):
     """
-    This is for additive selection at both loci, where Ab has selection coefficient sA, 
+    This is for additive selection at both loci, where Ab has selection coefficient sA,
     aB has sB, and AB has sAB
     This is an additive model, meaning at each locus selection acts additively, but
     it allows for epistasis if sAB != sA + sB. (I.e. sAB = sA + sB + epsilon)
@@ -460,7 +460,7 @@ def selection_general(n, sel_params):
     """
     A general selection operator, that works with a jackknife with a jump of two.
     The fitnesses (via selection coefficients) of each diploid two-locus genotype are:
-    
+
      - ab/ab: 1
      - Ab/ab: 1 + s_Ab_ab
      - aB/ab: 1 + s_aB_ab

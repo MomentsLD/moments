@@ -5,7 +5,7 @@ import moments, moments.TwoLocus
 import time
 
 
-class TwoLocusMethods(unittest.TestCase):
+class TestTwoLocusMethods(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
 
@@ -98,7 +98,7 @@ class TwoLocusMethods(unittest.TestCase):
         self.assertTrue(np.allclose(out1, cached, atol=0.01, rtol=0.01))
 
 
-class TwoLocusResults(unittest.TestCase):
+class TestTwoLocusResults(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
 
@@ -176,8 +176,73 @@ class TwoLocusResults(unittest.TestCase):
         )
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusMethods)
-suite = unittest.TestLoader().loadTestsFromTestCase(TwoLocusResults)
+class TestLowOrderStats(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_signed_D_conditioned(self):
+        n = 10
+        for nA, nB in np.random.randint(1, n // 2 + 1, size=(10, 2)):
+            F = moments.TwoLocus.TLSpectrum(np.zeros((n+1, n+1, n+1)))
+            for i in range(min(nA, nB)+1):
+                F[i, nA-i, nB-i] = np.random.rand()
+
+            D_1 = F.D()
+            D_2 = F.D(nA=nA, nB=nB)
+            self.assertTrue(np.isclose(D_1, D_2))
+            D_1 = F.D(proj=False)
+            D_2 = F.D(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(D_1, D_2))
+
+    def test_D2_conditioned(self):
+        n = 10
+        for nA, nB in np.random.randint(1, n // 2 + 1, size=(10, 2)):
+            F = moments.TwoLocus.TLSpectrum(np.zeros((n+1, n+1, n+1)))
+            for i in range(min(nA, nB)+1):
+                F[i, nA-i, nB-i] = np.random.rand()
+
+            D2_1 = F.D2()
+            D2_2 = F.D2(nA=nA, nB=nB)
+            self.assertTrue(np.isclose(D2_1, D2_2))
+            D2_1 = F.D2(proj=False)
+            D2_2 = F.D2(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(D2_1, D2_2))
+
+    def test_Dz_conditioned(self):
+        n = 10
+        for nA, nB in np.random.randint(1, n // 2 + 1, size=(10, 2)):
+            F = moments.TwoLocus.TLSpectrum(np.zeros((n+1, n+1, n+1)))
+            for i in range(min(nA, nB)+1):
+                F[i, nA-i, nB-i] = np.random.rand()
+
+            Dz_1 = F.Dz()
+            Dz_2 = F.Dz(nA=nA, nB=nB)
+            self.assertTrue(np.isclose(Dz_1, Dz_2))
+            Dz_1 = F.Dz(proj=False)
+            Dz_2 = F.Dz(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(Dz_1, Dz_2))
+
+    def test_pi2_conditioned(self):
+        n = 10
+        for nA, nB in np.random.randint(1, n // 2 + 1, size=(10, 2)):
+            F = moments.TwoLocus.TLSpectrum(np.zeros((n+1, n+1, n+1)))
+            for i in range(min(nA, nB)+1):
+                F[i, nA-i, nB-i] = np.random.rand()
+
+            pi2_1 = F.pi2()
+            pi2_2 = F.pi2(nA=nA, nB=nB)
+            self.assertTrue(np.isclose(pi2_1, pi2_2))
+            pi2_1 = F.pi2(proj=False)
+            pi2_2 = F.pi2(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(pi2_1, pi2_2))
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusMethods)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusResults)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestLowOrderStats)
 
 if __name__ == "__main__":
     unittest.main()

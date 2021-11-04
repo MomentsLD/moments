@@ -2,6 +2,10 @@ import numpy as np
 
 
 def pAB(F, nA, nB):
+    """
+    Returns the possible counts and frequencies of nAB haplotypes,
+    given allele counts nA and nB at the left and right loci, resp.
+    """
     n = F.sample_size
     if nA < 0 or nA > n:
         raise ValueError(f"nA must be between 0 and n={n}")
@@ -20,7 +24,7 @@ def additive_epistasis(s, epsilon=0, Ne=None):
     """
     Returns selection parameters [s_AB, s_A, s_B] where if Ne is not None, we assume
     we've been passed raw selection coefficients, so gamma = 2*Ne*s.
-    
+
     With Ne given, returns [2 * gamma * (1 + epsilon), gamma, gamma]
     Withou Ne, returns [2 * s * (1+epsilon), s, s].
 
@@ -88,3 +92,379 @@ def gene_based_dominance(s, h=0.5, Ne=None):
         2 * gamma,
         2 * h * gamma,
     ]
+
+
+##
+## Methods for computing low-order statistics from the two-locus spectrum
+##
+
+
+def _compute_S(F_in, nA, nB):
+    F = copy.copy(F_in)
+    F.mask_fixed()
+    if nA == None and nB == None:
+        return F.sum()
+    else:
+        if nA is not None:
+            for ii in range(F.sample_size + 1):
+                for jj in range(F.sample_size + 1 - ii):
+                    if ii + jj != nA:
+                        F.mask[ii, jj, :] = True
+        if nB is not None:
+            for ii in range(F.sample_size + 1):
+                for kk in range(F.sample_size + 1 - ii):
+                    if ii + kk != nB:
+                        F.mask[ii, :, kk] = True
+        return F.sum()
+
+
+def _compute_D(F, proj, nA, nB):
+    n = F.sample_size
+    DD = 0
+    if nA is None or nB is None:
+        for ii in range(n + 1):
+            for jj in range(n + 1 - ii):
+                for kk in range(n + 1 - ii - jj):
+                    if F.mask[ii, jj, kk] == True:
+                        continue
+                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
+                        continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= F.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= F.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+                    ll = n - ii - jj - kk
+                    if proj is True:
+                        DD += F.data[ii, jj, kk] * ((ii * ll - jj * kk) / (n * (n - 1)))
+                    else:
+                        DD += F.data[ii, jj, kk] * (ii * ll - jj * kk) / n ** 2
+    else:
+        nAB, ps = pAB(F, nA, nB)
+        for ii, p in zip(nAB, ps):
+            jj = nA - ii
+            kk = nB - ii
+            ll = n - ii - jj - kk
+            assert jj >= 0 and kk >= 0 and ll >= 0
+            if proj is True:
+                DD += p * (ii * ll - jj * kk) / (n * (n - 1))
+            else:
+                DD += p * (ii * ll - jj * kk) / n ** 2
+    return DD
+
+
+def _compute_D2(F, proj, nA, nB):
+    n = F.sample_size
+    DD2 = 0
+    if nA is None or nB is None:
+        for ii in range(n + 1):
+            for jj in range(n + 1 - ii):
+                for kk in range(n + 1 - ii - jj):
+                    if F.mask[ii, jj, kk] == True:
+                        continue
+                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
+                        continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= F.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= F.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+                    ll = n - ii - jj - kk
+                    if proj == True:
+                        DD2 += (
+                            F.data[ii, jj, kk]
+                            * (
+                                ii * (ii - 1) * ll * (ll - 1)
+                                + jj * (jj - 1) * kk * (kk - 1)
+                                - 2 * ii * jj * kk * ll
+                            )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
+                        )
+                    else:
+                        DD2 += (
+                            F.data[ii, jj, kk]
+                            * (
+                                ii ** 2 * ll ** 2
+                                + jj ** 2 * kk ** 2
+                                - 2 * ii * jj * kk * ll
+                            )
+                            / n ** 4
+                        )
+    else:
+        nAB, ps = pAB(F, nA, nB)
+        for ii, p in zip(nAB, ps):
+            jj = nA - ii
+            kk = nB - ii
+            ll = n - ii - jj - kk
+            assert jj >= 0 and kk >= 0 and ll >= 0
+            if proj is True:
+                DD2 += (
+                    p
+                    * (
+                        ii * (ii - 1) * ll * (ll - 1)
+                        + jj * (jj - 1) * kk * (kk - 1)
+                        - 2 * ii * jj * kk * ll
+                    )
+                    / (n * (n - 1) * (n - 2) * (n - 3))
+                )
+            else:
+                DD2 += (
+                    p
+                    * (ii ** 2 * ll ** 2 + jj ** 2 * kk ** 2 - 2 * ii * jj * kk * ll)
+                    / n ** 4
+                )
+
+    return DD2
+
+
+def _compute_Dz(F, proj, nA, nB):
+    n = F.sample_size
+    stat = 0
+    if nA is None or nB is None:
+        for ii in range(n + 1):
+            for jj in range(n + 1 - ii):
+                for kk in range(n + 1 - ii - jj):
+                    if F.mask[ii, jj, kk] == True:
+                        continue
+                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
+                        continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= F.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= F.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+                    ll = n - ii - jj - kk
+                    if proj == True:
+                        stat += (
+                            F.data[ii, jj, kk]
+                            * (
+                                -ii * (ii - 1) * jj * kk
+                                + jj * (jj - 1) * (jj - 2) * kk
+                                - 2 * jj * (jj - 1) * kk * (kk - 1)
+                                + jj * kk * (kk - 1) * (kk - 2)
+                                + ii * (ii - 1) * (ii - 2) * ll
+                                - ii * jj * (jj - 1) * ll
+                                + 4 * ii * jj * kk * ll
+                                - ii * kk * (kk - 1) * ll
+                                - 2 * ii * (ii - 1) * ll * (ll - 1)
+                                - jj * kk * ll * (ll - 1)
+                                + ii * ll * (ll - 1) * (ll - 2)
+                            )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
+                        )
+                    else:
+                        stat += (
+                            F.data[ii, jj, kk]
+                            * (
+                                -(ii ** 2) * jj * kk
+                                + jj ** 3 * kk
+                                - 2 * jj ** 2 * kk ** 2
+                                + jj * kk ** 3
+                                + ii ** 3 * ll
+                                - ii * jj ** 2 * ll
+                                + 4 * ii * jj * kk * ll
+                                - ii * kk ** 2 * ll
+                                - 2 * ii ** 2 * ll ** 2
+                                - jj * kk * ll ** 2
+                                + ii * ll ** 3
+                            )
+                            / n ** 4
+                        )
+    else:
+        nAB, ps = pAB(F, nA, nB)
+        for ii, p in zip(nAB, ps):
+            jj = nA - ii
+            kk = nB - ii
+            ll = n - ii - jj - kk
+            assert jj >= 0 and kk >= 0 and ll >= 0
+            if proj is True:
+                stat += (
+                    p
+                    * (
+                        -ii * (ii - 1) * jj * kk
+                        + jj * (jj - 1) * (jj - 2) * kk
+                        - 2 * jj * (jj - 1) * kk * (kk - 1)
+                        + jj * kk * (kk - 1) * (kk - 2)
+                        + ii * (ii - 1) * (ii - 2) * ll
+                        - ii * jj * (jj - 1) * ll
+                        + 4 * ii * jj * kk * ll
+                        - ii * kk * (kk - 1) * ll
+                        - 2 * ii * (ii - 1) * ll * (ll - 1)
+                        - jj * kk * ll * (ll - 1)
+                        + ii * ll * (ll - 1) * (ll - 2)
+                    )
+                    / (n * (n - 1) * (n - 2) * (n - 3))
+                )
+            else:
+                stat += (
+                    p
+                    * (
+                        -(ii ** 2) * jj * kk
+                        + jj ** 3 * kk
+                        - 2 * jj ** 2 * kk ** 2
+                        + jj * kk ** 3
+                        + ii ** 3 * ll
+                        - ii * jj ** 2 * ll
+                        + 4 * ii * jj * kk * ll
+                        - ii * kk ** 2 * ll
+                        - 2 * ii ** 2 * ll ** 2
+                        - jj * kk * ll ** 2
+                        + ii * ll ** 3
+                    )
+                    / n ** 4
+                )
+
+    return stat
+
+
+def _compute_pi2(F, proj, nA, nB):
+    n = F.sample_size
+    stat = 0
+    if nA is None or nB is None:
+        for ii in range(n + 1):
+            for jj in range(n + 1 - ii):
+                for kk in range(n + 1 - ii - jj):
+                    if F.mask[ii, jj, kk] == True:
+                        continue
+                    ll = n - ii - jj - kk
+                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
+                        continue
+                    if nA is not None:
+                        if nA <= 0 or nA >= F.sample_size:
+                            raise ValueError(
+                                f"nA must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nA != ii + jj:
+                            continue
+                    if nB is not None:
+                        if nB <= 0 or nB >= F.sample_size:
+                            raise ValueError(
+                                f"nB must be between 1 and {F.sample_size - 1}"
+                            )
+                        elif nB != ii + kk:
+                            continue
+
+                    if proj == True:
+                        stat += (
+                            F.data[ii, jj, kk]
+                            * (
+                                ii * (ii - 1) * jj * kk
+                                + ii * jj * (jj - 1) * kk
+                                + ii * jj * kk * (kk - 1)
+                                + jj * (jj - 1) * kk * (kk - 1)
+                                + ii * (ii - 1) * jj * ll
+                                + ii * jj * (jj - 1) * ll
+                                + ii * (ii - 1) * kk * ll
+                                + 2 * ii * jj * kk * ll
+                                + jj * (jj - 1) * kk * ll
+                                + ii * kk * (kk - 1) * ll
+                                + jj * kk * (kk - 1) * ll
+                                + ii * (ii - 1) * ll * (ll - 1)
+                                + ii * jj * ll * (ll - 1)
+                                + ii * kk * ll * (ll - 1)
+                                + jj * kk * ll * (ll - 1)
+                            )
+                            / (n * (n - 1) * (n - 2) * (n - 3))
+                        )
+                    else:
+                        stat += (
+                            F.data[ii, jj, kk]
+                            * (
+                                ii ** 2 * jj * kk
+                                + ii * jj ** 2 * kk
+                                + ii * jj * kk ** 2
+                                + jj ** 2 * kk ** 2
+                                + ii ** 2 * jj * ll
+                                + ii * jj ** 2 * ll
+                                + ii ** 2 * kk * ll
+                                + 2 * ii * jj * kk * ll
+                                + jj ** 2 * kk * ll
+                                + ii * kk ** 2 * ll
+                                + jj * kk ** 2 * ll
+                                + ii ** 2 * ll ** 2
+                                + ii * jj * ll ** 2
+                                + ii * kk * ll ** 2
+                                + jj * kk * ll ** 2
+                            )
+                            / n ** 4
+                        )
+    else:
+        nAB, ps = pAB(F, nA, nB)
+        for ii, p in zip(nAB, ps):
+            jj = nA - ii
+            kk = nB - ii
+            ll = n - ii - jj - kk
+            assert jj >= 0 and kk >= 0 and ll >= 0
+            if proj is True:
+                stat += (
+                    p
+                    * (
+                        ii * (ii - 1) * jj * kk
+                        + ii * jj * (jj - 1) * kk
+                        + ii * jj * kk * (kk - 1)
+                        + jj * (jj - 1) * kk * (kk - 1)
+                        + ii * (ii - 1) * jj * ll
+                        + ii * jj * (jj - 1) * ll
+                        + ii * (ii - 1) * kk * ll
+                        + 2 * ii * jj * kk * ll
+                        + jj * (jj - 1) * kk * ll
+                        + ii * kk * (kk - 1) * ll
+                        + jj * kk * (kk - 1) * ll
+                        + ii * (ii - 1) * ll * (ll - 1)
+                        + ii * jj * ll * (ll - 1)
+                        + ii * kk * ll * (ll - 1)
+                        + jj * kk * ll * (ll - 1)
+                    )
+                    / (n * (n - 1) * (n - 2) * (n - 3))
+                )
+            else:
+                stat += (
+                    p
+                    * (
+                        ii ** 2 * jj * kk
+                        + ii * jj ** 2 * kk
+                        + ii * jj * kk ** 2
+                        + jj ** 2 * kk ** 2
+                        + ii ** 2 * jj * ll
+                        + ii * jj ** 2 * ll
+                        + ii ** 2 * kk * ll
+                        + 2 * ii * jj * kk * ll
+                        + jj ** 2 * kk * ll
+                        + ii * kk ** 2 * ll
+                        + jj * kk ** 2 * ll
+                        + ii ** 2 * ll ** 2
+                        + ii * jj * ll ** 2
+                        + ii * kk * ll ** 2
+                        + jj * kk * ll ** 2
+                    )
+                    / n ** 4
+                )
+
+    return stat
