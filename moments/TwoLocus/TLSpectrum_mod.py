@@ -46,10 +46,10 @@ class TLSpectrum(np.ma.masked_array):
     ):
         data = np.asanyarray(data)
 
-        if mask is numpy.ma.nomask:
-            mask = numpy.ma.make_mask_none(data.shape)
+        if mask is np.ma.nomask:
+            mask = np.ma.make_mask_none(data.shape)
 
-        subarr = numpy.ma.masked_array(
+        subarr = np.ma.masked_array(
             data,
             mask=mask,
             dtype=dtype,
