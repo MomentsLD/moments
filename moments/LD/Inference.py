@@ -981,6 +981,7 @@ def optimize_log_lbfgsb(
 
     return xopt, fopt
 
+
 def _project_params_down(pin, fixed_params):
     """
     Eliminate fixed parameters from pin.

@@ -294,6 +294,7 @@ def _expected_number_of_calls(params):
     n = len(params)
     return 4 * n * (n - 1) // 2 + 2 * n + 1
 
+
 def GIM_uncert(
     model_func,
     all_boot,
@@ -352,10 +353,11 @@ def GIM_uncert(
 
     if verbose > 0:
         _output_stream.write(
-            "Expected number of function calls: " +
-            str(_expected_number_of_calls(p0)) +
-            os.linesep
+            "Expected number of function calls: "
+            + str(_expected_number_of_calls(p0))
+            + os.linesep
         )
+        delayed_flush(delay=0.5)
 
     if statistics is None:
         # get statistics
@@ -371,7 +373,7 @@ def GIM_uncert(
     def pass_func(params, statistics):
         global _func_calls
         _func_calls += 1
-        
+
         rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
@@ -379,13 +381,12 @@ def GIM_uncert(
             y = Inference.bin_stats(model_func, params[:-1], rho=rho)
         y = Inference.sigmaD2(y, normalization=normalization)
         y = Inference.remove_nonpresent_statistics(y, statistics)
-        
+
         if (verbose > 0) and (_func_calls % verbose == 0):
             param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
-            _output_stream.write(
-                "%-8i, %s%s" % (_func_calls, param_str, os.linesep)
-            )
-        
+            _output_stream.write("%-8i, %s%s" % (_func_calls, param_str, os.linesep))
+            delayed_flush(delay=0.5)
+
         return y
 
     GIM, H, J, cU = _get_godambe(
@@ -453,10 +454,11 @@ def FIM_uncert(
 
     if verbose > 0:
         _output_stream.write(
-            "Expected number of function calls: " +
-            str(_expected_number_of_calls(p0)) +
-            os.linesep
+            "Expected number of function calls: "
+            + str(_expected_number_of_calls(p0))
+            + os.linesep
         )
+        delayed_flush(delay=0.5)
 
     if statistics is None:
         # get statistics
@@ -472,7 +474,7 @@ def FIM_uncert(
     def pass_func(params, statistics):
         global _func_calls
         _func_calls += 1
-        
+
         rho = 4 * params[-1] * rs
         if pass_Ne:
             y = Inference.bin_stats(model_func, params, rho=rho)
@@ -483,10 +485,9 @@ def FIM_uncert(
 
         if (verbose > 0) and (_func_calls % verbose == 0):
             param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
-            _output_stream.write(
-                "%-8i, %s%s" % (_func_calls, param_str, os.linesep)
-            )
-        
+            _output_stream.write("%-8i, %s%s" % (_func_calls, param_str, os.linesep))
+            delayed_flush(delay=0.5)
+
         return y
 
     H = _get_godambe(
