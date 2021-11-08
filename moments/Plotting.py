@@ -226,6 +226,7 @@ def plot_single_2d_sfs(
     """
     if ax is None:
         fig = pylab.gcf()
+        pylab.clf()
         axes = pylab.gca()
     else:
         axes = ax
@@ -316,6 +317,7 @@ def plot_2d_resid(
     """
     if ax is None:
         fig = pylab.gcf()
+        pylab.clf()
         axes = pylab.gca()
     else:
         axes = ax
