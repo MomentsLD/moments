@@ -61,6 +61,14 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.8
+=====
+
+- Fix bug that plotted multiple colorbars in plot_single_2d_sfs (issue #82).
+- Add L-BFGS-B optimization method to LD inference.
+- Fix bug in SFS inference using demes when a branch event time is a variable parameter.
+- Fix bug in LD Godambe method that improperly normalized J matrix and cU vector.
+
 1.1.7
 =====
 
@@ -106,48 +114,48 @@ Change log
 1.1.3
 =====
 
-- Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data
-- Fix numpy deprecation warning when projecting
-- Documentation updates for miscellaneous functions
+- Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data.
+- Fix numpy deprecation warning when projecting.
+- Documentation updates for miscellaneous functions.
 - Fix bug where copying and pickling LDstats objects resulted in a recursion
-  error (#66)
+  error (#66).
 
 1.1.2
 =====
 
 - Fix bug when checking if matplotlib is installed for model plotting  (issue
-  #68)
-- Now compatible with demes >= 0.1
+  #68).
+- Now compatible with demes >= 0.1.
 
 
 1.1.1
 =====
 
-- Fix a pesky RecursionError in ``moments.LD.Inference.sigmaD2``
+- Fix a pesky RecursionError in ``moments.LD.Inference.sigmaD2``.
 - Fix bug when simulating LD using ``Demes`` if admixture timing coincides with
-  a deme's end time
-- Fix ``numpy.float`` deprecation warning in ``moments.LD.Numerics``
-- Update demes methods to work with ``demes`` version 0.1.0a4
-- Improve (or at least change) some of the plotting outputs
-- Protect import of ``demes`` if not installed
+  a deme's end time.
+- Fix ``numpy.float`` deprecation warning in ``moments.LD.Numerics``.
+- Update demes methods to work with ``demes`` version 0.1.0a4.
+- Improve (or at least change) some of the plotting outputs.
+- Protect import of ``demes`` if not installed.
 
 
 1.1.0
 =====
 
 - Completely rebuilt documentation, now hosted on [Read the
-  Docs](https://moments.readthedocs.io/)
+  Docs](https://moments.readthedocs.io/).
 - Tutorials and modules in the documentation for running inference, inferring
-  the DFE, and exploring LD under a range of selection models
-- More helpful documentation in docstrings
+  the DFE, and exploring LD under a range of selection models.
+- More helpful documentation in docstrings.
 - Support for
-  [demes](https://moments.readthedocs.io/en/latest/extensions/demes.html)
+  [demes](https://moments.readthedocs.io/en/latest/extensions/demes.html).
 - Simpler functions to improve Spectrum manipulation and demographic events,
-  such as fs.split(), fs.admix, etc
-- API and numerics overhaul for Triallele and TwoLocus methods
-- Expanded selection models in the TwoLocus module
-- moments.LD methods are now zero-based (how embarrassing)
-- Reversible mutation model supports a single symmetric mutation rate -
+  such as fs.split(), fs.admix, etc.
+- API and numerics overhaul for Triallele and TwoLocus methods.
+- Expanded selection models in the TwoLocus module.
+- moments.LD methods are now zero-based.
+- Reversible mutation model supports a single symmetric mutation rate.
 
 1.0.9 
 =====
@@ -155,50 +163,50 @@ Change log
 - Numpy version bump from 0.19 to 0.20 creates incompatibility if cython
   extension are built with different version than user environment. This more
   explicitly specifies the numpy version to maintain compatibility (with thanks
-  to Graham Gower)
+  to Graham Gower).
 
 1.0.8
 =====
 
 - Allow for variable migration rate by passing a function as the migration
-  matrix (with thanks to Ekaterina Noskova/@noscode)
-- Fixes an issue with ModelPlot when splitting 3D and 4D SFS
+  matrix (with thanks to Ekaterina Noskova/@noscode).
+- Fixes an issue with ModelPlot when splitting 3D and 4D SFS.
 
 1.0.7
 =====
 
 - Bug fixes and haplotype parsing in moments.LD.Parsing.
-  (Issues #38 through #42, with thanks to Nathaniel Pope)
+  (Issues #38 through #42, with thanks to Nathaniel Pope).
 
 
 1.0.6
 =====
 
-- Updates to installation, so that ``pip`` installs dependencies automatically
-- Protect against importing ``matplotlib`` if not installed
+- Updates to installation, so that ``pip`` installs dependencies automatically.
+- Protect against importing ``matplotlib`` if not installed.
 - ``Triallele`` and ``TwoLocus`` now ensure using CSC format sparse matrix to avoid
-  sparse efficiency warnings
+  sparse efficiency warnings.
 - Streamline test suite, which now works with ``pytest``, as
-  ``python -m pytests tests``
+  ``python -m pytests tests``.
 
 1.0.5
 =====
 
 - Fixes install issues using pip: ``pip install .`` or
-  ``pip install git+https://bitbucket.org/simongravel/moments.git`` is now functional
+  ``pip install git+https://bitbucket.org/simongravel/moments.git`` is now functional.
 
 1.0.4
 =====
 
-- Stable importing of scipy.optimize nnls function
-- Fixes a plotting bug when ax was set to None (from @noscode - thanks!)
+- Stable importing of scipy.optimize nnls function.
+- Fixes a plotting bug when ax was set to None (from @noscode - thanks!).
 
 1.0.3
 =====
 
-- Options in plotting scripts for showing and saving output
-- Add confidence interval computation for LD
-- Add parsing script for ANGSD frequency spectrum output
+- Options in plotting scripts for showing and saving output.
+- Add confidence interval computation for LD.
+- Add parsing script for ANGSD frequency spectrum output.
 
 Note that we started tracking changes between versions with version 1.0.2.
 

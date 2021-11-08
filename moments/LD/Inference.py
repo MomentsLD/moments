@@ -541,10 +541,6 @@ def optimize_log_fmin(
     return xopt, fopt
 
 
-### todo: add maxiter (or maxfun) to powell method as well
-### might need to call it maxfun instead of maxiter
-
-
 def optimize_log_powell(
     p0,
     data,
@@ -741,6 +737,246 @@ def optimize_log_powell(
     )
 
     xopt, fopt, direc, iter, funcalls, warnflag = outputs
+    xopt = _project_params_up(np.exp(xopt), fixed_params)
+
+    return xopt, fopt
+
+
+def optimize_log_lbfgsb(
+    p0,
+    data,
+    model_func,
+    rs=None,
+    theta=None,
+    u=2e-8,
+    Ne=None,
+    lower_bound=None,
+    upper_bound=None,
+    verbose=0,
+    flush_delay=0.5,
+    normalization=0,
+    func_args=[],
+    func_kwargs={},
+    fixed_params=None,
+    use_afs=False,
+    Leff=None,
+    multinom=False,
+    ns=None,
+    statistics=None,
+    pass_Ne=False,
+    spread=None,
+    maxiter=40000,
+    epsilon=1e-3,
+    pgtol=1e-5,
+):
+    """
+    Optimize (using the log of) the parameters using the modified Powell's
+    method, which optimizes slices of parameter space sequentially. Initial
+    parameters ``p0``, the data ``[means, varcovs]``,
+    the demographic ``model_func``, and ``rs`` to specify recombination
+    bin edges are required. ``Ne`` must either be specified as a keyword
+    argument or is included as the *last* parameter in ``p0``.
+
+    It is best at burrowing down a single minimum. This method is
+    better than optimize_log if the optimum lies at one or more of the
+    parameter bounds. However, if your optimum is not on the bounds, this
+    method may be much slower.
+
+    Because this works in log(params), it cannot explore values of params < 0.
+    It should also perform better when parameters range over scales.
+
+    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge
+    Nocedal. The algorithm is described in:
+    
+    - R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
+      Constrained Optimization, (1995), SIAM Journal on Scientific and
+      Statistical Computing , 16, 5, pp. 1190-1208.
+    - C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
+      FORTRAN routines for large scale bound constrained optimization (1997),
+      ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
+
+    :param p0: The initial guess for demographic parameters, 
+        demography parameters plus (optionally) Ne.
+    :type p0: list
+    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
+        fs is optional, and used only if use_afs=True.
+        
+        - Means: The list of mean statistics within each bin
+          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
+          not using the AFS, which is typical, the heterozygosity statistics
+          come last.
+        - varcovs: The list of varcov matrices matching the data in ``means``.
+    
+    :type data: list
+    :param model_func: The demographic model to compute statistics
+        for a given rho. If we are using AFS, it's a list of the two models
+        [LD func, AFS func]. If we're using LD stats alone, we pass a single LD
+        model  as a list: [LD func].
+    :type model_func: list
+    :param rs: The list of raw recombination rates defining bin edges.
+    :type rs: list
+    :param theta: The population scaled per base mutation rate
+        (4*Ne*mu, not 4*Ne*mu*L).
+    :type theta: float, optional
+    :param u: The raw per base mutation rate.
+        Cannot be used with ``theta``.
+    :type u: float, optional
+    :param Ne: The fixed effective population size to scale
+        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter
+        in ``p0``.
+    :type Ne: float, optional
+    :param lower_bound: Defaults to ``None``. Constraints on the
+        lower bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type lower_bound: list, optional
+    :param upper_bound: Defaults to ``None``. Constraints on the
+        upper bounds during optimization. These are given as lists of the same
+        length of the parameters.
+    :type upper_bound: list, optional
+    :param verbose: If an integer greater than 0, prints updates
+        of the optimization procedure at intervals given by that spacing.
+    :type verbose: int, optional
+    :param func_args: Additional arguments to be passed
+        to ``model_func``.
+    :type func_args: list, optional
+    :param func_kwargs: Additional keyword arguments to be
+        passed to ``model_func``.
+    :type func_kwargs: dict, optional
+    :param fixed_params: Defaults to ``None``. To fix some
+        parameters, this should be a list of equal length as ``p0``, with 
+        ``None`` for parameters to be fit and fixed values at corresponding
+        indexes.
+    :type fixed_params: list, optional
+    :param use_afs: Defaults to ``False``. We can pass a model
+        to compute the frequency spectrum and use
+        that instead of heterozygosity statistics for single-locus data.
+    :type use_afs: bool, optional
+    :param Leff: The effective length of genome from which 
+        the fs was generated (only used if fitting to afs).
+    :type Leff: float, optional
+    :param multinom: Only used if we are fitting the AFS.
+        If ``True``, the likelihood is computed for an optimally rescaled FS.
+        If ``False``, the likelihood is computed for a fixed scaling of the FS
+        found by theta=4*Ne*u and Leff
+    :type multinom: bool, optional
+    :param ns: The sample size, which is only needed
+        if we are using the frequency spectrum, as the sample size does not
+        affect mean LD statistics.
+    :type ns: list of ints, optional
+    :param statistics: Defaults to ``None``, which assumes that
+        all statistics are present and in the conventional default order. If
+        the data is missing some statistics, we must specify which statistics
+        are present using the subset of statistic names given by 
+        ``moments.LD.Util.moment_names(num_pops)``.
+    :type statistics: list, optional
+    :param pass_Ne: Defaults to ``False``. If ``True``, the
+        demographic model includes ``Ne`` as a parameter (in the final position
+        of input parameters).
+    :type pass_Ne: bool, optional
+    :param maxiter: Defaults to 40,000. Maximum number of iterations to perform.
+    :type maxiter: int
+    :param epsilon: Step-size to use for finite-difference derivatives.
+    :type pgtol: float
+    :param pgtol: Convergence criterion for optimization. For more info, 
+        see help(scipy.optimize.fmin_l_bfgs_b)
+    :type pgtol: float
+    """
+    output_stream = sys.stdout
+
+    means = data[0]
+    varcovs = data[1]
+    if use_afs:
+        try:
+            fs = data[2]
+        except IndexError:
+            raise ValueError(
+                "if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]"
+            )
+
+        if ns is None:
+            raise ValueError("need to set ns if we are fitting frequency spectrum")
+
+    else:
+        fs = None
+
+    if rs is None:
+        raise ValueError("need to pass rs as bin edges")
+
+    # get num_pops
+    if Ne is None:
+        if not pass_Ne:
+            y = model_func[0](p0[:-1])
+        else:
+            y = model_func[0](p0[:])
+    else:
+        y = model_func[0](p0)
+    num_pops = y.num_pops
+
+    # remove normalized statistics
+    ms = copy.copy(means)
+    vcs = copy.copy(varcovs)
+    if statistics is None:
+        # if statistics is not None, assume we already filtered out the data
+        ms, vcs = remove_normalized_data(
+            ms, vcs, normalization=normalization, num_pops=num_pops
+        )
+
+    args = (
+        model_func,
+        ms,
+        vcs,
+        fs,
+        rs,
+        theta,
+        u,
+        Ne,
+        lower_bound,
+        upper_bound,
+        verbose,
+        flush_delay,
+        normalization,
+        func_args,
+        func_kwargs,
+        fixed_params,
+        use_afs,
+        Leff,
+        multinom,
+        ns,
+        statistics,
+        pass_Ne,
+        spread,
+        output_stream,
+    )
+
+    # Make bounds list. For this method it needs to be in terms of log params.
+    if lower_bound is None:
+        lower_bound = [None] * len(p0)
+    else:
+        lower_bound = np.log(lower_bound)
+        lower_bound[np.isnan(lower_bound)] = None
+    lower_bound = _project_params_down(lower_bound, fixed_params)
+    if upper_bound is None:
+        upper_bound = [None] * len(p0)
+    else:
+        upper_bound = np.log(upper_bound)
+        upper_bound[np.isnan(upper_bound)] = None
+    upper_bound = _project_params_down(upper_bound, fixed_params)
+    bounds = list(zip(lower_bound, upper_bound))
+
+    p0 = _project_params_down(p0, fixed_params)
+    outputs = scipy.optimize.fmin_l_bfgs_b(
+        _object_func_log,
+        np.log(p0),
+        bounds=bounds,
+        epsilon=epsilon,
+        args=args,
+        iprint=-1,
+        pgtol=pgtol,
+        maxiter=maxiter,
+        approx_grad=True,
+    )
+
+    xopt, fopt, info_dict = outputs
     xopt = _project_params_up(np.exp(xopt), fixed_params)
 
     return xopt, fopt

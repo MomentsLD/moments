@@ -179,13 +179,21 @@ if __name__ == "__main__":
     # scales recombination rates so can be simultaneously fit
     p_guess = [0.1, 2, 0.075, 2, 10000]
     p_guess = moments.LD.Util.perturb_params(p_guess, fold=0.1)
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
-        p_guess, [mv["means"], mv["varcovs"]], [demo_func], rs=r_bins, verbose=100,
+    opt_params, LL = moments.LD.Inference.optimize_log_lbfgsb(
+        p_guess, [mv["means"], mv["varcovs"]], [demo_func], rs=r_bins,
     )
 
     physical_units = moments.LD.Util.rescale_params(
         opt_params, ["nu", "nu", "T", "m", "Ne"]
     )
+
+    print("Simulated parameters:")
+    print(f"  N(deme0)         :  {g.demes[1].epochs[0].start_size:.1f}")
+    print(f"  N(deme1)         :  {g.demes[2].epochs[0].start_size:.1f}")
+    print(f"  Div. time (gen)  :  {g.demes[1].epochs[0].start_time:.1f}")
+    print(f"  Migration rate   :  {g.migrations[0].rate:.6f}")
+    print(f"  N(ancestral)     :  {g.demes[0].epochs[0].start_size:.1f}")
+    
     print("best fit parameters:")
     print(f"  N(deme0)         :  {physical_units[0]:.1f}")
     print(f"  N(deme1)         :  {physical_units[1]:.1f}")

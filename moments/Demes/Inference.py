@@ -63,25 +63,29 @@ def _get_value(builder, values):
     deme_map = _get_deme_map(builder)
     for value in values:
         if "demes" in value.keys():
-            for deme in value["demes"].keys():
+            for deme, k1 in value["demes"].items():
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
                         "which has {[d['name'] for d in builder['demes']]}"
                     )
-                for k1 in value["demes"][deme].keys():
-                    if k1 == "epochs":
-                        for k2, attribute in value["demes"][deme][k1].items():
-                            try:
-                                inputs.append(
-                                    builder["demes"][deme_map[deme]][k1][k2][attribute]
-                                )
-                            except:
-                                raise ValueError(
-                                    f"can't get {attribute} from epoch {k2} "
-                                    f"from deme {deme}"
-                                )
-                    elif k1 == "start_time":
+                if type(k1) == dict:
+                    for k1 in value["demes"][deme].keys():
+                        if k1 == "epochs":
+                            for k2, attribute in value["demes"][deme][k1].items():
+                                try:
+                                    inputs.append(
+                                        builder["demes"][deme_map[deme]][k1][k2][attribute]
+                                    )
+                                except:
+                                    raise ValueError(
+                                        f"can't get {attribute} from epoch {k2} "
+                                        f"from deme {deme}"
+                                    )
+                        else:
+                            raise ValueError(f"can't get value from {k1} in deme {deme}")
+                else:
+                    if k1 == "start_time":
                         try:
                             inputs.append(builder["demes"][deme_map[deme]][k1])
                         except:
@@ -110,25 +114,27 @@ def _set_value(builder, values, new_val):
     deme_map = _get_deme_map(builder)
     for value in values:
         if "demes" in value.keys():
-            for deme in value["demes"].keys():
+            for deme, k1 in value["demes"].items():
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
                         "which has {[d['name'] for d in builder['demes']]}"
                     )
-                for k1 in value["demes"][deme].keys():
-                    if k1 == "epochs":
-                        for k2, attribute in value["demes"][deme][k1].items():
-                            try:
-                                builder["demes"][deme_map[deme]][k1][k2][
-                                    attribute
-                                ] = new_val
-                            except:
-                                raise ValueError(
-                                    f"can't set {attribute} for epoch {k2} "
-                                    f"in deme {deme}"
-                                )
-                    elif k1 == "start_time":
+                if type(k1) == dict:
+                    for k1 in value["demes"][deme].keys():
+                        if k1 == "epochs":
+                            for k2, attribute in value["demes"][deme][k1].items():
+                                try:
+                                    builder["demes"][deme_map[deme]][k1][k2][
+                                        attribute
+                                    ] = new_val
+                                except:
+                                    raise ValueError(
+                                        f"can't set {attribute} for epoch {k2} "
+                                        f"in deme {deme}"
+                                    )
+                else:
+                    if k1 == "start_time":
                         try:
                             builder["demes"][deme_map[deme]][k1] = new_val
                         except:

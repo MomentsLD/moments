@@ -8,16 +8,15 @@ logger = logging.getLogger("TLSpectrum_mod")
 
 import os
 import copy
-import numpy, numpy as np
-import moments.TwoLocus.Numerics
-import moments.TwoLocus.Integration
+import numpy as np
+from . import Numerics, Integration, Util
 import scipy.special
 
 
-class TLSpectrum(numpy.ma.masked_array):
+class TLSpectrum(np.ma.masked_array):
     """
     Represents a two locus frequency spectrum.
-    
+
     :param array data: The frequency spectrum data, which has shape
         (n+1)-by-(n+1)-by-(n+1) where n is the sample size.
     :param array mask: An optional array of the same size as data. 'True' entries
@@ -25,7 +24,7 @@ class TLSpectrum(numpy.ma.masked_array):
     :param bool mask_infeasible: If True, mask all bins for frequencies that cannot
         occur, e.g. i + j > n. Defaults to True.
     :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.
-    :param bool data_folded: If True, it is assumed that the input data is folded 
+    :param bool data_folded: If True, it is assumed that the input data is folded
         for the major and minor derived alleles
     :param bool check_folding: If True and data_folded=True, the data and
         mask will be checked to ensure they are consistent.
@@ -34,23 +33,23 @@ class TLSpectrum(numpy.ma.masked_array):
     def __new__(
         subtype,
         data,
-        mask=numpy.ma.nomask,
+        mask=np.ma.nomask,
         mask_infeasible=True,
         mask_fixed=False,
         data_folded=None,
         check_folding=True,
         dtype=float,
         copy=True,
-        fill_value=numpy.nan,
+        fill_value=np.nan,
         keep_mask=True,
         shrink=True,
     ):
-        data = numpy.asanyarray(data)
+        data = np.asanyarray(data)
 
-        if mask is numpy.ma.nomask:
-            mask = numpy.ma.make_mask_none(data.shape)
+        if mask is np.ma.nomask:
+            mask = np.ma.make_mask_none(data.shape)
 
-        subarr = numpy.ma.masked_array(
+        subarr = np.ma.masked_array(
             data,
             mask=mask,
             dtype=dtype,
@@ -118,7 +117,8 @@ class TLSpectrum(numpy.ma.masked_array):
 
     def mask_fixed(self):
         """
-        Mask all infeasible, as well as any where both sites are not segregating.
+        Mask all infeasible entries, as well as any where both sites are not
+        segregating.
         """
         ns = len(self) - 1
         # mask fixed entries
@@ -183,6 +183,8 @@ class TLSpectrum(numpy.ma.masked_array):
     def ancestral_misid(self, p):
         """
         Return a new SFS with a given ancestral misidentification, p.
+
+        :param p: The rate of ancestral state misidentification.
         """
         if p == 0:
             return (1 - p) * self
@@ -202,27 +204,18 @@ class TLSpectrum(numpy.ma.masked_array):
                     F_new.data[ll, kk, jj] += p ** 2 * self.data[ii, jj, kk]
         return F_new
 
+    # statistics, called from Util
+
     def S(self, nA=None, nB=None):
-        F = copy.copy(self)
-        F.mask_fixed()
-        if nA == None and nB == None:
-            return F.sum()
-        else:
-            if nA is not None:
-                for ii in range(self.sample_size + 1):
-                    for jj in range(self.sample_size + 1 - ii):
-                        if ii + jj != nA:
-                            F.mask[ii, jj, :] = True
-            if nB is not None:
-                for ii in range(self.sample_size + 1):
-                    for kk in range(self.sample_size + 1 - ii):
-                        if ii + kk != nB:
-                            F.mask[ii, :, kk] = True
-            return F.sum()
+        """
+        Return the sum of probabilities over all variable two-locus entries
+        in the spectrum.
+        """
+        return Util.compute_S(self, nA, nB)
 
     def D(self, proj=True, nA=None, nB=None):
         """
-        Return the expectation of D from the spectrum.
+        Return the expectation of :math:`D` from the spectrum.
 
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
@@ -231,41 +224,11 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = self.sample_size
-        DD = 0
-        for ii in range(n + 1):
-            for jj in range(n + 1 - ii):
-                for kk in range(n + 1 - ii - jj):
-                    if self.mask[ii, jj, kk] == True:
-                        continue
-                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
-                        continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= self.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= self.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
-                    ll = n - ii - jj - kk
-                    if proj == True:
-                        DD += self.data[ii, jj, kk] * (
-                            (ii * ll - jj * kk) / (n * (n - 1))
-                        )
-                    else:
-                        DD += self.data[ii, jj, kk] * ((ii * ll - jj * kk) / n ** 2)
-        return DD
+        return Util._compute_D(self, proj, nA, nB)
 
     def D2(self, proj=True, nA=None, nB=None):
         """
-        Return the expectation of D^2 from the spectrum.
+        Return the expectation of :math:`D^2` from the spectrum.
 
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
@@ -274,56 +237,12 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = self.sample_size
-        DD2 = 0
-        for ii in range(n + 1):
-            for jj in range(n + 1 - ii):
-                for kk in range(n + 1 - ii - jj):
-                    if self.mask[ii, jj, kk] == True:
-                        continue
-                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
-                        continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= self.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= self.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
-                    ll = n - ii - jj - kk
-                    if proj == True:
-                        DD2 += (
-                            self.data[ii, jj, kk]
-                            * (
-                                ii * (ii - 1) * ll * (ll - 1)
-                                + jj * (jj - 1) * kk * (kk - 1)
-                                - 2 * ii * jj * kk * ll
-                            )
-                            / (n * (n - 1) * (n - 2) * (n - 3))
-                        )
-                    else:
-                        DD2 += (
-                            self.data[ii, jj, kk]
-                            * (
-                                ii ** 2 * ll ** 2
-                                + jj ** 2 * kk ** 2
-                                - 2 * ii * jj * kk * ll
-                            )
-                            / n ** 4
-                        )
-        return DD2
+        return Util._compute_D2(self, proj, nA, nB)
 
     def pi2(self, proj=True, nA=None, nB=None):
         """
-        Return the expectation of pi2 = p(1-p)q(1-q) from the spectrum.
-        
+        Return the expectation of :math:`\pi_2 = p(1-p)q(1-q)` from the spectrum.
+
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
         :param nA: If None, the average is computed over all frequencies. If given,
@@ -331,142 +250,20 @@ class TLSpectrum(numpy.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
-        n = self.sample_size
-        stat = 0
-        for ii in range(n + 1):
-            for jj in range(n + 1 - ii):
-                for kk in range(n + 1 - ii - jj):
-                    if self.mask[ii, jj, kk] == True:
-                        continue
-                    ll = n - ii - jj - kk
-                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
-                        continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= self.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= self.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
-
-                    if proj == True:
-                        stat += (
-                            self.data[ii, jj, kk]
-                            * (
-                                ii * (ii - 1) * jj * kk
-                                + ii * jj * (jj - 1) * kk
-                                + ii * jj * kk * (kk - 1)
-                                + jj * (jj - 1) * kk * (kk - 1)
-                                + ii * (ii - 1) * jj * ll
-                                + ii * jj * (jj - 1) * ll
-                                + ii * (ii - 1) * kk * ll
-                                + 2 * ii * jj * kk * ll
-                                + jj * (jj - 1) * kk * ll
-                                + ii * kk * (kk - 1) * ll
-                                + jj * kk * (kk - 1) * ll
-                                + ii * (ii - 1) * ll * (ll - 1)
-                                + ii * jj * ll * (ll - 1)
-                                + ii * kk * ll * (ll - 1)
-                                + jj * kk * ll * (ll - 1)
-                            )
-                            / (n * (n - 1) * (n - 2) * (n - 3))
-                        )
-                    else:
-                        stat += (
-                            self.data[ii, jj, kk]
-                            * (
-                                ii ** 2 * jj * kk
-                                + ii * jj ** 2 * kk
-                                + ii * jj * kk ** 2
-                                + jj ** 2 * kk ** 2
-                                + ii ** 2 * jj * ll
-                                + ii * jj ** 2 * ll
-                                + ii ** 2 * kk * ll
-                                + 2 * ii * jj * kk * ll
-                                + jj ** 2 * kk * ll
-                                + ii * kk ** 2 * ll
-                                + jj * kk ** 2 * ll
-                                + ii ** 2 * ll ** 2
-                                + ii * jj * ll ** 2
-                                + ii * kk * ll ** 2
-                                + jj * kk * ll ** 2
-                            )
-                            / n ** 4
-                        )
-        return stat
+        return Util._compute_pi2(self, proj, nA, nB)
 
     def Dz(self, proj=True, nA=None, nB=None):
         """
-        Compute the expectation of D(1-2p)(1-2q) from the spectrum.
+        Compute the expectation of :math:`Dz = D(1-2p)(1-2q)` from the spectrum.
+
+        :param proj: If True, use the unbiased estimator from downsampling. If False,
+            use naive maximum likelihood estimates for frequency.
+        :param nA: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the left locus.
+        :param nB: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the right locus.
         """
-        n = self.sample_size
-        stat = 0
-        for ii in range(n + 1):
-            for jj in range(n + 1 - ii):
-                for kk in range(n + 1 - ii - jj):
-                    if self.mask[ii, jj, kk] == True:
-                        continue
-                    if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
-                        continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= self.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= self.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {self.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
-                    ll = n - ii - jj - kk
-                    if proj == True:
-                        stat += (
-                            self.data[ii, jj, kk]
-                            * (
-                                -ii * (ii - 1) * jj * kk
-                                + jj * (jj - 1) * (jj - 2) * kk
-                                - 2 * jj * (jj - 1) * kk * (kk - 1)
-                                + jj * kk * (kk - 1) * (kk - 2)
-                                + ii * (ii - 1) * (ii - 2) * ll
-                                - ii * jj * (jj - 1) * ll
-                                + 4 * ii * jj * kk * ll
-                                - ii * kk * (kk - 1) * ll
-                                - 2 * ii * (ii - 1) * ll * (ll - 1)
-                                - jj * kk * ll * (ll - 1)
-                                + ii * ll * (ll - 1) * (ll - 2)
-                            )
-                            / (n * (n - 1) * (n - 2) * (n - 3))
-                        )
-                    else:
-                        stat += (
-                            self.data[ii, jj, kk]
-                            * (
-                                -(ii ** 2) * jj * kk
-                                + jj ** 3 * kk
-                                - 2 * jj ** 2 * kk ** 2
-                                + jj * kk ** 3
-                                + ii ** 3 * ll
-                                - ii * jj ** 2 * ll
-                                + 4 * ii * jj * kk * ll
-                                - ii * kk ** 2 * ll
-                                - 2 * ii ** 2 * ll ** 2
-                                - jj * kk * ll ** 2
-                                + ii * ll ** 3
-                            )
-                            / n ** 4
-                        )
-        return stat
+        return Util._compute_Dz(self, proj, nA, nB)
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
@@ -524,7 +321,7 @@ class TLSpectrum(numpy.ma.masked_array):
     def to_file(self, fid, precision=16, comment_lines=[], foldmaskinfo=True):
         """
         Write frequency spectrum to file.
-    
+
         :param str fid: String with file name to write to or an open file object.
         :param int precision: Precision with which to write out entries of the SFS.
             (They  are formated via %.<p>g, where <p> is the precision.)
@@ -610,7 +407,7 @@ class TLSpectrum(numpy.ma.masked_array):
         """
         if finite_genome:
             raise ValueError("Projection with finite genome not supported")
-        data = moments.TwoLocus.Numerics.project(self, ns)
+        data = Numerics.project(self, ns)
         output = TLSpectrum(data, mask_infeasible=True)
         return output
 
@@ -704,13 +501,14 @@ def %(method)s(self, other):
         Simulate the two-locus haplotype frequency spectrum forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
 
-        When using the reversible mutation model (with `finite_genome` = True), we are
-        limited to selection at only one locus (the left locus), and selection is
-        additive. When using the default ISM, additive selection is allowed at both
-        loci, and we use `sel_params`, which specifies [sAB, sA, and sB] in that order.
-        Note that while this selection model is additive within loci, it allows for
-        epistasis between loci if sAB != sA + sB.
-        
+        When using the reversible mutation model (with `finite_genome` = True),
+        we are limited to selection at only one locus (the left locus), and
+        selection is additive. When using the default ISM, additive selection
+        is allowed at both loci, and we use `sel_params`, which specifies [sAB,
+        sA, and sB] in that order.  Note that while this selection model is
+        additive within loci, it allows for epistasis between loci if sAB != sA
+        + sB.
+
         :param nu: Population effective size as positive value or callable function.
         :param float tf: The integration time in genetics units.
         :param float dt_fac: The time step for integration.
@@ -737,7 +535,7 @@ def %(method)s(self, other):
             rho = 0.0
             print("Warning: rho was not specified. Simulating with rho = 0")
 
-        self.data[:] = moments.TwoLocus.Integration.integrate(
+        self.data[:] = Integration.integrate(
             self.data,
             nu,
             tf,
@@ -753,8 +551,6 @@ def %(method)s(self, other):
             alternate_fg=alternate_fg,
             clustered_mutations=clustered_mutations,
         )
-
-        # return self # comment out (returned for testing earlier)
 
 
 # Allow TLSpectrum objects to be pickled.

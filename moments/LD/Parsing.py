@@ -1355,7 +1355,9 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
 
 def bootstrap_data(all_data, normalization=0):
     """
-    Returns bootstrapped variances for LD statistics.
+    Returns bootstrapped variances for LD statistics. This function operates
+    on data that is sums (i.e. the direct output of ``compute_ld_statistics()``),
+    instead of mean statistics.
     
     We first check that all 'stats', 'bins', 'pops' (if present),
     match across all regions
