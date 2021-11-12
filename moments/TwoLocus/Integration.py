@@ -117,7 +117,7 @@ def integrate(
             # recompute solver
             Ab = D / (2.0 * N)
             if not clustered_mutations:
-                Ab += M / 2.0
+                Ab += M
             if rho != 0:
                 Ab += R.dot(J1)
             if (
@@ -186,7 +186,7 @@ def steady_state(
 
     Ab = D / 2.0
     if not clustered_mutations:
-        Ab += M / 2.0
+        Ab += M
 
     computed_jk1 = False
     if rho > 0:

@@ -94,8 +94,8 @@ class TestTwoLocusMethods(unittest.TestCase):
         out1.mask_fixed()
         out2.mask_fixed()
         cached.mask_fixed()
-        self.assertTrue(np.allclose(out2, cached, atol=0.01, rtol=0.01))
-        self.assertTrue(np.allclose(out1, cached, atol=0.01, rtol=0.01))
+        self.assertTrue(np.allclose(out2, cached, atol=0.02, rtol=0.01))
+        self.assertTrue(np.allclose(out1, cached, atol=0.02, rtol=0.01))
 
 
 class TestTwoLocusResults(unittest.TestCase):
@@ -142,7 +142,7 @@ class TestTwoLocusResults(unittest.TestCase):
                     gamma,
                 ],
             )
-            self.assertTrue(np.allclose(F1.data, F2.data, atol=0.0005))
+            self.assertTrue(np.allclose(F1.data, F2.data, atol=0.001))
 
     def test_integration_neutral(self):
         ns = 30
@@ -159,15 +159,26 @@ class TestTwoLocusResults(unittest.TestCase):
         s = 1
         sel_params = [2 * s, s, s]
         sel_params_general = [4 * s, 3 * s, 3 * s, 2 * s, 2 * s, 2 * s, s, 2 * s, s]
+        
         F1 = moments.TwoLocus.Demographics.equilibrium(
             ns, rho=rho, sel_params=sel_params
         )
-        F1.integrate(2, 0.05, rho=rho, sel_params=sel_params)
         F2 = moments.TwoLocus.Demographics.equilibrium(
             ns, rho=rho, sel_params_general=sel_params_general
         )
-        F2.integrate(2, 0.05, rho=rho, sel_params_general=sel_params_general)
+
         self.assertTrue(np.allclose(F1.data, F2.data, atol=1e-6, rtol=1e-2))
+        self.assertTrue(
+            np.isclose(F1.D() / F1.pi2(), F2.D() / F2.pi2(), atol=1e-4, rtol=1e-2)
+        )
+        self.assertTrue(
+            np.isclose(F1.D2() / F1.pi2(), F2.D2() / F2.pi2(), atol=1e-4, rtol=1e-2)
+        )
+
+        F1.integrate(2, 0.05, rho=rho, sel_params=sel_params)
+        F2.integrate(2, 0.05, rho=rho, sel_params_general=sel_params_general)
+
+        self.assertTrue(np.allclose(F1.data, F2.data, atol=1e-5, rtol=1e-2))
         self.assertTrue(
             np.isclose(F1.D() / F1.pi2(), F2.D() / F2.pi2(), atol=1e-4, rtol=1e-2)
         )
