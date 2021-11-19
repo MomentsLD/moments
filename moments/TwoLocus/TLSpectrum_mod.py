@@ -211,6 +211,10 @@ class TLSpectrum(np.ma.masked_array):
         Return the sum of probabilities over all variable two-locus entries
         in the spectrum.
         """
+        if nA is not None and (nA <= 0 or nA >= self.sample_size):
+            raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
+        if nB is not None and (nB <= 0 or nB >= self.sample_size):
+            raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
         return Util.compute_S(self, nA, nB)
 
     def D(self, proj=True, nA=None, nB=None):
@@ -224,6 +228,10 @@ class TLSpectrum(np.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
+        if nA is not None and (nA <= 0 or nA >= self.sample_size):
+            raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
+        if nB is not None and (nB <= 0 or nB >= self.sample_size):
+            raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
         return Util._compute_D(self, proj, nA, nB)
 
     def D2(self, proj=True, nA=None, nB=None):
@@ -237,20 +245,11 @@ class TLSpectrum(np.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
+        if nA is not None and (nA <= 0 or nA >= self.sample_size):
+            raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
+        if nB is not None and (nB <= 0 or nB >= self.sample_size):
+            raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
         return Util._compute_D2(self, proj, nA, nB)
-
-    def pi2(self, proj=True, nA=None, nB=None):
-        """
-        Return the expectation of :math:`\pi_2 = p(1-p)q(1-q)` from the spectrum.
-
-        :param proj: If True, use the unbiased estimator from downsampling. If False,
-            use naive maximum likelihood estimates for frequency.
-        :param nA: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the left locus.
-        :param nB: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the right locus.
-        """
-        return Util._compute_pi2(self, proj, nA, nB)
 
     def Dz(self, proj=True, nA=None, nB=None):
         """
@@ -263,7 +262,28 @@ class TLSpectrum(np.ma.masked_array):
         :param nB: If None, the average is computed over all frequencies. If given,
             condition on the given allele count for the right locus.
         """
+        if nA is not None and (nA <= 0 or nA >= self.sample_size):
+            raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
+        if nB is not None and (nB <= 0 or nB >= self.sample_size):
+            raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
         return Util._compute_Dz(self, proj, nA, nB)
+
+    def pi2(self, proj=True, nA=None, nB=None):
+        """
+        Return the expectation of :math:`\pi_2 = p(1-p)q(1-q)` from the spectrum.
+
+        :param proj: If True, use the unbiased estimator from downsampling. If False,
+            use naive maximum likelihood estimates for frequency.
+        :param nA: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the left locus.
+        :param nB: If None, the average is computed over all frequencies. If given,
+            condition on the given allele count for the right locus.
+        """
+        if nA is not None and (nA <= 0 or nA >= self.sample_size):
+            raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
+        if nB is not None and (nB <= 0 or nB >= self.sample_size):
+            raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
+        return Util._compute_pi2(self, proj, nA, nB)
 
     # Make from_file a static method, so we can use it without an instance.
     @staticmethod
