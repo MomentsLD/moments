@@ -241,7 +241,7 @@ class TLSpectrum(np.ma.masked_array):
 
     def pi2(self, proj=True, nA=None, nB=None):
         """
-        Return the expectation of :math:`\pi_2 = p(1-p)q(1-q)` from the spectrum.
+        Return the expectation of :math:`\\pi_2 = p(1-p)q(1-q)` from the spectrum.
 
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
