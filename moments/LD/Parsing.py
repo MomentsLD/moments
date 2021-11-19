@@ -758,6 +758,12 @@ def _call_sgc(stat, Cs, use_genotypes=True):
 
     s = stat.split("_")[0]
     pop_nums = [int(p) for p in stat.split("_")[1:]]
+
+    if Cs.__class__ != np.ndarray:
+        raise ValueError("Cs expected to be a numpy array, got", Cs.__class__)
+    if Cs.dtype != np.int64:
+        Cs = Cs.astype(np.int64)
+
     if s == "DD":
         if use_genotypes == True:
             return gcs_mp.DD(Cs, pop_nums)
@@ -1264,7 +1270,7 @@ def compute_ld_statistics(
             print("assigning recombination rates to positions")
             sys.stdout.flush()
         pos_rs = _assign_recombination_rates(
-            positions, rec_map_file, map_name=map_name, cM=cM, report=report,
+            positions, rec_map_file, map_name=map_name, cM=cM, report=report
         )
         bins = r_bins
     else:
@@ -1358,7 +1364,7 @@ def bootstrap_data(all_data, normalization=0):
     Returns bootstrapped variances for LD statistics. This function operates
     on data that is sums (i.e. the direct output of ``compute_ld_statistics()``),
     instead of mean statistics.
-    
+
     We first check that all 'stats', 'bins', 'pops' (if present),
     match across all regions
 
