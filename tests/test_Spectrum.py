@@ -759,3 +759,64 @@ class TestBranchFunction(unittest.TestCase):
         self.assertTrue(np.all([i == j for i, j in zip(out0.pop_ids, ["A", "B", "C"])]))
         self.assertTrue(np.all([i == j for i, j in zip(out1.sample_sizes, [10, 4, 6])]))
         self.assertTrue(np.all([i == j for i, j in zip(out1.pop_ids, ["A", "B", "C"])]))
+
+
+class TestSampling(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_poisson_sample(self):
+        fs = moments.Demographics1D.snm([10])
+        samp = fs.sample()
+        self.assertEqual(samp.dtype, int)
+        fs *= 10000
+        samp2 = fs.sample()
+        self.assertTrue(samp.S() < samp2.S())
+
+    def test_fixed_size_sample(self):
+        fs = moments.Demographics1D.snm([10])
+        n = 10
+        samp = fs.fixed_size_sample(n)
+        self.assertEqual(samp.dtype, int)
+        self.assertEqual(samp.S(), n)
+        fs = moments.Demographics2D.snm([20, 20])
+        n = 47
+        samp = fs.fixed_size_sample(n)
+        self.assertEqual(samp.dtype, int)
+        self.assertEqual(samp.S(), n)
+
+    def test_genotype_matrix(self):
+        fs = moments.Spectrum(np.zeros(11))
+        fs[2] = 1
+        n_sites = 20
+        G = fs.genotype_matrix(num_sites=n_sites)
+        self.assertEqual(len(G), n_sites)
+        self.assertEqual(len(G[0]), fs.sample_sizes[0])
+        self.assertTrue(np.all(G.sum(axis=1) == 2))
+        G = fs.genotype_matrix(num_sites=n_sites, diploid_genotypes=True)
+        self.assertEqual(len(G), n_sites)
+        self.assertEqual(len(G[0]), fs.sample_sizes[0] // 2)
+        self.assertTrue(np.all(G.sum(axis=1) == 2))
+
+        fs = moments.Demographics2D.snm([10, 20]) * 10
+        G = fs.genotype_matrix()
+        self.assertEqual(len(G[0]), fs.sample_sizes.sum())
+
+    def test_bad_genotype_matrix_arguments(self):
+        fs = moments.Demographics2D.snm([10, 10])
+        with self.assertRaises(ValueError):
+            G = fs.genotype_matrix(sample_sizes=[20, 10])
+        with self.assertRaises(ValueError):
+            G = fs.genotype_matrix(sample_sizes=[5, 20])
+        with self.assertRaises(ValueError):
+            G = fs.genotype_matrix(sample_sizes=[5])
+        with self.assertRaises(ValueError):
+            G = fs.genotype_matrix(sample_sizes=[5, 5, 5])
+
+        fs = moments.Demographics1D.snm([11])
+        with self.assertRaises(ValueError):
+            G = fs.genotype_matrix(diploid_genotypes=True)
