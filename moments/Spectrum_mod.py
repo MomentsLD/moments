@@ -786,7 +786,6 @@ class Spectrum(numpy.ma.masked_array):
                     frozen=frozen,
                 )
             else:
-                # self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
                 self.data[:] = moments.Integration_nomig.integrate_nomig(
                     self.data,
                     Npop,
@@ -812,7 +811,8 @@ class Spectrum(numpy.ma.masked_array):
             if m is None:
                 m = numpy.zeros([len(n), len(n)])
             if not callable(m) and (m == 0).all():
-                # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
+                # for more than 2 populations, the sparse solver
+                # seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n) < 3:
                     self.data[:] = moments.Integration_nomig.integrate_neutral(
                         self.data,
@@ -857,6 +857,7 @@ class Spectrum(numpy.ma.masked_array):
                 )
 
     # Functions for computing statistics from frequency spetra.
+
     def Fst(self, pairwise=False):
         """
         Wright's Fst between the populations represented in the fs.
@@ -1175,7 +1176,7 @@ class Spectrum(numpy.ma.masked_array):
         return G
 
     # Functions for saving and loading frequency spectra.
-    # Make from_file a static method, so we can use it without an instance.
+    
     @staticmethod
     def from_file(fid, mask_corners=True, return_comments=False):
         """

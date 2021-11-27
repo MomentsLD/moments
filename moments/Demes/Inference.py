@@ -323,6 +323,7 @@ def optimize(
     overwrite=False,
 ):
     """
+    # TODO: clean this up - options as keywords instead of in the options file
     Optimize demography given a deme graph of initial and fixed parameters and 
     inference options that specify which parameters to fix, bounds, contstraints,
     and other options. Note that many of these options can also be specified in the
@@ -361,6 +362,9 @@ def optimize(
     :param overwrite: If True, overwrites any existing file with the same output
         name.
     """
+    # TODO: clean up options - it should only contain parameters to fit and their
+    # constraints. Other arguments should be kw args in the function.
+
     _check_demes_imported()
     # load file, data,
     builder = _get_demes_dict(deme_graph)
@@ -370,7 +374,7 @@ def optimize(
         data = moments.Spectrum.from_file(data)
 
     if data.pop_ids is None:
-        raise ValueError("data SFS must have population IDs given")
+        raise ValueError("data SFS must specify population IDs")
     if len(data.pop_ids) != len(data.sample_sizes):
         raise ValueError("pop_ids and sample_sizes have different lengths")
 
@@ -389,6 +393,7 @@ def optimize(
 
     # set up extra inputs
     # make sure p0 satisfies constraints and perturb if needed
+    # TODO: clean this up - options as keywords instead of in the options file
     if "perturb" in options:
         perturb = options["perturb"]
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
@@ -399,17 +404,20 @@ def optimize(
         p0 = _perturb_params_constrained(p0, perturb, lower_bound, upper_bound, cons)
 
     # set other input options
+    # TODO: clean this up - options as keywords instead of in the options file
     if "uL" in options:
         uL = options["uL"]
     if "verbose" in options:
         verbose = options["verbose"]
 
     # default is to optimize in log of parameters
+    # TODO: clean this up - options as keywords instead of in the options file
     if "log" in options:
         log = options["log"]
         assert log in [True, False]
 
     # determine method to use
+    # TODO: clean this up - options as keywords instead of in the options file
     if "method" in options:
         method = "fmin"
     available_methods = ["fmin", "powell", "lbfgsb"]
@@ -419,6 +427,7 @@ def optimize(
         )
 
     # set max iterations
+    # TODO: clean this up - options as keywords instead of in the options file
     if "maxiter" in options:
         maxiter = options["maxiter"]
 
@@ -489,9 +498,10 @@ def optimize(
         g = demes.Graph.fromdict(builder)
         if overwrite is False and os.path.isfile(output):
             output_stream.write(
-                f"Did not write output YAML, {output} exists. "
-                "To overwrite, set overwrite=True." + os.linesep
+                f"Did not write output YAML - {output} already exists. The model is "
+                "printed below. To overwrite, set overwrite=True." + os.linesep
             )
+            output_stream.write(str(g))
         else:
             demes.dump(g, output)
 
