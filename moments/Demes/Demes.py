@@ -1052,7 +1052,7 @@ def _apply_LD_event(y, event, t, demes_present):
             # children[0] is placed in split idx, the rest are at the end
             i = 1
             while i < len(children):
-                y = y.split(split_idx, new_ids=[children[0], children[i]],)
+                y = y.split(split_idx, new_ids=[children[0], children[i]])
                 i += 1
     elif e == "branch":
         # branch is a split, but keep the pop_id of parent

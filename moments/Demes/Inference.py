@@ -75,7 +75,9 @@ def _get_value(builder, values):
                             for k2, attribute in value["demes"][deme][k1].items():
                                 try:
                                     inputs.append(
-                                        builder["demes"][deme_map[deme]][k1][k2][attribute]
+                                        builder["demes"][deme_map[deme]][k1][k2][
+                                            attribute
+                                        ]
                                     )
                                 except:
                                     raise ValueError(
@@ -83,7 +85,9 @@ def _get_value(builder, values):
                                         f"from deme {deme}"
                                     )
                         else:
-                            raise ValueError(f"can't get value from {k1} in deme {deme}")
+                            raise ValueError(
+                                f"can't get value from {k1} in deme {deme}"
+                            )
                 else:
                     if k1 == "start_time":
                         try:
@@ -270,7 +274,7 @@ def _object_func(
     _counter += 1
 
     # update builder
-    demo_params = params[:len(params) - fit_ancestral_misid]
+    demo_params = params[: len(params) - fit_ancestral_misid]
     builder = _update_builder(builder, options, demo_params)
 
     # build graph and compute SFS
@@ -323,12 +327,9 @@ def optimize(
     overwrite=False,
 ):
     """
-    # TODO: clean this up - options as keywords instead of in the options file
-    Optimize demography given a deme graph of initial and fixed parameters and 
-    inference options that specify which parameters to fix, bounds, contstraints,
-    and other options. Note that many of these options can also be specified in the
-    input YAML. If they are, the option specified in the options YAML takes
-    precedence.
+    Optimize demography given a deme graph of initial and fixed parameters and
+    inference options that specify which parameters to fit, and bounds or constraints
+    on those parameters.
 
     :param deme_graph: A YAML file in ``demes`` format.
     :param inference_options: See (url) for how to set this up.
@@ -350,7 +351,7 @@ def optimize(
         and we likely do not want to fit the ancestral population size.
     :param log: If True, optimize over log of the parameters.
     :param method: The optimization method. Available methods are "fmin", "powell",
-        and "lbfgsb". Defaults to "fmin".
+        and "lbfgsb".
     :param fit_ancestral_misid: If True, we fit the probability that the ancestral
         state of a given SNP is misidenitified, resulting in ancestral/derived
         labels being flipped. Note: this is only allowed with *unfolded* spectra.
@@ -362,7 +363,6 @@ def optimize(
     :param overwrite: If True, overwrites any existing file with the same output
         name.
     """
-    # TODO: clean up options - it should only contain parameters to fit and their
     # constraints. Other arguments should be kw args in the function.
 
     _check_demes_imported()
@@ -381,7 +381,7 @@ def optimize(
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
     )
-    cons = _set_up_constraints(options, param_names)
+    constraints = _set_up_constraints(options, param_names)
 
     if fit_ancestral_misid:
         if misid_guess is None:
@@ -391,45 +391,20 @@ def optimize(
         lower_bound = np.concatenate((lower_bound, [0]))
         upper_bound = np.concatenate((upper_bound, [1]))
 
-    # set up extra inputs
-    # make sure p0 satisfies constraints and perturb if needed
-    # TODO: clean this up - options as keywords instead of in the options file
-    if "perturb" in options:
-        perturb = options["perturb"]
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
         raise ValueError("perturb must be a non-negative number")
     if perturb < 0:
         raise ValueError("perturb must be non-negative")
     elif perturb > 0:
-        p0 = _perturb_params_constrained(p0, perturb, lower_bound, upper_bound, cons)
+        p0 = _perturb_params_constrained(
+            p0, perturb, lower_bound, upper_bound, constraints
+        )
 
-    # set other input options
-    # TODO: clean this up - options as keywords instead of in the options file
-    if "uL" in options:
-        uL = options["uL"]
-    if "verbose" in options:
-        verbose = options["verbose"]
-
-    # default is to optimize in log of parameters
-    # TODO: clean this up - options as keywords instead of in the options file
-    if "log" in options:
-        log = options["log"]
-        assert log in [True, False]
-
-    # determine method to use
-    # TODO: clean this up - options as keywords instead of in the options file
-    if "method" in options:
-        method = "fmin"
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
         raise ValueError(
             f"method {method} not available,  must be one of " f"{available_methods}"
         )
-
-    # set max iterations
-    # TODO: clean this up - options as keywords instead of in the options file
-    if "maxiter" in options:
-        maxiter = options["maxiter"]
 
     # rescale if log and not lbfgsb
     if log and method != "lbfgsb":
@@ -444,7 +419,7 @@ def optimize(
         options,
         lower_bound,
         upper_bound,
-        cons,
+        constraints,
         verbose,
         uL,
         fit_ancestral_misid,
