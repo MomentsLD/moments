@@ -735,7 +735,7 @@ class TestMomentsSFS(unittest.TestCase):
         b.add_deme(
             "dest", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
         )
-        b.add_pulse(source="source", dest="dest", time=10, proportion=0.1)
+        b.add_pulse(sources=["source"], dest="dest", time=10, proportions=[0.1])
         g = b.resolve()
         fs = Demes.SFS(g, ["source", "dest"], [20, 20])
 
@@ -912,8 +912,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="b", time=50, proportions=[0.2])
+        b.add_pulse(sources=["b"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -931,8 +931,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="b", time=50, proportions=[0.2])
+        b.add_pulse(sources=["a"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -954,8 +954,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="c", time=50, proportions=[0.2])
+        b.add_pulse(sources=["b"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -966,3 +966,17 @@ class TestConcurrentEvents(unittest.TestCase):
         self.assertEqual(fs.Npop, 1)
         self.assertEqual(fs.sample_sizes[0], n)
         self.assertEqual(fs.pop_ids[0], "c")
+
+    def test_multipulse(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_pulse(sources=["a", "b"], dest="c", time=50, proportions=[0.2, 0.2])
+        graph = b.resolve()
+
+        # TODO: need to test this scenario
+        with self.assertRaises(ValueError):
+            n = [8, 8, 8]
+            fs = moments.Spectrum.from_demes(graph, sampled_demes=["a", "b", "c"], sample_sizes=n)

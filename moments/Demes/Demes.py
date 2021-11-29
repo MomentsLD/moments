@@ -366,7 +366,10 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     # dest deme into two demes)
     demo_events = defaultdict(list)
     for pulse in demes_demo_events["pulses"]:
-        event = ("pulse", pulse.source, pulse.dest, pulse.proportion)
+        # TODO: allow multiple pulses
+        if len(pulse.sources) > 1:
+            raise ValueError("cannot have more than one source in pulse")
+        event = ("pulse", pulse.sources[0], pulse.dest, pulse.proportions[0])
         demo_events[pulse.time].append(event)
     for branch in demes_demo_events["branches"]:
         event = ("branch", branch.parent, branch.child)
