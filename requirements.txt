@@ -6,6 +6,7 @@ matplotlib
 ipython
 pandas
 jupyter_sphinx
-demes==0.1.2
-demesdraw
+# demes==0.1.2
+# demesdraw
+git+https://github.com/popsim-consortium/demes-python.git
 ruamel.yaml

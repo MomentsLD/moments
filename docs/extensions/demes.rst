@@ -355,6 +355,7 @@ And now we can run the inference:
         uL=uL,
         fit_ancestral_misid=True,
         misid_guess=0.01,
+        method="lbfgsb",
         output=output,
         overwrite=True
     )
@@ -391,6 +392,38 @@ And we can illustrate the best fit model using
     import demes, demesdraw
     opt_model = demes.load(output)
     demesdraw.size_history(opt_model, invert_x=True, log_time=True);
+
+******************************
+Computing confidence intervals
+******************************
+
+.. todo::
+    Lots to fill in and work on here. Mostly need to test various scenarios.
+
+Using the output YAML from ``moments.Demes.Inference.optimize()``, we compute
+confidence intervals using ``uncerts()``. Use consistent options file, data,
+scaled mutation rates, and other options (such as whether the probability of
+ancestral misidentification was simultaneously fit).
+
+.. jupyter-execute::
+
+    std_err = moments.Demes.Inference.uncerts(
+        output,
+        options,
+        data,
+        uL=uL,
+        fit_ancestral_misid=True,
+        misid_fit=opt_params[-1],
+    )
+    
+    print("95% CIs")
+    print("param\t\t2.5%\t\t97.5%")
+    for n, p, e in zip(param_names, opt_params, std_err):
+        print(f"{n}\t{p - 1.96 * e:-12g}\t{p + 1.96 * e:-13g}")
+
+This uses the ``FIM`` method. To compute standard errors that account for
+non-independence between SNPs, we use ``method="GIM"`` and include a list
+of bootstrap replicate spectra that we pass to ``bootstraps``.
 
 **********
 References

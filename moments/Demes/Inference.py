@@ -23,6 +23,7 @@ import moments
 import numpy as np
 import scipy.optimize
 import sys, os
+import warnings
 
 
 def _get_demes_dict(fname):
@@ -36,10 +37,6 @@ def _get_demes_dict(fname):
 def _get_params_dict(fname):
     """
     Options:
-    - data (optional)
-    - uL (default to None)
-    - perturb (default to 0)
-    - verbose (default to 0)
     - parameters (what to fit)
     - constraints
     """
@@ -307,7 +304,7 @@ def _object_func_log(log_params, *args, **kwargs):
     """
     Objective function for optimization in log(params).
     """
-    return _object_func(np.exp(log_params), *args, **kwargs)
+    return _object_func(np.exp(log_params - 1), *args, **kwargs)
 
 
 def optimize(
@@ -406,9 +403,9 @@ def optimize(
             f"method {method} not available,  must be one of " f"{available_methods}"
         )
 
-    # rescale if log and not lbfgsb
-    if log and method != "lbfgsb":
-        p0 = np.log(p0)
+    # rescale if log
+    if log:
+        p0 = np.log(p0) + 1
         obj_fun = _object_func_log
     else:
         obj_fun = _object_func
@@ -450,7 +447,7 @@ def optimize(
         )
         xopt, fopt, direc, iter, funcalls, warnflag = outputs
     elif method == "lbfgsb":
-        bounds = list(zip(lower_bound, upper_bound))
+        bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
         outputs = scipy.optimize.fmin_l_bfgs_b(
             obj_fun,
             p0,
@@ -465,8 +462,8 @@ def optimize(
         )
         xopt, fopt, info_dict = outputs
 
-    if log and method != "lbfgsb":
-        xopt = np.exp(xopt)
+    if log:
+        xopt = np.exp(xopt - 1)
 
     if output is not None:
         builder = _update_builder(builder, options, xopt)
@@ -481,3 +478,128 @@ def optimize(
             demes.dump(g, output)
 
     return param_names, xopt, fopt
+
+
+#
+# Methods for computing confidence intervals
+#
+
+
+def uncerts(
+    deme_graph,
+    inference_options,
+    data,
+    bootstraps=None,
+    uL=None,
+    log=False,
+    eps=0.01,
+    method="FIM",
+    fit_ancestral_misid=False,
+    misid_fit=None,
+    output_stream=sys.stdout,
+):
+    """
+    Compute uncertainties for fitted parameters, using the output YAML from
+    ``moments.Demes.Inference.optimize()``.
+    """
+    _check_demes_imported()
+
+    # Get p0 and parameter information
+    builder = _get_demes_dict(deme_graph)
+    options = _get_params_dict(inference_options)
+
+    if isinstance(data, str):
+        data = moments.Spectrum.from_file(data)
+
+    if data.pop_ids is None:
+        raise ValueError("data SFS must specify population IDs")
+    if len(data.pop_ids) != len(data.sample_sizes):
+        raise ValueError("pop_ids and sample_sizes have different lengths")
+
+    param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
+        options, builder
+    )
+
+    #
+    if fit_ancestral_misid:
+        if misid_fit is None:
+            raise ValueError("misid_fit cannot be None if fit_ancestral_misid is True")
+        param_names.append("p_misid")
+        p0 = np.concatenate((p0, [misid_fit]))
+        lower_bound = np.concatenate((lower_bound, [0]))
+        upper_bound = np.concatenate((upper_bound, [1]))
+
+    sample_sizes = data.sample_sizes
+    sampled_demes = data.pop_ids
+
+    # Given scaled mutation rate (multinom = False), no extra parameters added
+    # But if uL is None (multinom = True), add a scaling parameter (theta)
+    if uL is None:
+        multinom = True
+        g = demes.load(deme_graph)
+        model = moments.Demes.SFS(
+            g, sampled_demes=sampled_demes, sample_sizes=sample_sizes
+        )
+        theta_opt = moments.Inference.optimal_sfs_scaling(model, data)
+        root = _get_root(g)
+        Ne = g[root].epochs[0].start_size
+        uL = theta_opt / 4 / Ne
+        p0 = list(p0) + [uL]
+    else:
+        multinom = False
+
+    # func_ex takes just params and ns, and is passed to moments.Godambe._get_godambe
+    def func_ex(params, ns):
+        """
+        params is:
+        opt_params + [misid_fit] (if fit_ancestral_misid) + [theta] (if uL is None)
+        """
+        nonlocal builder
+        nonlocal options
+        nonlocal uL
+        # pull out uL and p_misid, if needed
+        if multinom:
+            uL = params[-1]
+            demo_params = params[:-1]
+        else:
+            demo_params = params[:]
+        if fit_ancestral_misid:
+            p_misid = demo_params[-1]
+            demo_params = demo_params[:- 1]
+        else:
+            demo_params = demo_params
+            p_misid = 0
+        # update the builder dict, then compute SFS
+        builder = _update_builder(builder, options, demo_params)
+        g = demes.Graph.fromdict(builder)
+        model = moments.Demes.SFS(g, sampled_demes, sample_sizes)
+        if fit_ancestral_misid:
+            model = moments.Misc.flip_ancestral_misid(model, p_misid)
+        root = _get_root(g)
+        Ne = g[root].epochs[0].start_size
+        theta = 4 * Ne * uL
+        model *= theta
+        return model
+
+    if method == "FIM":
+        # computing
+        if bootstraps is not None:
+            warnings.warn(
+                "FIM method chosen but bootstrap replicates provided - will not be used"
+            )
+        H = moments.Godambe._get_godambe(
+            func_ex, [], p0, data, eps, log, just_hess=True
+        )
+        uncerts = np.sqrt(np.diag(np.linalg.inv(H)))
+    elif method == "GIM":
+        if bootstraps is None:
+            raise ValueError(
+                "A list of SFS bootstrap replicates must be provided to use GIM method"
+            )
+        GIM, H, J, cU = moments.Godambe._get_godambe(
+            func_ex, all_boot, p0, data, eps, log
+        )
+        uncerts = np.sqrt(np.diag(np.linalg.inv(GIM)))
+    else:
+        raise ValueError("method must be either 'FIM' or 'GIM'")
+    return uncerts
