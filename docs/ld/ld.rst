@@ -125,7 +125,7 @@ are affected by single-population demographic events. (Check out how to
 
 .. jupyter-execute::
 
-    import demes #, demesdraw
+    import demes, demesdraw
     import matplotlib.pylab as plt
 
     b1 = demes.Builder()
@@ -150,17 +150,17 @@ are affected by single-population demographic events. (Check out how to
     )
     demog_growth = b3.resolve()
 
-    #fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
-    #demesdraw.size_history(demog_constant, ax=ax1, invert_x=True)
-    #demesdraw.size_history(demog_bottleneck, ax=ax2, invert_x=True)
-    #demesdraw.size_history(demog_growth, ax=ax3, invert_x=True)
-    #ax1.set_ylim(top=10000)
-    #ax2.set_ylim(top=10000)
-    #ax3.set_ylim(top=10000)
-    #ax1.set_title("Constant size")
-    #ax2.set_title("Bottleck and recovery")
-    #ax3.set_title("Recent exponential growth");
-    #fig.tight_layout()
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+    demesdraw.size_history(demog_constant, ax=ax1, invert_x=True)
+    demesdraw.size_history(demog_bottleneck, ax=ax2, invert_x=True)
+    demesdraw.size_history(demog_growth, ax=ax3, invert_x=True)
+    ax1.set_ylim(top=10000)
+    ax2.set_ylim(top=10000)
+    ax3.set_ylim(top=10000)
+    ax1.set_title("Constant size")
+    ax2.set_title("Bottleck and recovery")
+    ax3.set_title("Recent exponential growth");
+    fig.tight_layout()
 
 For each of these models, we'll compute LD statistics over a range of recombination
 rates, and then plot the decay curves.
@@ -253,17 +253,17 @@ at different times in their history.
 
     covD = get_covD(g, ts, rhos)
 
-    #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
-    #demesdraw.tubes(g, ax=ax1)
+    demesdraw.tubes(g, ax=ax1)
     
-    #for rho in rhos:
-    #    ax2.plot(ts, covD[rho], label=rf"$\rho={rho}$")
+    for rho in rhos:
+        ax2.plot(ts, covD[rho], label=rf"$\rho={rho}$")
 
-    #ax2.invert_xaxis()
-    #ax2.set_xlabel("Time ago (gens)")
-    #ax2.set_ylabel(r"$\sigma_{D_{1, 2}}$")
-    #ax2.legend();
+    ax2.invert_xaxis()
+    ax2.set_xlabel("Time ago (gens)")
+    ax2.set_ylabel(r"$\sigma_{D_{1, 2}}$")
+    ax2.legend();
 
 We can see that without migration, covariance of LD across populations is expected
 to decay over time. If instead the two populations are connected by ongoing migration,
@@ -277,17 +277,17 @@ ancestral population.
 
     covD = get_covD(g, ts, rhos)
 
-    #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
-    #demesdraw.tubes(g, ax=ax1)
+    demesdraw.tubes(g, ax=ax1)
     
-    #for rho in rhos:
-    #    ax2.plot(ts, covD[rho], label=rf"$\rho={rho}$")
+    for rho in rhos:
+        ax2.plot(ts, covD[rho], label=rf"$\rho={rho}$")
 
-    #ax2.invert_xaxis()
-    #ax2.set_xlabel("Time ago (gens)")
-    #ax2.set_ylabel(r"$\sigma_{D_{1, 2}}$")
-    #ax2.legend();
+    ax2.invert_xaxis()
+    ax2.set_xlabel("Time ago (gens)")
+    ax2.set_ylabel(r"$\sigma_{D_{1, 2}}$")
+    ax2.legend();
 
 Archaic admixture
 -----------------
@@ -316,35 +316,35 @@ much more recently.
     
     rhos = np.logspace(-2, 2, 21)
     
-    #fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
 
-    #demesdraw.tubes(admixture_model(1000), ax=ax1)
+    demesdraw.tubes(admixture_model(1000), ax=ax1)
 
     # without admixture
-    #g = admixture_model(100, prop=0)
-    #y = moments.Demes.LD(g, sampled_demes=["A"], rho=rhos)
-    #sigma_d2 = moments.LD.Inference.sigmaD2(y)
-    #ax2.plot(rhos, sigma_d2.LD()[:, 0], "k--", lw=2, label="No admixture")
-    #ax3.plot(rhos, sigma_d2.LD()[:, 1], "k--", lw=2)
+    g = admixture_model(100, prop=0)
+    y = moments.Demes.LD(g, sampled_demes=["A"], rho=rhos)
+    sigma_d2 = moments.LD.Inference.sigmaD2(y)
+    ax2.plot(rhos, sigma_d2.LD()[:, 0], "k--", lw=2, label="No admixture")
+    ax3.plot(rhos, sigma_d2.LD()[:, 1], "k--", lw=2)
 
     # varying admixture time
-    #for t in [1, 200, 500, 1000, 2000]:
-    #    g = admixture_model(t)
-    #    y = moments.Demes.LD(g, sampled_demes=["A"], rho=rhos)
-    #    sigma_d2 = moments.LD.Inference.sigmaD2(y)
-    #    ax2.plot(rhos, sigma_d2.LD()[:, 0], lw=1, label="$T_{pulse}=$"+f"${t}$")
-    #    ax3.plot(rhos, sigma_d2.LD()[:, 1], lw=1)
+    for t in [1, 200, 500, 1000, 2000]:
+        g = admixture_model(t)
+        y = moments.Demes.LD(g, sampled_demes=["A"], rho=rhos)
+        sigma_d2 = moments.LD.Inference.sigmaD2(y)
+        ax2.plot(rhos, sigma_d2.LD()[:, 0], lw=1, label="$T_{pulse}=$"+f"${t}$")
+        ax3.plot(rhos, sigma_d2.LD()[:, 1], lw=1)
 
-    #ax2.legend()
-    #ax2.set_xscale("log")
-    #ax2.set_yscale("log")
-    #ax3.set_xscale("log")
-    #ax3.set_yscale("log")
-    #ax2.set_xlabel(r"$\rho$")
-    #ax3.set_xlabel(r"$\rho$")
-    #ax2.set_ylabel(r"$\sigma_d^2$")
-    #ax3.set_ylabel(r"$\sigma_{Dz}$")
-    #fig.tight_layout();
+    ax2.legend()
+    ax2.set_xscale("log")
+    ax2.set_yscale("log")
+    ax3.set_xscale("log")
+    ax3.set_yscale("log")
+    ax2.set_xlabel(r"$\rho$")
+    ax3.set_xlabel(r"$\rho$")
+    ax2.set_ylabel(r"$\sigma_d^2$")
+    ax3.set_ylabel(r"$\sigma_{Dz}$")
+    fig.tight_layout();
 
 ******************
 Demographic events
