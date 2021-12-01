@@ -198,8 +198,7 @@ For example, given a three-population spectrum
 
 .. jupyter-execute::
 
-    fs = moments.Spectrum(np.ones((5, 5, 5)))
-    fs.pop_ids = ["A", "B", "C"]
+    fs = moments.Spectrum(np.ones((5, 5, 5)), pop_ids=["A", "B", "C"])
     fs
 
 we can view the one-population SFS, here the first population:
@@ -278,8 +277,7 @@ a split event:
 
 .. jupyter-execute::
 
-    fs = moments.Demographics2D.snm([6, 2])
-    fs.pop_ids = ["A", "B"]
+    fs = moments.Demographics2D.snm([6, 2], pop_ids=["A", "B"])
     fs
 
 .. jupyter-execute::
@@ -296,8 +294,7 @@ population ID (if given) remains unchanged.
 
 .. jupyter-execute::
 
-    fs = moments.Demographics1D.snm([5])
-    fs.pop_ids = ["A"]
+    fs = moments.Demographics1D.snm([5], pop_ids=["A"])
     fs_branch = fs.branch(0, 2, new_id="B")
     fs_branch
 
@@ -344,8 +341,7 @@ And to account for population IDs after admixture:
 
 .. jupyter-execute::
 
-    fs = moments.Spectrum(np.ones((9, 7)))
-    fs.pop_ids = ["A", "B"]
+    fs = moments.Spectrum(np.ones((9, 7)), pop_ids=["A", "B"])
     print("original SFS has size", fs.sample_sizes, "and pop ids", fs.pop_ids)
     fs_admix = fs.admix(0, 1, 4, 0.25, new_id="C")
     print("admix SFS has size", fs_admix.sample_sizes, "and pop ids", fs_admix.pop_ids,

@@ -311,7 +311,7 @@ much more recently.
             start_time=20000,
             epochs=[dict(start_size=2000, end_time=t_pulse)]
         )
-        b.add_pulse(source="B", dest="A", proportion=prop, time=t_pulse)
+        b.add_pulse(sources=["B"], dest="A", proportions=[prop], time=t_pulse)
         return b.resolve()
     
     rhos = np.logspace(-2, 2, 21)
