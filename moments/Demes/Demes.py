@@ -1068,11 +1068,11 @@ def _apply_LD_event(y, event, t, demes_present):
         parents = event[1]
         proportions = event[2]
         child = event[3]
-        if e == "admix":
-            marg = False
-        elif e == "merge":
-            marg = True
-        y = _admix_LD(y, parents, proportions, child, marginalize=marg)
+        #if e == "admix":
+        #    marg = False
+        #elif e == "merge":
+        #    marg = True
+        y = _admix_LD(y, parents, proportions, child, marginalize=False)
     elif e == "pulse":
         # admixture from one population to another, with some proportion
         source = event[1]

@@ -403,10 +403,14 @@ class ComputeFromGraphs(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "A", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "A",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+            "B",
+            epochs=[dict(start_size=100, end_time=50)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "C",
@@ -438,16 +442,24 @@ class ComputeFromGraphs(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "A", epochs=[dict(start_size=100, end_time=25)], ancestors=["anc"],
+            "A",
+            epochs=[dict(start_size=100, end_time=25)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+            "B",
+            epochs=[dict(start_size=100, end_time=50)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "C", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+            "C",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["B"],
         )
         b.add_deme(
-            "D", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+            "D",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["B"],
         )
         b.add_migration
         g = b.resolve()
@@ -507,13 +519,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "pop1", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop1",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop2", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop2",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop3", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop3",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "pop",
@@ -540,13 +558,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "pop1", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop1",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop2", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop2",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop3", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop3",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "pop",
@@ -636,10 +660,14 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "Source1", epochs=[dict(start_size=2000, end_time=10)], ancestors=["Anc"],
+            "Source1",
+            epochs=[dict(start_size=2000, end_time=10)],
+            ancestors=["Anc"],
         )
         b.add_deme(
-            "Source2", epochs=[dict(start_size=3000, end_time=10)], ancestors=["Anc"],
+            "Source2",
+            epochs=[dict(start_size=3000, end_time=10)],
+            ancestors=["Anc"],
         )
         b.add_deme(
             "Pop",
@@ -662,10 +690,14 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "Source1", epochs=[dict(start_size=2000, end_time=0)], ancestors=["Anc"],
+            "Source1",
+            epochs=[dict(start_size=2000, end_time=0)],
+            ancestors=["Anc"],
         )
         b.add_deme(
-            "Source2", epochs=[dict(start_size=3000, end_time=0)], ancestors=["Anc"],
+            "Source2",
+            epochs=[dict(start_size=3000, end_time=0)],
+            ancestors=["Anc"],
         )
         b.add_deme(
             "Pop",
@@ -730,10 +762,14 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "dest", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "dest",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_pulse(sources=["source"], dest="dest", time=10, proportions=[0.1])
         g = b.resolve()
@@ -750,13 +786,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=10)])
         b.add_deme(
-            "deme1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme1",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "deme2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme2",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "deme3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme3",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         g = b.resolve()
         ns = [10, 15, 20]
@@ -781,13 +823,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way merge", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source1", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source1",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source2", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source2",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source3", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source3",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "merged",
@@ -813,13 +861,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way admix", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source1",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source2",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source3",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "admixed",
@@ -976,7 +1030,50 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_pulse(sources=["a", "b"], dest="c", time=50, proportions=[0.2, 0.2])
         graph = b.resolve()
 
-        # TODO: need to test this scenario
+        # TODO: need to implement pulses with multiple sources
         with self.assertRaises(ValueError):
             n = [8, 8, 8]
-            fs = moments.Spectrum.from_demes(graph, sampled_demes=["a", "b", "c"], sample_sizes=n)
+            fs = moments.Spectrum.from_demes(
+                graph, sampled_demes=["a", "b", "c"], sample_sizes=n
+            )
+
+    def test_multimerger(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000, end_time=50)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000, end_time=50)])
+        b.add_deme(
+            "c",
+            ancestors=["a", "b"],
+            proportions=[0.5, 0.5],
+            start_time=50,
+            epochs=[dict(start_size=1000)],
+        )
+        b.add_deme(
+            "d",
+            ancestors=["a", "b"],
+            proportions=[0.5, 0.5],
+            start_time=50,
+            epochs=[dict(start_size=1000)],
+        )
+        graph = b.resolve()
+
+        y_graph = moments.Demes.LD(graph, sampled_demes=["c", "d"], theta=1)
+
+        y = moments.LD.Demographics1D.snm(theta=1)
+        y = y.split(0)
+        y.integrate([1, 1], 0.025, theta=1)
+        y = y.admix(0, 1, 0.5)
+        y = y.admix(0, 1, 0.5)
+        y = y.marginalize([0, 1])
+        y.integrate([1, 1], 0.025, theta=1)
+
+        fs = moments.Spectrum.from_demes(
+            graph, sampled_demes=["c", "d"], sample_sizes=[10, 10]
+        )
+        fs = fs.project([2, 2])
+
+        assert np.allclose(y_graph[0], y[0])
+        assert np.isclose(fs.marginalize([1])[1], y[0][0])
+        assert np.isclose(fs.marginalize([0])[1], y[0][2])
+        assert np.isclose(fs.project([1, 1]).sum(), y[0][1])
