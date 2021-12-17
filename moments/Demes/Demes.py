@@ -299,7 +299,7 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     b = demes.Builder.fromdict(g.asdict())
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
         if st > 0:
-            sd_frozen = sd + f"_sampled_{st}"
+            sd_frozen = sd + f"_sampled_{'_'.join(str(float(st)).split('.'))}"
             frozen_demes.append(sd_frozen)
             sampled_demes[ii] = sd_frozen
             b.add_deme(
@@ -1068,9 +1068,9 @@ def _apply_LD_event(y, event, t, demes_present):
         parents = event[1]
         proportions = event[2]
         child = event[3]
-        #if e == "admix":
+        # if e == "admix":
         #    marg = False
-        #elif e == "merge":
+        # elif e == "merge":
         #    marg = True
         y = _admix_LD(y, parents, proportions, child, marginalize=False)
     elif e == "pulse":

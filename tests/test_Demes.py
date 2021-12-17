@@ -1077,3 +1077,105 @@ class TestConcurrentEvents(unittest.TestCase):
         assert np.isclose(fs.marginalize([1])[1], y[0][0])
         assert np.isclose(fs.marginalize([0])[1], y[0][2])
         assert np.isclose(fs.project([1, 1]).sum(), y[0][1])
+
+
+class TestFStatistics(unittest.TestCase):
+    # f-statistics computed from heterozygosities from moments.LD
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_f2_equivalent(self):
+        T = 100
+        N = 1000
+        b1 = demes.Builder()
+        b1.add_deme("A", epochs=[dict(start_size=N)])
+        g1 = b1.resolve()
+        b2 = demes.Builder()
+        b2.add_deme("A", epochs=[dict(start_size=N)])
+        b2.add_deme("B", ancestors=["A"], start_time=T, epochs=[dict(start_size=N)])
+        g2 = b2.resolve()
+        b3 = demes.Builder()
+        b3.add_deme("A", epochs=[dict(start_size=1000)])
+        b3.add_deme(
+            "B",
+            ancestors=["A"],
+            start_time=3 * T / 2,
+            epochs=[dict(start_size=N, end_time=T)],
+        )
+        g3 = b3.resolve()
+
+        theta = 0.001
+        y1 = moments.Demes.LD(
+            g1, sampled_demes=["A", "A"], sample_times=[0, 2 * T], theta=theta
+        )
+        y2 = moments.Demes.LD(
+            g2, sampled_demes=["A", "B"], sample_times=[0, 0], theta=theta
+        )
+        y3 = moments.Demes.LD(g3, sampled_demes=["A", "B"], theta=theta)
+
+        assert np.allclose(y1[0], y2[0])
+        assert np.allclose(y1[0], y3[0])
+
+        f2 = y2.f2("A", "B")
+        t = T / 2 / N
+        E_f2 = theta * t
+        assert np.isclose(f2, y2.f2(0, 1))
+        assert np.isclose(f2, y2.f2("B", "A"))
+        assert np.isclose(f2, E_f2)
+
+    def test_f4_ancient_samples(self):
+        T = 100
+        b = demes.Builder(defaults=dict(epoch=dict(start_size=1000)))
+        b.add_deme("anc", epochs=[dict(end_time=T)])
+        b.add_deme("A", ancestors=["anc"])
+        b.add_deme("B", ancestors=["anc"])
+        g = b.resolve()
+
+        theta = 1
+        y1 = moments.Demes.LD(
+            g,
+            sampled_demes=["A", "B", "A", "B"],
+            sample_times=[0, 0, T / 2, T / 2],
+            theta=theta,
+        )
+        y2 = moments.Demes.LD(
+            g,
+            sampled_demes=["A", "B", "A", "B"],
+            sample_times=[0, 0, 3 * T / 4, T / 4],
+            theta=theta,
+        )
+
+        assert np.isclose(y1.f2("A", "B"), y2.f2("A", "B"))
+        assert np.isclose(y1.f2(0, 1), y1.f4(0, 1, 0, 1))
+        assert np.isclose(y1.f2(0, 1), y1.f4(1, 0, 1, 0))
+        assert np.isclose(y1.f4(0, 1, 0, 1), -y2.f4(0, 1, 1, 0))
+        assert np.isclose(y1.f4(0, 1, 2, 3), y2.f4(0, 1, 2, 3))
+        assert np.isclose(y1.f4(0, 2, 1, 3), y2.f4(2, 0, 3, 1))
+        assert np.isclose(y1.f4(0, 1, 2, 3), -y2.f4(0, 1, 3, 2))
+
+    def test_two_population_pulse(self):
+        N = 1000
+
+        def build_model(T1, T2, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("A", ancestors=["anc"])
+            b.add_deme("B", ancestors=["anc"])
+            b.add_pulse(sources=["B"], dest="A", proportions=[f], time=T2)
+            return b.resolve()
+
+        T1 = 100
+        T2 = 100
+        theta = 1
+        for f in [0, 0.1, 0.5, 1.0]:
+            g = build_model(T1, T2, f)
+            y = moments.Demes.LD(g, sampled_demes=["A", "B"], theta=theta)
+            assert np.isclose(
+                y.f2(0, 1),
+                theta * (T2 + (1 - f) ** 2 * T1) / 2 / N,
+                rtol=0.01,
+            )
