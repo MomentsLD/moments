@@ -96,8 +96,13 @@ def plot_ld_curves(
                 axes[i].set_yscale("log")
         else:
             axes[i].set_yscale("log")
-        axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False, fontsize=6)
+        # only place x labels at bottom of columns
+        if i >= len(stats_to_plot) - cols:
+            axes[i].set_xlabel(x_label)
+        axes[i].legend(frameon=False, fontsize=6, title="stat")
+        # only place y labels on left-most column
+        if i % cols == 0:
+            axes[i].set_ylabel("stat / $\pi_2$(norm)")
 
     fig.tight_layout()
 
@@ -247,10 +252,13 @@ def plot_ld_curves_comp(
                 axes[i].set_yscale("log")
         else:
             axes[i].set_yscale("log")
-        axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False, fontsize=6)
+        # only place x labels at bottom of columns
+        if i >= len(stats_to_plot) - cols:
+            axes[i].set_xlabel(x_label)
+        axes[i].legend(frameon=False, fontsize=6, title="stat")
+        # only place y labels on left-most column
         if i % cols == 0:
-            axes[i].set_ylabel("stat / $\pi_2$")
+            axes[i].set_ylabel("stat / $\pi_2$(norm)")
     
     if ax is None:
         fig.tight_layout()

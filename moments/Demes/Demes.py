@@ -299,7 +299,7 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     b = demes.Builder.fromdict(g.asdict())
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
         if st > 0:
-            sd_frozen = sd + f"_sampled_{st}"
+            sd_frozen = sd + f"_sampled_{'_'.join(str(float(st)).split('.'))}"
             frozen_demes.append(sd_frozen)
             sampled_demes[ii] = sd_frozen
             b.add_deme(
@@ -366,7 +366,10 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     # dest deme into two demes)
     demo_events = defaultdict(list)
     for pulse in demes_demo_events["pulses"]:
-        event = ("pulse", pulse.source, pulse.dest, pulse.proportion)
+        # TODO: allow multiple pulses
+        if len(pulse.sources) > 1:
+            raise ValueError("cannot have more than one source in pulse")
+        event = ("pulse", pulse.sources[0], pulse.dest, pulse.proportions[0])
         demo_events[pulse.time].append(event)
     for branch in demes_demo_events["branches"]:
         event = ("branch", branch.parent, branch.child)
@@ -1052,7 +1055,7 @@ def _apply_LD_event(y, event, t, demes_present):
             # children[0] is placed in split idx, the rest are at the end
             i = 1
             while i < len(children):
-                y = y.split(split_idx, new_ids=[children[0], children[i]],)
+                y = y.split(split_idx, new_ids=[children[0], children[i]])
                 i += 1
     elif e == "branch":
         # branch is a split, but keep the pop_id of parent
@@ -1065,11 +1068,11 @@ def _apply_LD_event(y, event, t, demes_present):
         parents = event[1]
         proportions = event[2]
         child = event[3]
-        if e == "admix":
-            marg = False
-        elif e == "merge":
-            marg = True
-        y = _admix_LD(y, parents, proportions, child, marginalize=marg)
+        # if e == "admix":
+        #    marg = False
+        # elif e == "merge":
+        #    marg = True
+        y = _admix_LD(y, parents, proportions, child, marginalize=False)
     elif e == "pulse":
         # admixture from one population to another, with some proportion
         source = event[1]
