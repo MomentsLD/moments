@@ -75,17 +75,19 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         if deme not in g:
             raise ValueError(f"deme {deme} is not in demography")
 
+    sampled_pops = copy.copy(sampled_demes)
+
     if unsampled_n < 4:
         raise ValueError("unsampled_n must be greater than 3")
 
     if sample_times is None:
-        sample_times = [g[d].end_time for d in sampled_demes]
+        sample_times = [g[d].end_time for d in sampled_pops]
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
     if np.any(np.array(sample_times) != 0):
-        g, sampled_demes, list_of_frozen_demes = _augment_with_ancient_samples(
-            g, sampled_demes, sample_times
+        g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
+            g, sampled_pops, sample_times
         )
         sample_times = [0 for _ in sample_times]
     else:
@@ -93,7 +95,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
 
     if g.time_units != "generations":
         g, sample_times = _convert_to_generations(g, sample_times)
-    for d, n, t in zip(sampled_demes, sample_sizes, sample_times):
+    for d, n, t in zip(sampled_pops, sample_sizes, sample_times):
         if n < 4:
             raise ValueError("moments fails with sample sizes less than 4")
         if t < g[d].end_time or t >= g[d].start_time:
@@ -110,7 +112,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
     # get the list of demes present in each epoch, as a dictionary with non-overlapping
     # adjoint epoch time intervals
     demo_events, demes_present = _get_demographic_events(
-        g, demes_demo_events, sampled_demes
+        g, demes_demo_events, sampled_pops
     )
 
     for epoch, epoch_demes in demes_present.items():
@@ -130,7 +132,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
     deme_sample_sizes = _get_deme_sample_sizes(
         g,
         demo_events,
-        sampled_demes,
+        sampled_pops,
         sample_sizes,
         demes_present,
         unsampled_n=unsampled_n,
@@ -147,7 +149,7 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         frozen_pops,
     )
 
-    fs = _reorder_fs(fs, sampled_demes)
+    fs = _reorder_fs(fs, sampled_pops)
 
     return fs
 
@@ -194,14 +196,16 @@ def LD(
         if deme not in g:
             raise ValueError(f"deme {deme} is not in demography")
 
+    sampled_pops = copy.copy(sampled_demes)
+
     if sample_times is None:
-        sample_times = [g[d].end_time for d in sampled_demes]
+        sample_times = [g[d].end_time for d in sampled_pops]
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
     if np.any(np.array(sample_times) != 0):
-        g, sampled_demes, list_of_frozen_demes = _augment_with_ancient_samples(
-            g, sampled_demes, sample_times
+        g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
+            g, sampled_pops, sample_times
         )
         sample_times = [0 for _ in sample_times]
     else:
@@ -209,7 +213,7 @@ def LD(
 
     if g.time_units != "generations":
         g, sample_times = _convert_to_generations(g, sample_times)
-    for d, t in zip(sampled_demes, sample_times):
+    for d, t in zip(sampled_pops, sample_times):
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
 
@@ -224,7 +228,7 @@ def LD(
     # get the list of demes present in each epoch, as a dictionary with non-overlapping
     # adjoint epoch time intervals
     demo_events, demes_present = _get_demographic_events(
-        g, demes_demo_events, sampled_demes
+        g, demes_demo_events, sampled_pops
     )
 
     # get the list of size functions, migration matrices, and frozen attributes from
@@ -261,7 +265,7 @@ def LD(
         theta,
     )
 
-    y = _reorder_LD(y, sampled_demes)
+    y = _reorder_LD(y, sampled_pops)
 
     return y
 
