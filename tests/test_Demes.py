@@ -1179,3 +1179,71 @@ class TestFStatistics(unittest.TestCase):
                 theta * (T2 + (1 - f) ** 2 * T1) / 2 / N,
                 rtol=0.01,
             )
+
+    def test_ancient_structure_loop(self):
+        N = 1000
+
+        def build_model(T1, T2, T3, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2 + T3)])
+            b.add_deme("stem1", ancestors=["anc"], epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("stem2", ancestors=["anc"], epochs=[dict(end_time=T1 + T2)])
+            b.add_deme(
+                "X",
+                ancestors=["stem1", "stem2"],
+                proportions=[f, 1 - f],
+                start_time=T1 + T2,
+                epochs=[dict(end_time=T1)],
+            )
+            b.add_deme("modern1", ancestors=["X"], epochs=[dict(end_time=0)])
+            b.add_deme("modern2", ancestors=["X"], epochs=[dict(end_time=0)])
+            return b.resolve()
+
+        for f in [0.1, 0.5, 0.8]:
+            g = build_model(100, 100, 100, f)
+            y = moments.Demes.LD(
+                g,
+                sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+                sample_times=[0, 0, 250, 250],
+            )
+            assert y.f4(0, 1, 2, 3) == 0.0
+            assert y.f4(0, 2, 1, 3) > 0
+            assert y.f4(0, 2, 3, 1) < 0
+
+    def test_ancient_structure_admixture(self):
+        N = 1000
+
+        def build_model(T1, T2, x, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("stem1", ancestors=["anc"], epochs=[dict(end_time=0)])
+            b.add_deme("stem2", ancestors=["anc"], epochs=[dict(end_time=T1)])
+            b.add_deme("modern1", ancestors=["stem2"], epochs=[dict(end_time=0)])
+            b.add_deme("modern2", ancestors=["stem2"], epochs=[dict(end_time=0)])
+            b.add_pulse(sources=["stem1"], dest="modern1", time=x * T1, proportions=[f])
+            return b.resolve()
+
+        T1 = T2 = 1000
+        for x in [0.1, 0.2, 0.5, 0.8]:
+            for f in [0, 0.1, 0.2, 0.5, 0.8, 1]:
+                g = build_model(T1, T2, x, f)
+                y = moments.Demes.LD(
+                    g,
+                    sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+                    sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+                )
+                print(x, f, f * y.f2(2, 3), y.f4(0, 1, 2, 3))
+                assert np.isclose(f * y.f2(2, 3), y.f4(0, 1, 2, 3))
+        g1 = build_model(T1, T2, 0.1, 0.5)
+        y1 = moments.Demes.LD(
+            g1,
+            sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+            sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+        )
+        g2 = build_model(T1, T2, 0.9, 0.5)
+        y2 = moments.Demes.LD(
+            g2,
+            sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+            sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+        )
+        assert np.isclose(y1.f4(0, 1, 2, 3), y2.f4(0, 1, 2, 3))
