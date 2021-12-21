@@ -51,9 +51,9 @@ def plot_ld_curves(
     For example, to plot four panes, two on each of two rows, with the D^2
         statistics, the between-population cov(D) statistics, the non-cross
         populations Dz statistics, and the non-cross pop pi2 statistics, we run
-        plot_ld_curves(ld_stats, stats_to_plot=[['DD_1_1','DD_2_2','DD_3_3'],
-            ['DD_1_2','DD_1_3','DD_2_3'],['Dz_1_1_1','Dz_2_2_2','Dz_3_3_3'],
-            ['pi2_2_2_2_2','pi2_3_3_3_3']], rows=2, cols=2, 
+        plot_ld_curves(ld_stats, stats_to_plot=[['DD_0_0','DD_1_1','DD_2_2'],
+            ['DD_0_1','DD_0_2','DD_1_2'],['Dz_0_0_0','Dz_1_1_1','Dz_2_2_2'],
+            ['pi2_1_1_1_1','pi2_2_2_2_2']], rows=2, cols=2, 
             statistics=statistics)
     
     If you want to save the figure, set output to the file path+name
@@ -96,8 +96,13 @@ def plot_ld_curves(
                 axes[i].set_yscale("log")
         else:
             axes[i].set_yscale("log")
-        axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False, fontsize=6)
+        # only place x labels at bottom of columns
+        if i >= len(stats_to_plot) - cols:
+            axes[i].set_xlabel(x_label)
+        axes[i].legend(frameon=False, fontsize=6, title="stat")
+        # only place y labels on left-most column
+        if i % cols == 0:
+            axes[i].set_ylabel("stat / $\pi_2$(norm)")
 
     fig.tight_layout()
 
@@ -148,11 +153,11 @@ def plot_ld_curves_comp(
     For example, to plot four panes, two on each of two rows, with the D^2
         statistics, the between-population cov(D) statistics, the non-cross
         populations Dz statistics, and the non-cross pop pi2 statistics, we run
-        plot_ld_curves(ld_stats, stats_to_plot=[['DD_1_1','DD_2_2','DD_3_3'],
-            ['DD_1_2','DD_1_3','DD_2_3'],['Dz_1_1_1','Dz_2_2_2','Dz_3_3_3'],
-            ['pi2_2_2_2_2','pi2_3_3_3_3']], rows=2, cols=2, 
+        plot_ld_curves(ld_stats, stats_to_plot=[['DD_0_0','DD_1_1','DD_2_2'],
+            ['DD_0_1','DD_0_2','DD_1_2'],['Dz_0_0_0','Dz_1_1_1','Dz_2_2_2'],
+            ['pi2_1_1_1_1','pi2_2_2_2_2']], rows=2, cols=2, 
             statistics=statistics)
-    
+
     Otherwise we can pass an ax object in a fig that already exists, in which
         case stats_to_plot must have length 1 (with as many statistics you want
         to plot within that axis).
@@ -247,9 +252,14 @@ def plot_ld_curves_comp(
                 axes[i].set_yscale("log")
         else:
             axes[i].set_yscale("log")
-        axes[i].set_xlabel(x_label)
-        axes[i].legend(frameon=False, fontsize=6)
-
+        # only place x labels at bottom of columns
+        if i >= len(stats_to_plot) - cols:
+            axes[i].set_xlabel(x_label)
+        axes[i].legend(frameon=False, fontsize=6, title="stat")
+        # only place y labels on left-most column
+        if i % cols == 0:
+            axes[i].set_ylabel("stat / $\pi_2$(norm)")
+    
     if ax is None:
         fig.tight_layout()
         if output != None:
