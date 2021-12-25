@@ -540,9 +540,27 @@ Selection and dominance
 =======================
 
 One of the great benefits to forward simulators is their ability to include the
-effects of selection and dominance with little extra cost. ``moments`` takes
-scaled selection coefficients :math:`\gamma = 2 N_e s` and dominance coefficients
-:math:`h` as keyword parameters when initializing the SFS and integrating:
+effects of selection and dominance with little extra cost. In the selection
+model implemented in ``moments``, genotype fitnesses are given relative to the
+ancestral homozygous genotype (i.e. relative fitness of *aa* is 1), so that
+heterozygous genotypes (*Aa*) have relative fitness :math:`1+2hs` and
+homozygous derived genotypes (*AA*) have relative fitness :math:`1+2s`.
+
+When :math:`h=1/2`, selection is additive (or genic), which corresponds to
+haploid copies of the derived allele having average fitness :math:`1+s`. If
+``h`` is unspecified, the selection model defaults to additivity
+(:math:`h=1/2`), and if ``gamma`` is unspecified, we default to neutrality.
+
+.. note::
+
+    We assume :math:`|s| \ll 1`, so that :math:`s^2` and higher order terms can
+    be ignored. For strong selection in a moments framework, see recent
+    advances from [Krukov2021]_.
+
+``moments`` takes scaled selection coefficients :math:`\gamma = 2 N_e s` and
+dominance coefficients :math:`h` as keyword parameters when initializing the
+SFS and integrating. The reference :math:`N_e` is often taken as the ancestral
+effective population size.
 
 .. jupyter-execute::
 
@@ -552,14 +570,18 @@ scaled selection coefficients :math:`\gamma = 2 N_e s` and dominance coefficient
     
     fs = moments.LinearSystem_1D.steady_state_1D(ns, gamma=gamma, h=h)
     fs = moments.Spectrum(fs)
+    print("Tajima's D (before expansion):", fs.Tajima_D())
 
     fs.integrate([3], 0.2, gamma=gamma, h=h)
-    print("Tajima's D:", fs.Tajima_D())
+    print("Tajima's D (after expansion):", fs.Tajima_D())
 
-Simulating selection with multiple populations works the same, where ``gamma`` and
-``h`` can be specified as scalar values. Note that we can also simulate with different
-selection and/or dominance coefficients in each population by passing a list of
-values, where the list has the same length as the number of populations in the SFS.
+Simulating selection with multiple populations works similarly. We can specify
+``gamma`` and ``h`` as scalar values, which implies that the allele has the
+same selection and dominance effect in each population. We can instead simulate
+population-specific selection and dominance coefficients by setting ``gamma``
+and/or ``h`` as a list of length equal to the number of populations in the
+spectrum, with indexing matching the ordering of the populations in the
+spectrum object.
 
 Ancient samples and frozen populations
 ======================================
@@ -654,3 +676,8 @@ References
 
 .. [Jouganous2017]
     Jouganous, Julien, et al. "Inferring the joint demographic history of multiple populations: beyond the diffusion approximation." *Genetics* 206.3 (2017): 1549-1567.
+
+.. [Krukov2021]
+    Krukov, Ivan, and Simon Gravel. "Taming strong selection with large sample sizes."
+    *bioRxiv* (2021), doi: 10.1101/2021.03.30.437711.
+
