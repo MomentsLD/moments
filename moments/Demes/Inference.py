@@ -381,6 +381,10 @@ def optimize(
     constraints = _set_up_constraints(options, param_names)
 
     if fit_ancestral_misid:
+        if data.folded:
+            raise ValueError(
+                "Data is folded - can only fit ancestral misid using unfolded data"
+            )
         if misid_guess is None:
             misid_guess = 0.02
         param_names.append("p_misid")
@@ -485,12 +489,65 @@ def optimize(
 #
 
 
+def _get_godambe(func_ex, all_boot, p0, data, eps, uL=None, all_boot_uL=None, log=False, just_hess=False):
+    # taken and adapted from moments.Godambe, to include bootstraps over uL
+    ns = data.sample_sizes
+
+    # Cache evaluations of the frequency spectrum inside our hessian/J
+    # evaluation function
+    cache = {}
+
+    def func(params, data, uL=None):
+        key = (tuple(params), tuple(ns))
+        if key not in cache:
+            cache[key] = func_ex(params, ns, uL=uL)
+        fs = cache[key]
+        return moments.Inference.ll(fs, data)
+
+    def log_func(logparams, data, uL=None):
+        return func(np.exp(logparams), data, uL=uL)
+
+    # First calculate the observed hessian
+    if not log:
+        hess = -moments.Godambe.get_hess(func, p0, eps, args=[data, uL])
+    else:
+        hess = -moments.Godambe.get_hess(log_func, np.log(p0), eps, args=[data, uL])
+
+    if just_hess:
+        return hess
+
+    # Now the expectation of J over the bootstrap data
+    J = np.zeros((len(p0), len(p0)))
+    # cU is a column vector
+    cU = np.zeros((len(p0), 1))
+    if all_boot_uL is None:
+        all_boot_uL = [None for _ in all_boot]
+    for ii, (boot, uL) in enumerate(zip(all_boot, all_boot_uL)):
+        boot = moments.Spectrum(boot)
+        if not log:
+            grad_temp = moments.Godambe._get_grad(func, p0, eps, args=[boot, uL])
+        else:
+            grad_temp = moments.Godambe._get_grad(log_func, np.log(p0), eps, args=[boot, uL])
+
+        J_temp = np.outer(grad_temp, grad_temp)
+        J = J + J_temp
+        cU = cU + grad_temp
+    J = J / len(all_boot)
+    cU = cU / len(all_boot)
+
+    # G = H*J^-1*H
+    J_inv = np.linalg.inv(J)
+    godambe = np.dot(np.dot(hess, J_inv), hess)
+    return godambe, hess, J, cU
+
+
 def uncerts(
     deme_graph,
     inference_options,
     data,
     bootstraps=None,
     uL=None,
+    bootstraps_uL=None,
     log=False,
     eps=0.01,
     method="FIM",
@@ -548,15 +605,13 @@ def uncerts(
     else:
         multinom = False
 
-    # func_ex takes just params and ns, and is passed to moments.Godambe._get_godambe
-    def func_ex(params, ns):
+    def func_ex(params, ns, uL=None):
         """
         params is:
         opt_params + [misid_fit] (if fit_ancestral_misid) + [theta] (if uL is None)
         """
         nonlocal builder
         nonlocal options
-        nonlocal uL
         # pull out uL and p_misid, if needed
         if multinom:
             uL = params[-1]
@@ -585,10 +640,11 @@ def uncerts(
         # computing
         if bootstraps is not None:
             warnings.warn(
-                "FIM method chosen but bootstrap replicates provided - will not be used"
+                "FIM method chosen but bootstrap replicates provided - "
+                "Bootstraps will not be used"
             )
-        H = moments.Godambe._get_godambe(
-            func_ex, [], p0, data, eps, log, just_hess=True
+        H = _get_godambe(
+            func_ex, [], p0, data, eps, log=log, uL=uL, just_hess=True
         )
         uncerts = np.sqrt(np.diag(np.linalg.inv(H)))
     elif method == "GIM":
@@ -596,8 +652,8 @@ def uncerts(
             raise ValueError(
                 "A list of SFS bootstrap replicates must be provided to use GIM method"
             )
-        GIM, H, J, cU = moments.Godambe._get_godambe(
-            func_ex, all_boot, p0, data, eps, log
+        GIM, H, J, cU = _get_godambe(
+            func_ex, bootstraps, p0, data, eps, log=log, uL=uL, all_boot_uL=bootstraps_uL
         )
         uncerts = np.sqrt(np.diag(np.linalg.inv(GIM)))
     else:

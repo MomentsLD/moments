@@ -1,0 +1,42 @@
+parameters:
+- name: T
+  description: Ancestral split time
+  values:
+  - demes:
+      anc:
+        epochs:
+          0: end_time
+- name: Ne
+  description: Ancestral effective population size
+  values:
+  - demes:
+      anc:
+        epochs:
+          0: start_size
+- name: NA0
+  description: Initial population size of A
+  values:
+  - demes:
+      A:
+        epochs:
+          0: start_size
+- name: NA
+  description: Final population size of A
+  values:
+  - demes:
+      A:
+        epochs:
+          0: end_size
+- name: NB
+  description: B population size  
+  values:
+  - demes:
+      B:
+        epochs:
+          0: start_size
+- name: M
+  description: migration rate between A and B
+  values:
+  - migrations:
+      0: rate
+  upper_bound: 1
