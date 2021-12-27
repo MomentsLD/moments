@@ -1247,3 +1247,209 @@ class TestFStatistics(unittest.TestCase):
             sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
         )
         assert np.isclose(y1.f4(0, 1, 2, 3), y2.f4(0, 1, 2, 3))
+
+
+class TestSelectionSFS(unittest.TestCase):
+    # f-statistics computed from heterozygosities from moments.LD
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_selection_dict_setup(self):
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(None, None)
+        assert len(gamma_dict) == 0
+        assert len(h_dict) == 0
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(None, 1)
+        assert len(gamma_dict) == 0
+        assert len(h_dict) == 0
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(1, None)
+        assert len(gamma_dict) == 1
+        assert "_default" in gamma_dict
+        assert len(h_dict) == 1
+        assert "_default" in h_dict
+
+        gamma_dict, h_dict = Demes._set_up_selection_dicts({"x": 1, "y": 2}, None)
+        assert len(gamma_dict) == 3
+        assert "x" in gamma_dict
+        assert "y" in gamma_dict
+        assert "_default" in gamma_dict
+        assert len(h_dict) == 1
+
+    def test_single_selection_coefficient_one_pop(self):
+        gamma = -1
+        n = 30
+        fs = moments.Spectrum(moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma))
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+
+        assert np.allclose(fs, fs_demes)
+
+        fs.integrate([2], 0.1, gamma=gamma)
+
+        b = demes.Builder()
+        b.add_deme(
+            "A", epochs=[dict(start_size=1000, end_time=200), dict(start_size=2000)]
+        )
+        g = b.resolve()
+        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_changed_selection_coefficient(self):
+        gamma1 = -1
+        gamma2 = -2
+        n = 30
+        fs = moments.Spectrum(moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1))
+        fs.integrate([1], 0.5, gamma=gamma2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma={"A": gamma1, "B": gamma2}
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_changed_dominance_coefficient(self):
+        gamma = -1
+        h1 = 0.2
+        h2 = 0.8
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma=gamma, h={"A": h1, "B": h2}
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_defaults_one_pop(self):
+        gamma1 = -5
+        gamma2 = -1
+        h1 = 0.2
+        h2 = 0
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma2, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"A": gamma1, "B": gamma2},
+            h={"A": h1, "B": h2},
+        )
+        fs_demes2 = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"_default": -5, "B": gamma2},
+            h={"_default": 0, "A": h1},
+        )
+
+        assert np.allclose(fs, fs_demes)
+        assert np.allclose(fs, fs_demes2)
+
+    def test_missing_dict_keys(self):
+        gamma1 = 0
+        gamma2 = -1
+        h1 = 0.2
+        h2 = 0.5
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma2, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"A": gamma1, "B": gamma2},
+            h={"A": h1, "B": h2},
+        )
+        fs_demes2 = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma={"B": gamma2}, h={"A": h1}
+        )
+
+        assert np.allclose(fs, fs_demes)
+        assert np.allclose(fs, fs_demes2)
+
+    def test_split_with_variable_coefficients(self):
+        gamma0 = -1
+        gamma1 = -3
+        gamma2 = 5
+        h0 = 0.2
+        h1 = 0.1
+        h2 = 0.95
+        n = 30
+
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(2 * n, gamma=gamma0, h=h0)
+        )
+        fs = fs.split(0, n, n)
+        fs.integrate([1, 1], 0.25, gamma=[gamma1, gamma2], h=[h1, h2])
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B", "C"],
+            sample_sizes=[n, n],
+            gamma={"A": gamma0, "B": gamma1, "C": gamma2},
+            h={"A": h0, "B": h1, "C": h2},
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_scalar_vs_defaults(self):
+        gamma = -1
+        h = 0.2
+        n = 30
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs1 = Demes.SFS(
+            g,
+            sampled_demes=["A"],
+            sample_sizes=[n],
+            gamma=gamma,
+            h=h,
+        )
+        fs2 = Demes.SFS(
+            g,
+            sampled_demes=["A"],
+            sample_sizes=[n],
+            gamma={"_default": gamma},
+            h={"_default": h},
+        )
+        assert np.allclose(fs1, fs2)
