@@ -1176,7 +1176,7 @@ class Spectrum(numpy.ma.masked_array):
         return G
 
     # Functions for saving and loading frequency spectra.
-    
+
     @staticmethod
     def from_file(fid, mask_corners=True, return_comments=False):
         """
@@ -1366,7 +1366,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         warnings.warn(
             "Spectrum.from_ms_file() is deprecated and will be removed in version 1.2",
-            warnings.DeprecationWarning
+            warnings.DeprecationWarning,
         )
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -1565,7 +1565,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         warnings.warn(
             "Spectrum.from_sfscode_file() is deprecated and will be removed in ver 1.2",
-            warnings.DeprecationWarning
+            warnings.DeprecationWarning,
         )
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
@@ -2039,7 +2039,14 @@ class Spectrum(numpy.ma.masked_array):
 
     @staticmethod
     def from_demes(
-        g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4
+        g,
+        sampled_demes,
+        sample_sizes,
+        sample_times=None,
+        Ne=None,
+        unsampled_n=4,
+        gamma=None,
+        h=None,
     ):
         """
         Takes a deme graph and computes the SFS. ``demes`` is a package for
@@ -2074,6 +2081,24 @@ class Spectrum(numpy.ma.masked_array):
         :param unsampled_n: The default sample size of unsampled demes, which must be
             greater than or equal to 4.
         :type unsampled_n: int, optional
+        :param gamma: The scaled selection coefficient(s), 2*Ne*s. Defaults to None,
+            which implies neutrality. Can be given as a scalar value, in which case
+            all populations have the same selection coefficient. Alternatively, can
+            be given as a dictionary, with keys given as population names in the
+            input Demes model. Any population missing from this dictionary will be
+            assigned a selection coefficient of zero. A non-zero default selection
+            coefficient can be provided, using the key `_default`. See the Demes
+            exension documentation for more details and examples.
+        :type gamma: float or dict
+        :param h: The dominance coefficient(s). Defaults to additivity (or genic
+            selection). Can be given as a scalar value, in which case all populations
+            have the same dominance coefficient. Alternatively, can be given as a
+            dictionary, with keys given as population names in the input Demes model.
+            Any population missing from this dictionary will be assigned a dominance
+            coefficient of 1/2 (additivity). A different default dominance
+            coefficient can be provided, using the key `_default`. See the Demes
+            exension documentation for more details and examples.
+        :type h: float or dict
         :return: A ``moments`` site frequency spectrum, with dimension equal to the
             length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
             in each dimension, indexing the allele frequency in each deme from 0
@@ -2090,7 +2115,7 @@ class Spectrum(numpy.ma.masked_array):
 
                 _imported_demes = True
             except ImportError:
-                raise ImportError("demes is not installed, need to `pip install demes`")
+                raise ImportError("demes is not installed, required for `from_demes()`")
 
         if isinstance(g, str):
             dg = demes.load(g)
@@ -2104,6 +2129,8 @@ class Spectrum(numpy.ma.masked_array):
             sample_times=sample_times,
             Ne=Ne,
             unsampled_n=unsampled_n,
+            gamma=gamma,
+            h=h,
         )
         return fs
 
