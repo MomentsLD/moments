@@ -46,13 +46,13 @@ def _calcB(dims, u):
 def _calcB_FB(dims, u, v):
     """
     dims : List containing the pop sizes
-    
+
     u: vectors with the scalar forward mutation rates
-    
+
     v: scalar backward mutation rates
-    
+
     Returns mutation matrix for finite genome model
-    
+
     """
     if len(dims) == 1:
         return ls1.calcB_FB(dims[0], u[0], v[0])
@@ -651,14 +651,14 @@ def integrate_neutral(
     theta_bd=None,
     frozen=[False],
 ):
-    """ Integration in time \n
+    """Integration in time \n
     # tf : final simulation time (/2N1 generations)\n
     # gamma : selection coefficients (vector gamma = (gamma1,...,gammap))\n
     # theta : mutation rate\n
     # h : allele dominance (vector h = (h1,...,hp))\n
     # m : migration rates matrix (2D array, m[i,j] is the migration rate \n
     #   from pop j to pop i, normalized by 1/4N1)\n
-    
+
     # for a "lambda" definition of N - with backward Euler integration scheme\n
     # where t is the relative time in generations such as t = 0 initially\n
     # Npop is a lambda function of the time t returning the vector N = (N1,...,Np)\n

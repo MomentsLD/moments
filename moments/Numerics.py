@@ -50,12 +50,12 @@ def intersect_masks(m1, m2):
 
 def compute_N_effective(f, t0, t1):
     """
-    Function to compute the effective population sizes considering drift 
+    Function to compute the effective population sizes considering drift
     between 2 time steps.
 
     N is a function of time (1 scalar argument), it can be multi-dimensions.
 
-    t0 < t1 are scalars giving the time bounds of the integration step. 
+    t0 < t1 are scalars giving the time bounds of the integration step.
     """
     # Number of points for the integration.
     nb_pts = 10
@@ -70,7 +70,7 @@ def compute_N_effective(f, t0, t1):
 def trapz(yy, xx=None, dx=None, axis=-1):
     """
     Integrate yy(xx) along given axis using the composite trapezoidal rule.
-    
+
     xx must be one-dimensional and len(xx) must equal yy.shape[axis].
 
     This is modified from the SciPy version to work with n-D yy and 1-D xx.
@@ -158,7 +158,7 @@ def array_from_file(fid, return_comments=False):
         A single line containing N integers giving the dimensions of the fs
           array. So this line would be '5 5 3' for an SFS that was 5x5x3.
           (That would be 4x4x2 *samples*.)
-        A single line giving the array elements. The order of elements is 
+        A single line giving the array elements. The order of elements is
           e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
     """
     newfile = False
@@ -198,7 +198,7 @@ def array_to_file(data, fid, precision=16, comment_lines=[]):
 
     data: array to write
     fid: string with file name to write to or an open file object.
-    precision: precision with which to write out entries of the SFS. (They 
+    precision: precision with which to write out entries of the SFS. (They
                are formated via %.<p>g, where <p> is the precision.)
     comment lines: list of strings to be used as comment lines in the header
                    of the output file.
@@ -208,7 +208,7 @@ def array_to_file(data, fid, precision=16, comment_lines=[]):
         A single line containing N integers giving the dimensions of the fs
           array. So this line would be '5 5 3' for an SFS that was 5x5x3.
           (That would be 4x4x2 *samples*.)
-        A single line giving the array elements. The order of elements is 
+        A single line giving the array elements. The order of elements is
           e.g.: fs[0,0,0] fs[0,0,1] fs[0,0,2] ... fs[0,1,0] fs[0,1,1] ...
     """
     # Open the file object.
@@ -243,7 +243,7 @@ def array_to_file(data, fid, precision=16, comment_lines=[]):
 def check_function_regularity(function, t):
     """
     Method to check the regularity and monotony of a function.
-    May be usefull to warn the user if the population size evolves 
+    May be usefull to warn the user if the population size evolves
     to fast or with monotony changes.
 
     function: callable scalar function with taking 1 scalar argument.

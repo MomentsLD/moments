@@ -207,12 +207,12 @@ def split_3D_to_4D_3(sfs, n3new, n4, model_update=True):
 
     n3new : sample size for resulting pop 3
 
-    n4 : sample size for resulting pop 4 
+    n4 : sample size for resulting pop 4
 
     model_update : update model if set to True. Since we wrap this function to
         split other populations, we update the ModelPlot model outside of this
         function instead, and set it to False in that case.
-   
+
     Returns a new 4D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -271,11 +271,11 @@ def split_4D_to_5D_4(sfs, n4new, n5, model_update=True):
     n4new : sample size for resulting pop 4
 
     n5 : sample size for resulting pop 5
-    
+
     model_update : update model if set to True. Since we wrap this function to
         split other populations, we update the ModelPlot model outside of this
         function instead, and set it to False in that case.
-   
+
     Returns a new 5D spectrum
     """
     # Check if corners masked - if they are, keep split corners masked
@@ -676,7 +676,7 @@ def __nnls_mod__(A, b):
 def __Gamma__(n_draws, n_lineages):
     """
     The gamma matrix element i,j gives the probability that a sequential sample
-    of i lineages with replacement gives j distinct lineages 
+    of i lineages with replacement gives j distinct lineages
     """
     # the first row is the probability that a sample of 0 lineages gives j distinct
     # lineages: it is always 0 distinct lineages
@@ -752,7 +752,12 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
 
     if n_lineages > min(M, N):
         raise ValueError(
-            "not enough lineages to produce %d, M=%d,N=%d" % (n_lineages, M, N,)
+            "not enough lineages to produce %d, M=%d,N=%d"
+            % (
+                n_lineages,
+                M,
+                N,
+            )
         )
     project_dimensions = [
         n - 1 for n in new_dimensions
@@ -803,7 +808,7 @@ def admix_into_new(sfs, dimension1, dimension2, n_lineages, m1, new_dimension=No
 
 def admix_inplace(sfs, source_population_index, target_population_index, keep_1, m1):
     """
-    
+
     Admixes from source_population to target_population in place, sending
     migrants one by one, and normalizing so that in the end we have
     approximately the correct distribution of replaced lineages.

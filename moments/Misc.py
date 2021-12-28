@@ -117,7 +117,7 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     """
     Generate a perturbed set of parameters. Each element of params is randomly
     perturbed `fold` factors of 2 up or down.
-    
+
     :param fold: Number of factors of 2 to perturb by, defaults to 1.
     :type fold: float, optional
     :param lower_bound: If not None, the resulting parameter set is adjusted
@@ -148,10 +148,10 @@ def make_fux_table(fid, ts, Q, tri_freq):
     fid: Filename to output to.
     ts: Expected number of substitutions per site between ingroup and outgroup.
     Q: Trinucleotide transition rate matrix. This should be a 64x64 matrix, in
-       which entries are ordered using the code CGTA -> 0,1,2,3. For example, 
-       ACT -> 3*16+0*4+2*1=50. The transition rate from ACT to AGT is then 
+       which entries are ordered using the code CGTA -> 0,1,2,3. For example,
+       ACT -> 3*16+0*4+2*1=50. The transition rate from ACT to AGT is then
        entry 50,54.
-    tri_freq: Dictionary in which each entry maps a trinucleotide to its 
+    tri_freq: Dictionary in which each entry maps a trinucleotide to its
               ancestral frequency. e.g. {'AAA': 0.01, 'AAC':0.012...}
               Note that should be the frequency in the entire region scanned
               for variation, not just sites where there are SNPs.
@@ -253,11 +253,11 @@ def total_instantaneous_rate(Q, pi):
 def make_data_dict(filename):
     """
     Parse a file containing genomic sequence information in the format described
-    by the wiki, and store the information in a properly formatted dictionary. 
+    by the wiki, and store the information in a properly formatted dictionary.
 
     filename: Name of file to work with.
 
-    The file can be zipped (extension .zip) or gzipped (extension .gz). If 
+    The file can be zipped (extension .zip) or gzipped (extension .gz). If
     zipped, there must be only a single file in the zip archive.
     """
     if os.path.splitext(filename)[1] == ".gz":
@@ -386,34 +386,34 @@ def make_data_dict_vcf(
 ):
     """
     Parse a VCF file containing genomic sequence information, along with a file
-    identifying the population of each sample, and store the information in 
-    a properly formatted dictionary. 
+    identifying the population of each sample, and store the information in
+    a properly formatted dictionary.
 
     Each file may be zipped (.zip) or gzipped (.gz). If a file is zipped,
     it must be the only file in the archive, and the two files cannot be zipped
     together. Both files must be present for the function to work.
-    
-    :param vcf_filename: Name of VCF file to work with. The function currently works 
-        for biallelic SNPs only, so if REF or ALT is anything other 
+
+    :param vcf_filename: Name of VCF file to work with. The function currently works
+        for biallelic SNPs only, so if REF or ALT is anything other
         than a single base pair (A, C, T, or G), the allele will be
         skipped. Additionally, genotype information must be present
-        in the FORMAT field GT, and genotype info must be known for 
+        in the FORMAT field GT, and genotype info must be known for
         every sample, else the SNP will be skipped. If the ancestral
-        allele is known it should be specified in INFO field 'AA'. 
-        Otherwise, it will be set to '-'.    
+        allele is known it should be specified in INFO field 'AA'.
+        Otherwise, it will be set to '-'.
     :type vcf_filename: str
-    :param popinfo_filename: Name of file containing the population assignments for 
+    :param popinfo_filename: Name of file containing the population assignments for
         each sample in the VCF. If a sample in the VCF file does
         not have a corresponding entry in this file, it will be
-        skipped. See _get_popinfo for information on how this 
+        skipped. See _get_popinfo for information on how this
         file must be formatted.
     :type popinfo_filename: str
-    :param filter: If set to True, alleles will be skipped if they have not passed 
+    :param filter: If set to True, alleles will be skipped if they have not passed
         all filters (i.e. either 'PASS' or '.' must be present in FILTER column.
     :type filter: bool, optional
     :param flanking_info: Flanking information for the reference and/or ancestral
         allele can be provided as field(s) in the INFO column. To
-        add this information to the dict, flanking_info should 
+        add this information to the dict, flanking_info should
         specify the names of the fields that contain this info as a
         list (e.g. ['RFL', 'AFL'].) If context info is given for
         only one allele, set the other item in the list to None,
@@ -579,14 +579,14 @@ def _get_popinfo(popinfo_file):
     information on the population designations of each sample within a VCF file,
     and returns a dictionary containing {"SAMPLE_NAME" : "POP_NAME"} pairs.
 
-    The file should be formatted as a table, with columns delimited by 
-    whitespace, and rows delimited by new lines. Lines beginning with '#' are 
+    The file should be formatted as a table, with columns delimited by
+    whitespace, and rows delimited by new lines. Lines beginning with '#' are
     considered comments and will be ignored. Each sample must appear on its own
     line. If no header information is provided, the first column will be assumed
     to be the SAMPLE_NAME column, while the second column will be assumed to be
-    the POP_NAME column. If a header is present, it must be the first 
+    the POP_NAME column. If a header is present, it must be the first
     non-comment line of the file. The column positions of the words "SAMPLE" and
-    "POP" (ignoring case) in this header will be used to determine proper 
+    "POP" (ignoring case) in this header will be used to determine proper
     positions of the SAMPLE_NAME and POP_NAME columns in the table.
 
     popinfo_file : An open text file of the format described above.
@@ -639,9 +639,9 @@ def bootstrap(
     """
     Use a non-parametric bootstrap on SNP information contained in a dictionary
     to generate new data sets. The new data is created by sampling with
-    replacement from independent units of the original data. These units can 
+    replacement from independent units of the original data. These units can
     simply be chromosomes, or they can be regions specified in a BED file.
-    
+
     This function either returns a list of all the newly created SFS, or writes
     them to disk in a specified directory.
 
@@ -649,7 +649,7 @@ def bootstrap(
     creating spectra.
 
     :param data_dict: Dictionary containing properly formatted SNP information (i.e.
-        created using one of the make_data_dict methods). 
+        created using one of the make_data_dict methods).
     :type data_dict: dict of SNP information
     :param pop_ids: List of population IDs.
     :type pop_ids: list of strings
@@ -660,13 +660,13 @@ def bootstrap(
     :param polarized: If True, we assume we know the ancestral allele. If False,
         return folded spectra.
     :type polarized: bool, optional
-    :param bed_filename: If None, chromosomes will be used as the units for 
+    :param bed_filename: If None, chromosomes will be used as the units for
         resampling. Otherwise, this should be the filename of a BED
         file specifying the regions to be used as resampling units.
         Chromosome names must be consistent between the BED file and
         the data dictionary, or bootstrap will not work. For example,
-        if an entry in the data dict has ID X_Y, then the value in 
-        in the chromosome field of the BED file must also be X (not 
+        if an entry in the data dict has ID X_Y, then the value in
+        in the chromosome field of the BED file must also be X (not
         chrX, chromosomeX, etc.).
         If the name field is provided in the BED file, then any
         regions with the same name will be considered to be part of

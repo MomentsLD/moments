@@ -1,5 +1,7 @@
 .. _sec_demes:
 
+.. jupyter-kernel:: python3
+
 .. jupyter-execute::
     :hide-code:
 
@@ -14,7 +16,6 @@
 ================================
 Specifying models with ``demes``
 ================================
-.. jupyter-kernel:: python3
 
 **New** in version 1.1, ``moments`` can compute the SFS and LD statistics
 directly from a ``demes``-formatted demographic model. To learn about how to
@@ -72,6 +73,7 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
 .. jupyter-execute::
 
     import moments
+    import numpy as np
     ooa_model = "../tests/test_files/gutenkunst_ooa.yml"
 
     sampled_demes = ["YRI", "CEU", "CHB"]
@@ -93,13 +95,13 @@ while still accounting for migration with other non-sampled populations:
     sampled_demes = ["YRI"]
     sample_sizes = [40]
 
-    fs = moments.Spectrum.from_demes(
+    fs_yri = moments.Spectrum.from_demes(
          ooa_model, sampled_demes=sampled_demes, sample_sizes=sample_sizes
     )
  
-    print(fs.pop_ids)
-    print(fs.sample_sizes)
-    print("Tajima's D =", f"{fs.Tajima_D():.3}")
+    print(fs_yri.pop_ids)
+    print(fs_yri.sample_sizes)
+    print("Tajima's D =", f"{fs_yri.Tajima_D():.3}")
 
 Or sample a combination of ancient and modern samples from a population:
 
@@ -135,6 +137,94 @@ We can similarly compute :ref:`LD statistics <sec_ld>`:
 
     print(y.num_pops)
     print(y.pop_ids)
+
+Selection and dominance in Demes.SFS
+====================================
+
+Moments can compute the SFS under selection and dominance, and while the
+``demes`` model format has no way of specifying selection parameters for
+different populations, we can still simulate the expected SFS with selection
+and dominance.
+
+The most simple scenario is to specify a single selection and dominance
+parameter that applied to all populations in the demographic model. In this
+case, we can pass ``gamma`` and/or ``h`` as scalar values to the function
+``moments.Spectrum.from_demes()``:
+
+.. jupyter-execute::
+
+    sampled_demes = ["YRI"]
+    sample_sizes = [40]
+    gamma = 10
+    h = 0.1
+
+    fs_yri_sel = moments.Spectrum.from_demes(
+         ooa_model,
+         sampled_demes=sampled_demes,
+         sample_sizes=sample_sizes,
+         gamma=gamma,
+         h=h
+    )
+
+    # compare to neutral SFS for YRI
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.semilogy(fs_yri, "-o", ms=6, lw=1, mfc="w", label="Neutral");
+    ax.semilogy(fs_yri_sel, "-o", ms=3, lw=1,
+        label=f"Selected, $\gamma={gamma}$, $h={h}$");
+    ax.set_ylabel("Density");
+    ax.set_xlabel("Derived allele count");
+    ax.legend();
+
+We can gain more fine-grained control over variable selection and dominance in
+different populations by specifying ``gamma`` and ``h`` as dictionaries mapping
+population names to the coefficients. There can be as many different
+coefficient values as there are different demes in the demographic model.
+However, if a population is missing from the dictionary, it is assigned the
+default selection or dominance coefficient (0 or 1/2, resp.).
+
+For example:
+
+.. jupyter-execute::
+
+    import demes
+    g = demes.load("data/im-parsing-example.yaml")
+    print(g)
+
+    gamma = {"anc": -10, "deme0": -10, "deme1": 5}
+    h = {"anc": 0.3, "deme0": 0.3, "deme1": 0.7}
+
+    fs = moments.Spectrum.from_demes(
+        g,
+        sampled_demes=["deme0", "deme1"],
+        sample_sizes=[20, 20],
+        gamma=gamma,
+        h=h
+    )
+
+    moments.Plotting.plot_single_2d_sfs(fs)
+
+In the case that a demographic model has many populations but only a small
+subset have differing selection or dominance strengths, we can assign a default
+value different from :math:`s=0` or :math:`h=1/2`. This is done by including
+a `_default` key in the dictionary (note the leading underscore, to minimize
+the chance that the default key conflicts with a named population in the
+demographic model). Taking the example above:
+
+.. jupyter-execute::
+
+    gamma = {"_default": -10, "deme1": 5}
+    h = {"_default": 0.3, "deme1": 0.7}
+
+    fs_defaults = moments.Spectrum.from_demes(
+        g,
+        sampled_demes=["deme0", "deme1"],
+        sample_sizes=[20, 20],
+        gamma=gamma,
+        h=h
+    )
+
+    assert np.allclose(fs, fs_defaults)
 
 ***********************************
 Using ``Demes`` to infer demography
@@ -412,7 +502,6 @@ plotting features:
 
 .. jupyter-execute::
 
-    import matplotlib.pylab as plt
     fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
     fs = moments.Misc.flip_ancestral_misid(fs, opt_params[-1])
     moments.Plotting.plot_1d_comp_multinom(fs, data)
@@ -496,7 +585,6 @@ First, we'll simulate data under this two-population model:
 .. code-block:: python
 
     import msprime
-    import numpy as np
 
     demog = msprime.Demography.from_demes(g)
     

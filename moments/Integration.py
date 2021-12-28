@@ -42,11 +42,11 @@ def _calcB(dims, u):
 def _calcB_FB(dims, theta_fd, theta_bd):
     """
     dims : List containing the pop sizes
-    
+
     u: scalar forward mutation rate
-    
+
     v: scalar backward mutation rate
-    
+
     Returns mutation matrix for finite genome model
     """
     if len(dims) == 1:
@@ -90,8 +90,8 @@ def _buildD(vd, dims, N):
     vd : List containing the drift matrices
 
     dims : List containing the pop sizes
-    
-    N : List containing the effective pop sizes for each pop 
+
+    N : List containing the effective pop sizes for each pop
 
     Returns a list of effective drift matrices for each pair of pops
     """
@@ -134,10 +134,10 @@ def _buildS(vs, dims, s, h):
     vs : List containing the selection matrices
 
     dims : List containing the pop sizes
-    
-    s : List containing the selection coefficients 
 
-    h : List containing the dominance coefficients 
+    s : List containing the selection coefficients
+
+    h : List containing the dominance coefficients
 
     Returns a list of effective selection matrices for each pair of pops
     """
@@ -181,10 +181,10 @@ def _buildS2(vs, dims, s, h):
     vs : List containing the selection matrices
 
     dims : List containing the pop sizes
-    
-    s : List containing the selection coefficients 
 
-    h : List containing the dominance coefficients 
+    s : List containing the selection coefficients
+
+    h : List containing the dominance coefficients
 
     Returns a list of effective selection matrices for each pair of pops
     """
@@ -230,7 +230,7 @@ def _buildM(vm, dims, m):
     vm : List containing the migration matrices
 
     dims : List containing the pop sizes
-    
+
     m : matrix containing the migration coefficients
 
     Returns a list of effective migration matrices for each pair of pops

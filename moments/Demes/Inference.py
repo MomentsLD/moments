@@ -489,7 +489,17 @@ def optimize(
 #
 
 
-def _get_godambe(func_ex, all_boot, p0, data, eps, uL=None, all_boot_uL=None, log=False, just_hess=False):
+def _get_godambe(
+    func_ex,
+    all_boot,
+    p0,
+    data,
+    eps,
+    uL=None,
+    all_boot_uL=None,
+    log=False,
+    just_hess=False,
+):
     # taken and adapted from moments.Godambe, to include bootstraps over uL
     ns = data.sample_sizes
 
@@ -527,7 +537,9 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, uL=None, all_boot_uL=None, lo
         if not log:
             grad_temp = moments.Godambe._get_grad(func, p0, eps, args=[boot, uL])
         else:
-            grad_temp = moments.Godambe._get_grad(log_func, np.log(p0), eps, args=[boot, uL])
+            grad_temp = moments.Godambe._get_grad(
+                log_func, np.log(p0), eps, args=[boot, uL]
+            )
 
         J_temp = np.outer(grad_temp, grad_temp)
         J = J + J_temp
@@ -620,7 +632,7 @@ def uncerts(
             demo_params = params[:]
         if fit_ancestral_misid:
             p_misid = demo_params[-1]
-            demo_params = demo_params[:- 1]
+            demo_params = demo_params[:-1]
         else:
             demo_params = demo_params
             p_misid = 0
@@ -643,9 +655,7 @@ def uncerts(
                 "FIM method chosen but bootstrap replicates provided - "
                 "Bootstraps will not be used"
             )
-        H = _get_godambe(
-            func_ex, [], p0, data, eps, log=log, uL=uL, just_hess=True
-        )
+        H = _get_godambe(func_ex, [], p0, data, eps, log=log, uL=uL, just_hess=True)
         uncerts = np.sqrt(np.diag(np.linalg.inv(H)))
     elif method == "GIM":
         if bootstraps is None:
@@ -653,7 +663,14 @@ def uncerts(
                 "A list of SFS bootstrap replicates must be provided to use GIM method"
             )
         GIM, H, J, cU = _get_godambe(
-            func_ex, bootstraps, p0, data, eps, log=log, uL=uL, all_boot_uL=bootstraps_uL
+            func_ex,
+            bootstraps,
+            p0,
+            data,
+            eps,
+            log=log,
+            uL=uL,
+            all_boot_uL=bootstraps_uL,
         )
         uncerts = np.sqrt(np.diag(np.linalg.inv(GIM)))
     else:

@@ -28,7 +28,16 @@ def _check_demes_imported():
         )
 
 
-def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4):
+def SFS(
+    g,
+    sampled_demes,
+    sample_sizes,
+    sample_times=None,
+    Ne=None,
+    unsampled_n=4,
+    gamma=None,
+    h=None,
+):
     """
     Takes a deme graph and computes the SFS. ``demes`` is a package for
     specifying demographic models in a user-friendly, human-readable YAML
@@ -60,6 +69,24 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
     :param unsampled_n: The default sample size of unsampled demes, which must be
         greater than or equal to 4.
     :type unsampled_n: int, optional
+    :param gamma: The scaled selection coefficient(s), 2*Ne*s. Defaults to None,
+        which implies neutrality. Can be given as a scalar value, in which case
+        all populations have the same selection coefficient. Alternatively, can
+        be given as a dictionary, with keys given as population names in the
+        input Demes model. Any population missing from this dictionary will be
+        assigned a selection coefficient of zero. A non-zero default selection
+        coefficient can be provided, using the key `_default`. See the Demes
+        exension documentation for more details and examples.
+    :type gamma: float or dict
+    :param h: The dominance coefficient(s). Defaults to additivity (or genic
+        selection). Can be given as a scalar value, in which case all populations
+        have the same dominance coefficient. Alternatively, can be given as a
+        dictionary, with keys given as population names in the input Demes model.
+        Any population missing from this dictionary will be assigned a dominance
+        coefficient of 1/2 (additivity). A different default dominance
+        coefficient can be provided, using the key `_default`. See the Demes
+        exension documentation for more details and examples.
+    :type h: float or dict
     :return: A ``moments`` site frequency spectrum, with dimension equal to the
         length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
         in each dimension, indexing the allele frequency in each deme from 0
@@ -100,6 +127,22 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
             raise ValueError("moments fails with sample sizes less than 4")
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
+
+    # check selection and dominance inputs
+    if gamma is not None:
+        if "_default" in g:
+            raise ValueError(
+                "Cannot use `_default` as a deme name when gamma is not None"
+            )
+        if type(gamma) is dict:
+            for k in gamma.keys():
+                if k != "_default" and k not in g:
+                    raise ValueError(f"Deme {k} in gamma, but {k} not in input graph")
+    if h is not None:
+        if type(h) is dict:
+            for k in h.keys():
+                if k != "_default" and k not in g:
+                    raise ValueError(f"Deme {k} in h, but {k} not in input graph")
 
     # get the list of demographic events from demes, which is a dictionary with
     # lists of splits, admixtures, mergers, branches, and pulses
@@ -147,6 +190,10 @@ def SFS(g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=
         mig_mats,
         Ts,
         frozen_pops,
+        1,  # theta
+        gamma=gamma,
+        h=h,
+        reversible=False,  # only ISM available
     )
 
     fs = _reorder_fs(fs, sampled_pops)
@@ -679,6 +726,24 @@ def _get_deme_sample_sizes(
     return ns
 
 
+def _set_up_selection_dicts(gamma, h):
+    if type(gamma) is dict:
+        gamma_dict = copy.copy(gamma)
+        if "_default" not in gamma_dict:
+            gamma_dict["_default"] = 0
+    else:
+        gamma_dict = {"_default": gamma}
+    if h is None:
+        h_dict = {"_default": 0.5}
+    elif type(h) is dict:
+        h_dict = copy.copy(h)
+        if "_default" not in h_dict:
+            h_dict["_default"] = 0.5
+    else:
+        h_dict = {"_default": h}
+    return gamma_dict, h_dict
+
+
 def _compute_sfs(
     demo_events,
     demes_present,
@@ -695,9 +760,6 @@ def _compute_sfs(
     """
     Integrates using moments to find the SFS for given demo events, etc
     """
-    if gamma is not None and h is None:
-        h = 0.5
-
     if reversible is True:
         assert type(theta) is list
         assert len(theta) == 2
@@ -710,13 +772,28 @@ def _compute_sfs(
         assert type(theta) in [int, float]
 
     integration_intervals = sorted(list(demes_present.keys()))[::-1]
+    root_deme = demes_present[integration_intervals[0]][0]
+
+    # set up gamma and h as a dictionary covering all demes
+    gamma_dict, h_dict = _set_up_selection_dicts(gamma, h)
 
     # set up initial steady-state 1D SFS for ancestral deme
     n0 = deme_sample_sizes[integration_intervals[0]][0]
     if gamma is None:
         gamma0 = 0.0
+    else:
+        if root_deme in gamma_dict:
+            gamma0 = gamma_dict[root_deme]
+        else:
+            gamma0 = gamma_dict["_default"]
     if h is None:
         h0 = 0.5
+    else:
+        if root_deme in h_dict:
+            h0 = h_dict[root_deme]
+        else:
+            h0 = h_dict["_default"]
+
     if reversible is False:
         fs = theta * moments.LinearSystem_1D.steady_state_1D(n0, gamma=gamma0, h=h0)
     else:
@@ -724,8 +801,8 @@ def _compute_sfs(
             n0, gamma=gamma0, theta_fd=theta_fd, theta_bd=theta_bd
         )
         if h0 != 0.5:
-            raise ValueError("only use h=0.5 for reversible model for now...")
-    fs = moments.Spectrum(fs, pop_ids=demes_present[integration_intervals[0]])
+            raise ValueError("can only use h=0.5 with reversible mutation model")
+    fs = moments.Spectrum(fs, pop_ids=[root_deme])
 
     # for each set of demographic events and integration epochs, step through
     # integration, apply events, and then reorder populations to align with demes
@@ -739,8 +816,14 @@ def _compute_sfs(
     ):
         if T > 0:
             if gamma is not None:
-                gamma_int = [gamma for _ in frozen]
-                h_int = [h for _ in frozen]
+                gamma_int = [
+                    gamma_dict[pid] if pid in gamma_dict else gamma_dict["_default"]
+                    for pid in fs.pop_ids
+                ]
+                h_int = [
+                    h_dict[pid] if pid in h_dict else h_dict["_default"]
+                    for pid in fs.pop_ids
+                ]
             else:
                 gamma_int = None
                 h_int = None
