@@ -1260,16 +1260,23 @@ class TestSelectionSFS(unittest.TestCase):
 
     def test_selection_dict_setup(self):
         gamma_dict, h_dict = Demes._set_up_selection_dicts(None, None)
-        assert len(gamma_dict) == 0
-        assert len(h_dict) == 0
+        assert len(gamma_dict) == 1
+        assert len(h_dict) == 1
+        assert "_default" in gamma_dict
+        assert "_default" in h_dict
+
         gamma_dict, h_dict = Demes._set_up_selection_dicts(None, 1)
-        assert len(gamma_dict) == 0
-        assert len(h_dict) == 0
+        assert len(gamma_dict) == 1
+        assert len(h_dict) == 1
+        assert "_default" in gamma_dict
+        assert "_default" in h_dict
+
         gamma_dict, h_dict = Demes._set_up_selection_dicts(1, None)
         assert len(gamma_dict) == 1
         assert "_default" in gamma_dict
         assert len(h_dict) == 1
         assert "_default" in h_dict
+        assert h_dict["_default"] == 0.5
 
         gamma_dict, h_dict = Demes._set_up_selection_dicts({"x": 1, "y": 2}, None)
         assert len(gamma_dict) == 3
@@ -1453,3 +1460,48 @@ class TestSelectionSFS(unittest.TestCase):
             h={"_default": h},
         )
         assert np.allclose(fs1, fs2)
+
+    def test_bad_selection(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        for gamma in ["hi", ["hi"], {1, 2}, [1, 2]]:
+            with self.assertRaises(TypeError):
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+
+        for gamma in [{"D": 1}]:
+            with self.assertRaises(ValueError):
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+
+    def test_bad_dominance(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        for h in ["hi", ["hi"], {1, 2}, [1, 2]]:
+            with self.assertRaises(TypeError):
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+
+        for g in [{"D": 1}]:
+            with self.assertRaises(ValueError):
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+
+    def test_bad_graph_with_selection(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("_default", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, ["B"], [10], gamma=-1)
+
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, ["B"], [10], gamma={"_default": -1})
+
+        Demes.SFS(g, ["B"], [10], h=0.1)

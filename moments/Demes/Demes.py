@@ -727,24 +727,21 @@ def _get_deme_sample_sizes(
 
 
 def _set_up_selection_dicts(gamma, h):
-    if gamma is not None:
-        if type(gamma) is dict:
-            gamma_dict = copy.copy(gamma)
-            if "_default" not in gamma_dict:
-                gamma_dict["_default"] = 0
-        else:
-            gamma_dict = {"_default": gamma}
-        if h is None:
-            h_dict = {"_default": 0.5}
-        elif type(h) is dict:
-            h_dict = copy.copy(h)
-            if "_default" not in h_dict:
-                h_dict["_default"] = 0.5
-        else:
-            h_dict = {"_default": h}
-        return gamma_dict, h_dict
+    if type(gamma) is dict:
+        gamma_dict = copy.copy(gamma)
+        if "_default" not in gamma_dict:
+            gamma_dict["_default"] = 0
     else:
-        return dict(), dict()
+        gamma_dict = {"_default": gamma}
+    if h is None:
+        h_dict = {"_default": 0.5}
+    elif type(h) is dict:
+        h_dict = copy.copy(h)
+        if "_default" not in h_dict:
+            h_dict["_default"] = 0.5
+    else:
+        h_dict = {"_default": h}
+    return gamma_dict, h_dict
 
 
 def _compute_sfs(
