@@ -278,7 +278,21 @@ def _object_func(
     g = demes.Graph.fromdict(builder)
     sampled_demes = data.pop_ids
     sample_sizes = data.sample_sizes
-    model = moments.Demes.SFS(g, sampled_demes, sample_sizes)
+
+    # check for any ancient samples, which have pop id
+    # "{deme.name}_sampled_{gen}_{frac_gen}"
+    sample_times = [0 for d in sampled_demes]
+    input_sampled_demes = [d for d in sampled_demes]
+    for ii, deme in enumerate(sampled_demes):
+        if "_sampled_" in deme:
+            d = deme.split("_")[0]
+            t = float(".".join(deme.split("_")[2:]))
+            input_sampled_demes[ii] = d
+            sample_times[ii] = t
+
+    model = moments.Demes.SFS(
+        g, input_sampled_demes, sample_sizes, sample_times=sample_times
+    )
     if fit_ancestral_misid:
         model = moments.Misc.flip_ancestral_misid(model, params[-1])
 
@@ -639,7 +653,22 @@ def uncerts(
         # update the builder dict, then compute SFS
         builder = _update_builder(builder, options, demo_params)
         g = demes.Graph.fromdict(builder)
-        model = moments.Demes.SFS(g, sampled_demes, sample_sizes)
+
+        # check for any ancient samples, which have pop id
+        # "{deme.name}_sampled_{gen}_{frac_gen}"
+        sample_times = [0 for d in sampled_demes]
+        input_sampled_demes = [d for d in sampled_demes]
+        for ii, deme in enumerate(sampled_demes):
+            if "_sampled_" in deme:
+                d = deme.split("_")[0]
+                t = float(".".join(deme.split("_")[2:]))
+                input_sampled_demes[ii] = d
+                sample_times[ii] = t
+
+        model = moments.Demes.SFS(
+            g, input_sampled_demes, sample_sizes, sample_times=sample_times
+        )
+
         if fit_ancestral_misid:
             model = moments.Misc.flip_ancestral_misid(model, p_misid)
         root = _get_root(g)

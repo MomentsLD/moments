@@ -102,27 +102,29 @@ def SFS(
         if deme not in g:
             raise ValueError(f"deme {deme} is not in demography")
 
+    # we need to copy these to new names so they don't get updated during optimization
     sampled_pops = copy.copy(sampled_demes)
+    deme_sample_times = copy.copy(sample_times)
 
     if unsampled_n < 4:
         raise ValueError("unsampled_n must be greater than 3")
 
-    if sample_times is None:
-        sample_times = [g[d].end_time for d in sampled_pops]
+    if deme_sample_times is None:
+        deme_sample_times = [g[d].end_time for d in sampled_pops]
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
-    if np.any(np.array(sample_times) != 0):
+    if np.any(np.array(deme_sample_times) != 0):
         g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
-            g, sampled_pops, sample_times
+            g, sampled_pops, deme_sample_times
         )
-        sample_times = [0 for _ in sample_times]
+        deme_sample_times = [0 for _ in sample_times]
     else:
         list_of_frozen_demes = []
 
     if g.time_units != "generations":
-        g, sample_times = _convert_to_generations(g, sample_times)
-    for d, n, t in zip(sampled_pops, sample_sizes, sample_times):
+        g, deme_sample_times = _convert_to_generations(g, deme_sample_times)
+    for d, n, t in zip(sampled_pops, sample_sizes, deme_sample_times):
         if n < 4:
             raise ValueError("moments fails with sample sizes less than 4")
         if t < g[d].end_time or t >= g[d].start_time:
@@ -243,24 +245,26 @@ def LD(
         if deme not in g:
             raise ValueError(f"deme {deme} is not in demography")
 
+    # we need to copy these to new names so they don't get updated during optimization
+    deme_sample_times = copy.copy(sample_times)
     sampled_pops = copy.copy(sampled_demes)
 
-    if sample_times is None:
-        sample_times = [g[d].end_time for d in sampled_pops]
+    if deme_sample_times is None:
+        deme_sample_times = [g[d].end_time for d in sampled_pops]
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
-    if np.any(np.array(sample_times) != 0):
+    if np.any(np.array(deme_sample_times) != 0):
         g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
-            g, sampled_pops, sample_times
+            g, sampled_pops, deme_sample_times
         )
-        sample_times = [0 for _ in sample_times]
+        deme_sample_times = [0 for _ in deme_sample_times]
     else:
         list_of_frozen_demes = []
 
     if g.time_units != "generations":
-        g, sample_times = _convert_to_generations(g, sample_times)
-    for d, t in zip(sampled_pops, sample_times):
+        g, deme_sample_times = _convert_to_generations(g, deme_sample_times)
+    for d, t in zip(sampled_pops, deme_sample_times):
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
 
