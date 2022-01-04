@@ -137,9 +137,7 @@ def integrate(
     selfing=None,
     frozen=None,
 ):
-    """
-    
-    """
+    """"""
     if num_pops == None:
         num_pops = len(nu)
 

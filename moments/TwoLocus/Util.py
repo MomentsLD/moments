@@ -432,7 +432,7 @@ def _compute_pi2(F, proj, nA, nB):
 ##
 ## The above methods compute statistics for given nA and nB slices, if provided.
 ## We may also want to compute statistics with a given allele count threshold.
-## To do so, 
+## To do so,
 ##
 
 
@@ -452,7 +452,7 @@ def compute_D2_threshold(F, proj=True, thresh=None):
         return _compute_D2(F, proj, None, None)
     else:
         stat = 0
-        for nA in range(1, thresh + 1): 
+        for nA in range(1, thresh + 1):
             for nB in range(1, thresh + 1):
                 stat += _compute_D2(F, proj, nA, nB)
         return stat
@@ -463,7 +463,7 @@ def compute_Dz_threshold(F, proj=True, thresh=None):
         return _compute_Dz(F, proj, None, None)
     else:
         stat = 0
-        for nA in range(1, thresh + 1): 
+        for nA in range(1, thresh + 1):
             for nB in range(1, thresh + 1):
                 stat += _compute_Dz(F, proj, nA, nB)
         return stat
@@ -474,7 +474,7 @@ def compute_pi2_threshold(F, proj=True, thresh=None):
         return _compute_pi2(F, proj, None, None)
     else:
         stat = 0
-        for nA in range(1, thresh + 1): 
+        for nA in range(1, thresh + 1):
             for nB in range(1, thresh + 1):
                 stat += _compute_pi2(F, proj, nA, nB)
         return stat

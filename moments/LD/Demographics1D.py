@@ -27,7 +27,7 @@ def two_epoch(params, order=2, rho=None, theta=0.001, pop_ids=None):
     """
     Two epoch model with a single size change and constant sized epochs.
 
-    :param params: The relative size and integration time of recent epoch, 
+    :param params: The relative size and integration time of recent epoch,
         in genetic units: (nu, T).
     :type params: list
     :param order: The maximum order of the LD statistics. Defaults to 2.
@@ -75,8 +75,8 @@ def three_epoch(params, order=2, rho=None, theta=0.001, pop_ids=None):
 def growth(params, order=2, rho=None, theta=0.001, pop_ids=None):
     """
     Exponential growth (or decay) model.
-    
-    :param params: The relative final size and integration time of recent epoch, 
+
+    :param params: The relative final size and integration time of recent epoch,
         in genetic units: (nuF, T)
     :type params: list
     :param order: The maximum order of the LD statistics. Defaults to 2.
@@ -99,8 +99,8 @@ def growth(params, order=2, rho=None, theta=0.001, pop_ids=None):
 
 def bottlegrowth(params, order=2, rho=None, theta=0.001, pop_ids=None):
     """
-    Exponential growth (or decay) model after size change. 
-    
+    Exponential growth (or decay) model after size change.
+
     :param params: The relative initial and final sizes of the final epoch
         and its integration time in genetic units: (nuB, nuF, T).
     :type params: list

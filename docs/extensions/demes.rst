@@ -530,9 +530,14 @@ The additional options to ``uncerts()`` are
 
 - ``bootstraps``: Defaults to None, in which case we use the FIM approach.
 - ``uL``: The scaled mutation rate, if used in the optimization. (See above for
-  details)
-- ``log``:
-- ``eps``: 
+  details.)
+- ``log``: Defaults to False. If True, we assume a log-normal distribution of
+  parameters. Returned values are then the standard deviations of the *logs* of
+  the parameter values, which can be interpreted as relative parameter
+  uncertainties.
+- ``eps``: The relative step size to use when numerically computing derivatives
+  to estimate the curvature of the likelihood function at the inferred best-fit
+  parameters.
 - ``method``: Defaults to "FIM", which uses the Fisher information matrix. We
   can also use the Godambe information matrix, which uses bootstrap replicates
   to account for non-independence between linked SNPs. This uses methods
@@ -623,6 +628,8 @@ First, we'll simulate data under this two-population model:
 .. jupyter-execute::
     :hide-code:
 
+    # we hide this code because it is more expensive to run and causes
+    # the docs build to be aborted
     import pickle
     import numpy as np
     with open("./data/two-deme-example-data.bp", "rb") as fin:
@@ -631,6 +638,7 @@ First, we'll simulate data under this two-population model:
     uL = sum([r["uL"] for r in region_data.values()])
     data = moments.Spectrum(sum([r["SFS"] for r in region_data.values()]))
     data.pop_ids = ["A", "B"]
+    print("Simulated data. FST =", data.Fst())
 
 With this simulated data, we can now re-infer the model, using the following
 options:
