@@ -123,6 +123,9 @@ Or sample a combination of ancient and modern samples from a population:
     print(fs.sample_sizes)
     print("FST(current, ancient) =", f"{fs.Fst():.3}")
 
+Note the population IDs, which are appended with "_sampled_{at_time}" where
+"at_time" is the generation, as a float with an underscore replacing the
+decimal.
 
 We can similarly compute :ref:`LD statistics <sec_ld>`:
 
