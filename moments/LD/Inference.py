@@ -373,18 +373,18 @@ def optimize_log_fmin(
     bin edges are required. ``Ne`` must either be specified as a keyword
     argument or is included as the *last* parameter in ``p0``.
 
-    :param p0: The initial guess for demographic parameters, 
+    :param p0: The initial guess for demographic parameters,
         demography parameters plus (optionally) Ne.
     :type p0: list
     :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
         fs is optional, and used only if use_afs=True.
-        
+
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
           come last.
         - varcovs: The list of varcov matrices matching the data in ``means``.
-    
+
     :type data: list
     :param model_func: The demographic model to compute statistics
         for a given rho. If we are using AFS, it's a list of the two models
@@ -421,7 +421,7 @@ def optimize_log_fmin(
         passed to ``model_func``.
     :type func_kwargs: dict, optional
     :param fixed_params: Defaults to ``None``. To fix some
-        parameters, this should be a list of equal length as ``p0``, with 
+        parameters, this should be a list of equal length as ``p0``, with
         ``None`` for parameters to be fit and fixed values at corresponding
         indexes.
     :type fixed_params: list, optional
@@ -429,7 +429,7 @@ def optimize_log_fmin(
         to compute the frequency spectrum and use
         that instead of heterozygosity statistics for single-locus data.
     :type use_afs: bool, optional
-    :param Leff: The effective length of genome from which 
+    :param Leff: The effective length of genome from which
         the fs was generated (only used if fitting to afs).
     :type Leff: float, optional
     :param multinom: Only used if we are fitting the AFS.
@@ -444,7 +444,7 @@ def optimize_log_fmin(
     :param statistics: Defaults to ``None``, which assumes that
         all statistics are present and in the conventional default order. If
         the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by 
+        are present using the subset of statistic names given by
         ``moments.LD.Util.moment_names(num_pops)``.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
@@ -575,18 +575,18 @@ def optimize_log_powell(
     bin edges are required. ``Ne`` must either be specified as a keyword
     argument or is included as the *last* parameter in ``p0``.
 
-    :param p0: The initial guess for demographic parameters, 
+    :param p0: The initial guess for demographic parameters,
         demography parameters plus (optionally) Ne.
     :type p0: list
     :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
         fs is optional, and used only if use_afs=True.
-        
+
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
           come last.
         - varcovs: The list of varcov matrices matching the data in ``means``.
-    
+
     :type data: list
     :param model_func: The demographic model to compute statistics
         for a given rho. If we are using AFS, it's a list of the two models
@@ -623,7 +623,7 @@ def optimize_log_powell(
         passed to ``model_func``.
     :type func_kwargs: dict, optional
     :param fixed_params: Defaults to ``None``. To fix some
-        parameters, this should be a list of equal length as ``p0``, with 
+        parameters, this should be a list of equal length as ``p0``, with
         ``None`` for parameters to be fit and fixed values at corresponding
         indexes.
     :type fixed_params: list, optional
@@ -631,7 +631,7 @@ def optimize_log_powell(
         to compute the frequency spectrum and use
         that instead of heterozygosity statistics for single-locus data.
     :type use_afs: bool, optional
-    :param Leff: The effective length of genome from which 
+    :param Leff: The effective length of genome from which
         the fs was generated (only used if fitting to afs).
     :type Leff: float, optional
     :param multinom: Only used if we are fitting the AFS.
@@ -646,7 +646,7 @@ def optimize_log_powell(
     :param statistics: Defaults to ``None``, which assumes that
         all statistics are present and in the conventional default order. If
         the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by 
+        are present using the subset of statistic names given by
         ``moments.LD.Util.moment_names(num_pops)``.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
@@ -787,7 +787,7 @@ def optimize_log_lbfgsb(
 
     The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge
     Nocedal. The algorithm is described in:
-    
+
     - R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
       Constrained Optimization, (1995), SIAM Journal on Scientific and
       Statistical Computing , 16, 5, pp. 1190-1208.
@@ -795,18 +795,18 @@ def optimize_log_lbfgsb(
       FORTRAN routines for large scale bound constrained optimization (1997),
       ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.
 
-    :param p0: The initial guess for demographic parameters, 
+    :param p0: The initial guess for demographic parameters,
         demography parameters plus (optionally) Ne.
     :type p0: list
     :param data: The parsed data[means, varcovs, fs]. The frequency spectrum
         fs is optional, and used only if use_afs=True.
-        
+
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
           come last.
         - varcovs: The list of varcov matrices matching the data in ``means``.
-    
+
     :type data: list
     :param model_func: The demographic model to compute statistics
         for a given rho. If we are using AFS, it's a list of the two models
@@ -843,7 +843,7 @@ def optimize_log_lbfgsb(
         passed to ``model_func``.
     :type func_kwargs: dict, optional
     :param fixed_params: Defaults to ``None``. To fix some
-        parameters, this should be a list of equal length as ``p0``, with 
+        parameters, this should be a list of equal length as ``p0``, with
         ``None`` for parameters to be fit and fixed values at corresponding
         indexes.
     :type fixed_params: list, optional
@@ -851,7 +851,7 @@ def optimize_log_lbfgsb(
         to compute the frequency spectrum and use
         that instead of heterozygosity statistics for single-locus data.
     :type use_afs: bool, optional
-    :param Leff: The effective length of genome from which 
+    :param Leff: The effective length of genome from which
         the fs was generated (only used if fitting to afs).
     :type Leff: float, optional
     :param multinom: Only used if we are fitting the AFS.
@@ -866,7 +866,7 @@ def optimize_log_lbfgsb(
     :param statistics: Defaults to ``None``, which assumes that
         all statistics are present and in the conventional default order. If
         the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by 
+        are present using the subset of statistic names given by
         ``moments.LD.Util.moment_names(num_pops)``.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
@@ -877,7 +877,7 @@ def optimize_log_lbfgsb(
     :type maxiter: int
     :param epsilon: Step-size to use for finite-difference derivatives.
     :type pgtol: float
-    :param pgtol: Convergence criterion for optimization. For more info, 
+    :param pgtol: Convergence criterion for optimization. For more info,
         see help(scipy.optimize.fmin_l_bfgs_b)
     :type pgtol: float
     """

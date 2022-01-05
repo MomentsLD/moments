@@ -1,0 +1,19 @@
+parameters:
+- name: N0
+  values:
+  - demes:
+      X:
+        epochs:
+          0: start_size
+- name: N1
+  values:
+  - demes:
+      X:
+        epochs:
+          1: start_size
+- name: N2
+  values:
+  - demes:
+      X:
+        epochs:
+          2: start_size

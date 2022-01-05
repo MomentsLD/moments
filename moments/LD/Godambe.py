@@ -19,7 +19,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
-    
+
     :param func: Model function
     :param f0: Evaluation of func at p0
     :param p0: Parameters for func
@@ -102,9 +102,9 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
 
 def _get_hess(func, p0, eps, args=()):
     """
-    Calculate Hessian matrix of partial second derivatives. 
+    Calculate Hessian matrix of partial second derivatives.
     Hij = dfunc/(dp_i dp_j)
-    
+
     :param func: Model function
     :param p0: Parameter values to take derivative around
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
@@ -143,7 +143,7 @@ def _get_hess(func, p0, eps, args=()):
 def _get_grad(func, p0, eps, args=()):
     """
     Calculate gradient vector
-    
+
     :param func: Model function
     :param p0: Parameters for func
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
@@ -312,7 +312,7 @@ def GIM_uncert(
 ):
     """
     Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
-    method, please cite 
+    method, please cite
     `Coffman et al., MBE (2016) <https://doi.org/10.1093/molbev/msv255>`_.
 
     Returns standard deviations of parameter values.

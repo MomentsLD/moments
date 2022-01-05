@@ -11,7 +11,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
-        
+
     func: Model function
     f0: Evaluation of func at p0
     p0: Parameters for func
@@ -84,9 +84,9 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
 
 def get_hess(func, p0, eps, args=()):
     """
-    Calculate Hessian matrix of partial second derivatives. 
+    Calculate Hessian matrix of partial second derivatives.
     Hij = dfunc/(dp_i dp_j)
-    
+
     func: Model function
     p0: Parameter values to take derivative around
     eps: Fractional stepsize to use when taking finite-difference derivatives
@@ -114,7 +114,7 @@ def get_hess(func, p0, eps, args=()):
 def _get_grad(func, p0, eps, args=()):
     """
     Calculate gradient vector
-    
+
     func: Model function
     p0: Parameters for func
     eps: Fractional stepsize to use when taking finite-difference derivatives
@@ -239,7 +239,7 @@ def GIM_uncert(
         parameter uncertainties.
     :type log: bool
     :param multinom: If True, assume model is defined without an explicit
-        parameter for theta. Because uncertainty in theta must be accounted 
+        parameter for theta. Because uncertainty in theta must be accounted
         for to get correct uncertainties for other parameters, this function
         will automatically consider theta if multinom=True. In that case, the
         final entry of the returned uncertainties will correspond to
@@ -403,7 +403,7 @@ def Wald_stat(
 ):
     """
     Calculate test stastic from wald test
-             
+
     func_ex: Model function for complex model
     all_boot: List of bootstrap frequency spectra
     p0: Best-fit parameters for the simple model, with nested parameter
@@ -476,7 +476,7 @@ def score_stat(
 ):
     """
     Calculate test stastic from score test
-        
+
     func_ex: Model function for complex model
     all_boot: List of bootstrap frequency spectra
     p0: Best-fit parameters for the simple model, with nested parameter

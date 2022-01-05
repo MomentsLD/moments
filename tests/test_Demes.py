@@ -403,10 +403,14 @@ class ComputeFromGraphs(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "A", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "A",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+            "B",
+            epochs=[dict(start_size=100, end_time=50)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "C",
@@ -438,16 +442,24 @@ class ComputeFromGraphs(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "A", epochs=[dict(start_size=100, end_time=25)], ancestors=["anc"],
+            "A",
+            epochs=[dict(start_size=100, end_time=25)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "B", epochs=[dict(start_size=100, end_time=50)], ancestors=["anc"],
+            "B",
+            epochs=[dict(start_size=100, end_time=50)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "C", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+            "C",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["B"],
         )
         b.add_deme(
-            "D", epochs=[dict(start_size=100, end_time=0)], ancestors=["B"],
+            "D",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["B"],
         )
         b.add_migration
         g = b.resolve()
@@ -507,13 +519,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "pop1", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop1",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop2", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop2",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop3", epochs=[dict(start_size=100, end_time=10)], ancestors=["anc"],
+            "pop3",
+            epochs=[dict(start_size=100, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "pop",
@@ -540,13 +558,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=100, end_time=100)])
         b.add_deme(
-            "pop1", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop1",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop2", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop2",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "pop3", epochs=[dict(start_size=100, end_time=0)], ancestors=["anc"],
+            "pop3",
+            epochs=[dict(start_size=100, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "pop",
@@ -636,10 +660,14 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "Source1", epochs=[dict(start_size=2000, end_time=10)], ancestors=["Anc"],
+            "Source1",
+            epochs=[dict(start_size=2000, end_time=10)],
+            ancestors=["Anc"],
         )
         b.add_deme(
-            "Source2", epochs=[dict(start_size=3000, end_time=10)], ancestors=["Anc"],
+            "Source2",
+            epochs=[dict(start_size=3000, end_time=10)],
+            ancestors=["Anc"],
         )
         b.add_deme(
             "Pop",
@@ -662,10 +690,14 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "Source1", epochs=[dict(start_size=2000, end_time=0)], ancestors=["Anc"],
+            "Source1",
+            epochs=[dict(start_size=2000, end_time=0)],
+            ancestors=["Anc"],
         )
         b.add_deme(
-            "Source2", epochs=[dict(start_size=3000, end_time=0)], ancestors=["Anc"],
+            "Source2",
+            epochs=[dict(start_size=3000, end_time=0)],
+            ancestors=["Anc"],
         )
         b.add_deme(
             "Pop",
@@ -730,12 +762,16 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "dest", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "dest",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
-        b.add_pulse(source="source", dest="dest", time=10, proportion=0.1)
+        b.add_pulse(sources=["source"], dest="dest", time=10, proportions=[0.1])
         g = b.resolve()
         fs = Demes.SFS(g, ["source", "dest"], [20, 20])
 
@@ -750,13 +786,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=10)])
         b.add_deme(
-            "deme1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme1",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "deme2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme2",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "deme3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "deme3",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         g = b.resolve()
         ns = [10, 15, 20]
@@ -781,13 +823,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way merge", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source1", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source1",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source2", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source2",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source3", epochs=[dict(start_size=1000, end_time=10)], ancestors=["anc"],
+            "source3",
+            epochs=[dict(start_size=1000, end_time=10)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "merged",
@@ -813,13 +861,19 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="three-way admix", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=100)])
         b.add_deme(
-            "source1", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source1",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source2", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source2",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
-            "source3", epochs=[dict(start_size=1000, end_time=0)], ancestors=["anc"],
+            "source3",
+            epochs=[dict(start_size=1000, end_time=0)],
+            ancestors=["anc"],
         )
         b.add_deme(
             "admixed",
@@ -912,8 +966,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="b", time=50, proportions=[0.2])
+        b.add_pulse(sources=["b"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -931,8 +985,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="b", time=50, proportion=0.2)
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="b", time=50, proportions=[0.2])
+        b.add_pulse(sources=["a"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -954,8 +1008,8 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(source="a", dest="c", time=50, proportion=0.2)
-        b.add_pulse(source="b", dest="c", time=50, proportion=0.2)
+        b.add_pulse(sources=["a"], dest="c", time=50, proportions=[0.2])
+        b.add_pulse(sources=["b"], dest="c", time=50, proportions=[0.2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             graph = b.resolve()
@@ -966,3 +1020,488 @@ class TestConcurrentEvents(unittest.TestCase):
         self.assertEqual(fs.Npop, 1)
         self.assertEqual(fs.sample_sizes[0], n)
         self.assertEqual(fs.pop_ids[0], "c")
+
+    def test_multipulse(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
+        b.add_pulse(sources=["a", "b"], dest="c", time=50, proportions=[0.2, 0.2])
+        graph = b.resolve()
+
+        # TODO: need to implement pulses with multiple sources
+        with self.assertRaises(ValueError):
+            n = [8, 8, 8]
+            fs = moments.Spectrum.from_demes(
+                graph, sampled_demes=["a", "b", "c"], sample_sizes=n
+            )
+
+    def test_multimerger(self):
+        b = demes.Builder()
+        b.add_deme("x", epochs=[dict(start_size=1000, end_time=100)])
+        b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000, end_time=50)])
+        b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000, end_time=50)])
+        b.add_deme(
+            "c",
+            ancestors=["a", "b"],
+            proportions=[0.5, 0.5],
+            start_time=50,
+            epochs=[dict(start_size=1000)],
+        )
+        b.add_deme(
+            "d",
+            ancestors=["a", "b"],
+            proportions=[0.5, 0.5],
+            start_time=50,
+            epochs=[dict(start_size=1000)],
+        )
+        graph = b.resolve()
+
+        y_graph = moments.Demes.LD(graph, sampled_demes=["c", "d"], theta=1)
+
+        y = moments.LD.Demographics1D.snm(theta=1)
+        y = y.split(0)
+        y.integrate([1, 1], 0.025, theta=1)
+        y = y.admix(0, 1, 0.5)
+        y = y.admix(0, 1, 0.5)
+        y = y.marginalize([0, 1])
+        y.integrate([1, 1], 0.025, theta=1)
+
+        fs = moments.Spectrum.from_demes(
+            graph, sampled_demes=["c", "d"], sample_sizes=[10, 10]
+        )
+        fs = fs.project([2, 2])
+
+        assert np.allclose(y_graph[0], y[0])
+        assert np.isclose(fs.marginalize([1])[1], y[0][0])
+        assert np.isclose(fs.marginalize([0])[1], y[0][2])
+        assert np.isclose(fs.project([1, 1]).sum(), y[0][1])
+
+
+class TestFStatistics(unittest.TestCase):
+    # f-statistics computed from heterozygosities from moments.LD
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_f2_equivalent(self):
+        T = 100
+        N = 1000
+        b1 = demes.Builder()
+        b1.add_deme("A", epochs=[dict(start_size=N)])
+        g1 = b1.resolve()
+        b2 = demes.Builder()
+        b2.add_deme("A", epochs=[dict(start_size=N)])
+        b2.add_deme("B", ancestors=["A"], start_time=T, epochs=[dict(start_size=N)])
+        g2 = b2.resolve()
+        b3 = demes.Builder()
+        b3.add_deme("A", epochs=[dict(start_size=1000)])
+        b3.add_deme(
+            "B",
+            ancestors=["A"],
+            start_time=3 * T / 2,
+            epochs=[dict(start_size=N, end_time=T)],
+        )
+        g3 = b3.resolve()
+
+        theta = 0.001
+        y1 = moments.Demes.LD(
+            g1, sampled_demes=["A", "A"], sample_times=[0, 2 * T], theta=theta
+        )
+        y2 = moments.Demes.LD(
+            g2, sampled_demes=["A", "B"], sample_times=[0, 0], theta=theta
+        )
+        y3 = moments.Demes.LD(g3, sampled_demes=["A", "B"], theta=theta)
+
+        assert np.allclose(y1[0], y2[0])
+        assert np.allclose(y1[0], y3[0])
+
+        f2 = y2.f2("A", "B")
+        t = T / 2 / N
+        E_f2 = theta * t
+        assert np.isclose(f2, y2.f2(0, 1))
+        assert np.isclose(f2, y2.f2("B", "A"))
+        assert np.isclose(f2, E_f2)
+
+    def test_f4_ancient_samples(self):
+        T = 100
+        b = demes.Builder(defaults=dict(epoch=dict(start_size=1000)))
+        b.add_deme("anc", epochs=[dict(end_time=T)])
+        b.add_deme("A", ancestors=["anc"])
+        b.add_deme("B", ancestors=["anc"])
+        g = b.resolve()
+
+        theta = 1
+        y1 = moments.Demes.LD(
+            g,
+            sampled_demes=["A", "B", "A", "B"],
+            sample_times=[0, 0, T / 2, T / 2],
+            theta=theta,
+        )
+        y2 = moments.Demes.LD(
+            g,
+            sampled_demes=["A", "B", "A", "B"],
+            sample_times=[0, 0, 3 * T / 4, T / 4],
+            theta=theta,
+        )
+
+        assert np.isclose(y1.f2("A", "B"), y2.f2("A", "B"))
+        assert np.isclose(y1.f2(0, 1), y1.f4(0, 1, 0, 1))
+        assert np.isclose(y1.f2(0, 1), y1.f4(1, 0, 1, 0))
+        assert np.isclose(y1.f4(0, 1, 0, 1), -y2.f4(0, 1, 1, 0))
+        assert np.isclose(y1.f4(0, 1, 2, 3), y2.f4(0, 1, 2, 3))
+        assert np.isclose(y1.f4(0, 2, 1, 3), y2.f4(2, 0, 3, 1))
+        assert np.isclose(y1.f4(0, 1, 2, 3), -y2.f4(0, 1, 3, 2))
+
+    def test_two_population_pulse(self):
+        N = 1000
+
+        def build_model(T1, T2, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("A", ancestors=["anc"])
+            b.add_deme("B", ancestors=["anc"])
+            b.add_pulse(sources=["B"], dest="A", proportions=[f], time=T2)
+            return b.resolve()
+
+        T1 = 100
+        T2 = 100
+        theta = 1
+        for f in [0, 0.1, 0.5, 1.0]:
+            g = build_model(T1, T2, f)
+            y = moments.Demes.LD(g, sampled_demes=["A", "B"], theta=theta)
+            assert np.isclose(
+                y.f2(0, 1),
+                theta * (T2 + (1 - f) ** 2 * T1) / 2 / N,
+                rtol=0.01,
+            )
+
+    def test_ancient_structure_loop(self):
+        N = 1000
+
+        def build_model(T1, T2, T3, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2 + T3)])
+            b.add_deme("stem1", ancestors=["anc"], epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("stem2", ancestors=["anc"], epochs=[dict(end_time=T1 + T2)])
+            b.add_deme(
+                "X",
+                ancestors=["stem1", "stem2"],
+                proportions=[f, 1 - f],
+                start_time=T1 + T2,
+                epochs=[dict(end_time=T1)],
+            )
+            b.add_deme("modern1", ancestors=["X"], epochs=[dict(end_time=0)])
+            b.add_deme("modern2", ancestors=["X"], epochs=[dict(end_time=0)])
+            return b.resolve()
+
+        for f in [0.1, 0.5, 0.8]:
+            g = build_model(100, 100, 100, f)
+            y = moments.Demes.LD(
+                g,
+                sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+                sample_times=[0, 0, 250, 250],
+            )
+            assert y.f4(0, 1, 2, 3) == 0.0
+            assert y.f4(0, 2, 1, 3) > 0
+            assert y.f4(0, 2, 3, 1) < 0
+
+    def test_ancient_structure_admixture(self):
+        N = 1000
+
+        def build_model(T1, T2, x, f):
+            b = demes.Builder(defaults=dict(epoch=dict(start_size=N)))
+            b.add_deme("anc", epochs=[dict(end_time=T1 + T2)])
+            b.add_deme("stem1", ancestors=["anc"], epochs=[dict(end_time=0)])
+            b.add_deme("stem2", ancestors=["anc"], epochs=[dict(end_time=T1)])
+            b.add_deme("modern1", ancestors=["stem2"], epochs=[dict(end_time=0)])
+            b.add_deme("modern2", ancestors=["stem2"], epochs=[dict(end_time=0)])
+            b.add_pulse(sources=["stem1"], dest="modern1", time=x * T1, proportions=[f])
+            return b.resolve()
+
+        T1 = T2 = 1000
+        for x in [0.1, 0.2, 0.5, 0.8]:
+            for f in [0, 0.1, 0.2, 0.5, 0.8, 1]:
+                g = build_model(T1, T2, x, f)
+                y = moments.Demes.LD(
+                    g,
+                    sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+                    sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+                )
+                print(x, f, f * y.f2(2, 3), y.f4(0, 1, 2, 3))
+                assert np.isclose(f * y.f2(2, 3), y.f4(0, 1, 2, 3))
+        g1 = build_model(T1, T2, 0.1, 0.5)
+        y1 = moments.Demes.LD(
+            g1,
+            sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+            sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+        )
+        g2 = build_model(T1, T2, 0.9, 0.5)
+        y2 = moments.Demes.LD(
+            g2,
+            sampled_demes=["modern1", "modern2", "stem1", "stem2"],
+            sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
+        )
+        assert np.isclose(y1.f4(0, 1, 2, 3), y2.f4(0, 1, 2, 3))
+
+
+class TestSelectionSFS(unittest.TestCase):
+    # f-statistics computed from heterozygosities from moments.LD
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_selection_dict_setup(self):
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(None, None)
+        assert len(gamma_dict) == 1
+        assert len(h_dict) == 1
+        assert "_default" in gamma_dict
+        assert "_default" in h_dict
+
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(None, 1)
+        assert len(gamma_dict) == 1
+        assert len(h_dict) == 1
+        assert "_default" in gamma_dict
+        assert "_default" in h_dict
+
+        gamma_dict, h_dict = Demes._set_up_selection_dicts(1, None)
+        assert len(gamma_dict) == 1
+        assert "_default" in gamma_dict
+        assert len(h_dict) == 1
+        assert "_default" in h_dict
+        assert h_dict["_default"] == 0.5
+
+        gamma_dict, h_dict = Demes._set_up_selection_dicts({"x": 1, "y": 2}, None)
+        assert len(gamma_dict) == 3
+        assert "x" in gamma_dict
+        assert "y" in gamma_dict
+        assert "_default" in gamma_dict
+        assert len(h_dict) == 1
+
+    def test_single_selection_coefficient_one_pop(self):
+        gamma = -1
+        n = 30
+        fs = moments.Spectrum(moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma))
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+
+        assert np.allclose(fs, fs_demes)
+
+        fs.integrate([2], 0.1, gamma=gamma)
+
+        b = demes.Builder()
+        b.add_deme(
+            "A", epochs=[dict(start_size=1000, end_time=200), dict(start_size=2000)]
+        )
+        g = b.resolve()
+        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_changed_selection_coefficient(self):
+        gamma1 = -1
+        gamma2 = -2
+        n = 30
+        fs = moments.Spectrum(moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1))
+        fs.integrate([1], 0.5, gamma=gamma2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma={"A": gamma1, "B": gamma2}
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_changed_dominance_coefficient(self):
+        gamma = -1
+        h1 = 0.2
+        h2 = 0.8
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma=gamma, h={"A": h1, "B": h2}
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_defaults_one_pop(self):
+        gamma1 = -5
+        gamma2 = -1
+        h1 = 0.2
+        h2 = 0
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma2, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"A": gamma1, "B": gamma2},
+            h={"A": h1, "B": h2},
+        )
+        fs_demes2 = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"_default": -5, "B": gamma2},
+            h={"_default": 0, "A": h1},
+        )
+
+        assert np.allclose(fs, fs_demes)
+        assert np.allclose(fs, fs_demes2)
+
+    def test_missing_dict_keys(self):
+        gamma1 = 0
+        gamma2 = -1
+        h1 = 0.2
+        h2 = 0.5
+        n = 30
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma1, h=h1)
+        )
+        fs.integrate([1], 0.5, gamma=gamma2, h=h2)
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=1000)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"A": gamma1, "B": gamma2},
+            h={"A": h1, "B": h2},
+        )
+        fs_demes2 = Demes.SFS(
+            g, sampled_demes=["B"], sample_sizes=[n], gamma={"B": gamma2}, h={"A": h1}
+        )
+
+        assert np.allclose(fs, fs_demes)
+        assert np.allclose(fs, fs_demes2)
+
+    def test_split_with_variable_coefficients(self):
+        gamma0 = -1
+        gamma1 = -3
+        gamma2 = 5
+        h0 = 0.2
+        h1 = 0.1
+        h2 = 0.95
+        n = 30
+
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D(2 * n, gamma=gamma0, h=h0)
+        )
+        fs = fs.split(0, n, n)
+        fs.integrate([1, 1], 0.25, gamma=[gamma1, gamma2], h=[h1, h2])
+
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        fs_demes = Demes.SFS(
+            g,
+            sampled_demes=["B", "C"],
+            sample_sizes=[n, n],
+            gamma={"A": gamma0, "B": gamma1, "C": gamma2},
+            h={"A": h0, "B": h1, "C": h2},
+        )
+
+        assert np.allclose(fs, fs_demes)
+
+    def test_scalar_vs_defaults(self):
+        gamma = -1
+        h = 0.2
+        n = 30
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000)])
+        g = b.resolve()
+        fs1 = Demes.SFS(
+            g,
+            sampled_demes=["A"],
+            sample_sizes=[n],
+            gamma=gamma,
+            h=h,
+        )
+        fs2 = Demes.SFS(
+            g,
+            sampled_demes=["A"],
+            sample_sizes=[n],
+            gamma={"_default": gamma},
+            h={"_default": h},
+        )
+        assert np.allclose(fs1, fs2)
+
+    def test_bad_selection(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        for gamma in ["hi", ["hi"], {1, 2}, [1, 2]]:
+            with self.assertRaises(TypeError):
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+
+        for gamma in [{"D": 1}]:
+            with self.assertRaises(ValueError):
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+
+    def test_bad_dominance(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        for h in ["hi", ["hi"], {1, 2}, [1, 2]]:
+            with self.assertRaises(TypeError):
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+
+        for g in [{"D": 1}]:
+            with self.assertRaises(ValueError):
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+
+    def test_bad_graph_with_selection(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=500)])
+        b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
+        b.add_deme("_default", ancestors=["A"], epochs=[dict(start_size=1000)])
+        g = b.resolve()
+
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, ["B"], [10], gamma=-1)
+
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, ["B"], [10], gamma={"_default": -1})
+
+        Demes.SFS(g, ["B"], [10], h=0.1)

@@ -100,7 +100,7 @@ def gene_based_dominance(s, h=0.5, Ne=None):
 
 
 def _compute_S(F_in, nA, nB):
-    F = copy.copy(F_in)
+    F = copy.deepcopy(F_in)
     F.mask_fixed()
     if nA == None and nB == None:
         return F.sum()
@@ -129,20 +129,10 @@ def _compute_D(F, proj, nA, nB):
                         continue
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= F.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= F.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
+                    if nA is not None and nA != ii + jj:
+                        continue
+                    if nB is not None and nB != ii + kk:
+                        continue
                     ll = n - ii - jj - kk
                     if proj is True:
                         DD += F.data[ii, jj, kk] * ((ii * ll - jj * kk) / (n * (n - 1)))
@@ -173,20 +163,10 @@ def _compute_D2(F, proj, nA, nB):
                         continue
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= F.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= F.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
+                    if nA is not None and nA != ii + jj:
+                        continue
+                    if nB is not None and nB != ii + kk:
+                        continue
                     ll = n - ii - jj - kk
                     if proj == True:
                         DD2 += (
@@ -246,20 +226,10 @@ def _compute_Dz(F, proj, nA, nB):
                         continue
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= F.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= F.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
+                    if nA is not None and nA != ii + jj:
+                        continue
+                    if nB is not None and nB != ii + kk:
+                        continue
                     ll = n - ii - jj - kk
                     if proj == True:
                         stat += (
@@ -356,21 +326,10 @@ def _compute_pi2(F, proj, nA, nB):
                     ll = n - ii - jj - kk
                     if ii + jj == 0 or ii + kk == 0 or ii + jj == n or ii + kk == n:
                         continue
-                    if nA is not None:
-                        if nA <= 0 or nA >= F.sample_size:
-                            raise ValueError(
-                                f"nA must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nA != ii + jj:
-                            continue
-                    if nB is not None:
-                        if nB <= 0 or nB >= F.sample_size:
-                            raise ValueError(
-                                f"nB must be between 1 and {F.sample_size - 1}"
-                            )
-                        elif nB != ii + kk:
-                            continue
-
+                    if nA is not None and nA != ii + jj:
+                        continue
+                    if nB is not None and nB != ii + kk:
+                        continue
                     if proj == True:
                         stat += (
                             F.data[ii, jj, kk]
@@ -468,3 +427,54 @@ def _compute_pi2(F, proj, nA, nB):
                 )
 
     return stat
+
+
+##
+## The above methods compute statistics for given nA and nB slices, if provided.
+## We may also want to compute statistics with a given allele count threshold.
+## To do so,
+##
+
+
+def compute_D_threshold(F, proj=True, thresh=None):
+    if thresh is None:
+        return _compute_D(F, proj, None, None)
+    else:
+        stat = 0
+        for nA in range(1, thresh + 1):
+            for nB in range(1, thresh + 1):
+                stat += _compute_D(F, proj, nA, nB)
+        return stat
+
+
+def compute_D2_threshold(F, proj=True, thresh=None):
+    if thresh is None:
+        return _compute_D2(F, proj, None, None)
+    else:
+        stat = 0
+        for nA in range(1, thresh + 1):
+            for nB in range(1, thresh + 1):
+                stat += _compute_D2(F, proj, nA, nB)
+        return stat
+
+
+def compute_Dz_threshold(F, proj=True, thresh=None):
+    if thresh is None:
+        return _compute_Dz(F, proj, None, None)
+    else:
+        stat = 0
+        for nA in range(1, thresh + 1):
+            for nB in range(1, thresh + 1):
+                stat += _compute_Dz(F, proj, nA, nB)
+        return stat
+
+
+def compute_pi2_threshold(F, proj=True, thresh=None):
+    if thresh is None:
+        return _compute_pi2(F, proj, None, None)
+    else:
+        stat = 0
+        for nA in range(1, thresh + 1):
+            for nB in range(1, thresh + 1):
+                stat += _compute_pi2(F, proj, nA, nB)
+        return stat

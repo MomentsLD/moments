@@ -149,6 +149,76 @@ class LDstats(list):
         else:
             return self[-1]
 
+    def f2(self, X, Y):
+        """
+        Returns :math:`f_2(X, Y) = (X-Y)^2`.
+        :param X: One of the populations, as index or population ID.
+        :param Y: The other population, as index or population ID.
+        """
+        if type(X) is str:
+            if type(Y) is not str:
+                raise ValueError("X and Y must both be strings or both be indexes")
+            if X not in self.pop_ids:
+                raise ValueError(f"Population {X} not in pop_ids: {self.pop_ids}")
+            if Y not in self.pop_ids:
+                raise ValueError(f"Population {X} not in pop_ids: {self.pop_ids}")
+            X = self.pop_ids.index(X)
+            Y = self.pop_ids.index(Y)
+        elif type(X) is int:
+            if type(Y) is not int:
+                raise ValueError("X and Y must both be strings or both be indexes")
+            if X < 0 or Y < 0 or X >= self.num_pops or Y >= self.num_pops:
+                raise ValueError("Population indexes out of bounds")
+        else:
+            raise ValueError("X and Y must both be strings or both be indexes")
+
+        stats = self.names()[1]
+        if X > Y:
+            X, Y = Y, X
+        H_X = self.H()[stats.index(f"H_{X}_{X}")]
+        H_Y = self.H()[stats.index(f"H_{Y}_{Y}")]
+        H_XY = self.H()[stats.index(f"H_{X}_{Y}")]
+        return H_XY - H_X / 2 - H_Y / 2
+
+    def f4(self, X, Y, Z, W):
+        """
+        Returns :math:`f_4(X, Y; Z, W) = (X-Y)(Z-W)`.
+        """
+        if type(X) is str:
+            if type(Y) is not str or type(Z) is not str or type(W) is not str:
+                raise ValueError("Inputs must be all strings or all indexes")
+            for _ in [X, Y, Z, W]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} not in pop_ids: {self.pop_ids}")
+            X = self.pop_ids.index(X)
+            Y = self.pop_ids.index(Y)
+            Z = self.pop_ids.index(Z)
+            W = self.pop_ids.index(W)
+        elif type(X) is int:
+            if type(Y) is not int or type(Z) is not int or type(W) is not int:
+                raise ValueError("Inputs must be all strings or all indexes")
+            if (
+                X < 0
+                or Y < 0
+                or Z < 0
+                or W < 0
+                or X >= self.num_pops
+                or Y >= self.num_pops
+                or Z >= self.num_pops
+                or W >= self.num_pops
+            ):
+                raise ValueError("Population indexes out of bounds")
+        else:
+            raise ValueError("Inputs must be all strings or all indexes")
+
+        stats = self.names()[1]
+        H_XW = self.H()[stats.index(Util.map_moment(f"H_{X}_{W}"))]
+        H_XZ = self.H()[stats.index(Util.map_moment(f"H_{X}_{Z}"))]
+        H_YW = self.H()[stats.index(Util.map_moment(f"H_{Y}_{W}"))]
+        H_YZ = self.H()[stats.index(Util.map_moment(f"H_{Y}_{Z}"))]
+
+        return (H_XW - H_XZ - H_YW + H_YZ) / 2
+
     # demographic and manipulation functions
     def split(self, pop_to_split, new_ids=None):
         """

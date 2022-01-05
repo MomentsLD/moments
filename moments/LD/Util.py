@@ -122,7 +122,7 @@ def perturb_params(params, fold=1, lower_bound=None, upper_bound=None):
     """
     Generate a perturbed set of parameters. Each element of params is randomly
     perturbed by the given factor of 2 up or down.
-    
+
     :param list params: A list of input parameters.
     :param float fold: Number of factors of 2 to perturb by.
     :param list lower_bound: If not None, the resulting parameter set is adjusted

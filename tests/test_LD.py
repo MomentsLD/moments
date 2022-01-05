@@ -64,18 +64,10 @@ class LDTestCase(unittest.TestCase):
         theta = 1
         rhos = [0, 1, 10]
         y = moments.LD.Demographics1D.snm(theta=theta, rho=rhos)
-        ns = 50
+        ns = 30
         for ii, rho in enumerate(rhos):
-            # F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho).project(4)
-            F = moments.TwoLocus.TLSpectrum.from_file(
-                os.path.join(
-                    os.path.dirname(__file__),
-                    f"test_files/two_locus_equilibrium_rho_{rho}_theta_{theta}_ns_{ns}.fs",
-                )
-            )
-            self.assertTrue(
-                np.allclose(y[ii], [2 * F.D2(), 2 * F.Dz(), 2 * F.pi2()], rtol=2e-2)
-            )
+            F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho).project(4)
+            self.assertTrue(np.allclose(y[ii], [F.D2(), F.Dz(), F.pi2()], rtol=5e-2))
 
 
 class SplitStats(unittest.TestCase):
@@ -394,6 +386,7 @@ class TestDemographics1D(unittest.TestCase):
         self.assertTrue(np.allclose(y_2[1], y_3a[1]))
         self.assertTrue(np.allclose(y_2[0], y_3b[0]))
         self.assertTrue(np.allclose(y_2[1], y_3b[1]))
+
 
 class CopyAndPickle(unittest.TestCase):
     def setUp(self):

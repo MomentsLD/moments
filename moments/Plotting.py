@@ -99,7 +99,7 @@ def plot_1d_comp_multinom(
     :param residual: 'Anscombe' for Anscombe residuals, which are more normally
         distributed for Poisson sampling. 'linear' for the linear
         residuals, which can be less biased.
-    :param plot_masked: Additionally plots (in open circles) results for points in the 
+    :param plot_masked: Additionally plots (in open circles) results for points in the
         model or data that were masked.
     :param out: Output filename to save figure, if given.
     :param show: If True, displays figure. Set to False to supress.
@@ -128,7 +128,7 @@ def plot_1d_comp_Poisson(
     :param residual: 'Anscombe' for Anscombe residuals, which are more normally
         distributed for Poisson sampling. 'linear' for the linear
         residuals, which can be less biased.
-    :param plot_masked: Additionally plots (in open circles) results for points in the 
+    :param plot_masked: Additionally plots (in open circles) results for points in the
         model or data that were masked.
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
@@ -206,8 +206,8 @@ def plot_single_2d_sfs(
     show=True,
 ):
     """
-    Heatmap of single 2d SFS. 
-    
+    Heatmap of single 2d SFS.
+
     If vmax is greater than a factor of 10, plot on log scale.
 
     Returns colorbar that is created.
@@ -949,7 +949,7 @@ def plot_4d_comp_multinom(
 ):
     """
     Multinomial comparison between 4d model and data.
-    
+
     :param model: 4-dimensional model SFS
     :param data: 4-dimensional data SFS
     :param vmin: Minimum value plotted.

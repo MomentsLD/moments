@@ -53,7 +53,7 @@ def bottlegrowth(params, ns, pop_ids=None):
 def bottlegrowth_split(params, ns, pop_ids=None):
     """
     params = (nuB, nuF, T, Ts)
-    
+
     ns = [n1, n2]
 
     Instantanous size change followed by exponential growth then split.
@@ -175,7 +175,7 @@ def IM(params, ns, pop_ids=None):
 def IM_pre(params, ns, pop_ids=None):
     """
     params = (nuPre, TPre, s, nu1, nu2, T, m12, m21)
-    
+
     ns = [n1, n2]
 
     Isolation-with-migration model with exponential pop growth and a size change

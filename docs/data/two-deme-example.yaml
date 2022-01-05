@@ -1,0 +1,16 @@
+time_units: generations
+demes:
+- name: anc
+  epochs:
+  - {end_time: 2000, start_size: 8500}
+- name: A
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 700, end_size: 11000}
+- name: B
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 17500}
+migrations:
+- demes: ["A", "B"]
+  rate: 1.5e-3

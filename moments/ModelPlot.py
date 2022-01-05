@@ -46,11 +46,11 @@ def generate_model(model_func, params, ns, precision=100):
     """
     Generates information about a demographic model, and stores the information
     in a format that can be used by the plot_model function
-    
+
     model_func : Function of the form model_func(params, ns). Describes the
                  demographic model to collect information on.
 
-    params : List of values of the demographic variables to be passed as the 
+    params : List of values of the demographic variables to be passed as the
              params argument to model_func.
 
     ns : List of sample sizes to be passed as the ns argument to model_func.
@@ -128,7 +128,7 @@ def plot_model(
 
     draw_ancestors : Specify whether the ancestral populations should be drawn
                      in beginning of plot. Will fade off with a gradient.
-    
+
     draw_migrations : Specify whether migration arrows are drawn.
 
     draw_scale : Specify whether scale bar should be shown in top-left corner.
@@ -456,7 +456,7 @@ class _ModelInfo:
     """
     Uses information sent by method calls in moments to generate a demographic
     model. Model information is stored as a list of TimePeriod objects, each of
-    which stores demographic information (population sizes, splits, migration 
+    which stores demographic information (population sizes, splits, migration
     rates) for a given time step in the model.
 
     current_time : Float, to keep track of current point in time of model.
@@ -492,7 +492,7 @@ class _ModelInfo:
     def split(self, initial_pop, split_pops):
         """
         Sets the appropriate descendants for the current time period and
-        correctly splits one of them. 
+        correctly splits one of them.
 
         initial_pop : index of population to split.
 
@@ -510,14 +510,14 @@ class _ModelInfo:
 
     def merge(self, source_pops, new_pop):
         """
-        Merges two populations to one - this is always a 2 to 1 population 
+        Merges two populations to one - this is always a 2 to 1 population
         function
-        
-        source_pops : tuple of populations that merge (always 0,1) - these go 
+
+        source_pops : tuple of populations that merge (always 0,1) - these go
                       extinct, and we have a new population left over
-        
+
         new_pop: index of new population (always 0)
-        
+
         To implements, we'll first use admix_new with a time period of zero,
         and then have the first two populations go extinct, leaving behind the
         merged population
@@ -526,17 +526,17 @@ class _ModelInfo:
 
     def admix_new(self, source_pops, new_pop, f):
         """
-        Creates a new population through admixture, with fraction f from first 
+        Creates a new population through admixture, with fraction f from first
         source pop
-        
+
         source_pops : tuple of parental populations
-        
-        new_pop : index of new admixed population (if not in last position, 
+
+        new_pop : index of new admixed population (if not in last position,
             shifts the rest)
-        
+
         f : admixture fraction from first source population
-        
-        Assume that source population indices are adjacent, place new pop 
+
+        Assume that source population indices are adjacent, place new pop
         between them
         """
         tp = self.tp_list[-1]
@@ -552,27 +552,27 @@ class _ModelInfo:
 
     def admix_inplace(self, source_pop, target_pop, f):
         """
-        New admixed population replaces second source population, with fraction 
+        New admixed population replaces second source population, with fraction
         f from first source pop
-        
+
         source_pop : non-replaced source population
-        
+
         new_pop : replaced source population
-        
+
         f : admixture fraction from non-replaced source population
         """
         pass
 
     def evolve(self, time, popsizes, migrations):
         """
-        Begins a new time period if necessary. Evolves current populations 
+        Begins a new time period if necessary. Evolves current populations
         forward in time by calculating their sizes throughout the interval. Also
         moves model time forward and sets migration rates.
-        
+
         time : Length of time to evolve.
 
         popsizes : Either a list of sizes for each current population, or a
-                   function that returns a list of sizes for any time value 
+                   function that returns a list of sizes for any time value
                    given between 0 and time.
 
         migrations : 2D array describing migration rates between populations.
@@ -617,7 +617,7 @@ class _ModelInfo:
         Cause extinction of populations in extinct_pops and begin a new time
         period without them.
 
-        extinct_pops : Sequence listing the indices of the populations to go 
+        extinct_pops : Sequence listing the indices of the populations to go
                        extinct.
         """
         tp = self.tp_list[-1]
@@ -637,7 +637,7 @@ class _ModelInfo:
         """
         Determines the overall size of the tree rooted at each population by
         working backwards through the list of time periods. This is necessary
-        for allocating the proper amount of space to a given population when 
+        for allocating the proper amount of space to a given population when
         drawing it (i.e. a plotted population must be given enough vertical
         room for both itself and all of its descendants.
         """
@@ -685,7 +685,7 @@ class _ModelInfo:
 
         pop_index : Index of the current population within the TimePeriod.
 
-        origin : Initial origin value for the current population. May be 
+        origin : Initial origin value for the current population. May be
                  adjusted based on subpopulations.
 
         direc : Plot direction for the current population.
@@ -730,15 +730,15 @@ class _ModelInfo:
 
     class TimePeriod:
         """
-        Keeps track of population information and relationships during a 
+        Keeps track of population information and relationships during a
         specific time period of the demographic model. Also contains information
         about how populations should be drawn.
-        
+
         precision : Number of times to evaluate population size within period.
 
-        time : List, of length 'precision'. Equally spaced time intervals 
+        time : List, of length 'precision'. Equally spaced time intervals
                running from the start of this time period to the end of it.
-        
+
         popsizes : List containing the size of each population in the current
                    time period. Size of each population is stored as a list of
                    length 'precision', effectively providing a function from
@@ -749,21 +749,21 @@ class _ModelInfo:
                       which is either a single int specifying the index of the
                       descendant, or a tuple of two ints specifying the indices
                       of the populations it splits into.
-        
+
         migrations : 2D array of floats, specifying the migration rates between
                      populations within the current time period.
-        
-        framesizes : List specifying the overall space the tree rooted at each 
+
+        framesizes : List specifying the overall space the tree rooted at each
                      population takes up. This is useful for plotting later, and
                      is dependent on all descendant population sizes.
 
-        direcs : List of directions that each population in time period is 
-                 drawn. For each population the value is equal to 1 if the 
-                 population should be drawn facing up, and -1 if the population 
+        direcs : List of directions that each population in time period is
+                 drawn. For each population the value is equal to 1 if the
+                 population should be drawn facing up, and -1 if the population
                  should be drawn facing down.
 
         origins : List of where each population in the time period should begin
-                  to be drawn. For each population, if direc is 1, then the 
+                  to be drawn. For each population, if direc is 1, then the
                   origin is the lower-left corner of the space. If direc is -1,
                   then it is the upper-left corner. Represented as a tuple (x,y)
         """
@@ -771,11 +771,11 @@ class _ModelInfo:
         def __init__(self, time, npops, precision):
             """
             Sets basic information for the time period.
-            
+
             time : Starting time of period.
 
             npops : Number of populations in the time period.
-            
+
             precision : Value of precision variable.
             """
             self.precision = precision

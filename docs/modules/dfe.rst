@@ -28,7 +28,7 @@ deleterious, with a small fraction being beneficial (e.g. [Keightley]_, [Boyko]_
 In coding regions, the average selection coefficient for a new mutation depends on
 its functional effect: we typically assume synonymous (or silent) mutations are
 effectively neutral (though this may be a tenuous assumption!), missense (or
-nonsynonymous) mutations are more deleterious on average, and loss of function
+nonsynonymous) mutations are more deleterious on average, and loss-of-function
 (or nonsense) mutations are often very damaging. We can learn about the DFE in
 each of these categories by studying the distributions allele frequencies for variants
 in each class.
@@ -191,9 +191,10 @@ Inferring the DFE
 
 Now that we have a plausible demographic model, we can move to the selected SFS.
 Not every new missense mutation or every new LOF mutation will have the same
-
-that is, heterozygotes have fitness effect :math:`1+s` while homozygotes for the
-derived allele have fitness effect :math:`1+2s`. We're also only going to focus
+fitness effect, so we aim to learn the *distribution* of selection coefficients
+of new mutations. Here, we are going to assume an additive model of selection -
+that is, heterozygotes have fitness :math:`1+s` while homozygotes for the
+derived allele have fitness :math:`1+2s`. We're also only going to focus
 on the deleterious DFE - we assume beneficial mutations are very rare, and we'll
 ignore them.
 

@@ -26,13 +26,13 @@ def two_epoch(params, ns, pop_ids=None):
     Instantaneous size change some time ago.
 
     params = (nu, T)
-    
+
     :param params: Tuple of length two, specifying (nu, T).
-        
+
         - nu: the ratio of contemporary to ancient population size.
         - T: the time in the past at which size change happened
           (in units of 2*Ne generations).
-    
+
     :param ns: Number of samples in resulting Spectrum. Must be a list of
         length one.
     :param pop_ids: Optional list of length one specifying the population ID.
@@ -53,11 +53,11 @@ def growth(params, ns, pop_ids=None):
     params = (nu, T)
 
     :param params: Tupe of length two, specifying (nu, t).
-        
+
         - nu: the final population size.
         - T: the time in the past at which growth began
           (in units of 2*Ne generations).
-    
+
     :param ns: Number of samples in resulting Spectrum. Must be a list of
         length one.
     :param pop_ids: Optional list of length one specifying the population ID.
@@ -79,13 +79,13 @@ def bottlegrowth(params, ns, pop_ids=None):
     params = (nuB, nuF, T)
 
     :param params: Tuple of length three specifying (nuB, nuF, T).
-        
+
         - nuB: Ratio of population size after instantanous change to ancient
           population size.
         - nuF: Ratio of contemporary to ancient population size.
         - T: Time in the past at which instantaneous change happened and growth began
           (in units of 2*Na generations).
-    
+
     :param ns: Number of samples in resulting Spectrum.
     :param pop_ids: Optional list of length one specifying the population ID.
     """
@@ -102,11 +102,11 @@ def bottlegrowth(params, ns, pop_ids=None):
 def three_epoch(params, ns, pop_ids=None):
     """
     Three epoch model of constant sizes.
-    
+
     params = (nuB, nuF, TB, TF)
 
     :param params: Tuple of length four specifying (nuB, nuF, TB, TF).
-        
+
         - nuB: Ratio of bottleneck population size to ancient pop size.
         - nuF: Ratio of contemporary to ancient pop size.
         - TB: Length of bottleneck (in units of 2*Na generations).

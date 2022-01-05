@@ -17,6 +17,7 @@ def save_pickle(matrix, filename):
 
 def load_pickle(filename):
     with open(filename, "rb") as infile:
+        infile.seek(0)
         try:
             matrix = pickle.load(infile)
         except:

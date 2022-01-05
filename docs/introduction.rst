@@ -61,6 +61,20 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.9
+=====
+
+- Allow ancient samples in Demes inference function
+- Add selection and dominance to Demes SFS integration function
+- Add f2 and f4 statistics to LDstats object
+- Allow multiple simultaneous merger events in Demes integration methods
+- Add uncertainty functions to Demes SFS inference module
+- Refactor Demes SFS inference options (#85)
+- Add function to compute genotype matrix from the SFS
+- Add function to compute allele frequency threshold LD statistics from
+  TwoLocus spectrum
+- Fix factor of 2 discrepancy between LD and TwoLocus mutation model (#60)
+
 1.1.8
 =====
 

@@ -14,6 +14,7 @@ from numpy import newaxis as nuax
 import scipy.misc as misc
 import copy
 import itertools
+import warnings
 
 # Account for difference in scipy installations.
 try:
@@ -50,8 +51,6 @@ class Spectrum(numpy.ma.masked_array):
     variants. When using a reversible mutation model (i.e. the finite genome model),
     we track the density of variants in fixed bins, setting ``mask_corners`` to
     ``False``.
-
-    To do: check that all optional parameters are functional with tests.
 
     :param data: An array with dimension equal to the number of populations.
         Each dimension has length :math:`n_i+1`, where :math:`n_i` is the
@@ -401,8 +400,9 @@ class Spectrum(numpy.ma.masked_array):
         Uses numpy's swapaxes function, but also swaps pop_ids as appropriate
         if pop_ids are given.
 
-        Note that `fs.swapaxes(ax1, ax2)` will still work, but if population
-        ids are given, it won't swap the pop_ids entries as expected.
+        .. note::
+            ``fs.swapaxes(ax1, ax2)`` will still work, but if population
+            ids are given, it won't swap the pop_ids entries as expected.
 
         :param ax1: The index of the first population to swap.
         :type ax1: int
@@ -448,13 +448,10 @@ class Spectrum(numpy.ma.masked_array):
 
         The folded fs assumes that information on which allele is ancestral or
         derived is unavailable. Thus the fs is in terms of minor allele
-        frequency.  Note that this makes the fs into a "triangular" array.
+        frequency.  This makes the fs into a "triangular" array. If a masked cell
+        is folded into non-masked cell, the destination cell is masked as well.
 
-        Note that if a masked cell is folded into non-masked cell, the
-        destination cell is masked as well.
-
-        Note also that folding is not done in-place. The return value is a new
-        Spectrum object.
+        Folding is not done in-place. The return value is a new Spectrum object.
         """
         if self.folded:
             raise ValueError("Input Spectrum is already folded.")
@@ -503,8 +500,7 @@ class Spectrum(numpy.ma.masked_array):
         It is assumed that each state of a SNP is equally likely to be
         ancestral.
 
-        Note also that unfolding is not done in-place. The return value is a new
-        Spectrum object.
+        Unfolding is not done in-place. The return value is a new Spectrum object.
         """
         if not self.folded:
             raise ValueError("Input Spectrum is not folded.")
@@ -596,7 +592,7 @@ class Spectrum(numpy.ma.masked_array):
         proportions from parental populations. This serves as a wrapper for
         ``Manips.admix_into_new``, with the added feature of handling pop_ids.
 
-        Note that if the number of lineages that move are equal to the number
+        If the number of lineages that move are equal to the number
         of lineages previously present in a source population, that source
         population is marginalized.
 
@@ -647,8 +643,8 @@ class Spectrum(numpy.ma.masked_array):
 
         This serves as a wrapper for ``Manips.admix_inplace``.
 
-        Note that depending on the proportion and number of lineages, because this
-        is an approximate operation, we often need a large number of lineages from
+        Depending on the proportion and number of lineages, because this is an
+        approximate operation, we often need a large number of lineages from
         the source population to maintain accuracy.
 
         :param idx_from: Index of source population.
@@ -790,7 +786,6 @@ class Spectrum(numpy.ma.masked_array):
                     frozen=frozen,
                 )
             else:
-                # self.data[:] = integrate_1D(self.data, Npop, n, tf, dt_fac, dt_max, gamma, h, theta)
                 self.data[:] = moments.Integration_nomig.integrate_nomig(
                     self.data,
                     Npop,
@@ -816,7 +811,8 @@ class Spectrum(numpy.ma.masked_array):
             if m is None:
                 m = numpy.zeros([len(n), len(n)])
             if not callable(m) and (m == 0).all():
-                # for more than 2 populations, the sparse solver seems to be faster than the tridiag...
+                # for more than 2 populations, the sparse solver
+                # seems to be faster than the tridiag...
                 if (numpy.array(gamma) == 0).all() and len(n) < 3:
                     self.data[:] = moments.Integration_nomig.integrate_neutral(
                         self.data,
@@ -861,6 +857,7 @@ class Spectrum(numpy.ma.masked_array):
                 )
 
     # Functions for computing statistics from frequency spetra.
+
     def Fst(self, pairwise=False):
         """
         Wright's Fst between the populations represented in the fs.
@@ -868,8 +865,8 @@ class Spectrum(numpy.ma.masked_array):
         This estimate of Fst assumes random mating, because we don't have
         heterozygote frequencies in the fs.
 
-        Calculation is by the method of Weir and Cockerham _Evolution_ 38:1358
-        (1984).  For a single SNP, the relevant formula is at the top of page
+        Calculation is by the method of Weir and Cockerham *Evolution* 38:1358
+        (1984). For a single SNP, the relevant formula is at the top of page
         1363. To combine results between SNPs, we use the weighted average
         indicated by equation 10.
 
@@ -952,7 +949,8 @@ class Spectrum(numpy.ma.masked_array):
         """
         Returns Watterson's estimator of theta.
 
-        Note that is only sensible for 1-dimensional spectra.
+        .. note::
+            This function is only sensible for 1-dimensional spectra.
         """
         if self.Npop != 1:
             raise ValueError("Only defined on a one-dimensional fs.")
@@ -969,7 +967,8 @@ class Spectrum(numpy.ma.masked_array):
         Positive Selection by Utilizing High-Frequency Variants" (2006)
         Genetics
 
-        Note that is only sensible for 1-dimensional spectra.
+        .. note::
+            This function is only sensible for 1-dimensional spectra.
         """
         if self.Npop != 1:
             raise ValueError("Only defined on a one-dimensional fs.")
@@ -981,8 +980,8 @@ class Spectrum(numpy.ma.masked_array):
         """
         Returns Zeng et al.'s E statistic.
 
-        From Zeng et al. "Statistical Tests for Detecting Positive Selection by
-        Utilizing High-Frequency Variants" (2006) Genetics
+        From Zeng et al., "Statistical Tests for Detecting Positive Selection by
+        Utilizing High-Frequency Variants." *Genetics*, 2016.
         """
         num = self.theta_L() - self.Watterson_theta()
 
@@ -1013,8 +1012,9 @@ class Spectrum(numpy.ma.masked_array):
         Returns the estimated expected number of pairwise differences between two
         chromosomes in the population.
 
-        Note that this estimate includes a factor of
-        sample_size / (sample_size-1) to make :math:`\\mathbb{E}[\\pi] = \\theta`.
+        .. note::
+            This estimate includes a factor of sample_size / (sample_size - 1)
+            to make :math:`\\mathbb{E}[\\pi] = \\theta`.
         """
         if self.ndim != 1:
             raise ValueError("Only defined for a one-dimensional SFS.")
@@ -1053,8 +1053,130 @@ class Spectrum(numpy.ma.masked_array):
 
         return (pihat - theta) / C
 
+    # Functions for resampling or generating "data" from an SFS
+
+    def fixed_size_sample(self, nsamples, include_masked=False):
+        """
+        Generate a resampled SFS from the current one. Thus, the resampled SFS
+        follows a multinomial distribution given by the proportion of sites
+        in each bin in the original SFS.
+
+        :param nsamples: Number of samples to include in the new SFS.
+        :type nsamples: int
+        :param include_masked: If True, use all bins from the SFS. Otherwise,
+            use only non-masked bins. Defaults to False.
+        :type include_masked: bool, optional
+        """
+        flat = self.flatten()
+        pvals = flat.data
+        if include_masked is False:
+            pvals[flat.mask] = 0
+        pvals /= pvals.sum()
+
+        sample = numpy.random.multinomial(int(nsamples), pvals)
+        sample = sample.reshape(self.shape)
+        sample = moments.Spectrum(sample, mask=self.mask, pop_ids=self.pop_ids)
+        sample = sample.astype(int)
+
+        return sample
+
+    def sample(self):
+        """
+        Generate a Poisson-sampled fs from the current one.
+
+        Entries where the current fs is masked or 0 will be masked in the
+        output sampled fs.
+        """
+        import scipy.stats
+
+        # These are entries where the sampling has no meaning. Either the fs is
+        # 0 there or masked.
+        bad_entries = numpy.logical_or(self == 0, self.mask)
+        # We convert to a 1-d array for passing into the sampler
+        means = self.ravel().copy()
+        # Filter out those bad entries.
+        means[bad_entries.ravel()] = 1
+        # Sample
+        samp = scipy.stats.distributions.poisson.rvs(means, size=len(means))
+        # Replace bad entries...
+        samp[bad_entries.ravel()] = 0
+        # Convert back to a properly shaped array
+        samp = samp.reshape(self.shape)
+        # Convert to a fs and mask the bad entries
+        samp = Spectrum(
+            samp, mask=bad_entries, data_folded=self.folded, pop_ids=self.pop_ids
+        )
+        samp = samp.astype(int)
+        return samp
+
+    def genotype_matrix(
+        self, num_sites=None, sample_sizes=None, diploid_genotypes=False
+    ):
+        """
+        Generate a genotype matrix of independent loci. For multi-population spectra,
+        we the individual columns are filled in the sample order as the populations
+        in the SFS.
+
+        .. note::
+            Sites in the output genotype matrix are necessarily separated by
+            infinite recombination. The SFS assumes all loci are segregating
+            independently, so there is no linkage between them.
+
+        Returns a genotype matrix of size number of sites by total sample size.
+
+        :param num_sites: Defaults to None, in which case we take a poisson sample from
+            the SFS. Otherwise, we take a fixed number of sites.
+        :param sample_sizes: The sample size in each population, as a list with length
+            of the number of dimension (populations) in the SFS.
+        :diploid_genotypes: Defaults to False, in which case we return a haplotype
+            matrix of size (num_sites x sum(sample_sizes)). If True, we return a
+            diploid genotype matrix (filled with 0, 1, 2) of size
+            (num_sites x sum(sample_sizes)/2).
+        """
+        # project to sample size as needed
+        if sample_sizes is None:
+            sample_sizes = self.sample_sizes
+        proj = self.project(sample_sizes)
+        if diploid_genotypes:
+            for ss in proj.sample_sizes:
+                if ss % 2 != 0:
+                    raise ValueError(
+                        "Requested diploid genotypes, but the haploid sample "
+                        f"sizes ({sample_sizes}) are not all even."
+                    )
+
+        # get sampled SFS
+        if num_sites is None:
+            samp = proj.sample()
+            num_sites = samp.sum()
+        else:
+            samp = proj.fixed_size_sample(num_sites)
+        assert num_sites == samp.S()  # remove once tested
+
+        # fill in genotype matrix
+        G = np.zeros((num_sites, sum(proj.sample_sizes)), dtype=int)
+        i = 0
+        for idx in np.transpose(np.nonzero(samp)):
+            for _ in range(samp[tuple(idx)]):
+                g = []
+                for j, n in zip(idx, sample_sizes):
+                    g += list(np.random.permutation([1] * j + [0] * (n - j)))
+                G[i] = g
+                i += 1
+
+        # collapse diploids if needed
+        hap_sum = G.sum(axis=1)
+        if diploid_genotypes:
+            G = G[:, ::2] + G[:, 1::2]
+        assert np.all(G.sum(axis=1) == hap_sum)  # remove once tested
+
+        # shuffle genotype matrix
+        np.random.shuffle(G)
+
+        return G
+
     # Functions for saving and loading frequency spectra.
-    # Make from_file a static method, so we can use it without an instance.
+
     @staticmethod
     def from_file(fid, mask_corners=True, return_comments=False):
         """
@@ -1208,57 +1330,6 @@ class Spectrum(numpy.ma.masked_array):
     ## Overide the (perhaps confusing) original numpy tofile method.
     tofile = to_file
 
-    def fixed_size_sample(self, nsamples, include_masked=False):
-        """
-        Generate a resampled SFS from the current one. Thus, the resampled SFS
-        follows a multinomial distribution given by the proportion of sites
-        in each bin in the original SFS.
-
-        :param nsamples: Number of samples to include in the new SFS.
-        :type nsamples: int
-        :param include_masked: If True, use all bins from the SFS. Otherwise,
-            use only non-masked bins. Defaults to False.
-        :type include_masked: bool, optional
-        """
-        flat = self.flatten()
-        pvals = flat.data
-        if include_masked is False:
-            pvals[flat.mask] = 0
-        pvals /= pvals.sum()
-
-        sample = numpy.random.multinomial(int(nsamples), pvals)
-        sample = sample.reshape(self.shape)
-
-        return moments.Spectrum(sample, mask=self.mask, pop_ids=self.pop_ids)
-
-    def sample(self):
-        """
-        Generate a Poisson-sampled fs from the current one.
-
-        Note: Entries where the current fs is masked or 0 will be masked in the
-        output sampled fs.
-        """
-        import scipy.stats
-
-        # These are entries where the sampling has no meaning. Either the fs is
-        # 0 there or masked.
-        bad_entries = numpy.logical_or(self == 0, self.mask)
-        # We convert to a 1-d array for passing into the sampler
-        means = self.ravel().copy()
-        # Filter out those bad entries.
-        means[bad_entries.ravel()] = 1
-        # Sample
-        samp = scipy.stats.distributions.poisson.rvs(means, size=len(means))
-        # Replace bad entries...
-        samp[bad_entries.ravel()] = 0
-        # Convert back to a properly shaped array
-        samp = samp.reshape(self.shape)
-        # Convert to a fs and mask the bad entries
-        samp = Spectrum(
-            samp, mask=bad_entries, data_folded=self.folded, pop_ids=self.pop_ids
-        )
-        return samp
-
     @staticmethod
     def from_ms_file(
         fid,
@@ -1293,6 +1364,10 @@ class Spectrum(numpy.ma.masked_array):
             based on SNP position. Instead of single FS, a list
             of spectra will be returned, one for each segment.
         """
+        warnings.warn(
+            "Spectrum.from_ms_file() is deprecated and will be removed in version 1.2",
+            warnings.DeprecationWarning,
+        )
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
         # use to open a file.
@@ -1463,7 +1538,7 @@ class Spectrum(numpy.ma.masked_array):
             return all_fs, (command, seeds)
 
     @staticmethod
-    def from_sfscode_file(
+    def _from_sfscode_file(
         fid,
         sites="all",
         average=True,
@@ -1488,6 +1563,10 @@ class Spectrum(numpy.ma.masked_array):
         :param pop_ids: Optional list of strings containing the population labels.
             If pop_ids is None, labels will be "pop0", "pop1", ...
         """
+        warnings.warn(
+            "Spectrum.from_sfscode_file() is deprecated and will be removed in ver 1.2",
+            warnings.DeprecationWarning,
+        )
         newfile = False
         # Try to read from fid. If we can't, assume it's something that we can
         # use to open a file.
@@ -1861,15 +1940,15 @@ class Spectrum(numpy.ma.masked_array):
         return result
 
     @staticmethod
-    def from_data_dict_corrected(
+    def _from_data_dict_corrected(
         data_dict, pop_ids, projections, fux_filename, force_pos=True, mask_corners=True
     ):
         """
         Spectrum from a dictionary of polymorphisms, corrected for ancestral
         misidentification.
 
-        The correction is based upon Hernandez, Williamson & Bustamante _Mol_Biol_Evol_
-            24:1792 (2007)
+        The correction is based upon Hernandez, Williamson & Bustamante *Mol Biol Evol*
+        24:1792 (2007)
 
         :param force_pos: If the correction is too agressive, it may leave some small
             entries in the fs less than zero. If force_pos is true,
@@ -1960,7 +2039,14 @@ class Spectrum(numpy.ma.masked_array):
 
     @staticmethod
     def from_demes(
-        g, sampled_demes, sample_sizes, sample_times=None, Ne=None, unsampled_n=4
+        g,
+        sampled_demes,
+        sample_sizes,
+        sample_times=None,
+        Ne=None,
+        unsampled_n=4,
+        gamma=None,
+        h=None,
     ):
         """
         Takes a deme graph and computes the SFS. ``demes`` is a package for
@@ -1995,6 +2081,24 @@ class Spectrum(numpy.ma.masked_array):
         :param unsampled_n: The default sample size of unsampled demes, which must be
             greater than or equal to 4.
         :type unsampled_n: int, optional
+        :param gamma: The scaled selection coefficient(s), 2*Ne*s. Defaults to None,
+            which implies neutrality. Can be given as a scalar value, in which case
+            all populations have the same selection coefficient. Alternatively, can
+            be given as a dictionary, with keys given as population names in the
+            input Demes model. Any population missing from this dictionary will be
+            assigned a selection coefficient of zero. A non-zero default selection
+            coefficient can be provided, using the key `_default`. See the Demes
+            exension documentation for more details and examples.
+        :type gamma: float or dict
+        :param h: The dominance coefficient(s). Defaults to additivity (or genic
+            selection). Can be given as a scalar value, in which case all populations
+            have the same dominance coefficient. Alternatively, can be given as a
+            dictionary, with keys given as population names in the input Demes model.
+            Any population missing from this dictionary will be assigned a dominance
+            coefficient of 1/2 (additivity). A different default dominance
+            coefficient can be provided, using the key `_default`. See the Demes
+            exension documentation for more details and examples.
+        :type h: float or dict
         :return: A ``moments`` site frequency spectrum, with dimension equal to the
             length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
             in each dimension, indexing the allele frequency in each deme from 0
@@ -2011,7 +2115,7 @@ class Spectrum(numpy.ma.masked_array):
 
                 _imported_demes = True
             except ImportError:
-                raise ImportError("demes is not installed, need to `pip install demes`")
+                raise ImportError("demes is not installed, required for `from_demes()`")
 
         if isinstance(g, str):
             dg = demes.load(g)
@@ -2025,6 +2129,8 @@ class Spectrum(numpy.ma.masked_array):
             sample_times=sample_times,
             Ne=Ne,
             unsampled_n=unsampled_n,
+            gamma=gamma,
+            h=h,
         )
         return fs
 
