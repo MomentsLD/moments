@@ -57,7 +57,7 @@ that for you.
 It's easiest to see the functionality through example. In the tests directory,
 there is a YAML description of the [Gutenkunst2009]_ Out-of-African model:
 
-.. literalinclude:: ../../tests/test_files/gutenkunst_ooa.yml
+.. literalinclude:: ../../tests/test_files/gutenkunst_ooa.yaml
     :language: yaml
 
 This model describes all the populations (demes), their sizes and times of
@@ -74,7 +74,7 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
 
     import moments
     import numpy as np
-    ooa_model = "../tests/test_files/gutenkunst_ooa.yml"
+    ooa_model = "../tests/test_files/gutenkunst_ooa.yaml"
 
     sampled_demes = ["YRI", "CEU", "CHB"]
     sample_sizes = [10, 10, 10]
@@ -452,26 +452,26 @@ directory as well.
 
 The YAML specification of this model is
 
-.. literalinclude:: ../data/msl_initial_model.yml
+.. literalinclude:: ../data/msl_initial_model.yaml
    :language: YAML
 
 And we can specify that we want to fit the times of the size changes, and all
 population sizes. (Note that if we did not have an estimate for the mutation
 rate, we would not fit the ancestral size.)
 
-.. literalinclude:: ../data/msl_options.yml
+.. literalinclude:: ../data/msl_options.yaml
    :language: YAML
 
 .. jupyter-execute::
 
-    deme_graph = "./data/msl_initial_model.yml"
-    options = "./data/msl_options.yml"
+    deme_graph = "./data/msl_initial_model.yaml"
+    options = "./data/msl_options.yaml"
 
 And now we can run the inference:
 
 .. jupyter-execute::
 
-    output = "./data/msl_best_fit_model.yml"
+    output = "./data/msl_best_fit_model.yaml"
     ret = moments.Demes.Inference.optimize(
         deme_graph,
         options,
@@ -646,7 +646,7 @@ First, we'll simulate data under this two-population model:
 With this simulated data, we can now re-infer the model, using the following
 options:
 
-.. literalinclude:: ../data/two-deme-example-options.yml
+.. literalinclude:: ../data/two-deme-example-options.yaml
    :language: YAML
 
 .. code-block:: python

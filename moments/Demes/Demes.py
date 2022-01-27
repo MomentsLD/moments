@@ -109,8 +109,9 @@ def SFS(
     if unsampled_n < 4:
         raise ValueError("unsampled_n must be greater than 3")
 
+    sampled_deme_end_times = [g[d].end_time for d in sampled_pops]
     if deme_sample_times is None:
-        deme_sample_times = [g[d].end_time for d in sampled_pops]
+        deme_sample_times = sampled_deme_end_times
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
@@ -118,15 +119,17 @@ def SFS(
         g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
             g, sampled_pops, deme_sample_times
         )
-        deme_sample_times = [0 for _ in sample_times]
+        deme_sample_times = [0 for _ in deme_sample_times]
     else:
         list_of_frozen_demes = []
 
     if g.time_units != "generations":
         g, deme_sample_times = _convert_to_generations(g, deme_sample_times)
+
+    # if any sample sizes are less than unsample_n, we increase and project after
+    sim_sample_sizes = []
     for d, n, t in zip(sampled_pops, sample_sizes, deme_sample_times):
-        if n < 4:
-            raise ValueError("moments fails with sample sizes less than 4")
+        sim_sample_sizes.append(max(n, unsampled_n))
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
 
@@ -178,7 +181,7 @@ def SFS(
         g,
         demo_events,
         sampled_pops,
-        sample_sizes,
+        sim_sample_sizes,
         demes_present,
         unsampled_n=unsampled_n,
     )
@@ -199,6 +202,16 @@ def SFS(
     )
 
     fs = _reorder_fs(fs, sampled_pops)
+    
+    # project down to desired sample sizes, if needed
+    fs = fs.project(sample_sizes)
+    # simplify pop id name if ancient sample at end time of that deme
+    for ii, pid in enumerate(fs.pop_ids):
+        if "_sampled_" in pid:
+            p, t = pid.split("_sampled_")
+            t = float(t.replace("_", "."))
+            if t == sampled_deme_end_times[ii]:
+                fs.pop_ids[ii] = p
 
     return fs
 
@@ -249,8 +262,9 @@ def LD(
     deme_sample_times = copy.copy(sample_times)
     sampled_pops = copy.copy(sampled_demes)
 
+    sampled_deme_end_times = [g[d].end_time for d in sampled_pops]
     if deme_sample_times is None:
-        deme_sample_times = [g[d].end_time for d in sampled_pops]
+        deme_sample_times = sampled_deme_end_times
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
@@ -298,7 +312,9 @@ def LD(
         raise ValueError("Can only specify rho or r, but not both")
     if rho is None:
         if r is not None:
-            rho = 4 * Ne * r
+            rho = 4 * Ne * np.array(r)
+    else:
+        rho = np.array(rho)
     if u is not None:
         theta = 4 * Ne * u
 
@@ -317,6 +333,14 @@ def LD(
     )
 
     y = _reorder_LD(y, sampled_pops)
+    
+    # simplify pop id name if ancient sample at end time of that deme
+    for ii, pid in enumerate(y.pop_ids):
+        if "_sampled_" in pid:
+            p, t = pid.split("_sampled_")
+            t = float(t.replace("_", "."))
+            if t == sampled_deme_end_times[ii]:
+                y.pop_ids[ii] = p
 
     return y
 

@@ -70,7 +70,7 @@ def plot_ld_curves(
         statistics = ld_stats.names()
 
     # make sure all stats are named properly
-
+    r_edges = np.array(r_edges)
     r_centers = np.array((r_edges[:-1] + r_edges[1:]) / 2)
     x_label = "$r$"
     if cM == True:
@@ -201,6 +201,7 @@ def plot_ld_curves_comp(
         statistics = ld_stats.names()
 
     # make sure all stats are named properly
+    rs = np.array(rs)
     if binned_data:
         rs_to_plot = np.array((rs[:-1] + rs[1:]) / 2)
     else:

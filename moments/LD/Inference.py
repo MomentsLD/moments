@@ -111,7 +111,7 @@ def remove_normalized_lds(y, normalization=0):
     return y
 
 
-def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
+def remove_normalized_data(means, varcovs, normalization=0, num_pops=1, statistics=None):
     """
     Returns data means and covariance matrices with the normalizing
     statistics removed.
@@ -128,7 +128,10 @@ def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
     """
     if len(means) != len(varcovs):
         raise ValueError("Different lengths of means and covariances")
-    stats = Util.moment_names(num_pops)
+    if statistics is None:
+        stats = Util.moment_names(num_pops)
+    else:
+        stats = copy.copy(statistics)
     to_delete_ld = stats[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
     to_delete_h = stats[1].index("H_{0}_{0}".format(normalization))
     ms = []
@@ -151,7 +154,12 @@ def remove_normalized_data(means, varcovs, normalization=0, num_pops=1):
     vcs.append(
         np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
     )
-    return ms, vcs
+    if statistics is None:
+        return ms, vcs
+    else:
+        stats[0].pop(to_delete_ld)
+        stats[1].pop(to_delete_h)
+        return ms, vcs, stats
 
 
 def remove_nonpresent_statistics(y, statistics=[[], []]):
@@ -241,7 +249,7 @@ def _object_func(
     upper_bound=None,
     verbose=0,
     flush_delay=0,
-    normalization=1,
+    normalization=0,
     func_args=[],
     func_kwargs={},
     fixed_params=None,

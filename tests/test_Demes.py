@@ -327,7 +327,7 @@ class CompareOOA(unittest.TestCase):
             ns,
         )
         fs_demes = moments.Spectrum.from_demes(
-            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yml"),
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yaml"),
             ["YRI", "CEU", "CHB"],
             ns,
         )
@@ -377,7 +377,7 @@ class CompareOOA(unittest.TestCase):
             theta=theta,
         )
         y_demes = moments.LD.LDstats.from_demes(
-            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yml"),
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yaml"),
             ["YRI", "CEU", "CHB"],
             rho=rho,
             theta=theta,
