@@ -136,6 +136,12 @@ def integrate(
             if alternate_fg == True:
                 Phi = Phi + M2.dot(Phi)
 
+        if np.any(Phi < -1):
+            raise ValueError(
+                f"Spectrum has large negative values, min = {Phi.min()}. "
+                "Selection may be too strong or recombination too large. "
+                "This may be fixed with a larger sample size, at the cost of runtime."
+            )
         N_old = N
         t_elapsed += dt
 

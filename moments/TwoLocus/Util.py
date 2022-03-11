@@ -47,6 +47,10 @@ def simple_dominance(s, h=0.5, Ne=None):
     Returns the general selection parameters for the simple dominance model with
     a single selection and dominance coefficient that applies to both loci:
     [s_AB_AB, s_AB_Ab, s_AB_aB, s_AB_ab, s_Ab_Ab, s_Ab_aB, s_Ab_ab, s_aB_aB, s_aB_ab]
+
+    Selection is multiplicative across loci, and we assume sA and sB are small, so
+    that the cross term sA * sB can be ignored. Very strong selection will violate
+    this assumption.
     """
     if Ne is None:
         gamma = s
