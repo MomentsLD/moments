@@ -1,11 +1,11 @@
 import numpy as np, math
 from scipy.special import gammaln
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_matrix, csr_matrix
 from scipy.sparse import identity
 from scipy.sparse.linalg import factorized
 from collections import defaultdict
 
-# might want to save the projection caches - espeically for larger sample sizes,
+# might want to save the projection caches - especially for larger sample sizes,
 # faster to load than recalculate each time
 
 index_cache = {}
@@ -779,24 +779,32 @@ def ln_binomial(n, k):
     return math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
 
 
-# gets too big when I need to cache hundreds of different sample sizes
 projection_cache = {}
 
 
-def cached_projection(proj_to, proj_from, hits):
+def cached_projection(proj_to, proj_from, indexes, cache=True):
     """
-    Coefficients for projection from a larger size to smaller
-    proj_to: Number of samples to project down to
-    proj_from: Number of samples to project from
-    hits: Number of derived alleles projecting from - tuple of (n1,n2,n3)
+    Coefficients for projection from a larger size to smaller. These are stored
+    as a scipy sparse csr matrix, flattening to array form. This allows us to
+    cache the projections without running into memory issues.
+
+    :param proj_to: Number of samples to project down to
+    :param proj_from: Number of samples to project from
+    :param indexes: Number of derived alleles projecting from - tuple of (nAB, nAb, naB)
+    :param cache: If True, cache intermediate results for faster projection. These are
+        stored as sparse vectors in vector format, which can be converted to 3D
+        spectrum format using Phi_to_array.
     """
-    key = (proj_to, proj_from, hits)
+    key = (proj_to, proj_from, indexes)
     try:
         return projection_cache[key]
     except KeyError:
-        X1, X2, X3 = hits
+        X1, X2, X3 = indexes
         X4 = proj_from - X1 - X2 - X3
-        proj_weights = np.zeros((proj_to + 1, proj_to + 1, proj_to + 1))
+        #proj_weights = np.zeros((proj_to + 1, proj_to + 1, proj_to + 1))
+        #proj_weights = np.zeros(int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6))
+        cols = []
+        data = []
         for ii in range(X1 + 1):
             for jj in range(X2 + 1):
                 for kk in range(X3 + 1):
@@ -810,37 +818,65 @@ def cached_projection(proj_to, proj_from, hits):
                         + ln_binomial(X4, ll)
                         - ln_binomial(proj_from, proj_to)
                     )
-                    proj_weights[ii, jj, kk] = np.exp(f)
+                    #proj_weights[index_n(ii, jj, kk] = np.exp(f)
+                    #proj_weights[index_n(proj_to, ii, jj, kk)] = np.exp(f)
+                    cols.append(index_n(proj_to, ii, jj, kk))
+                    data.append(np.exp(f))
+        
+        rows = [0] * len(cols)
+        size = int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6)
+        proj_weights = csr_matrix((data, (rows, cols)), shape=(1, size))
 
-        # projection_cache[key] = proj_weights
-        # return projection_cache[key]
+        if cache:
+            projection_cache[key] = proj_weights
+
         return proj_weights
 
 
-def project(F_from, proj_to):
-    proj_from = len(F_from) - 1
+def project(F_from, proj_to, cache=True):
+    proj_from = F_from.sample_size
     if proj_to == proj_from:
         return F_from
     elif proj_to > proj_from:
         raise ValueError("Projection size must be smaller than spectrum size.")
     else:
-        F_proj = np.zeros((proj_to + 1, proj_to + 1, proj_to + 1))
+        size = int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6)
+        Phi_proj = csr_matrix((1, size))
         for X1 in range(proj_from):
             for X2 in range(proj_from):
                 for X3 in range(proj_from):
-                    if F_from.mask[X1, X2, X3] == False:
+                    if F_from.mask[X1, X2, X3] == True:
+                        # don't project over masked entries
+                        continue
+                    elif F_from[X1, X2, X3] == 0:
+                        # no density in this bin, can skip
+                        continue
+                    else:
                         hits = (X1, X2, X3)
-                        proj_weights = cached_projection(proj_to, proj_from, hits)
-                        F_proj += proj_weights * F_from[X1, X2, X3]
-        F_proj[0, :, 0] = F_proj[0, 0, :] = 0
+                        proj_weights = cached_projection(
+                            proj_to, proj_from, hits, cache=cache
+                        )
+                        Phi_proj += proj_weights * F_from[X1, X2, X3]
+        # handle the A/a and B/b edges separately
+        F_proj_2loc = Phi_to_array(Phi_proj.toarray()[0], proj_to)
+        F_proj_2loc[0, :, 0] = F_proj_2loc[0, 0, :] = 0
+
+        Phi_proj_A = csr_matrix((1, size))
         for X2 in range(1, proj_from):
             hits = (0, X2, 0)
-            proj_weights = cached_projection(proj_to, proj_from, hits)
-            F_proj += proj_weights * F_from[0, X2, 0]
+            proj_weights = cached_projection(proj_to, proj_from, hits, cache=cache)
+            Phi_proj_A += proj_weights * F_from[0, X2, 0]
+
+        Phi_proj_B = csr_matrix((1, size))
         for X3 in range(1, proj_from):
             hits = (0, 0, X3)
-            proj_weights = cached_projection(proj_to, proj_from, hits)
-            F_proj += proj_weights * F_from[0, 0, X3]
+            proj_weights = cached_projection(proj_to, proj_from, hits, cache=cache)
+            Phi_proj_B += proj_weights * F_from[0, 0, X3]
+        
+        F_proj_A = Phi_to_array(Phi_proj_A.toarray()[0], proj_to)
+        F_proj_B = Phi_to_array(Phi_proj_B.toarray()[0], proj_to)
+
+        F_proj = F_proj_2loc + F_proj_A + F_proj_B
         return F_proj
 
 
