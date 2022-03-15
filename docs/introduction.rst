@@ -61,6 +61,15 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.10
+======
+
+- Pin cython to ~0.29 until recursion error is fixed
+- Allow samples to be specified with a dictionary for SFS calculation with Demes
+- Memory-efficient caching of projection in TwoLocus
+- Add LD inference using Demes and clean up uncertainty calculations for SFS inference
+  using demes
+
 1.1.9
 =====
 
