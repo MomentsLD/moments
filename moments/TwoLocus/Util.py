@@ -441,6 +441,10 @@ def _compute_pi2(F, proj, nA, nB):
 
 
 def compute_D_threshold(F, proj=True, thresh=None):
+    """
+    Given a frequency spectrum, compute D over all frequencies
+    with nA and nB <= thresh.
+    """
     if thresh is None:
         return _compute_D(F, proj, None, None)
     else:
@@ -452,6 +456,10 @@ def compute_D_threshold(F, proj=True, thresh=None):
 
 
 def compute_D2_threshold(F, proj=True, thresh=None):
+    """
+    Given a frequency spectrum, compute D2 over all frequencies
+    with nA and nB <= thresh.
+    """
     if thresh is None:
         return _compute_D2(F, proj, None, None)
     else:
@@ -463,6 +471,10 @@ def compute_D2_threshold(F, proj=True, thresh=None):
 
 
 def compute_Dz_threshold(F, proj=True, thresh=None):
+    """
+    Given a frequency spectrum, compute Dz over all frequencies
+    with nA and nB <= thresh.
+    """
     if thresh is None:
         return _compute_Dz(F, proj, None, None)
     else:
@@ -474,6 +486,10 @@ def compute_Dz_threshold(F, proj=True, thresh=None):
 
 
 def compute_pi2_threshold(F, proj=True, thresh=None):
+    """
+    Given a frequency spectrum, compute pi2 over all frequencies
+    with nA and nB <= thresh.
+    """
     if thresh is None:
         return _compute_pi2(F, proj, None, None)
     else:
@@ -482,3 +498,93 @@ def compute_pi2_threshold(F, proj=True, thresh=None):
             for nB in range(1, thresh + 1):
                 stat += _compute_pi2(F, proj, nA, nB)
         return stat
+
+
+def compute_D_conditional(F, proj=True, nAmin=None, nAmax=None, nBmin=None, nBmax=None):
+    """
+    Given a frequency spectrum, compute D over all frequencies
+    given by the conditions.
+    If a condition is None, that condition is not constrained.
+    """
+    if nAmin is None:
+        nAmin = 1
+    if nAmax is None:
+        nAmax = F.sample_size - 1
+    if nBmin is None:
+        nBmin = 1
+    if nBmax is None:
+        nBmax = F.sample_size - 1
+    stat = 0
+    for nA in range(nAmin, nAmax + 1):
+        for nB in range(nBmin, nBmax + 1):
+            stat += _compute_D(F, proj, nA, nB)
+    return stat
+
+
+def compute_D2_conditional(
+    F, proj=True, nAmin=None, nAmax=None, nBmin=None, nBmax=None
+):
+    """
+    Given a frequency spectrum, compute D2 over all frequencies
+    given by the conditions.
+    If a condition is None, that condition is not constrained.
+    """
+    if nAmin is None:
+        nAmin = 1
+    if nAmax is None:
+        nAmax = F.sample_size - 1
+    if nBmin is None:
+        nBmin = 1
+    if nBmax is None:
+        nBmax = F.sample_size - 1
+    stat = 0
+    for nA in range(nAmin, nAmax + 1):
+        for nB in range(nBmin, nBmax + 1):
+            stat += _compute_D2(F, proj, nA, nB)
+    return stat
+
+
+def compute_Dz_conditional(
+    F, proj=True, nAmin=None, nAmax=None, nBmin=None, nBmax=None
+):
+    """
+    Given a frequency spectrum, compute Dz over all frequencies
+    given by the conditions.
+    If a condition is None, that condition is not constrained.
+    """
+    if nAmin is None:
+        nAmin = 1
+    if nAmax is None:
+        nAmax = F.sample_size - 1
+    if nBmin is None:
+        nBmin = 1
+    if nBmax is None:
+        nBmax = F.sample_size - 1
+    stat = 0
+    for nA in range(nAmin, nAmax + 1):
+        for nB in range(nBmin, nBmax + 1):
+            stat += _compute_Dz(F, proj, nA, nB)
+    return stat
+
+
+def compute_pi2_conditional(
+    F, proj=True, nAmin=None, nAmax=None, nBmin=None, nBmax=None
+):
+    """
+    Given a frequency spectrum, compute pi2 over all frequencies
+    given by the conditions.
+    If a condition is None, that condition is not constrained.
+    """
+    if nAmin is None:
+        nAmin = 1
+    if nAmax is None:
+        nAmax = F.sample_size - 1
+    if nBmin is None:
+        nBmin = 1
+    if nBmax is None:
+        nBmax = F.sample_size - 1
+    stat = 0
+    for nA in range(nAmin, nAmax + 1):
+        for nB in range(nBmin, nBmax + 1):
+            stat += _compute_pi2(F, proj, nA, nB)
+    return stat

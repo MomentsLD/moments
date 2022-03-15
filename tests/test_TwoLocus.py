@@ -208,6 +208,9 @@ class TestLowOrderStats(unittest.TestCase):
             D_1 = F.D(proj=False)
             D_2 = F.D(proj=False, nA=nA, nB=nB)
             self.assertTrue(np.isclose(D_1, D_2))
+            D_1 = moments.TwoLocus.Util.compute_D_threshold(F, thresh=5)
+            D_2 = moments.TwoLocus.Util.compute_D_conditional(F, nAmax=5, nBmax=5)
+            self.assertTrue(np.isclose(D_1, D_2))
 
     def test_D2_conditioned(self):
         n = 10
@@ -221,6 +224,9 @@ class TestLowOrderStats(unittest.TestCase):
             self.assertTrue(np.isclose(D2_1, D2_2))
             D2_1 = F.D2(proj=False)
             D2_2 = F.D2(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(D2_1, D2_2))
+            D2_1 = moments.TwoLocus.Util.compute_D2_threshold(F, thresh=5)
+            D2_2 = moments.TwoLocus.Util.compute_D2_conditional(F, nAmax=5, nBmax=5)
             self.assertTrue(np.isclose(D2_1, D2_2))
 
     def test_Dz_conditioned(self):
@@ -236,6 +242,9 @@ class TestLowOrderStats(unittest.TestCase):
             Dz_1 = F.Dz(proj=False)
             Dz_2 = F.Dz(proj=False, nA=nA, nB=nB)
             self.assertTrue(np.isclose(Dz_1, Dz_2))
+            Dz_1 = moments.TwoLocus.Util.compute_Dz_threshold(F, thresh=5)
+            Dz_2 = moments.TwoLocus.Util.compute_Dz_conditional(F, nAmax=5, nBmax=5)
+            self.assertTrue(np.isclose(Dz_1, Dz_2))
 
     def test_pi2_conditioned(self):
         n = 10
@@ -249,6 +258,9 @@ class TestLowOrderStats(unittest.TestCase):
             self.assertTrue(np.isclose(pi2_1, pi2_2))
             pi2_1 = F.pi2(proj=False)
             pi2_2 = F.pi2(proj=False, nA=nA, nB=nB)
+            self.assertTrue(np.isclose(pi2_1, pi2_2))
+            pi2_1 = moments.TwoLocus.Util.compute_pi2_threshold(F, thresh=5)
+            pi2_2 = moments.TwoLocus.Util.compute_pi2_conditional(F, nAmax=5, nBmax=5)
             self.assertTrue(np.isclose(pi2_1, pi2_2))
 
 
