@@ -2040,9 +2040,10 @@ class Spectrum(numpy.ma.masked_array):
     @staticmethod
     def from_demes(
         g,
-        sampled_demes,
-        sample_sizes,
+        sampled_demes=None,
+        sample_sizes=None,
         sample_times=None,
+        samples=None,
         Ne=None,
         unsampled_n=4,
         gamma=None,
@@ -2121,6 +2122,22 @@ class Spectrum(numpy.ma.masked_array):
             dg = demes.load(g)
         else:
             dg = g
+
+        if samples is None:
+            if sampled_demes is None or sample_sizes is None:
+                raise ValueError(
+                    "must specify either samples (as a dict mapping demes to sample sizes,"
+                    " or specify both sampled_demes and sample_times"
+                )
+        elif samples is not None:
+            if type(samples) is not dict:
+                raise ValueError("samples must be a dict mapping demes to sample sizes")
+            if sampled_demes is not None or sample_sizes is not None:
+                raise ValueError(
+                    "if samples is given, cannot specify sampled_demes or sample_sizes"
+                )
+            sampled_demes = list(samples.keys())
+            sample_sizes = list(samples.values())
 
         fs = Demes.SFS(
             dg,
