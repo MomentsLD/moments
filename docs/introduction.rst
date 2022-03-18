@@ -64,6 +64,7 @@ Change log
 1.1.10
 ======
 
+- Add warnings and exceptions if bins are improperly defined in LD.Parsing (Issue #99).
 - Remove ``ld_extensions`` flag from installation so that all extensions are built
   automatically.
 - Pin cython to ~0.29 until recursion error is fixed

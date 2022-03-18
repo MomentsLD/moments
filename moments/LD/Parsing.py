@@ -1249,9 +1249,15 @@ def compute_ld_statistics(
 
     check_imports()
 
-    if not np.all([r1 - r0 > 0 for r0, r1 in zip(r_bins[:-1], r_bins[1:])]):
-        raise ValueError("r_bins must be a monotonically increasing list")
-
+    if r_bins is None and bp_bins is None:
+        warnings.warn(
+            "Both r_bins and bp_pins are None, so no LD statistics will be computed"
+        )
+        bins = []
+    elif r_bins is not None:
+        if bp_bins is not None:
+            raise ValueError("Can specify only recombination or bp bins, not both")
+   
     positions, genotypes, counts, sample_ids = get_genotypes(
         vcf_file,
         bed_file=bed_file,
@@ -1282,6 +1288,9 @@ def compute_ld_statistics(
             bins = bp_bins
         else:
             bins = []
+    
+    if not np.all([b1 - b0 > 0 for b0, b1 in zip(bins[:-1], bins[1:])]):
+        raise ValueError("bins must be a monotonically increasing list")
 
     reported_stats = _get_reported_stats(
         genotypes,
