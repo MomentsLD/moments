@@ -1835,9 +1835,21 @@ class Spectrum(numpy.ma.masked_array):
                 pop_contribs.append(contrib)
             fs += functools.reduce(operator.mul, pop_contribs)
         fsout = Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
+        assert np.all(fsout >= 0)
         if polarized:
+            if np.sum(fsout) == 0:
+                warnings.warn(
+                    "Spectrum is empty. Did you compute the outgroup alleles "
+                    "at variable sites?",
+                    warnings.RuntimeWarning,
+                )
             return fsout
         else:
+            if np.sum(fsout) == 0:
+                warnings.warn(
+                    "Spectrum is empty. Check input data dictionary.",
+                    warnings.RuntimeWarning,
+                )
             return fsout.fold()
 
     @staticmethod
