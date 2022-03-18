@@ -134,8 +134,6 @@ additionally install
 
 - scikit-allel
 
-and you will need to build the extensions using the ``--ld_extensions`` flag.
-
 ## Changelog
 
 All changes are detailed in the

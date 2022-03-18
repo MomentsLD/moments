@@ -742,7 +742,9 @@ projected to size 30.
     rho = 1
 
     F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
-    F_proj = F.project(n_proj)
+    # by default, we usually cache projection steps, but set cache=False here to
+    # save on memory usage
+    F_proj = F.project(n_proj, cache=False)
     counts, pAB = moments.TwoLocus.Util.pAB(F_proj, nA, nB)
     pAB /= pAB.sum()
 
