@@ -76,6 +76,15 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
     import numpy as np
     ooa_model = "../tests/test_files/gutenkunst_ooa.yaml"
 
+    # we can visualize the model using demesdraw
+    import demes, demesdraw, matplotlib.pylab as plt
+    graph = demes.load(ooa_model)
+    demesdraw.tubes(graph, log_time=True, num_lines_per_migration=3);
+
+Let's simulate 10 samples from each YRI, CEU, and CHB:
+
+.. code-block::
+
     sampled_demes = ["YRI", "CEU", "CHB"]
     sample_sizes = [10, 10, 10]
 
@@ -83,14 +92,30 @@ Let's simulate 10 samples from each YRI, CEU, and CHB:
         ooa_model, sampled_demes=sampled_demes, sample_sizes=sample_sizes
     )
 
-    print(fs.pop_ids)
-    print(fs.sample_sizes)
-    print("FST(CEU, CHB) =", f"{fs.marginalize([0]).Fst():.3}")
+    print("populations:", fs.pop_ids)
+    print("sample sizes:", fs.sample_sizes)
+    print("FST:")
+    for k, v in fs.Fst(pairwise=True).items():
+        print(f"  {k[0]}, {k[1]}: {v:.3f}")
+
+.. jupyter-execute::
+    :hide-code:
+
+    sampled_demes = ["YRI", "CEU", "CHB"]
+    sample_sizes = [10, 10, 10]
+
+    fs = moments.Spectrum.from_file("./data/ooa.10.10.10.fs")
+
+    print("populations:", fs.pop_ids)
+    print("sample sizes:", fs.sample_sizes)
+    print("FST:")
+    for k, v in fs.Fst(pairwise=True).items():
+        print(f"  {k[0]}, {k[1]}: {v:.3f}")
 
 It's that simple. We can also simulate data for a subset of the populations,
 while still accounting for migration with other non-sampled populations:
 
-.. jupyter-execute::
+.. code-block::
 
     sampled_demes = ["YRI"]
     sample_sizes = [40]
@@ -98,36 +123,89 @@ while still accounting for migration with other non-sampled populations:
     fs_yri = moments.Spectrum.from_demes(
          ooa_model, sampled_demes=sampled_demes, sample_sizes=sample_sizes
     )
- 
-    print(fs_yri.pop_ids)
-    print(fs_yri.sample_sizes)
+
+    print("populations:", fs_yri.pop_ids)
+    print("sample sizes:", fs_yri.sample_sizes)
     print("Tajima's D =", f"{fs_yri.Tajima_D():.3}")
+
+.. jupyter-execute::
+    :hide-code:
+
+    sampled_demes = ["YRI"]
+    sample_sizes = [40]
+
+    fs_yri = moments.Spectrum.from_file("./data/ooa.yri.40.fs")
+
+    print("populations:", fs_yri.pop_ids)
+    print("sample sizes:", fs_yri.sample_sizes)
+    print("Tajima's D =", f"{fs_yri.Tajima_D():.3}")
+
+Ancient samples
+===============
 
 Or sample a combination of ancient and modern samples from a population:
 
+.. code-block::
+
+    sampled_demes = ["CEU", "CEU"]
+    sample_sizes = [10, 10]
+    # sample size of 10 from present and 10 from 20,000 years ago
+    sample_times = [0, 20000]
+
+    fs_ancient = moments.Spectrum.from_demes(
+         ooa_model,
+         sampled_demes=sampled_demes,
+         sample_sizes=sample_sizes, 
+         sample_times=sample_times,
+    )
+
+    print("populations:", fs.pop_ids)
+    print("sample sizes:", fs.sample_sizes)
+    print("FST(current, ancient) =", f"{fs.Fst():.3}")
+
 .. jupyter-execute::
+    :hide-code:
 
     sampled_demes = ["CEU", "CEU"]
     sample_sizes = [10, 10]
     # sample 10 from present, 10 from 20,000 years ago
     sample_times = [0, 20000]
 
-    fs = moments.Spectrum.from_demes(
-         ooa_model,
-         sampled_demes=sampled_demes,
-         sample_sizes=sample_sizes, 
-         sample_times=sample_times
-    )
+    fs = moments.Spectrum.from_file("./data/ooa.ceu_ancient.10.10.fs")
 
-    print(fs.pop_ids)
-    print(fs.sample_sizes)
+    print("populations:", fs.pop_ids)
+    print("sample sizes:", fs.sample_sizes)
     print("FST(current, ancient) =", f"{fs.Fst():.3}")
 
 Note the population IDs, which are appended with "_sampled_{at_time}" where
-"at_time" is the generation, as a float with an underscore replacing the
-decimal.
+"at_time" is the generation or year (depending on the time unit of the model),
+as a float with an underscore replacing the decimal (here, 20000.0 years ago).
 
-We can similarly compute :ref:`LD statistics <sec_ld>`:
+Alternative samples specification
+=================================
+
+By specifying sampled demes, sample sizes, and sample times, we have a lot
+of flexibility over the sampling scheme. Samples can more simply be specified
+as a dictionary, with one key per sampled population and values specifying
+sample sizes. This dictionary is passed to the ``from_demes`` function using
+the ``samples`` keyword, and it cannot be used in conjunction with sample times.
+As such, samples are taken at the end time (most recent time) of each population.
+
+.. code-block::
+
+    samples = {"YRI": 10, "CEU": 20, "CHB": 30, "OOA": 10}
+    fs = moments.Spectrum.from_demes(ooa_model, samples=samples)
+
+Here, samples from YRI, CEU, and CHB are taken from time zero, and the OOA
+sample is taken from just before its split into the CEU and CHB branches.
+
+Linkage disequilibrium
+======================
+
+We can similarly compute :ref:`LD statistics <sec_ld>`. Here, we compute
+the set of multi-population Hill-Robertson statistics for the three
+contemporary populations (YRI, CEU, and CHB), for three different
+recombination rates, :math:`\rho=4Nr=0, 1, 2`.
 
 .. jupyter-execute::
 
@@ -138,23 +216,22 @@ We can similarly compute :ref:`LD statistics <sec_ld>`:
         ooa_model, sampled_demes=sampled_demes, rho=[0, 1, 2]
     )
 
-    print(y.num_pops)
-    print(y.pop_ids)
+    print("sampled populations:", y.pop_ids)
 
 Selection and dominance in Demes.SFS
 ====================================
 
-Moments can compute the SFS under selection and dominance, and while the
-``demes`` model format has no way of specifying selection parameters for
-different populations, we can still simulate the expected SFS with selection
-and dominance.
+Moments can compute the SFS under selection and dominance. The ``demes`` model
+format currently lets us specify a single selection and dominance coefficient
+for each population in the model, or we can set different selection parameters
+in each populations.
 
 The most simple scenario is to specify a single selection and dominance
 parameter that applied to all populations in the demographic model. In this
 case, we can pass ``gamma`` and/or ``h`` as scalar values to the function
 ``moments.Spectrum.from_demes()``:
 
-.. jupyter-execute::
+.. code-block::
 
     sampled_demes = ["YRI"]
     sample_sizes = [40]
@@ -168,6 +245,20 @@ case, we can pass ``gamma`` and/or ``h`` as scalar values to the function
          gamma=gamma,
          h=h
     )
+
+.. jupyter-execute::
+    :hide-code:
+
+    sampled_demes = ["YRI"]
+    sample_sizes = [40]
+    gamma = 10  # positive selection, 2*N*s = 10
+    h = 0.1  # partially recessive
+
+    fs_yri_sel = moments.Spectrum.from_file("./data/ooa.yri.40.sel.fs")
+
+We can compare the neutral and selected spectra:
+
+.. jupyter-execute::
 
     # compare to neutral SFS for YRI
     fig = plt.figure()
@@ -184,13 +275,14 @@ different populations by specifying ``gamma`` and ``h`` as dictionaries mapping
 population names to the coefficients. There can be as many different
 coefficient values as there are different demes in the demographic model.
 However, if a population is missing from the dictionary, it is assigned the
-default selection or dominance coefficient (0 or 1/2, resp.).
+default selection or dominance coefficient. In most cases the default values
+are :math:`\gamma = 0` and :math:`h=1/2`, but these can be changed by specifying
+a ``_default`` value in the selection and dominance dictionaries.
 
 For example:
 
 .. jupyter-execute::
 
-    import demes
     g = demes.load("data/im-parsing-example.yaml")
     print(g)
 
@@ -444,7 +536,10 @@ spectrum.
     data = all_data["spectra"]["syn"]
     data.pop_ids = ["MSL"]
     uL = all_data["rates"]["syn"]
-    print("scaled mutation rate:", uL)
+    print("scaled mutation rate (u_syn * L):", uL)
+
+    # project down to a smaller sample size, for illustration purposes
+    data = data.project([30])
 
 We'll fit a demographic model that includes an ancient expansion and a more
 recent exponential growth. This initial model is stored in the docs/data
@@ -505,7 +600,7 @@ plotting features:
 
 .. jupyter-execute::
 
-    fs = moments.Spectrum.from_demes(output, ["MSL"], data.sample_sizes)
+    fs = moments.Spectrum.from_demes(output, samples={"MSL": data.sample_sizes})
     fs = moments.Misc.flip_ancestral_misid(fs, opt_params[-1])
     moments.Plotting.plot_1d_comp_multinom(fs, data)
 
@@ -678,6 +773,8 @@ options:
                 1.15135391e-03]),
         1296.725088604149
     )
+
+Printing the results of this inference run:
 
 .. jupyter-execute::
 

@@ -1516,7 +1516,7 @@ class TestSamplesSpecification(unittest.TestCase):
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
-    def test_samples(self):
+    def test_samples_equivalence(self):
         graph = demes.load(
             os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yaml")
         )
@@ -1527,3 +1527,20 @@ class TestSamplesSpecification(unittest.TestCase):
             graph, sampled_demes=["YRI", "CEU", "CHB"], sample_sizes=[8, 10, 12]
         )
         assert np.allclose(fs1, fs2)
+
+    def test_bad_samples(self):
+        graph = demes.load(
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yaml")
+        )
+
+        with self.assertRaises(ValueError):
+            samples = {"JPT": 10}
+            fs = moments.Spectrum.from_demes(graph, samples=samples)
+        with self.assertRaises(ValueError):
+            samples = {"CEU": 8}
+            fs = moments.Spectrum.from_demes(graph, samples=samples, sample_times=[1])
+        with self.assertRaises(ValueError):
+            samples = {"CEU": 10}
+            fs = moments.Spectrum.from_demes(
+                graph, samples=samples, sampled_demes=["YRI"], sample_sizes=[10]
+            )

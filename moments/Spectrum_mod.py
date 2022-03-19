@@ -2146,7 +2146,12 @@ class Spectrum(numpy.ma.masked_array):
                 raise ValueError("samples must be a dict mapping demes to sample sizes")
             if sampled_demes is not None or sample_sizes is not None:
                 raise ValueError(
-                    "if samples is given, cannot specify sampled_demes or sample_sizes"
+                    "if samples is given as dict, cannot "
+                    "specify sampled_demes or sample_sizes"
+                )
+            if sample_times is not None:
+                raise ValueError(
+                    "if samples is given as dict, cannot specify sample times"
                 )
             sampled_demes = list(samples.keys())
             sample_sizes = list(samples.values())
