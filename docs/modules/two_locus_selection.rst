@@ -21,6 +21,7 @@ explore what we can do with the two-locus methods available in ``moments.TwoLocu
     import moments.TwoLocus
     import numpy as np
     import matplotlib.pylab as plt
+    import pickle, gzip
 
 .. jupyter-execute::
     :hide-code:
@@ -152,7 +153,7 @@ left and right loci, respectively [Ohta]_:
 .. jupyter-execute::
 
     rho = 0
-    n = 20
+    n = 10
     Psi = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
     sigma_d2 = Psi.D2() / Psi.pi2()
     print(r"moments.TwoLocus $\sigma_d^2$, $r=0$:", sigma_d2)
@@ -252,7 +253,9 @@ marginal distribution will depend on :math:`\rho`:
 
     fig = plt.figure(figsize=(12, 4))
     for ii, rho in enumerate(rhos):
-        F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        # results are cached, having used the following line to create the spectra
+        # F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)
+        F = pickle.load(gzip.open(f"./data/two-locus/eq.n_{n}.rho_{rho}.fs.gz", "rb"))
         counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
         pAB /= pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
@@ -690,7 +693,13 @@ sampling distribution with low frequencies at the two loci. For doubletons at bo
         pABs = {}
         for eps in epsilon:
             sel_params = moments.TwoLocus.Util.additive_epistasis(gammas[0], epsilon=eps)
-            F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
+            # F = moments.TwoLocus.Demographics.equilibrium(
+            #     n, rho=rho, sel_params=sel_params)
+            F = pickle.load(gzip.open(
+                f"./data/two-locus/eq.n_{n}.rho_{rho}.sel_"
+                + "_".join([str(s) for s in sel_params])
+                + ".fs.gz",
+                "rb"))
             counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
             pABs[eps] = pAB / pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
@@ -712,7 +721,13 @@ sampling distribution with low frequencies at the two loci. For doubletons at bo
         pABs = {}
         for eps in epsilon:
             sel_params = moments.TwoLocus.Util.additive_epistasis(gammas[1], epsilon=eps)
-            F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
+            # F = moments.TwoLocus.Demographics.equilibrium(
+            #     n, rho=rho, sel_params=sel_params)
+            F = pickle.load(gzip.open(
+                f"./data/two-locus/eq.n_{n}.rho_{rho}.sel_"
+                + "_".join([str(s) for s in sel_params])
+                + ".fs.gz",
+                "rb"))
             counts, pAB = moments.TwoLocus.Util.pAB(F, nA, nB)
             pABs[eps] = pAB / pAB.sum()
         ax = plt.subplot(1, 3, ii + 1)
@@ -960,16 +975,17 @@ References
     human genome." *bioRxiv* (2020).
 
 .. [Good]
-    Good, Benjamin H. "Linkage disequilibrium between rare mutations." bioRxiv (2020).
+    Good, Benjamin H. "Linkage disequilibrium between rare mutations."
+    *Genetics* (2022).
 
 .. [Hudson]
     Hudson, Richard R. "Two-locus sampling distributions and their application."
-    Genetics 159.4 (2001): 1805-1817.
+    *Genetics* 159.4 (2001): 1805-1817.
 
 .. [Ohta]
     Ohta, Tomoko, and Motoo Kimura. "Linkage disequilibrium between two segregating
     nucleotide sites under the steady flux of mutations in a finite population."
-    Genetics 68.4 (1971): 571.
+    *Genetics* 68.4 (1971): 571.
 
 .. [Ragsdale_Gutenkunst]
     Ragsdale, Aaron P. and Ryan N. Gutenkunst. "Inferring demographic history using
