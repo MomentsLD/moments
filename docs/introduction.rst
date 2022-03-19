@@ -61,6 +61,18 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.10
+======
+
+- Add warnings and exceptions if bins are improperly defined in LD.Parsing (Issue #99).
+- Remove ``ld_extensions`` flag from installation so that all extensions are built
+  automatically.
+- Pin cython to ~0.29 until recursion error is fixed
+- Allow samples to be specified with a dictionary for SFS calculation with Demes
+- Memory-efficient caching of projection in TwoLocus
+- Add LD inference using Demes and clean up uncertainty calculations for SFS inference
+  using demes
+
 1.1.9
 =====
 

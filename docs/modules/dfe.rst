@@ -142,7 +142,7 @@ Let's fit a model with three epochs: the ancestral size, an ancient expansion, a
 recent exponential growth. In fitting the demography, we keep ``multinom=True``, the
 default, as we don't have an estimate for :math:`N_e`.
 
-.. jupyter-execute::
+.. code-block:: python
 
     def model_func(params, ns):
         nuA, nuF, TA, TF, p_misid = params
@@ -168,6 +168,28 @@ default, as we don't have an estimate for :math:`N_e`.
     print("optimal demog. parameters:", opt_params[:-1])
     print("anc misid:", opt_params[-1])
     print("inferred Ne:", f"{Ne:.2f}")
+
+.. jupyter-execute::
+    :hide-code:
+
+    def model_func(params, ns):
+        nuA, nuF, TA, TF, p_misid = params
+        fs = moments.Demographics1D.snm(ns)
+        fs.integrate([nuA], TA)
+        nu_func = lambda t: [nuA * np.exp(np.log(nuF / nuA) * t / TF)]
+        fs.integrate(nu_func, TF)
+        fs = (1 - p_misid) * fs + p_misid * fs[::-1]
+        return fs
+
+    opt_params = np.array([2.21531687, 5.29769918, 0.55450117, 0.04088086, 0.01975812])
+    model = model_func(opt_params, fs_syn.sample_sizes)
+    opt_theta = moments.Inference.optimal_sfs_scaling(model, fs_syn)
+    Ne = opt_theta / u_syn / 4
+
+    print("optimal demog. parameters:", opt_params[:-1])
+    print("anc misid:", opt_params[-1])
+    print("inferred Ne:", f"{Ne:.2f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model, fs_syn))
 
 Note that I initialized the model parameters fairly close to the optimal parameters.
 In practice, you would want to test a wide range of initial conditions to make sure
@@ -292,7 +314,7 @@ distribution and the misidentification rate.
 
 Fit missense variants:
 
-.. jupyter-execute::
+.. code-block:: python
 
     p_guess = [0.2, 1000, 0.01]
     lower_bound = [1e-4, 1e-1, 1e-3]
@@ -308,6 +330,23 @@ Fit missense variants:
     print("shape:", f"{opt_params_mis[0]:.4f}")
     print("scale:", f"{opt_params_mis[1]:.1f}")
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_mis, fs_mis))
+
+.. jupyter-execute::
+    :hide-code:
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_mis = np.array([1.59550408e-01, 2.33231532e+03, 1.37310398e-02])
+
+    model_mis = model_func_missense(opt_params_mis, fs_mis.sample_sizes)
+    print("optimal parameters:")
+    print("shape:", f"{opt_params_mis[0]:.4f}")
+    print("scale:", f"{opt_params_mis[1]:.1f}")
+    print("anc misid:", f"{opt_params_mis[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_mis, fs_mis))
 
 To visualize the fit of our inferred model to the missense data:
 
@@ -335,6 +374,23 @@ Next, we fit LOF variants in exactly the same way:
     print("shape:", f"{opt_params_lof[0]:.4f}")
     print("scale:", f"{opt_params_lof[1]:.1f}")
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_lof, fs_lof))
+
+.. jupyter-execute::
+    :hide-code:
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_lof = np.array([3.58935584e-01, 7.83048682e+03, 2.05411863e-03])
+
+    model_lof = model_func_lof(opt_params_lof, fs_lof.sample_sizes)
+    print("optimal parameters:")
+    print("shape:", f"{opt_params_lof[0]:.4f}")
+    print("scale:", f"{opt_params_lof[1]:.1f}")
+    print("anc misid:", f"{opt_params_lof[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_lof, fs_lof))
 
 And again we visualize the fit of our inferred model to the LOF data:
 
@@ -386,7 +442,10 @@ inference to check if the results are robust. We'll first fit a two-epoch model 
 accounting for ancestral misidentification), and then simply use a standard neutral
 model without size changes.
 
-.. jupyter-execute::
+Throughout this section, we again print log-likelihoods of the fits, which can
+be compared to the fits made with the more complex demographic model above.
+
+.. code-block:: python
 
     def model_func(params, ns):
         nu, T, p_misid = params
@@ -409,6 +468,30 @@ model without size changes.
     print("optimal demog. parameters:", opt_params[:-1])
     print("anc misid:", opt_params[-1])
     print("inferred Ne:", f"{Ne:.2f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model, fs_syn))
+    # compare log-likelihood to the more complex demographic model above
+
+    moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
+
+.. jupyter-execute::
+    :hide-code:
+
+    def model_func(params, ns):
+        nu, T, p_misid = params
+        fs = moments.Demographics1D.two_epoch([nu, T], ns)
+        fs = (1 - p_misid) * fs + p_misid * fs[::-1]
+        return fs
+
+    opt_params = np.array([2.55501781, 0.31744642, 0.01842965])
+
+    model = model_func(opt_params, fs_syn.sample_sizes)
+    opt_theta = moments.Inference.optimal_sfs_scaling(model, fs_syn)
+    Ne = opt_theta / u_syn / 4
+
+    print("optimal demog. parameters:", opt_params[:-1])
+    print("anc misid:", opt_params[-1])
+    print("inferred Ne:", f"{Ne:.2f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model, fs_syn))
 
     moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
 
@@ -473,7 +556,7 @@ Set up the mutation rates and DFE functions:
 
 Fit the missense data:
 
-.. jupyter-execute::
+.. code-block:: python
 
     p_guess = [0.2, 1000, 0.01]
     lower_bound = [1e-4, 1e-1, 1e-3]
@@ -489,12 +572,31 @@ Fit the missense data:
     print("shape:", f"{opt_params_mis[0]:.4f}")
     print("scale:", f"{opt_params_mis[1]:.1f}")
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_mis, fs_mis))
+
+    moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")
+
+.. jupyter-execute::
+    :hide-code:
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_mis = np.array([1.83042059e-01, 7.33570409e+02, 1.33573451e-02])
+
+    model_mis = model_func_missense(opt_params_mis, fs_mis.sample_sizes)
+    print("optimal parameters (missense):")
+    print("shape:", f"{opt_params_mis[0]:.4f}")
+    print("scale:", f"{opt_params_mis[1]:.1f}")
+    print("anc misid:", f"{opt_params_mis[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_mis, fs_mis))
 
     moments.Plotting.plot_1d_comp_Poisson(model_mis, fs_mis, residual="linear")
 
 Fit the LOF data:
 
-.. jupyter-execute::
+.. code-block:: python
 
     p_guess = [0.2, 1000, 0.01]
     lower_bound = [1e-4, 1e-1, 1e-3]
@@ -510,6 +612,25 @@ Fit the LOF data:
     print("shape:", f"{opt_params_lof[0]:.4f}")
     print("scale:", f"{opt_params_lof[1]:.1f}")
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_lof, fs_lof))
+
+    moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")
+
+.. jupyter-execute::
+    :hide-code:
+
+    p_guess = [0.2, 1000, 0.01]
+    lower_bound = [1e-4, 1e-1, 1e-3]
+    upper_bound = [1e1, 1e5, 0.999]
+
+    opt_params_lof = np.array([3.93677303e-01, 3.80294314e+03, 2.07511525e-03])
+
+    model_lof = model_func_lof(opt_params_lof, fs_lof.sample_sizes)
+    print("optimal parameters:")
+    print("shape:", f"{opt_params_lof[0]:.4f}")
+    print("scale:", f"{opt_params_lof[1]:.1f}")
+    print("anc misid:", f"{opt_params_lof[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_lof, fs_lof))
 
     moments.Plotting.plot_1d_comp_Poisson(model_lof, fs_lof, residual="linear")
 
@@ -525,9 +646,9 @@ previous findings:
     for s0, s1 in zip(ss[:-1], ss[1:]):
         cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
         cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
-        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        print(f"{s0} <= s < {s1}:", f"{cdf1 - cdf0:.3f}")
         if s1 == ss[-1]:
-            print(f"s >= {s1}:", 1 - cdf1)
+            print(f"s >= {s1}:", f"{1 - cdf1:.3f}")
 
     print()
     print("LOF DFE:")
@@ -537,25 +658,46 @@ previous findings:
     for s0, s1 in zip(ss[:-1], ss[1:]):
         cdf0 = scipy.stats.gamma.cdf(2 * Ne * s0, shape, scale=scale)
         cdf1 = scipy.stats.gamma.cdf(2 * Ne * s1, shape, scale=scale)
-        print(f"{s0} <= s < {s1}:", cdf1 - cdf0)
+        print(f"{s0} <= s < {s1}:", f"{cdf1 - cdf0:.3f}")
         if s1 == ss[-1]:
-            print(f"s >= {s1}:", 1 - cdf1)
+            print(f"s >= {s1}:", f"{1 - cdf1:1.3f}")
 
-Comparing to the table above, these look pretty similar - that's a good sign.
+Comparing to the table above, these look pretty similar - that's a good sign
+that our inferences are fairly robust to slightly poorer fits of the
+demographic model.
 
-Now what if our demographic model is way off?
+But what if our demographic model is way off, such as assuming constant
+population size?
 
 .. jupyter-execute::
 
-    model = moments.Demographics1D.snm(fs_syn.sample_sizes)
+    # here, we'll only fit the ancestral-state misidentification rate
+    def model_func(params, ns):
+        p_misid = params
+        fs = moments.Demographics1D.snm(ns)
+        fs = (1 - p_misid) * fs + p_misid * fs[::-1]
+        return fs
+
+    p_guess = [0.02]
+    lower_bound = [1e-3]
+    upper_bound = [0.999]
+
+    opt_params = moments.Inference.optimize_log_fmin(
+        p_guess, fs_syn, model_func,
+        lower_bound=lower_bound, upper_bound=upper_bound)
+
+    model = model_func(opt_params, fs_syn.sample_sizes)
     opt_theta = moments.Inference.optimal_sfs_scaling(model, fs_syn)
     Ne = opt_theta / u_syn / 4
 
     print("optimal Ne scaling:", f"{Ne:.2f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model, fs_syn))
 
     moments.Plotting.plot_1d_comp_multinom(model, fs_syn, residual="linear")
 
-.. code-block:: python
+Set up the spectrum cache for this constant-size demographic model:
+
+.. jupyter-execute::
 
     def selection_spectrum(gamma):
         fs = moments.LinearSystem_1D.steady_state_1D(fs_syn.sample_sizes[0], gamma=gamma)
@@ -612,6 +754,9 @@ Fit the missense data:
     print("shape:", f"{opt_params_mis[0]:.4f}")
     print("scale:", f"{opt_params_mis[1]:.1f}")
     print("anc misid:", f"{opt_params_mis[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_mis, fs_mis))
+
+    moments.Plotting.plot_1d_comp_multinom(model_mis, fs_mis, residual="linear")
 
 Fit the LOF data:
 
@@ -631,7 +776,9 @@ Fit the LOF data:
     print("shape:", f"{opt_params_lof[0]:.4f}")
     print("scale:", f"{opt_params_lof[1]:.1f}")
     print("anc misid:", f"{opt_params_lof[2]:.4f}")
+    print("Log-likelihood:", moments.Inference.ll_multinom(model_lof, fs_lof))
 
+    moments.Plotting.plot_1d_comp_multinom(model_lof, fs_lof, residual="linear")
 
 And now comparing our results using the standard neutral model as the underlying
 demography:

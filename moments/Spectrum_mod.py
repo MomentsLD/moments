@@ -1835,9 +1835,21 @@ class Spectrum(numpy.ma.masked_array):
                 pop_contribs.append(contrib)
             fs += functools.reduce(operator.mul, pop_contribs)
         fsout = Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
+        assert np.all(fsout >= 0)
         if polarized:
+            if np.sum(fsout) == 0:
+                warnings.warn(
+                    "Spectrum is empty. Did you compute the outgroup alleles "
+                    "at variable sites?",
+                    warnings.RuntimeWarning,
+                )
             return fsout
         else:
+            if np.sum(fsout) == 0:
+                warnings.warn(
+                    "Spectrum is empty. Check input data dictionary.",
+                    warnings.RuntimeWarning,
+                )
             return fsout.fold()
 
     @staticmethod
@@ -2040,9 +2052,10 @@ class Spectrum(numpy.ma.masked_array):
     @staticmethod
     def from_demes(
         g,
-        sampled_demes,
-        sample_sizes,
+        sampled_demes=None,
+        sample_sizes=None,
         sample_times=None,
+        samples=None,
         Ne=None,
         unsampled_n=4,
         gamma=None,
@@ -2121,6 +2134,27 @@ class Spectrum(numpy.ma.masked_array):
             dg = demes.load(g)
         else:
             dg = g
+
+        if samples is None:
+            if sampled_demes is None or sample_sizes is None:
+                raise ValueError(
+                    "must specify either samples (as a dict mapping demes to sample sizes,"
+                    " or specify both sampled_demes and sample_times"
+                )
+        elif samples is not None:
+            if type(samples) is not dict:
+                raise ValueError("samples must be a dict mapping demes to sample sizes")
+            if sampled_demes is not None or sample_sizes is not None:
+                raise ValueError(
+                    "if samples is given as dict, cannot "
+                    "specify sampled_demes or sample_sizes"
+                )
+            if sample_times is not None:
+                raise ValueError(
+                    "if samples is given as dict, cannot specify sample times"
+                )
+            sampled_demes = list(samples.keys())
+            sample_sizes = list(samples.values())
 
         fs = Demes.SFS(
             dg,

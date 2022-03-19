@@ -6,13 +6,6 @@ try:
 except ImportError:
     pass
 
-import sys
-
-if "--ld_extensions" in sys.argv:
-    build_ld_extensions = True
-    sys.argv.remove("--ld_extensions")
-else:
-    build_ld_extensions = False
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -56,30 +49,25 @@ extensions = [
         include_dirs=[np.get_include()],
         extra_compile_args=["-w"],
     ),
+    Extension(
+        "genotype_calculations",
+        ["moments/LD/genotype_calculations.pyx"],
+        include_dirs=[np.get_include()],
+        extra_compile_args=["-w"],
+    ),
+    Extension(
+        "genotype_calculations_multipop",
+        ["moments/LD/genotype_calculations_multipop.pyx"],
+        include_dirs=[np.get_include()],
+        extra_compile_args=["-w"],
+    ),
+    Extension(
+        "sparse_tallying",
+        ["moments/LD/sparse_tallying.pyx"],
+        include_dirs=[np.get_include()],
+        extra_compile_args=["-w"],
+    ),
 ]
-
-# cython extensions for moments.LD
-if build_ld_extensions is True:
-    extensions += [
-        Extension(
-            "genotype_calculations",
-            ["moments/LD/genotype_calculations.pyx"],
-            include_dirs=[np.get_include()],
-            extra_compile_args=["-w"],
-        ),
-        Extension(
-            "genotype_calculations_multipop",
-            ["moments/LD/genotype_calculations_multipop.pyx"],
-            include_dirs=[np.get_include()],
-            extra_compile_args=["-w"],
-        ),
-        Extension(
-            "sparse_tallying",
-            ["moments/LD/sparse_tallying.pyx"],
-            include_dirs=[np.get_include()],
-            extra_compile_args=["-w"],
-        ),
-    ]
 
 setup(
     name="moments",

@@ -1,5 +1,5 @@
 numpy
-cython
+cython~=0.29.0
 scipy
 mpmath
 matplotlib
@@ -7,5 +7,5 @@ ipython
 pandas
 jupyter_sphinx
 demes~=0.2.0
-demesdraw~=0.2.0
+demesdraw~=0.3.0
 ruamel.yaml

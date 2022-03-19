@@ -270,7 +270,7 @@ class TLSpectrum(np.ma.masked_array):
 
     def pi2(self, proj=True, nA=None, nB=None):
         """
-        Return the expectation of :math:`\pi_2 = p(1-p)q(1-q)` from the spectrum.
+        Return the expectation of :math:`\\pi_2 = p(1-p)q(1-q)` from the spectrum.
 
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
@@ -418,7 +418,7 @@ class TLSpectrum(np.ma.masked_array):
         folded.folded = True
         return folded
 
-    def project(self, ns, finite_genome=False):
+    def project(self, ns, finite_genome=False, cache=True):
         """
         Project to smaller sample size.
 
@@ -426,8 +426,8 @@ class TLSpectrum(np.ma.masked_array):
         param bool finite_genome: If we also track proportions in fixed bins.
         """
         if finite_genome:
-            raise ValueError("Projection with finite genome not supported")
-        data = Numerics.project(self, ns)
+            raise ValueError("Projection with finite genome is not currently supported")
+        data = Numerics.project(self, ns, cache=cache)
         output = TLSpectrum(data, mask_infeasible=True)
         return output
 
