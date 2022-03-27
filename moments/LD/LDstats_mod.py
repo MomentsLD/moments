@@ -152,6 +152,10 @@ class LDstats(list):
     def f2(self, X, Y):
         """
         Returns :math:`f_2(X, Y) = (X-Y)^2`.
+
+        X, and Y can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
         :param X: One of the populations, as index or population ID.
         :param Y: The other population, as index or population ID.
         """
@@ -180,9 +184,63 @@ class LDstats(list):
         H_XY = self.H()[stats.index(f"H_{X}_{Y}")]
         return H_XY - H_X / 2 - H_Y / 2
 
+    def f3(self, X, Y, Z):
+        """
+        Returns :math:`f_3(X; Y, Z) = (X-Y)(X-Z)`. A significantly negative
+        :math:`f_3` of this form suggests that population X is the result
+        of admixture between ancient populations related to Y and Z. A positive
+        value suggests that X is an outgroup to Y and Z.
+
+        X, Y, and Z can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: The "test" population, as index or population ID.
+        :param Y: The first reference population, as index or population ID.
+        :param Z: The second reference population, as index or population ID.
+        """
+        if type(X) is str:
+            if type(Y) is not str or type(Z) is not str:
+                raise ValueError("Inputs must be all strings or all indexes")
+            for _ in [X, Y, Z]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} not in pop_ids: {self.pop_ids}")
+            X = self.pop_ids.index(X)
+            Y = self.pop_ids.index(Y)
+            Z = self.pop_ids.index(Z)
+        elif type(X) is int:
+            if type(Y) is not int or type(Z) is not int:
+                raise ValueError("Inputs must be all strings or all indexes")
+            if (
+                X < 0
+                or Y < 0
+                or Z < 0
+                or X >= self.num_pops
+                or Y >= self.num_pops
+                or Z >= self.num_pops
+            ):
+                raise ValueError("Population indexes out of bounds")
+        else:
+            raise ValueError("Inputs must be all strings or all indexes")
+
+        stats = self.names()[1]
+        H_XX = self.H()[stats.index(Util.map_moment(f"H_{X}_{X}"))]
+        H_XY = self.H()[stats.index(Util.map_moment(f"H_{X}_{Y}"))]
+        H_XZ = self.H()[stats.index(Util.map_moment(f"H_{X}_{Z}"))]
+        H_YZ = self.H()[stats.index(Util.map_moment(f"H_{Y}_{Z}"))]
+
+        return (H_XY + H_XZ - H_XX - H_YZ) / 2
+
     def f4(self, X, Y, Z, W):
         """
         Returns :math:`f_4(X, Y; Z, W) = (X-Y)(Z-W)`.
+
+        X, Y, and Z can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: The "test" population, as index or population ID.
+        :param Y: The first reference population, as index or population ID.
+        :param Z: The second reference population, as index or population ID.
+        :param W:
         """
         if type(X) is str:
             if type(Y) is not str or type(Z) is not str or type(W) is not str:
@@ -233,8 +291,12 @@ class LDstats(list):
         :param new_ids: List of child population names, of length two.
         :type new_ids: list of strings, optional
         """
-        if pop_to_split > self.num_pops:
-            raise ValueError("population to split larger than number of pops")
+        if type(pop_to_split) is not int:
+            raise ValueError("population to split must be an integer index")
+        if pop_to_split < 0:
+            raise ValueError("population to split must be a nonnegative index")
+        if pop_to_split >= self.num_pops:
+            raise ValueError("population to split is greater than maximum index")
 
         h = self[-1]
         ys = self[:-1]

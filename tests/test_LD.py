@@ -411,3 +411,22 @@ class CopyAndPickle(unittest.TestCase):
         for x1, x2 in zip(y[:], y2[:]):
             self.assertTrue(np.all(x1 == x2))
         os.remove(temp_file)
+
+
+class FStatistics(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_equivalenc(self):
+        y = moments.LD.Demographics2D.snm()
+        y = y.split(1)
+        y.integrate([1, 2, 3], 0.2)
+        self.assertTrue(y.f2(0, 1) == y.f3(0, 1, 1))
+        self.assertTrue(y.f2(0, 1) == y.f2(1, 0))
+        self.assertTrue(y.f2(0, 1) == y.f3(1, 0, 0))
+        self.assertTrue(y.f2(0, 1) == y.f4(0, 1, 0, 1))
+        self.assertTrue(y.f2(0, 1) == -y.f4(0, 1, 1, 0))
