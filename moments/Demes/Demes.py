@@ -202,7 +202,7 @@ def SFS(
     )
 
     fs = _reorder_fs(fs, sampled_pops)
-    
+
     # project down to desired sample sizes, if needed
     fs = fs.project(sample_sizes)
     # simplify pop id name if ancient sample at end time of that deme
@@ -333,7 +333,7 @@ def LD(
     )
 
     y = _reorder_LD(y, sampled_pops)
-    
+
     # simplify pop id name if ancient sample at end time of that deme
     for ii, pid in enumerate(y.pop_ids):
         if "_sampled_" in pid:
@@ -445,10 +445,7 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     # dest deme into two demes)
     demo_events = defaultdict(list)
     for pulse in demes_demo_events["pulses"]:
-        # TODO: allow multiple pulses
-        if len(pulse.sources) > 1:
-            raise ValueError("cannot have more than one source in pulse")
-        event = ("pulse", pulse.sources[0], pulse.dest, pulse.proportions[0])
+        event = ("pulse", pulse.sources, pulse.dest, pulse.proportions)
         demo_events[pulse.time].append(event)
     for branch in demes_demo_events["branches"]:
         event = ("branch", branch.parent, branch.child)
@@ -709,17 +706,22 @@ def _get_deme_sample_sizes(
                         ns[interval][demes_present[interval].index(deme_id)] += child_ns
             elif event[0] == "pulse":
                 # figure out how much the admix_in_place needs from child to parent
-                source = event[1]
+                sources = event[1]
                 dest = event[2]
-                for interval in sorted(ns.keys()):
-                    if interval[1] == t:
-                        dest_size = ns[interval][demes_present[interval].index(dest)]
-                    if (
-                        interval[0] <= g[source].start_time
-                        and interval[1] >= g[source].end_time
-                        and interval[1] >= t
-                    ):
-                        ns[interval][demes_present[interval].index(source)] += dest_size
+                for source in sources:
+                    for interval in sorted(ns.keys()):
+                        if interval[1] == t:
+                            dest_size = ns[interval][
+                                demes_present[interval].index(dest)
+                            ]
+                        if (
+                            interval[0] <= g[source].start_time
+                            and interval[1] >= g[source].end_time
+                            and interval[1] >= t
+                        ):
+                            ns[interval][
+                                demes_present[interval].index(source)
+                            ] += dest_size
             elif event[0] == "merge":
                 # each parent gets number of lineages in child
                 parents = event[1]
@@ -934,16 +936,10 @@ def _apply_event(fs, event, t, deme_sample_sizes, demes_present):
         fs = _admix_fs(fs, parents, proportions, child, child_size)
     elif e == "pulse":
         # admixture from one population to another, with some proportion
-        source = event[1]
+        sources = event[1]
         dest = event[2]
-        proportion = event[3]
-        # for i, ns in deme_sample_sizes.items():
-        #    if i[0] == t:
-        #        target_sizes = [
-        #            deme_sample_sizes[i][demes_present[i].index(source)],
-        #            deme_sample_sizes[i][demes_present[i].index(dest)],
-        #        ]
-        fs = _pulse_fs(fs, source, dest, proportion)
+        proportions = event[3]
+        fs = _pulse_fs(fs, sources, dest, proportions)
     else:
         raise ValueError(f"Haven't implemented methods for event type {e}")
     return fs
@@ -1023,13 +1019,15 @@ def _admix_fs(fs, parents, proportions, child, child_size):
     return fs
 
 
-def _pulse_fs(fs, source, dest, proportion):
-    # uses admix in place
-    source_idx = fs.pop_ids.index(source)
+def _pulse_fs(fs, sources, dest, proportions):
     dest_idx = fs.pop_ids.index(dest)
-    # in the source deme, we keep that size minus the dest size
-    keep_from = fs.sample_sizes[source_idx] - fs.sample_sizes[dest_idx]
-    fs = fs.pulse_migrate(source_idx, dest_idx, keep_from, proportion)
+    for ii, (source, proportion) in enumerate(zip(sources, proportions)):
+        # uses admix in place
+        source_idx = fs.pop_ids.index(source)
+        # in the source deme, we keep that size minus the dest size
+        keep_from = fs.sample_sizes[source_idx] - fs.sample_sizes[dest_idx]
+        adjusted_proportion = proportion / (1 - sum(proportions[ii + 1 :]))
+        fs = fs.pulse_migrate(source_idx, dest_idx, keep_from, adjusted_proportion)
     return fs
 
 
@@ -1189,13 +1187,13 @@ def _apply_LD_event(y, event, t, demes_present):
         #    marg = True
         y = _admix_LD(y, parents, proportions, child, marginalize=False)
     elif e == "pulse":
-        # admixture from one population to another, with some proportion
-        source = event[1]
-        source_idx = y.pop_ids.index(source)
         dest = event[2]
         dest_idx = y.pop_ids.index(dest)
-        proportion = event[3]
-        y = y.pulse_migrate(source_idx, dest_idx, proportion)
+        for ii, (source, proportion) in enumerate(zip(event[1], event[3])):
+            # admixture from one or more populations to another, with some proportion
+            source_idx = y.pop_ids.index(source)
+            adjusted_proportion = proportion / (1 - sum(event[3][ii + 1 :]))
+            y = y.pulse_migrate(source_idx, dest_idx, adjusted_proportion)
     else:
         raise ValueError(f"Haven't implemented methods for event type {e}")
     return y

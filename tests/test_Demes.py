@@ -274,7 +274,7 @@ class TestPulse(unittest.TestCase):
         n0 = 30
         n1 = 10
         fs = moments.Demographics2D.snm([n0, n1], pop_ids=["A", "B"])
-        out = Demes._pulse_fs(fs, "A", "B", 0.2)
+        out = Demes._pulse_fs(fs, ["A"], "B", [0.2])
         self.assertTrue(out.sample_sizes[0] == n0 - n1)
         self.assertTrue(out.sample_sizes[1] == n1)
         fs2 = fs.pulse_migrate(0, 1, n0 - n1, 0.2)
@@ -1027,15 +1027,28 @@ class TestConcurrentEvents(unittest.TestCase):
         b.add_deme("a", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("b", ancestors=["x"], epochs=[dict(start_size=1000)])
         b.add_deme("c", ancestors=["x"], epochs=[dict(start_size=1000)])
-        b.add_pulse(sources=["a", "b"], dest="c", time=50, proportions=[0.2, 0.2])
+        b.add_pulse(sources=["a", "b"], dest="c", time=50, proportions=[0.1, 0.2])
         graph = b.resolve()
 
-        # TODO: need to implement pulses with multiple sources
-        with self.assertRaises(ValueError):
-            n = [8, 8, 8]
-            fs = moments.Spectrum.from_demes(
-                graph, sampled_demes=["a", "b", "c"], sample_sizes=n
-            )
+        n = [8, 8, 8]
+        fs = moments.Spectrum.from_demes(
+            graph, sampled_demes=["a", "b", "c"], sample_sizes=n
+        )
+
+        fs2 = moments.Demographics1D.snm([16 + 16 + 8])
+        fs2 = fs2.split(0, 16 + 8, 16)
+        fs2 = fs2.split(0, 16, 8)
+        fs2.integrate([1, 1, 1], 0.025)
+        fs2 = fs2.pulse_migrate(0, 2, 8, 0.1 / 0.8)
+        fs2 = fs2.pulse_migrate(1, 2, 8, 0.2)
+        fs2.integrate([1, 1, 1], 0.025)
+
+        self.assertEqual(fs.Npop, 3)
+        self.assertEqual(len(fs.shape), len(fs2.shape))
+        for n1, n2 in zip(fs.sample_sizes, fs2.sample_sizes):
+            self.assertEqual(n1, n2)
+
+        self.assertTrue(np.all(np.isclose(fs, fs2)))
 
     def test_multimerger(self):
         b = demes.Builder()
