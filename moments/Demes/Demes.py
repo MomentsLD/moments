@@ -313,8 +313,11 @@ def LD(
     if rho is None:
         if r is not None:
             rho = 4 * Ne * np.array(r)
-    else:
+    elif hasattr(rho, "__len__"):
         rho = np.array(rho)
+    else:
+        if rho < 0:
+            raise ValueError("rho must be non-negative")
     if u is not None:
         theta = 4 * Ne * u
 

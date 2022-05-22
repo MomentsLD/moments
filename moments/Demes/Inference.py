@@ -65,13 +65,13 @@ def _get_value(builder, values):
     deme_map = _get_deme_map(builder)
     for value in values:
         if "demes" in value.keys():
-            for deme, k1 in value["demes"].items():
+            for deme, k0 in value["demes"].items():
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
                         "which has {[d['name'] for d in builder['demes']]}"
                     )
-                if type(k1) == dict:
+                if type(k0) == dict:
                     for k1 in value["demes"][deme].keys():
                         if k1 == "epochs":
                             for k2, attribute in value["demes"][deme][k1].items():
@@ -86,18 +86,29 @@ def _get_value(builder, values):
                                         f"can't get {attribute} from epoch {k2} "
                                         f"from deme {deme}"
                                     )
+                        elif k1 == "proportions":
+                            prop_idx = value["demes"][deme][k1]
+                            prop_len = len(builder["demes"][deme_map[deme]][k1])
+                            if prop_idx >= prop_len:
+                                raise ValueError(
+                                    f"can't get proportion index {prop_idx} from deme "
+                                    f"{deme}, which has length {prop_len}"
+                                )
+                            inputs.append(
+                                builder["demes"][deme_map[deme]][k1][prop_idx]
+                            )
                         else:
                             raise ValueError(
                                 f"can't get value from {k1} in deme {deme}"
                             )
                 else:
-                    if k1 == "start_time":
+                    if k0 == "start_time":
                         try:
-                            inputs.append(builder["demes"][deme_map[deme]][k1])
+                            inputs.append(builder["demes"][deme_map[deme]][k0])
                         except:
-                            raise ValueError(f"can't get {k1} from deme {deme}")
+                            raise ValueError(f"can't get {k0} from deme {deme}")
                     else:
-                        raise ValueError("Cannot optimize {k1} in deme {deme}")
+                        raise ValueError("Cannot optimize {k0} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 inputs.append(builder["migrations"][mig_idx][attribute])
@@ -123,13 +134,13 @@ def _set_value(builder, values, new_val):
     deme_map = _get_deme_map(builder)
     for value in values:
         if "demes" in value.keys():
-            for deme, k1 in value["demes"].items():
+            for deme, k0 in value["demes"].items():
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
                         "which has {[d['name'] for d in builder['demes']]}"
                     )
-                if type(k1) == dict:
+                if type(k0) == dict:
                     for k1 in value["demes"][deme].keys():
                         if k1 == "epochs":
                             for k2, attribute in value["demes"][deme][k1].items():
@@ -142,14 +153,46 @@ def _set_value(builder, values, new_val):
                                         f"can't set {attribute} for epoch {k2} "
                                         f"in deme {deme}"
                                     )
+                        elif k1 == "proportions":
+                            prop_idx = value["demes"][deme][k1]
+                            prop_len = len(builder["demes"][deme_map[deme]][k1])
+                            if prop_idx >= prop_len:
+                                raise ValueError(
+                                    f"can't get proportion index {prop_idx} from deme "
+                                    f"{deme}, which has length {prop_len}"
+                                )
+                            elif prop_idx == prop_len - 1:
+                                raise ValueError(
+                                    f"can't set last proportion index in deme {deme}"
+                                )
+                            builder["demes"][deme_map[deme]][k1][prop_idx] = new_val
+                            # last entry in proportions must be one minus the sum
+                            # of all other entries
+                            builder["demes"][deme_map[deme]][k1][-1] = 1 - sum(
+                                builder["demes"][deme_map[deme]][k1][:-1]
+                            )
+                            if np.any(
+                                np.array(builder["demes"][deme_map[deme]][k1]) < 0
+                            ):
+                                raise ValueError(f"negative proportion in deme {deme}")
+                            if np.any(
+                                np.array(builder["demes"][deme_map[deme]][k1]) > 1
+                            ):
+                                raise ValueError(
+                                    f"proportion larger than 1 in deme {deme}"
+                                )
+                        else:
+                            raise ValueError(
+                                f"can't set value from {k1} in deme {deme}"
+                            )
                 else:
-                    if k1 == "start_time":
+                    if k0 == "start_time":
                         try:
-                            builder["demes"][deme_map[deme]][k1] = new_val
+                            builder["demes"][deme_map[deme]][k0] = new_val
                         except:
-                            raise ValueError(f"can't set {k1} for deme {deme}")
+                            raise ValueError(f"can't set {k0} for deme {deme}")
                     else:
-                        raise ValueError("can't set {k1} in deme {deme}")
+                        raise ValueError("can't set {k0} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 builder["migrations"][mig_idx][attribute] = new_val
@@ -837,6 +880,18 @@ def uncerts(
 
 
 def compute_bin_stats(g, sampled_demes, sample_times=None, rs=None):
+    """
+    Given a list of per-base recombination rates defining recombination bin
+    edges, computes expected LD statistics within each bin.
+    """
+    # check for valid recombination rates
+    if not hasattr(rs, "__len__"):
+        raise ValueError("rs must be a list of per-base recombination rates")
+    if len(rs) <= 1:
+        raise ValueError("rs must have at least two recombination rates")
+    for i in range(len(rs) - 1):
+        if rs[i + 1] <= rs[i]:
+            raise ValueError("rs must be a list of increasing values")
     # rhos are computed internally in Demes.LD() using rs and the root deme initial Ne
     y_edges = moments.Demes.LD(g, sampled_demes, sample_times=sample_times, r=rs)
     r_mids = [(r_l + r_r) / 2 for r_l, r_r in zip(rs[:-1], rs[1:])]
