@@ -326,14 +326,12 @@ def optimize_log_lbfgsb(
     if lower_bound is None:
         lower_bound = [None] * len(p0)
     else:
-        lower_bound = numpy.log(lower_bound)
-        lower_bound[numpy.isnan(lower_bound)] = None
+        lower_bound = [numpy.log(lb) if lb is not None else None for lb in lower_bound]
     lower_bound = _project_params_down(lower_bound, fixed_params)
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     else:
-        upper_bound = numpy.log(upper_bound)
-        upper_bound[numpy.isnan(upper_bound)] = None
+        upper_bound = [numpy.log(ub) if ub is not None else None for ub in upper_bound]
     upper_bound = _project_params_down(upper_bound, fixed_params)
     bounds = list(zip(lower_bound, upper_bound))
 
@@ -1068,7 +1066,11 @@ def optimize_lbfgsb(
     output_file=None,
 ):
     """
-    Optimize log(params) to fit model to data using the L-BFGS-B method.
+    Optimize params to fit model to data using the L-BFGS-B method.
+
+    Note: this optimization method can explore negative values. You must therefore
+    specify lower bounds for values that cannot take negative numbers (such
+    as event times, population sizes, and migration rates).
 
     This optimization method works well when we start reasonably close to the
     optimum. It is best at burrowing down a single minimum. This method is
@@ -1165,7 +1167,7 @@ def optimize_lbfgsb(
 
     outputs = scipy.optimize.fmin_l_bfgs_b(
         _object_func,
-        numpy.log(p0),
+        p0,
         bounds=bounds,
         epsilon=epsilon,
         args=args,
