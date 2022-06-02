@@ -88,6 +88,7 @@ def plot_1d_comp_multinom(
     plot_masked=False,
     out=None,
     show=True,
+    labels=["Model", "Data"],
 ):
     """
     Multinomial comparison between 1d model and data.
@@ -106,7 +107,7 @@ def plot_1d_comp_multinom(
     """
     model = Inference.optimally_scaled_sfs(model, data)
 
-    plot_1d_comp_Poisson(model, data, fig_num, residual, plot_masked, out, show)
+    plot_1d_comp_Poisson(model, data, fig_num, residual, plot_masked, out, show, labels)
 
 
 def plot_1d_comp_Poisson(
@@ -117,6 +118,7 @@ def plot_1d_comp_Poisson(
     plot_masked=False,
     out=None,
     show=True,
+    labels=["Model", "Data"],
 ):
     """
     Poisson comparison between 1d model and data.
@@ -132,6 +134,8 @@ def plot_1d_comp_Poisson(
         model or data that were masked.
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
+    :param labels: A list of strings of length two, labels for the first and second
+        input frequency spectra. Defaults to "Model" and "Data".
     """
     if fig_num is None:
         f = pylab.gcf()
@@ -145,8 +149,8 @@ def plot_1d_comp_Poisson(
     masked_model, masked_data = Numerics.intersect_masks(model, data)
 
     ax = pylab.subplot(2, 1, 1)
-    ax.semilogy(masked_data, "-o", ms=6, lw=1, mfc="w", label="Data")
-    ax.semilogy(masked_model, "-o", ms=3, lw=1, label="Model")
+    ax.semilogy(masked_data, "-o", ms=6, lw=1, mfc="w", label=labels[1])
+    ax.semilogy(masked_model, "-o", ms=3, lw=1, label=labels[0])
 
     if plot_masked:
         ax.semilogy(
