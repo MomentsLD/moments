@@ -6,10 +6,31 @@ Installation
 Python 2, we do not actively ensure that moments remains fully compatable with Python
 2, and strongly recommend using Python 3.
 
+Using conda
+===========
+
+``moments`` is available via `Bioconda <https://anaconda.org/bioconda/moments>`_.
+
+The most recent release of ``moments`` can be installed by running
+
+.. code-block:: bash
+
+   conda install -c bioconda moments
+
+The `conda channels <https://bioconda.github.io/user/install.html#set-up-channels>`_
+must be set up to include bioconda, which can be done by running
+
+.. code-block:: bash
+   
+   conda config --add channels defaults
+   conda config --add channels bioconda
+   conda config --add channels conda-forge
+
+
 Using pip
 =========
 
-The simplest way to install ``moments`` is via ``pip``. Note that ``numpy`` and ``cython``
+A simple way to install ``moments`` is via ``pip``. ``numpy``, ``mpmath``, and ``cython``
 are install requirements, but installing ``moments`` directly from the git repository
 using ``pip`` should install these dependencies automatically:
 
@@ -28,24 +49,15 @@ and then from within the moments directory (``cd moments``), run
 
 .. code-block:: bash
 
-   pip install numpy, cython
+   pip install -r requirements.txt
    pip install .
 
-
-Using bioconda
-==============
-
-``moments`` is now available on Bioconda! If you use conda, you can install the most
-recent release of ``moments`` by running
-
-.. code-block:: bash
-
-   conda install -c bioconda moments
 
 Dependencies and details
 ========================
 
-``moments`` and ``moments.LD`` requires a number of dependencies. These are
+``moments`` and ``moments.LD`` requires a number of dependencies. Minimally,
+these include
 
 - numpy
 
@@ -55,11 +67,6 @@ Dependencies and details
 
 - mpmath
 
-- matplotlib
-
-- networkx
-
-- pandas
 
 Dependencies can be installed using pip. For example to install ``cython``,
 run ``pip install cython``. All the dependencies can be installed together using
