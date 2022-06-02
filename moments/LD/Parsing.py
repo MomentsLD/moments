@@ -326,56 +326,21 @@ def _sparsify_haplotype_matrix(G):
     return G_dict, missing
 
 
-# def tally_sparse(G1, G2, n, missing=False):
-#    """
-#    G1 and G2 are dictionaries with sample indices of genotypes 1 and 2
-#    and -1 if missing is True
-#    n is the diploid sample size
-#    """
-#
-#    if missing == True:
-#        # account for missing genotypes
-#        n22 = (G1[2] & G2[2]).__len__()
-#        n21 = (G1[2] & G2[1]).__len__()
-#        n2m = (G1[2] & G2[-1]).__len__()
-#        n20 = (G1[2]).__len__()-n22-n21-n2m
-#        n12 = (G1[1] & G2[2]).__len__()
-#        n11 = (G1[1] & G2[1]).__len__()
-#        n1m = (G1[1] & G2[-1]).__len__()
-#        n10 = (G1[1]).__len__()-n12-n11-n1m
-#        nm2 = (G1[-1] & G2[2]).__len__()
-#        nm1 = (G1[-1] & G2[1]).__len__()
-#        n02 = (G2[2]).__len__()-n22-n12-nm2
-#        n01 = (G2[1]).__len__()-n21-n11-nm1
-#        # total possible is n-len(set of either missing)
-#        nm = len(G1[-1].union(G2[-1]))
-#        n00 = (n-nm)-n22-n21-n20-n12-n11-n10-n02-n01
-#    else:
-#        n22 = (G1[2] & G2[2]).__len__()
-#        n21 = (G1[2] & G2[1]).__len__()
-#        n20 = (G1[2]).__len__()-n22-n21
-#        n12 = (G1[1] & G2[2]).__len__()
-#        n11 = (G1[1] & G2[1]).__len__()
-#        n10 = (G1[1]).__len__()-n12-n11
-#        n02 = (G2[2]).__len__()-n22-n12
-#        n01 = (G2[1]).__len__()-n21-n11
-#        n00 = n-n22-n21-n20-n12-n11-n10-n02-n01
-#    return (n22, n21, n20, n12, n11, n10, n02, n01, n00)
-#
-#
-# def count_genotypes_sparse(G_dict, n, missing=False):
-#    """
-#    Similar to count_genotypes, but using the sparse genotype representation instead
-#    """
-#    L = len(G_dict)
-#
-#    Counts = np.empty((L*(L-1)//2, 9)).astype('int')
-#    c = 0
-#    for i in range(L-1):
-#        for j in range(i+1,L):
-#            Counts[c] = tally_sparse(G_dict[i], G_dict[j], n, missing=missing)
-#            c += 1
-#    return Counts
+def _check_valid_genotype_matrix(G, genotypes):
+    if genotypes:
+        # 0, 1, 2 for genotype values, -1 for missing data
+        if not np.all(
+            np.logical_or(np.logical_or(np.logical_or(G == 0, G == 1), G == 2), G == -1)
+        ):
+            raise ValueError(
+                "Genotype matrix must have values of 0, 1, or 2, or -1 for missing data"
+            )
+    else:
+        # haplotypes: 0, 1, -1 for missing data
+        if not np.all(np.logical_or(np.logical_or(G == 0, G == 1), G == -1)):
+            raise ValueError(
+                "Haplotype matrix must have values of 0 or 1, or -1 for missing data"
+            )
 
 
 def compute_pairwise_stats(Gs, genotypes=True):
@@ -385,6 +350,7 @@ def compute_pairwise_stats(Gs, genotypes=True):
 
     :param Gs: A genotype matrix, of size L-by-n, where
         L is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
     """
@@ -393,6 +359,8 @@ def compute_pairwise_stats(Gs, genotypes=True):
             "Need to build LD cython extensions. "
             "Install moments with the flag `--ld_extensions`"
         )
+
+    _check_valid_genotype_matrix(Gs, genotypes)
 
     L, n = np.shape(Gs)
 
@@ -424,6 +392,7 @@ def compute_average_stats(Gs, genotypes=True):
 
     :param Gs: A genotype matrix, of size L-by-n, where
         L is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
     """
@@ -448,14 +417,19 @@ def compute_pairwise_stats_between(Gs1, Gs2, genotypes=True):
 
     :param Gs1: A genotype matrices, of size L1 by n, where
         L1 is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     :param Gs2: A genotype matrices, of size L2 by n, where
         L1 is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
     """
     assert (
         ld_extensions == 1
     ), "Need to build LD cython extensions. Install moments with the flag `--ld_extensions`"
+
+    _check_valid_genotype_matrix(Gs1, genotypes)
+    _check_valid_genotype_matrix(Gs2, genotypes)
 
     L1, n1 = np.shape(Gs1)
     L2, n2 = np.shape(Gs1)
@@ -504,8 +478,10 @@ def compute_average_stats_between(Gs1, Gs2, genotypes=True):
 
     :param Gs1: A genotype matrices, of size L1 by n, where
         L1 is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     :param Gs2: A genotype matrices, of size L2 by n, where
         L1 is the number of loci and n is the sample size.
+        Missing data is encoded as -1.
     """
     D2, Dz, pi2, D = compute_pairwise_stats_between(Gs1, Gs2, genotypes=genotypes)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
@@ -1257,7 +1233,7 @@ def compute_ld_statistics(
     elif r_bins is not None:
         if bp_bins is not None:
             raise ValueError("Can specify only recombination or bp bins, not both")
-   
+
     positions, genotypes, counts, sample_ids = get_genotypes(
         vcf_file,
         bed_file=bed_file,
@@ -1288,7 +1264,7 @@ def compute_ld_statistics(
             bins = bp_bins
         else:
             bins = []
-    
+
     if not np.all([b1 - b0 > 0 for b0, b1 in zip(bins[:-1], bins[1:])]):
         raise ValueError("bins must be a monotonically increasing list")
 

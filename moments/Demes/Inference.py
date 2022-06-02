@@ -69,7 +69,7 @@ def _get_value(builder, values):
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
-                        "which has {[d['name'] for d in builder['demes']]}"
+                        f"which has {[d['name'] for d in builder['demes']]}"
                     )
                 if type(k0) == dict:
                     for k1 in value["demes"][deme].keys():
@@ -108,7 +108,7 @@ def _get_value(builder, values):
                         except:
                             raise ValueError(f"can't get {k0} from deme {deme}")
                     else:
-                        raise ValueError("Cannot optimize {k0} in deme {deme}")
+                        raise ValueError(f"Cannot optimize {k0} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 inputs.append(builder["migrations"][mig_idx][attribute])
@@ -138,7 +138,7 @@ def _set_value(builder, values, new_val):
                 if deme not in deme_map:
                     raise ValueError(
                         f"deme {deme} not in deme graph, "
-                        "which has {[d['name'] for d in builder['demes']]}"
+                        f"which has {[d['name'] for d in builder['demes']]}"
                     )
                 if type(k0) == dict:
                     for k1 in value["demes"][deme].keys():
@@ -192,7 +192,7 @@ def _set_value(builder, values, new_val):
                         except:
                             raise ValueError(f"can't set {k0} for deme {deme}")
                     else:
-                        raise ValueError("can't set {k0} in deme {deme}")
+                        raise ValueError(f"can't set {k0} in deme {deme}")
         if "migrations" in value.keys():
             for mig_idx, attribute in value["migrations"].items():
                 builder["migrations"][mig_idx][attribute] = new_val
@@ -499,7 +499,7 @@ def optimize(
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
         raise ValueError(
-            f"method {method} not available,  must be one of " f"{available_methods}"
+            f"method {method} not available,  must be one of {available_methods}"
         )
 
     # rescale if log
