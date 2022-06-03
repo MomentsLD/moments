@@ -113,6 +113,90 @@ Additionally, it is common to set the following:
 For a full description of the various inference functions, please see the
 :ref:`SFS inference API <sec_sfs_api>`.
 
+Single population example
+-------------------------
+
+As a toy example, we'll generate some fake data from a demographic model
+and then reinfer the input parameters of that demographic model. The
+model is an instantaneous bottleneck followed by exponential growth,
+implemented in ``moments.Demographics1D.bottlegrowth``, which takes
+parameters ``[nuB, nuF, T]`` and the sample size. Here ``nuB`` is the
+bottleneck size (relative to the ancestral size), ``nuF`` is the relative
+final size, and ``T`` is the time in the past the bottleneck occurred
+(in units of :math:`2N_e` generations).
+
+.. jupyter-execute::
+
+    nuB = 0.2
+    nuF = 3.0
+    T = 0.4
+
+    n = 60  # the haploid sample size
+
+    fs = moments.Demographics1D.bottlegrowth([nuB, nuF, T], [n])
+
+    theta = 2000  # the scaled mutation rate (4*Ne*u*L)
+    fs = theta * fs
+    data = fs.sample()
+
+The input demographic model (assuming an :math:`N_e` of 10,000), plotted using
+`demesdraw <https://github.com/grahamgower/demesdraw>`_:
+
+.. jupyter-execute::
+    :hide-code:
+
+    Ne = 1e4
+    import demes, demesdraw, matplotlib.pylab as plt
+    b = demes.Builder()
+    b.add_deme("x", epochs=[
+        dict(start_size=Ne, end_time=2*T*Ne),
+        dict(start_size=nuB*Ne, end_size=nuF*Ne, end_time=0)])
+    g = b.resolve()
+    demesdraw.size_history(g, invert_x=True)
+    plt.show()
+
+We then set up the optimization inputs, including the initial parameter
+guesses, lower bounds, and upper bounds, and then run optimization. Here,
+I've decided to use the log-L-BFGS-B method, though there are a number of
+built in options (see previous section).
+
+.. jupyter-execute::
+
+    p0 = [0.2, 3.0, 0.4]
+    lower_bound = [0, 0, 0]
+    upper_bound = [None, None, None]
+    p_guess = moments.Misc.perturb_params(p0, fold=1,
+        lower_bound=lower_bound, upper_bound=upper_bound)
+
+    model_func = moments.Demographics1D.bottlegrowth
+
+    opt_params = moments.Inference.optimize_log_lbfgsb(
+        p0, data, model_func,
+        lower_bound=lower_bound,
+        upper_bound=upper_bound)
+
+    model = model_func(opt_params, data.sample_sizes)
+    opt_theta = moments.Inference.optimal_sfs_scaling(model, data)
+    model = model * opt_theta
+
+The reinferred parameters:
+
+.. jupyter-execute::
+    :hide-code:
+
+    print_params = p0 + [theta]
+    print_opt = np.concatenate((opt_params, [opt_theta]))
+    print("Params\tnuB\tnuF\tT\ttheta")
+    print(f"Input\t" + "\t".join([str(p) for p in print_params]))
+    print(f"Refit\t" + "\t".join([f"{p:.4}" for p in print_opt]))
+
+
+We can also visualize the fit of the model to the data:
+
+.. jupyter-execute::
+
+    moments.Plotting.plot_1d_comp_Poisson(model, data)
+
 Confidence intervals
 ____________________
 
@@ -126,8 +210,8 @@ should be cited if these methods are used.
 See the :ref:`API documentation for uncertainty functions <sec_sfs_api>` for
 information on their usage.
 
-Example
--------
+Two population example
+----------------------
 
 Here, we will create some fake data for a two-population split-migration model,
 and then re-infer the input parameters to the model used to create that data.
