@@ -44,9 +44,6 @@ def SFS(
     format. This function automatically parses the demographic description
     and returns a SFS for the specified populations and sample sizes.
 
-    This function is new in version 1.1.0. Future developments will allow for
-    inference using ``demes``-based demographic descriptions.
-
     :param g: A ``demes`` DemeGraph from which to compute the SFS.
     :type g: :class:`demes.DemeGraph`
     :param sampled_demes: A list of deme IDs to take samples from. We can repeat
@@ -102,7 +99,8 @@ def SFS(
         if deme not in g:
             raise ValueError(f"deme {deme} is not in demography")
 
-    # we need to copy these to new names so they don't get updated during optimization
+    # we need to copy these to new variable names
+    # so they don't get updated during optimization
     sampled_pops = copy.copy(sampled_demes)
     deme_sample_times = copy.copy(sample_times)
 
@@ -112,6 +110,10 @@ def SFS(
     sampled_deme_end_times = [g[d].end_time for d in sampled_pops]
     if deme_sample_times is None:
         deme_sample_times = sampled_deme_end_times
+
+    for t, d in zip(deme_sample_times, sampled_pops):
+        if t < g[d].end_time or t >= g[d].start_time:
+            raise ValueError(f"sample time {t} is outside of deme {d}'s time span")
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
@@ -220,8 +222,11 @@ def LD(
     g, sampled_demes, sample_times=None, rho=None, theta=0.001, r=None, u=None, Ne=None
 ):
     """
-    This function is new in version 1.1.0. Future developments will allow for
-    inference using ``demes``-based demographic descriptions.
+    Takes a deme graph and computes the LD stats. ``demes`` is a package for
+    specifying demographic models in a user-friendly, human-readable YAML
+    format. This function automatically parses the demographic description
+    and returns a LD for the specified populations and recombination and
+    mutation rates.
 
     :param g: A ``demes`` DemeGraph from which to compute the LD.
     :type g: :class:`demes.DemeGraph`
@@ -265,6 +270,10 @@ def LD(
     sampled_deme_end_times = [g[d].end_time for d in sampled_pops]
     if deme_sample_times is None:
         deme_sample_times = sampled_deme_end_times
+
+    for t, d in zip(deme_sample_times, sampled_pops):
+        if t < g[d].end_time or t >= g[d].start_time:
+            raise ValueError(f"sample time {t} is outside of deme {d}'s time span")
 
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
@@ -372,26 +381,41 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     Returns a demography object and new sampled demes where we add
     a branch event for the new sampled deme that is frozen.
 
+    If all sample times are > 0, we also slice the graph to remove the
+    time interval that is more recent than the most recent sample time.
+
     New sampled, frozen demes are labeled "{deme}_sampled_{sample_time}".
     Note that we cannot have multiple ancient sampling events at the same
     time for the same deme (for additional samples at the same time, increase
     the sample size).
     """
+    # Adjust the graph if all sample times are greater than 0
+    t = min(sample_times)
+    g_new = moments.Demes.DemesUtil.slice(g, min(sample_times))
+    sample_times = [st - t for st in sample_times]
+    # add frozen branches
     frozen_demes = []
-    b = demes.Builder.fromdict(g.asdict())
+    b = demes.Builder.fromdict(g_new.asdict())
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
-        if st > 0:
-            sd_frozen = sd + f"_sampled_{'_'.join(str(float(st)).split('.'))}"
-            frozen_demes.append(sd_frozen)
+        if st > 0 or t > 0:
+            sd_frozen = sd + f"_sampled_{'_'.join(str(float(st + t)).split('.'))}"
             sampled_demes[ii] = sd_frozen
-            b.add_deme(
-                sd_frozen,
-                start_time=st,
-                epochs=[dict(end_time=0, start_size=1)],
-                ancestors=[sd],
-            )
-    g = b.resolve()
-    return g, sampled_demes, frozen_demes
+            if st > 0:
+                # add the frozen branch, as sample time is nonzero
+                frozen_demes.append(sd_frozen)
+                b.add_deme(
+                    sd_frozen,
+                    start_time=st,
+                    epochs=[dict(end_time=0, start_size=1)],
+                    ancestors=[sd],
+                )
+            elif t > 0:
+                # change the name of the sampled branch, as we have all ancient samples
+                for ii, d in enumerate(b.data["demes"]):
+                    if d["name"] == sd:
+                        b.data["demes"][ii]["name"] = sd_frozen
+    g_new = b.resolve()
+    return g_new, sampled_demes, frozen_demes
 
 
 def _get_demographic_events(g, demes_demo_events, sampled_demes):

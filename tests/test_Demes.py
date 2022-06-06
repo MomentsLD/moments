@@ -1557,3 +1557,52 @@ class TestSamplesSpecification(unittest.TestCase):
             fs = moments.Spectrum.from_demes(
                 graph, samples=samples, sampled_demes=["YRI"], sample_sizes=[10]
             )
+
+
+class TestAncientSamples(unittest.TestCase):
+    """
+    We want to be able to draw all ancient samples, and not simulate all the
+    way to time zero.
+
+    This includes if we sample in the ancient past while the more recent history
+    has more than 5 populations. It should be allowed
+    """
+
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    # test slice function
+
+    def test_ancient_samples(self):
+        # test SFS inference with many pops in recent time but ancient samples
+        b = demes.Builder()
+        b.add_deme(
+            "ancestral",
+            epochs=[
+                dict(start_size=100, end_time=300),
+                dict(start_size=200, end_time=100),
+            ],
+        )
+        for d in ["A", "B", "C", "D", "E", "F", "G"]:
+            b.add_deme(
+                d, ancestors=["ancestral"], epochs=[dict(start_size=100, end_time=0)]
+            )
+        g = b.resolve()
+
+        with self.assertRaises(ValueError):
+            sfs = moments.Spectrum.from_demes(g, samples={"A": 10})
+        with self.assertRaises(ValueError):
+            sfs = moments.Spectrum.from_demes(
+                g, sampled_demes=["A"], sample_sizes=[10], sample_times=[10]
+            )
+
+        sfs = moments.Spectrum.from_demes(
+            g, sampled_demes=["ancestral"], sample_sizes=[10], sample_times=[200]
+        )
+        sfs2 = moments.Demographics1D.snm([10])
+        sfs2.integrate([2], 0.5)
+        self.assertTrue(np.allclose(sfs.data, sfs2.data))

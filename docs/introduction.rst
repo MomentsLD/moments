@@ -61,6 +61,13 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.11
+======
+
+- The LD inference methods now allow calculation of f-statistics (f2, f3, f4)
+- Demes methods allow multiple sources in pulses
+- Fix bugs in L-BFGS-B methods for inference using the SFS
+
 1.1.10
 ======
 

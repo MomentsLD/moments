@@ -2067,8 +2067,13 @@ class Spectrum(numpy.ma.masked_array):
         format. This function automatically parses the demographic description
         and returns a SFS for the specified populations and sample sizes.
 
-        This function is new in version 1.1.0. Future developments will allow for
-        inference using ``demes``-based demographic descriptions.
+        .. note::
+
+            If a deme sample time is requested that is earlier than the deme's
+            end time, for example to simulate ancient samples, we must create a
+            new population for that ancient sample. This can cause large
+            slow-downs, as the computation cost of computing the SFS grows
+            quickly in the number of populations.
 
         :param g: A ``demes`` DemeGraph from which to compute the SFS. The DemeGraph
             can either be specified as a YAML file, in which case `g` is a string,

@@ -735,9 +735,6 @@ class LDstats(list):
         and returns a LD for the specified populations and recombination and
         mutation rates.
 
-        This function is new in version 1.1.0. Future developments will allow for
-        inference using ``demes``-based demographic descriptions.
-
         :param g: A ``demes`` DemeGraph from which to compute the LD.
         :type g: :class:`demes.DemeGraph`
         :param sampled_demes: A list of deme IDs to take samples from. We can repeat
