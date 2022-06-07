@@ -1575,7 +1575,70 @@ class TestAncientSamples(unittest.TestCase):
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
-    # test slice function
+    def test_bad_slice_times(self):
+        g = demes.load(
+            os.path.join(os.path.dirname(__file__), "test_files/gutenkunst_ooa.yaml")
+        )
+        for t in [-1, -math.inf, math.inf]:
+            with self.assertRaises(ValueError):
+                moments.Demes.DemesUtil.slice(g, t)
+        for t in [-1, 0, -math.inf, math.inf]:
+            with self.assertRaises(ValueError):
+                moments.Demes.DemesUtil.swipe(g, t)
+
+    def test_single_population_slice(self):
+        b = demes.Builder()
+        b.add_deme(
+            "a",
+            epochs=[
+                dict(start_size=100, end_time=50),
+                dict(start_size=200, end_time=0),
+            ],
+        )
+        g = b.resolve()
+
+        g2 = moments.Demes.DemesUtil.slice(g, 10)
+        self.assertEqual(g2["a"].epochs[0].end_time, 40)
+        self.assertEqual(g2["a"].epochs[1].end_time, 0)
+        self.assertEqual(g2["a"].epochs[1].start_size, 200)
+
+        g3 = moments.Demes.DemesUtil.slice(g, 100)
+        self.assertEqual(len(g3["a"].epochs), 1)
+        self.assertEqual(g3["a"].epochs[0].start_size, 100)
+
+        g4 = moments.Demes.DemesUtil.slice(g, 50)
+        self.assertEqual(len(g4["a"].epochs), 1)
+        self.assertEqual(g4["a"].epochs[0].start_size, 100)
+
+    def test_single_population_exponential_slice(self):
+        b = demes.Builder()
+        start_size = 200
+        end_size = 500
+        T = 50
+        b.add_deme(
+            "a",
+            epochs=[
+                dict(start_size=100, end_time=T),
+                dict(start_size=start_size, end_size=end_size, end_time=0),
+            ],
+        )
+        g = b.resolve()
+
+        t = 10
+        g2 = moments.Demes.DemesUtil.slice(g, t)
+        self.assertEqual(
+            g2["a"].epochs[1].end_size,
+            start_size * math.exp(math.log(end_size / start_size) * (T - t) / T),
+        )
+
+    def test_multipopulation_slice(self):
+        pass
+
+    def test_single_population_swipe(self):
+        pass
+
+    def test_multipopulation_swipe(self):
+        pass
 
     def test_ancient_samples(self):
         # test SFS inference with many pops in recent time but ancient samples
