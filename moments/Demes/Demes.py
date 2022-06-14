@@ -399,7 +399,9 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
         if st > 0 or t > 0:
             sd_frozen = sd + f"_sampled_{'_'.join(str(float(st + t)).split('.'))}"
+            # update names of sampled demes
             sampled_demes[ii] = sd_frozen
+            deme_sample_times = [y for x, y in zip(sampled_demes, sample_times) if x == sd]
             if st > 0:
                 # add the frozen branch, as sample time is nonzero
                 frozen_demes.append(sd_frozen)
@@ -414,6 +416,22 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
                 for ii, d in enumerate(b.data["demes"]):
                     if d["name"] == sd:
                         b.data["demes"][ii]["name"] = sd_frozen
+                # change migration and pulse demes involving this sampled deme
+                if "migrations" in b.data.keys():
+                    for ii, m in enumerate(b.data["migrations"]):
+                        if m["source"] == sd:
+                            m["source"] = sd_frozen
+                        if m["dest"] == sd:
+                            m["dest"] = sd_frozen
+                        b.data["migrations"][ii] = m
+                if "pulses" in b.data.keys():
+                    for ii, p in enumerate(b.data["pulses"]):
+                        for jj, source in enumerate(p["sources"]):
+                            if source == sd:
+                                p["sources"][jj] = sd_frozen
+                        if p["dest"] == sd:
+                            p["dest"] = sd_frozen
+                        b.data["pulses"][ii] = p
     g_new = b.resolve()
     return g_new, sampled_demes, frozen_demes
 

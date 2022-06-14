@@ -1631,6 +1631,93 @@ class TestAncientSamples(unittest.TestCase):
             start_size * math.exp(math.log(end_size / start_size) * (T - t) / T),
         )
 
+    def test_slice_integration(self):
+        b = demes.Builder()
+        b.add_deme(name="ancestral", epochs=[dict(start_size=2000, end_time=1000)])
+        b.add_deme(
+            name="deme1",
+            ancestors=["ancestral"],
+            epochs=[dict(start_size=1500, end_size=1000)],
+        )
+        b.add_deme(
+            name="deme2",
+            ancestors=["ancestral"],
+            epochs=[dict(start_size=500, end_size=3000)],
+        )
+        g = b.resolve()
+
+        # test that they run properly
+        for t in [0, 1, 10]:
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
+            )
+
+        b.add_migration(demes=["deme1", "deme2"], rate=2e-3)
+        g = b.resolve()
+
+        for t in [0, 1, 10]:
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
+            )
+
+        b.add_pulse(sources=["deme1"], dest="deme2", proportions=[0.1], time=200)
+        g = b.resolve()
+
+        for t in [0, 1, 10]:
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
+            )
+            y = moments.Demes.LD(
+                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
+            )
+
+    def test_slice_results(self):
+        b = demes.Builder()
+        b.add_deme(name="ancestral", epochs=[dict(start_size=2000, end_time=1000)])
+        b.add_deme(
+            name="deme1", ancestors=["ancestral"], epochs=[dict(start_size=1000)]
+        )
+        b.add_deme(
+            name="deme2", ancestors=["ancestral"], epochs=[dict(start_size=4000)]
+        )
+        b.add_migration(demes=["deme1", "deme2"], rate=2e-3)
+        b.add_pulse(sources=["deme1"], dest="deme2", proportions=[0.1], time=500)
+        g = b.resolve()
+
+        # test some results
+        y = moments.Demes.LD(
+            g, sampled_demes=["deme1", "deme2"], sample_times=[100, 200]
+        )
+        y2 = moments.LD.Demographics1D.snm()
+        y2 = y2.split(0)
+        y2.integrate([0.5, 2.0], 0.125, m=[[0, 8], [8, 0]])
+        y2 = y2.pulse_migrate(0, 1, 0.1)
+        y2.integrate([0.5, 2.0], 0.075, m=[[0, 8], [8, 0]])
+        y2 = y2.split(1)
+        y2.integrate(
+            [0.5, 2.0, 2.0],
+            0.025,
+            m=[[0, 8, 0], [8, 0, 0], [0, 0, 0]],
+            frozen=[False, False, True],
+        )
+        y2 = y2.marginalize([1])
+        self.assertTrue(np.allclose(y[0], y2[0]))
+
     def test_multipopulation_slice(self):
         pass
 
