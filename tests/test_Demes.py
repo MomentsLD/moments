@@ -1719,13 +1719,93 @@ class TestAncientSamples(unittest.TestCase):
         self.assertTrue(np.allclose(y[0], y2[0]))
 
     def test_multipopulation_slice(self):
-        pass
+        b = demes.Builder()
+        b.add_deme(name="ancestral", epochs=[dict(start_size=2000, end_time=1000)])
+        b.add_deme(
+            name="deme1", ancestors=["ancestral"], epochs=[dict(start_size=1000)]
+        )
+        b.add_deme(
+            name="deme2", ancestors=["ancestral"], epochs=[dict(start_size=4000)]
+        )
+        b.add_deme(
+            name="deme3",
+            ancestors=["deme1"],
+            start_time=500,
+            epochs=[dict(start_size=5000)],
+        )
+        b.add_migration(demes=["deme1", "deme2"], rate=1e-3)
+        b.add_migration(
+            demes=["deme1", "deme3"], start_time=400, end_time=100, rate=2e-3
+        )
+        b.add_migration(source="deme2", dest="deme3", rate=1e-4)
+        b.add_pulse(sources=["deme3"], dest="deme1", proportions=[0.1], time=300)
+        g = b.resolve()
 
-    def test_single_population_swipe(self):
-        pass
+        g2 = moments.Demes.DemesUtil.slice(g, 50)
+        self.assertEqual(len(g2.migrations), 5)
+        self.assertEqual(len(g2.pulses), 1)
+        self.assertEqual(g2.migrations[2].end_time, 50)
+        self.assertEqual(g2.pulses[0].time, 250)
+
+        g3 = moments.Demes.DemesUtil.slice(g, 350)
+        self.assertEqual(len(g3.migrations), 5)
+        self.assertEqual(len(g3.pulses), 0)
+        self.assertEqual(g3.migrations[2].end_time, 0)
+        self.assertEqual(g3.migrations[2].start_time, 50)
+
+        g4 = moments.Demes.DemesUtil.slice(g, 500)
+        self.assertEqual(len(g4.migrations), 2)
+        self.assertEqual(len(g4.pulses), 0)
+        self.assertEqual(len(g4.demes), 3)
 
     def test_multipopulation_swipe(self):
-        pass
+        b = demes.Builder()
+        b.add_deme(name="ancestral", epochs=[dict(start_size=2000, end_time=1000)])
+        b.add_deme(
+            name="deme1", ancestors=["ancestral"], epochs=[dict(start_size=1000)]
+        )
+        b.add_deme(
+            name="deme2", ancestors=["ancestral"], epochs=[dict(start_size=4000)]
+        )
+        b.add_deme(
+            name="deme3",
+            ancestors=["deme1"],
+            start_time=500,
+            epochs=[dict(start_size=5000)],
+        )
+        b.add_migration(demes=["deme1", "deme2"], rate=1e-3)
+        b.add_migration(
+            demes=["deme1", "deme3"], start_time=400, end_time=100, rate=2e-3
+        )
+        b.add_migration(source="deme2", dest="deme3", rate=1e-4)
+        b.add_pulse(sources=["deme3"], dest="deme1", proportions=[0.1], time=300)
+        g = b.resolve()
+
+        g2 = moments.Demes.DemesUtil.swipe(g, 50)
+        self.assertEqual(len(g2.migrations), 3)
+        self.assertEqual(len(g2.pulses), 0)
+        self.assertEqual(g2.migrations[0].start_time, 50)
+        self.assertEqual(g2.migrations[1].start_time, 50)
+        self.assertEqual(g2.migrations[2].start_time, 50)
+        self.assertEqual(len(g2.demes), 3)
+
+        g3 = moments.Demes.DemesUtil.swipe(g, 350)
+        self.assertEqual(len(g3.migrations), 5)
+        self.assertEqual(len(g3.pulses), 1)
+        self.assertEqual(g3.migrations[2].end_time, 100)
+        self.assertEqual(g3.migrations[3].end_time, 100)
+        self.assertEqual(len(g3.demes), 3)
+
+        g4 = moments.Demes.DemesUtil.swipe(g, 500)
+        self.assertEqual(len(g4.demes), 3)
+        self.assertEqual(g4.demes[2].ancestors[0], "deme1")
+
+        g5 = moments.Demes.DemesUtil.swipe(g, 1000)
+        self.assertEqual(g, g5)
+
+        g6 = moments.Demes.DemesUtil.swipe(g, 2000)
+        self.assertFalse(g == g6)
+
 
     def test_ancient_samples(self):
         # test SFS inference with many pops in recent time but ancient samples
