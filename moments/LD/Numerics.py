@@ -98,10 +98,13 @@ def drift(num_pops, nus, frozen=None, rho=None):
     return Dh, Dld
 
 
-def mutation(num_pops, theta, frozen=None, selfing=None):
+def mutation(num_pops, theta, frozen=None, selfing=None, rho=None):
     ### mutation for ld also has dependence on H
     Uh = Matrices.mutation_h(num_pops, theta, frozen=frozen, selfing=selfing)
-    Uld = Matrices.mutation_ld(num_pops, theta, frozen=frozen, selfing=selfing)
+    if rho is not None:
+        Uld = Matrices.mutation_ld(num_pops, theta, frozen=frozen, selfing=selfing)
+    else:
+        Uld = None
     return Uh, Uld
 
 
@@ -116,9 +119,12 @@ def recombination(num_pops, rho=0.0, frozen=None, selfing=None):
     return R
 
 
-def migration(num_pops, m, frozen=None):
+def migration(num_pops, m, frozen=None, rho=None):
     Mh = Matrices.migration_h(num_pops, m, frozen=frozen)
-    Mld = Matrices.migration_ld(num_pops, m, frozen=frozen)
+    if rho is not None:
+        Mld = Matrices.migration_ld(num_pops, m, frozen=frozen)
+    else:
+        Mld = None
     return Mh, Mld
 
 
@@ -152,7 +158,7 @@ def integrate(
     else:
         nus = [float(nu_pop) for nu_pop in nu]
 
-    Uh, Uld = mutation(num_pops, theta, frozen=frozen, selfing=selfing)
+    Uh, Uld = mutation(num_pops, theta, frozen=frozen, selfing=selfing, rho=rho)
 
     if rho is not None:
         # if rho is a scalar, return single matrix, if rho is a list,
@@ -161,7 +167,7 @@ def integrate(
 
     if num_pops > 1 and m is not None:
         if np.any(np.array(m) != 0):
-            Mh, Mld = migration(num_pops, m, frozen=frozen)
+            Mh, Mld = migration(num_pops, m, frozen=frozen, rho=rho)
 
     dt_last = dt
     nus_last = nus
