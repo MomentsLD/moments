@@ -1002,7 +1002,7 @@ def _get_H_statistics(
             )
 
         for pop in pops:
-            ac_subpop[pop] = ac_subpop[pop].compress(min_ac_filter)
+            ac_subpop[pop] = np.array(ac_subpop[pop]).compress(min_ac_filter, axis=0)
 
     Hs = {}
     for ii, pop1 in enumerate(pops):
