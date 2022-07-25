@@ -501,7 +501,6 @@ def _count_types_sparse(
     use_cache=True,
     stats_to_compute=None,
     normalized_by=None,
-    ac_filter=None,
 ):
     assert (
         ld_extensions == 1
@@ -947,7 +946,7 @@ def _get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tr
 
 
 def _get_H_statistics(
-    genotypes, sample_ids, pop_file=None, pops=None, ac_filter=False, report=True
+    genotypes, sample_ids, pop_file=None, pops=None, ac_filter=True, report=True
 ):
     """
     Het values are not normalized by sequence length,
@@ -994,15 +993,15 @@ def _get_H_statistics(
         ac_subpop = genotypes.count_alleles_subpops(subpops)
 
     # ensure at least 2 allele counts per pop
+    min_ac_filter = [True] * len(ac_subpop)
     if ac_filter == True:
-        min_ac_filter = [True] * len(ac_subpop)
         for pop in pops:
             min_ac_filter = np.logical_and(
                 min_ac_filter, np.sum(ac_subpop[pop], axis=1) >= 2
             )
-
-        for pop in pops:
-            ac_subpop[pop] = np.array(ac_subpop[pop]).compress(min_ac_filter, axis=0)
+    ac_subpop_filt = {}
+    for pop in pops:
+        ac_subpop_filt[pop] = np.array(ac_subpop[pop]).compress(min_ac_filter, axis=0)
 
     Hs = {}
     for ii, pop1 in enumerate(pops):
@@ -1010,23 +1009,23 @@ def _get_H_statistics(
             if pop1 == pop2:
                 H = np.sum(
                     2.0
-                    * ac_subpop[pop1][:, 0]
-                    * ac_subpop[pop1][:, 1]
-                    / (ac_subpop[pop1][:, 0] + ac_subpop[pop1][:, 1])
-                    / (ac_subpop[pop1][:, 0] + ac_subpop[pop1][:, 1] - 1)
+                    * ac_subpop_filt[pop1][:, 0]
+                    * ac_subpop_filt[pop1][:, 1]
+                    / (ac_subpop_filt[pop1][:, 0] + ac_subpop_filt[pop1][:, 1])
+                    / (ac_subpop_filt[pop1][:, 0] + ac_subpop_filt[pop1][:, 1] - 1)
                 )
             else:
                 H = np.sum(
                     1.0
-                    * ac_subpop[pop1][:, 0]
-                    * ac_subpop[pop2][:, 1]
-                    / (ac_subpop[pop1][:, 0] + ac_subpop[pop1][:, 1])
-                    / (ac_subpop[pop2][:, 0] + ac_subpop[pop2][:, 1])
+                    * ac_subpop_filt[pop1][:, 0]
+                    * ac_subpop_filt[pop2][:, 1]
+                    / (ac_subpop_filt[pop1][:, 0] + ac_subpop_filt[pop1][:, 1])
+                    / (ac_subpop_filt[pop2][:, 0] + ac_subpop_filt[pop2][:, 1])
                     + 1.0
-                    * ac_subpop[pop1][:, 1]
-                    * ac_subpop[pop2][:, 0]
-                    / (ac_subpop[pop1][:, 0] + ac_subpop[pop1][:, 1])
-                    / (ac_subpop[pop2][:, 0] + ac_subpop[pop2][:, 1])
+                    * ac_subpop_filt[pop1][:, 1]
+                    * ac_subpop_filt[pop2][:, 0]
+                    / (ac_subpop_filt[pop1][:, 0] + ac_subpop_filt[pop1][:, 1])
+                    / (ac_subpop_filt[pop2][:, 0] + ac_subpop_filt[pop2][:, 1])
                 )
             Hs[(pop1, pop2)] = H
 
@@ -1046,7 +1045,7 @@ def _get_reported_stats(
     report_spacing=1000,
     use_cache=True,
     stats_to_compute=None,
-    ac_filter=False,
+    ac_filter=True,
 ):
     ### build wrapping function that can take use_cache = True or False
     # now if bins is empty, we only return heterozygosity statistics
@@ -1072,24 +1071,7 @@ def _get_reported_stats(
             report=report,
             report_spacing=report_spacing,
             use_cache=use_cache,
-            ac_filter=ac_filter,
         )
-
-        # if report is True: print("counted genotypes"); sys.stdout.flush()
-        # statistics_cache = _cache_ld_statistics(
-        #      type_counts, stats_to_compute[0], bins,
-        #      use_genotypes=use_genotypes, report=report)
-        #
-        # if report is True:
-        #     print("summing over genotype counts and statistics cache")
-        #     sys.stdout.flush()
-        # sums = {}
-        # for b in bs:
-        #    sums[b] = {}
-        #    for stat in stats_to_compute[0]:
-        #        sums[b][stat] = 0
-        #        for cs in type_counts[b]:
-        #            sums[b][stat] += type_counts[b][cs] * statistics_cache[cs][stat]
 
         sums = _get_ld_stat_sums(
             type_counts,
@@ -1113,7 +1095,6 @@ def _get_reported_stats(
             report_spacing=report_spacing,
             use_cache=use_cache,
             stats_to_compute=stats_to_compute,
-            ac_filter=ac_filter,
         )
 
     if report is True:
@@ -1168,7 +1149,7 @@ def compute_ld_statistics(
     use_genotypes=True,
     use_h5=True,
     stats_to_compute=None,
-    ac_filter=False,
+    ac_filter=True,
     report=True,
     report_spacing=1000,
     use_cache=True,
@@ -1217,6 +1198,9 @@ def compute_ld_statistics(
     :param bool use_h5: If True, we use the h5 format.
     :param list stats_to_compute: If given, we compute only the statistics specified.
         Otherwise, we compute all possible statistics for the populations given.
+    :param ac_filter: Ensure at least two samples are present per population. This
+        prevents computed heterozygosity statistics from returning NaN when some
+        loci have too few called samples.
     :param bool report: If True, we report the progress of our parsing.
     :param int report_spacing: We track the number of "left" variants we compute,
         and report our progress with the given spacing.
