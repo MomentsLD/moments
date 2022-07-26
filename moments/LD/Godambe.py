@@ -108,7 +108,7 @@ def _get_hess(func, p0, eps, args=()):
     :param func: Model function
     :param p0: Parameter values to take derivative around
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-6, then the step size for that parameter
+        Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
         perturbations.
     :param args: Additional arguments to func
@@ -120,7 +120,7 @@ def _get_hess(func, p0, eps, args=()):
     for i, pval in enumerate(p0):
         if pval != 0:
             # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-6:
+            if pval * eps_in < 1e-12:
                 eps[i] = eps_in
                 one_sided[i] = True
             else:
@@ -147,7 +147,7 @@ def _get_grad(func, p0, eps, args=()):
     :param func: Model function
     :param p0: Parameters for func
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-6, then the step size for that parameter
+        Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
         perturbations.
     :param args: Additional arguments to func
@@ -159,7 +159,7 @@ def _get_grad(func, p0, eps, args=()):
     for i, pval in enumerate(p0):
         if pval != 0:
             # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-6:
+            if pval * eps_in < 1e-12:
                 eps[i] = eps_in
                 one_sided[i] = True
             else:
@@ -207,7 +207,7 @@ def _get_godambe(
     :param ms: Original data of statistics means.
     :param vcs: Original data of statistics variance covariance matrices.
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-6, then the step size for that parameter
+        Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
         perturbations.
     :param statistics:
@@ -224,7 +224,7 @@ def _get_godambe(
         ll = Inference.ll_over_bins(y, m, v)
         return ll
 
-    def log_func(logparams, ms, vcs):
+    def log_func(logparams, m, v):
         return func(numpy.exp(logparams), m, v)
 
     # First calculate the observed hessian.
@@ -326,7 +326,7 @@ def GIM_uncert(
         are not give, we remove the normalizing statistics. Otherwise, these need
         to be pared down so that the normalizing statistics are removed.
     :param eps: Fractional stepsize to use when taking finite-difference derivatives.
-        Note that if eps*param is < 1e-6, then the step size for that parameter
+        Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
         perturbations.
     :param log: If True, assume log-normal distribution of parameters. Returned values
@@ -428,7 +428,7 @@ def FIM_uncert(
         are not give, we remove the normalizing statistics. Otherwise, these need
         to be pared down so that the normalizing statistics are removed.
     :param eps: Fractional stepsize to use when taking finite-difference derivatives.
-        Note that if eps*param is < 1e-6, then the step size for that parameter
+        Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
         perturbations.
     :param log: If True, assume log-normal distribution of parameters. Returned values
