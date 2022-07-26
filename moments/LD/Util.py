@@ -84,7 +84,8 @@ def map_moment(mom):
         elif mom.split("_")[0] == "pi2":
             popsp = sorted([int(p) for p in mom.split("_")[1:3]])
             popsq = sorted([int(p) for p in mom.split("_")[3:]])
-            ## pi2_2_2_1_1 -> pi2_1_1_2_2, pi2_1_2_1_1 -> pi2_1_1_1_2,
+            ## pi2_2_2_1_1 -> pi2_1_1_2_2
+            ## pi2_1_2_1_1 -> pi2_1_1_1_2,
             ## pi2_2_2_1_3 -> pi2_1_3_2_2
             if popsp[0] > popsq[0]:  # switch them
                 mom_out = (
