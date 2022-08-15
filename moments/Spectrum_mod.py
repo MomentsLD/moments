@@ -698,18 +698,21 @@ class Spectrum(numpy.ma.masked_array):
         :type Npop: list or function that returns a list
         :param tf: The total integration time in genetic units.
         :type tf: float
-        :param dt_fac: The timestep factor, default is 0.02
+        :param dt_fac: The timestep factor, default is 0.02. This parameter typically
+            does not need to be adjusted.
         :type dt_fac: float, optional
         :param gamma: The selection coefficient (:math:`2 N_e s`), or list of selection
             coefficients if more than one population.
         :type gamma: float or list of floats, optional
-        :param h: The dominance coefficient, or list of dominance coefficients within
+        :param h: The dominance coefficient, or list of dominance coefficients in
             each population, if more than one population.
         :type h: float or list of floats, optional
-        :param m: The migration rates matrix as an 2-D array, where m[i,j] is the
-            migration rate from pop j to pop i, normalized by :math:`2N_e`. `m` may
-            be either a 2-D array, or a function that returns a 2-D array (with
-            dimensions equal to (num pops)x(num pops)).
+        :param m: The migration rates matrix as a 2-D array with shape nxn,
+            where n is the number of populations. The entry of the migration
+            matrix m[i,j] is the migration rate from pop j to pop i in genetic
+            units, that is, normalized by :math:`2N_e`. `m` may be either a
+            2-D array, or a function that returns a 2-D array (with dimensions
+            equal to (num pops)x(num pops)).
         :type m: array-like, optional
         :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
             ``theta`` can be used in the reversible model in the case of symmetric
@@ -718,17 +721,25 @@ class Spectrum(numpy.ma.masked_array):
         :param adapt_dt: flag to allow dt correction avoiding negative entries.
         :type adapt_dt: bool, optional
         :param finite_genome: If True, simulate under the finite-genome model with
-            reversible mutations. If using this model, we specify the forward
+            reversible mutations. If using this model, we can specify the forward
             and backward mutation rates, which are per-base rates that are not
-            scaled by number of mutable loci (different from the standard ISM
-            model). Defaults to False.
+            scaled by number of mutable loci. If ``theta_fd`` and ``theta_bd``
+            are not specified, we assume equal forward and backward mutation rates
+            provided by ``theta``, which must be set to less that 1.
+            Defaults to False.
         :type finite_genome: bool, optional
         :param theta_fd: The forward mutation rate :math:`4 Ne u`.
         :type theta_fd: float, optional
         :param theta_bd: The backward mutation rate :math:`4 Ne v`.
         :type theta_bd: float, optional
-        :param frozen: list of same length as number of pops, with True for frozen
-            populations at the corresponding index.
+        :param frozen: Specifies the populations that are "frozen", meaning
+            samples from that population no longer change due or contribute
+            to migration to other populations. This feature is most often
+            used to indicate ancient samples, for example, ancient DNA.
+            The ``frozen`` parameter is given as a list of same length
+            as number of pops, with ``True`` for frozen
+            populations at the corresponding index, and ``False`` for
+            populations that continue to evolve.
         :type frozen: list of bools
         """
 
