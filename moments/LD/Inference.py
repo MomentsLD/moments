@@ -222,12 +222,22 @@ def ll_over_bins(xs, mus, Sigmas):
         )
     ll_vals = []
     for ii in range(len(xs)):
-        try:
-            Sigma_inv = _varcov_inv_cache[ii]
-        except KeyError:
+        # get var-cov inverse from cache dictionary, or compute it
+        if ii in _varcov_inv_cache:
+            if np.all(_varcov_inv_cache[ii]["data"] == Sigmas[ii]):
+                Sigma_inv = _varcov_inv_cache[ii]["inv"]
+            else:
+                _varcov_inv_cache[ii]["data"] = Sigmas[ii]
+                Sigma_inv = np.linalg.inv(Sigmas[ii])
+                _varcov_inv_cache[ii]["inv"] = Sigma_inv
+        else:
+            _varcov_inv_cache[ii] = {}
+            _varcov_inv_cache[ii]["data"] = Sigmas[ii]
             Sigma_inv = np.linalg.inv(Sigmas[ii])
-            _varcov_inv_cache[ii] = Sigma_inv
+            _varcov_inv_cache[ii]["inv"] = Sigma_inv
+        # append log-likelihood for this bin
         ll_vals.append(_ll(xs[ii], mus[ii], Sigma_inv))
+    # sum over bins to get composite log-likelihood
     ll_val = np.sum(ll_vals)
     return ll_val
 

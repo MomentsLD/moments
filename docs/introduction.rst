@@ -61,6 +61,12 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.12
+======
+
+- Efficiency improvements in LD Parsing and Integration
+- Test demes graph slicing features
+
 1.1.11
 ======
 

@@ -781,7 +781,7 @@ class LDstats(list):
             sample_times=sample_times,
             rho=rho,
             theta=theta,
-            r=u,
+            r=r,
             u=u,
             Ne=Ne,
         )

@@ -24,6 +24,7 @@ import numpy as np
 import scipy.optimize
 import sys, os
 import warnings
+import time
 
 
 ################################################
@@ -583,6 +584,10 @@ def optimize(
 # Methods for computing confidence intervals from SFS inference #
 #################################################################
 
+# Cache evaluations of the frequency spectrum inside our hessian/J
+# evaluation function
+
+_sfs_cache = {}
 
 def _get_godambe(
     func_ex,
@@ -598,15 +603,11 @@ def _get_godambe(
     # taken and adapted from moments.Godambe, to include bootstraps over uL
     ns = data.sample_sizes
 
-    # Cache evaluations of the frequency spectrum inside our hessian/J
-    # evaluation function
-    cache = {}
-
     def func(params, data, uL=None):
         key = (tuple(params), tuple(ns))
-        if key not in cache:
-            cache[key] = func_ex(params, ns, uL=uL)
-        fs = cache[key]
+        if key not in _sfs_cache:
+            _sfs_cache[key] = func_ex(params, ns, uL=uL)
+        fs = _sfs_cache[key]
         return moments.Inference.ll(fs, data)
 
     def log_func(logparams, data, uL=None):
@@ -1150,12 +1151,77 @@ def optimize_LD(
     return param_names, xopt, fopt
 
 
+################################################################
+# Methods for computing confidence intervals from LD inference #
+################################################################
+
+# Cache evaluations of the frequency spectrum inside our hessian/J
+# evaluation function
+_ld_cache = {}
+
+def _get_godambe_LD(
+    func_ex,
+    all_boot,
+    p0,
+    means,
+    varcovs,
+    eps,
+    log=False,
+    just_hess=False,
+):
+    def func(params, means, varcovs):
+        key = tuple(params)
+        if key not in _ld_cache:
+            _ld_cache[key] = func_ex(params)
+        y = _ld_cache[key]
+        return moments.LD.Inference.ll_over_bins(means, y, varcovs)
+
+    def log_func(logparams, means, varcovs):
+        return func(np.exp(logparams), means, varcovs)
+
+    # First calculate the observed hessian
+    if not log:
+        hess = -moments.LD.Godambe._get_hess(func, p0, eps, args=[means, varcovs])
+    else:
+        hess = -moments.LD.Godambe._get_hess(
+            log_func, np.log(p0), eps, args=[means, varcovs]
+        )
+
+    if just_hess:
+        return hess
+
+    # Now the expectation of J over the bootstrap data
+    J = np.zeros((len(p0), len(p0)))
+    # cU is a column vector
+    cU = np.zeros((len(p0), 1))
+    for bs_ms in all_boot:
+        # boot = LDstats(boot)
+        if not log:
+            grad_temp = moments.LD.Godambe._get_grad(
+                func, p0, eps, args=[bs_ms, varcovs]
+            )
+        else:
+            grad_temp = momenst.LD.Godambe._get_grad(
+                log_func, np.log(p0), eps, args=[bs_ms, varcovs]
+            )
+        J_temp = np.outer(grad_temp, grad_temp)
+        J = J + J_temp
+        cU = cU + grad_temp
+    J = J / len(all_boot)
+    cU = cU / len(all_boot)
+
+    # G = H*J^-1*H
+    J_inv = np.linalg.inv(J)
+    godambe = np.dot(np.dot(hess, J_inv), hess)
+    return godambe, hess, J, cU
+
+
 def uncerts_LD(
     deme_graph,
     inference_options,
     means,
     varcovs,
-    bootstraps=None,
+    bootstraps=[],
     pop_ids=None,
     rs=None,
     statistics=None,
@@ -1163,6 +1229,7 @@ def uncerts_LD(
     log=False,
     eps=0.01,
     method="FIM",
+    verbose=0,
     output_stream=sys.stdout,
     output=None,
     overwrite=False,
@@ -1172,6 +1239,7 @@ def uncerts_LD(
     ``moments.Demes.Invascript:void(0); ference.optimize_LD()``.
     """
     _check_demes_imported()
+    func_calls = 0
 
     # Get p0 and parameter information
     builder = _get_demes_dict(deme_graph)
@@ -1184,16 +1252,43 @@ def uncerts_LD(
     elif normalization not in pop_ids:
         raise ValueError("Normalizatino deme must be in pop_ids")
 
+    # when statistics is None, we assume all statistics are present, and
+    # we need to remove the normalizing statistic
+    if statistics is None:
+        statistics = moments.LD.Util.moment_names(len(pop_ids))
+        (
+            statistics,
+            means,
+            varcovs,
+            bootstraps,
+        ) = moments.LD.Godambe._remove_normalized_data(
+            statistics, pop_ids.index(normalization), means, varcovs, bootstraps
+        )
+
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
     )
 
+    if verbose > 0:
+        exp_num_calls = moments.LD.Godambe._expected_number_of_calls(p0)
+        output_stream.write(
+            "Expected number of function calls: " + str(exp_num_calls) + os.linesep
+        )
+        moments.Misc.delayed_flush(delay=0.5)
+
+        eval_time_1 = -np.inf
+        eval_time_2 = np.inf
+
     def func_ex(params):
         nonlocal builder
         nonlocal options
+        nonlocal func_calls
+        nonlocal eval_time_1
+        nonlocal eval_time_2
+        func_calls += 1
 
-        # update the builder dict, then compute SFS
-        builder = _update_builder(builder, options, demo_params)
+        # update the builder dict, then compute LD
+        builder = _update_builder(builder, options, params)
         g = demes.Graph.fromdict(builder)
 
         sampled_demes = pop_ids
@@ -1219,20 +1314,34 @@ def uncerts_LD(
         # normalize statistics based on normalization population
         norm_idx = pop_ids.index(normalization)
         model = moments.LD.Inference.sigmaD2(model, normalization=norm_idx)
-        if statistics is None:
-            model = moments.LD.Inference.remove_normalized_lds(
-                model, normalization=norm_idx
-            )
-        else:
-            model = moments.LD.Inference.remove_nonpresent_statistics(
-                model, statistics=statistics
-            )
+        model = moments.LD.Inference.remove_nonpresent_statistics(
+            model, statistics=statistics
+        )
+
+        if (verbose > 0) and (func_calls % verbose == 0):
+            if func_calls == 1:
+                eval_time_1 = time.time()
+            if func_calls == 2:
+                eval_time_2 = time.time()
+                eval_time = eval_time_2 - eval_time_1
+                output_stream.write(
+                    f"One iteration took {eval_time:.1f} seconds, "
+                    f"expected total time: {eval_time*exp_num_calls/60:.0f} minutes"
+                    + os.linesep
+                )
+            if func_calls % verbose == 0:
+                output_stream.write(
+                    f"Finished iteration {func_calls: > {len(str(exp_num_calls))}} "
+                    + f"of {exp_num_calls}"
+                    + os.linesep
+                )
+            moments.Misc.delayed_flush(delay=0.5)
 
         return model
 
     if method == "FIM":
         # computing
-        if bootstraps is not None:
+        if len(bootstraps) > 0:
             warnings.warn(
                 "FIM method chosen but bootstrap replicates provided - "
                 "Bootstraps will not be used"
@@ -1242,10 +1351,23 @@ def uncerts_LD(
         )
         uncerts_out = np.sqrt(np.diag(np.linalg.inv(H)))
     elif method == "GIM":
-        if bootstraps is None:
+        # check that data and boostraps match in sizes
+        if len(bootstraps) == 0:
             raise ValueError(
-                "A list of SFS bootstrap replicates must be provided to use GIM method"
+                "A list of LD bootstrap replicates must be provided to use GIM method"
             )
+        else:
+            for bs in bootstraps:
+                if len(bs) != len(means):
+                    raise ValueError(
+                        "mismatch in number of bins between bootstrap and data means"
+                    )
+                for b, d in zip(bs, means):
+                    if len(b) != len(d):
+                        raise ValueError(
+                            "mismatch in number of statistics between boostrap and "
+                            "data means"
+                        )
         GIM, H, J, cU = _get_godambe_LD(
             func_ex,
             bootstraps,
@@ -1254,7 +1376,6 @@ def uncerts_LD(
             varcovs,
             eps,
             log=log,
-            all_boot_uL=bootstraps_uL,
         )
         uncerts_out = np.sqrt(np.diag(np.linalg.inv(GIM)))
     else:
