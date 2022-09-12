@@ -72,6 +72,7 @@ Change log
 
 - The LD inference methods now allow calculation of f-statistics (f2, f3, f4)
 - Demes methods allow multiple sources in pulses
+- Demes integration allow for ancient samples
 - Fix bugs in L-BFGS-B methods for inference using the SFS
 
 1.1.10
