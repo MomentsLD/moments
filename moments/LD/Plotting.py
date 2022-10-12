@@ -1,7 +1,10 @@
 # Methods to plot LD decay curves from moments.LD
-#
-#
-#
+# !!!!
+# WARNING: These functions are meant to serve as examples or inspiration. They are not
+# documented, nor are they nicely formatted or take friendly inputs. Similarly, they
+# are not currently maintained, aside from being usable in some example code blocks in
+# the documentation.
+# !!!!
 
 import matplotlib.pylab as plt, matplotlib
 import numpy as np
