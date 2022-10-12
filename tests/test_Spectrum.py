@@ -137,6 +137,41 @@ class TestLoadDump(unittest.TestCase):
         self.assertTrue(np.all(fsout.mask == fsin.mask))
         self.assertEqual(fsout.folded, fsin.folded)
 
+    def test_from_angsd(self):
+        fname = os.path.join(
+            os.path.dirname(__file__),
+            "test_files/two_pop_angsd.82.82.sfs",
+        )
+        ns = [82, 82]
+        fs = moments.Spectrum.from_angsd(fname, ns)
+        self.assertFalse(fs.folded)
+        self.assertTrue(fs.mask[0, 0])
+        self.assertTrue(fs.mask[-1, -1])
+        self.assertTrue(fs.pop_ids is None)
+
+        pop_ids = ["A", "B"]
+        fs = moments.Spectrum.from_angsd(fname, ns, pop_ids)
+        self.assertEqual(fs.pop_ids[0], pop_ids[0])
+        self.assertEqual(fs.pop_ids[1], pop_ids[1])
+
+        fs = moments.Spectrum.from_angsd(fname, ns, folded=True)
+        self.assertTrue(fs.folded)
+
+        fs = moments.Spectrum.from_angsd(fname, ns, mask_corners=False)
+        self.assertFalse(fs.mask[0, 0])
+        self.assertFalse(fs.mask[-1, -1])
+
+        fs = moments.Spectrum.from_angsd(fname, ns, mask_corners=False, folded=True)
+        self.assertFalse(fs.mask[0, 0])
+        self.assertTrue(fs.mask[-1, -1])
+
+        with self.assertRaises(ValueError):
+            fs = moments.Spectrum.from_angsd(fname, [41, 41])
+        with self.assertRaises(ValueError):
+            fs = moments.Spectrum.from_angsd(fname, ns, ["A"])
+        with self.assertRaises(ValueError):
+            fs = moments.Spectrum.from_angsd(fname, ns, ["A", "B", "C"])
+
 
 class TestFolding(unittest.TestCase):
     def setUp(self):
@@ -183,7 +218,7 @@ class TestFolding(unittest.TestCase):
 
     def test_masked_folding(self):
         """
-        Test folding when the minor allele is ambiguous.
+        Test folding with masked entries.
         """
         data = np.zeros((5, 6))
         fs = moments.Spectrum(data)
@@ -435,6 +470,12 @@ class TestFolding(unittest.TestCase):
         self.assertTrue(unfolded.mask[(ns[0] - 1), (ns[1] - 1) - 1])
         self.assertTrue(unfolded.mask[1, 1])
         self.assertTrue(unfolded.mask[(ns[0] - 1) - 1, (ns[1] - 1) - 1])
+
+    def test_folding_masked_corners(self):
+        fs = moments.Spectrum(np.random.rand(5, 5), mask_corners=False)
+        fs = fs.fold()
+        self.assertTrue(fs.mask[-1, -1])
+        self.assertFalse(fs.mask[0, 0])
 
 
 class TestMarginalize(unittest.TestCase):

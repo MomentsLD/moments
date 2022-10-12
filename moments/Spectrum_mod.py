@@ -9,7 +9,7 @@ import functools
 import operator
 import os
 import sys
-import numpy, numpy as np
+import numpy as np
 from numpy import newaxis as nuax
 import scipy.misc as misc
 import copy
@@ -41,7 +41,7 @@ except ImportError:
 _imported_demes = False
 
 
-class Spectrum(numpy.ma.masked_array):
+class Spectrum(np.ma.masked_array):
     """
     Represents a single-locus biallelic frequency spectrum.
 
@@ -87,28 +87,31 @@ class Spectrum(numpy.ma.masked_array):
     def __new__(
         subtype,
         data,
-        mask=numpy.ma.nomask,
+        mask=np.ma.nomask,
         mask_corners=True,
         data_folded=None,
         check_folding=True,
         dtype=float,
         copy=True,
-        fill_value=numpy.nan,
+        fill_value=np.nan,
         keep_mask=True,
         shrink=True,
         pop_ids=None,
     ):
-        data = numpy.asanyarray(data)
+        data = np.asanyarray(data)
 
-        if mask is numpy.ma.nomask:
-            mask = numpy.ma.make_mask_none(data.shape)
+        if mask is np.ma.nomask:
+            mask = np.ma.make_mask_none(data.shape)
+        else:
+            # Since a mask is given, we do not mask the corners
+            mask_corners = False
 
-        subarr = numpy.ma.masked_array(
+        subarr = np.ma.masked_array(
             data,
             mask=mask,
             dtype=dtype,
             copy=copy,
-            fill_value=numpy.nan,
+            fill_value=np.nan,
             keep_mask=True,
             shrink=True,
         )
@@ -130,17 +133,17 @@ class Spectrum(numpy.ma.masked_array):
         # Check that if we're declaring that the input data is folded, it
         # actually is, and the mask reflects this.
         if data_folded:
-            total_samples = numpy.sum(subarr.sample_sizes)
+            total_samples = np.sum(subarr.sample_sizes)
             total_per_entry = subarr._total_per_entry()
             # Which entries are nonsense in the folded fs.
             where_folded_out = total_per_entry > int(total_samples / 2)
-            if check_folding and not numpy.all(subarr.data[where_folded_out] == 0):
+            if check_folding and not np.all(subarr.data[where_folded_out] == 0):
                 logger.warn(
                     "Creating Spectrum with data_folded = True, but "
                     "data has non-zero values in entries which are "
                     "nonsensical for a folded Spectrum."
                 )
-            if check_folding and not numpy.all(subarr.mask[where_folded_out]):
+            if check_folding and not np.all(subarr.mask[where_folded_out]):
                 logger.warn(
                     "Creating Spectrum with data_folded = True, but "
                     "mask is not True for all entries which are "
@@ -175,27 +178,27 @@ class Spectrum(numpy.ma.masked_array):
     # See http://www.scipy.org/Subclasses for information on the
     # __array_finalize__ and __array_wrap__ methods. I had to do some debugging
     # myself to discover that I also needed _update_from.
-    # Also, see http://docs.scipy.org/doc/numpy/reference/arrays.classes.html
-    # Also, see http://docs.scipy.org/doc/numpy/user/basics.subclassing.html
+    # Also, see http://docs.scipy.org/doc/np/reference/arrays.classes.html
+    # Also, see http://docs.scipy.org/doc/np/user/basics.subclassing.html
     #
     # We need these methods to ensure extra attributes get copied along when
     # we do arithmetic on the FS.
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        numpy.ma.masked_array.__array_finalize__(self, obj)
+        np.ma.masked_array.__array_finalize__(self, obj)
         self.folded = getattr(obj, "folded", "unspecified")
         self.pop_ids = getattr(obj, "pop_ids", None)
 
     def __array_wrap__(self, obj, context=None):
         result = obj.view(type(self))
-        result = numpy.ma.masked_array.__array_wrap__(self, obj, context=context)
+        result = np.ma.masked_array.__array_wrap__(self, obj, context=context)
         result.folded = self.folded
         result.pop_ids = self.pop_ids
         return result
 
     def _update_from(self, obj):
-        numpy.ma.masked_array._update_from(self, obj)
+        np.ma.masked_array._update_from(self, obj)
         if hasattr(obj, "folded"):
             self.folded = obj.folded
         if hasattr(obj, "pop_ids"):
@@ -225,7 +228,7 @@ class Spectrum(numpy.ma.masked_array):
         self.mask[tuple([slice(None)] * self.Npop)] = False
 
     def _get_sample_sizes(self):
-        return numpy.asarray(self.shape) - 1
+        return np.asarray(self.shape) - 1
 
     sample_sizes = property(_get_sample_sizes)
 
@@ -257,7 +260,7 @@ class Spectrum(numpy.ma.masked_array):
                 "as spectrum. Perhaps you need to marginalize "
                 "over some populations first?"
             )
-        if numpy.any(numpy.asarray(ns) > numpy.asarray(self.sample_sizes)):
+        if np.any(np.asarray(ns) > np.asarray(self.sample_sizes)):
             raise ValueError(
                 "Cannot project to a sample size greater than "
                 "original. Original size is %s and requested size "
@@ -301,7 +304,7 @@ class Spectrum(numpy.ma.masked_array):
         newshape = list(self.shape)
         newshape[axis] = n + 1
         # Create a new empty fs that we'll fill in below.
-        pfs = Spectrum(numpy.zeros(newshape), mask_corners=False)
+        pfs = Spectrum(np.zeros(newshape), mask_corners=False)
 
         # Set up for our fancy indexes. These slices are currently like
         # [:,:,...]
@@ -325,7 +328,7 @@ class Spectrum(numpy.ma.masked_array):
             pfs.data[tuple(to_slice)] += (
                 self.data[tuple(from_slice)] * proj[tuple(proj_slice)]
             )
-            pfs.mask[tuple(to_slice)] = numpy.logical_or(
+            pfs.mask[tuple(to_slice)] = np.logical_or(
                 pfs.mask[tuple(to_slice)], self.mask[tuple(from_slice)]
             )
 
@@ -364,7 +367,7 @@ class Spectrum(numpy.ma.masked_array):
 
         orig_mask = output.mask.copy()
         orig_mask.flat[0] = orig_mask.flat[-1] = False
-        if numpy.any(orig_mask):
+        if np.any(orig_mask):
             logger.warn(
                 "Marginalizing a Spectrum with internal masked values. "
                 "This may not be a well-defined operation."
@@ -397,7 +400,7 @@ class Spectrum(numpy.ma.masked_array):
 
     def swap_axes(self, ax1, ax2):
         """
-        Uses numpy's swapaxes function, but also swaps pop_ids as appropriate
+        Uses np's swapaxes function, but also swaps pop_ids as appropriate
         if pop_ids are given.
 
         .. note::
@@ -409,7 +412,7 @@ class Spectrum(numpy.ma.masked_array):
         :param ax2: The index of the second population to swap.
         :type ax2: int
         """
-        output = numpy.swapaxes(self, ax1, ax2)
+        output = np.swapaxes(self, ax1, ax2)
         if output.pop_ids is not None:
             pop1, pop2 = output.pop_ids[ax1], output.pop_ids[ax2]
             output.pop_ids[ax1], output.pop_ids[ax2] = pop2, pop1
@@ -419,7 +422,7 @@ class Spectrum(numpy.ma.masked_array):
         """
         Counts per population for each entry in the fs.
         """
-        ind = numpy.indices(self.shape)
+        ind = np.indices(self.shape)
         # Transpose the first access to the last, so ind[ii,jj,kk] = [ii,jj,kk]
         ind = ind.transpose(list(range(1, self.Npop + 1)) + [0])
         return ind
@@ -428,16 +431,16 @@ class Spectrum(numpy.ma.masked_array):
         """
         Total derived alleles for each entry in the fs.
         """
-        return numpy.sum(self._counts_per_entry(), axis=-1)
+        return np.sum(self._counts_per_entry(), axis=-1)
 
     def log(self):
         """
         Returns the natural logarithm of the entries of the frequency spectrum.
 
-        Only necessary because numpy.ma.log now fails to propagate extra
-        attributes after numpy 1.10.
+        Only necessary because np.ma.log now fails to propagate extra
+        attributes after np 1.10.
         """
-        logfs = numpy.ma.log(self)
+        logfs = np.ma.log(self)
         logfs.folded = self.folded
         logfs.pop_ids = self.pop_ids
         return logfs
@@ -458,7 +461,7 @@ class Spectrum(numpy.ma.masked_array):
 
         # How many samples total do we have? The folded fs can only contain
         # entries up to total_samples/2 (rounded down).
-        total_samples = numpy.sum(self.sample_sizes)
+        total_samples = np.sum(self.sample_sizes)
 
         total_per_entry = self._total_per_entry()
 
@@ -468,25 +471,23 @@ class Spectrum(numpy.ma.masked_array):
         original_mask = self.mask
         # Here we create a mask that masks any values that were masked in
         # the original fs (or folded onto by a masked value).
-        final_mask = numpy.logical_or(
-            original_mask, Numerics.reverse_array(original_mask)
-        )
+        final_mask = np.logical_or(original_mask, Numerics.reverse_array(original_mask))
 
         # To do the actual folding, we take those entries that would be folded
         # out, reverse the array along all axes, and add them back to the
         # original fs.
-        reversed = Numerics.reverse_array(numpy.where(where_folded_out, self, 0))
-        folded = numpy.ma.masked_array(self.data + reversed)
+        reversed = Numerics.reverse_array(np.where(where_folded_out, self, 0))
+        folded = np.ma.masked_array(self.data + reversed)
         folded.data[where_folded_out] = 0
 
         # Deal with those entries where assignment of the minor allele is
         # ambiguous.
         where_ambiguous = total_per_entry == total_samples / 2.0
-        ambiguous = numpy.where(where_ambiguous, self, 0)
+        ambiguous = np.where(where_ambiguous, self, 0)
         folded += -0.5 * ambiguous + 0.5 * Numerics.reverse_array(ambiguous)
 
         # Mask out the remains of the folding operation.
-        final_mask = numpy.logical_or(final_mask, where_folded_out)
+        final_mask = np.logical_or(final_mask, where_folded_out)
 
         outfs = Spectrum(
             folded, mask=final_mask, data_folded=True, pop_ids=self.pop_ids
@@ -513,12 +514,12 @@ class Spectrum(numpy.ma.masked_array):
         # that were masked in the original Spectrum.
         # Which entries in the original Spectrum were masked solely because
         # they are incompatible with a folded Spectrum?
-        total_samples = numpy.sum(self.sample_sizes)
+        total_samples = np.sum(self.sample_sizes)
         total_per_entry = self._total_per_entry()
         where_folded_out = total_per_entry > int(total_samples / 2)
 
-        newmask = numpy.logical_xor(self.mask, where_folded_out)
-        newmask = numpy.logical_or(newmask, Numerics.reverse_array(newmask))
+        newmask = np.logical_xor(self.mask, where_folded_out)
+        newmask = np.logical_or(newmask, Numerics.reverse_array(newmask))
 
         outfs = Spectrum(newdata, mask=newmask, data_folded=False, pop_ids=self.pop_ids)
         return outfs
@@ -746,10 +747,10 @@ class Spectrum(numpy.ma.masked_array):
         if tf < 0:
             raise ValueError("Integration time cannot be negative")
 
-        n = numpy.array(self.shape) - 1
+        n = np.array(self.shape) - 1
 
         if m is not None and not callable(m):
-            m = numpy.array(m)
+            m = np.array(m)
 
         if finite_genome == True and (theta_fd == None or theta_bd == None):
             if theta >= 1:
@@ -762,13 +763,13 @@ class Spectrum(numpy.ma.masked_array):
                 theta_fd = theta_bd = theta
 
         if hasattr(Npop, "__len__"):
-            if numpy.any(frozen) and len(Npop) != len(frozen):
+            if np.any(frozen) and len(Npop) != len(frozen):
                 raise ValueError(
                     "If one or more populations are frozen, length "
                     "of frozen must match number of simulated pops."
                 )
         else:
-            if numpy.any(frozen) and len(Npop(0)) != len(frozen):
+            if np.any(frozen) and len(Npop(0)) != len(frozen):
                 raise ValueError(
                     "If one or more populations are frozen, length "
                     "of frozen must match number of simulated pops."
@@ -812,19 +813,19 @@ class Spectrum(numpy.ma.masked_array):
                 )
         else:
             if gamma is None:
-                gamma = numpy.zeros(len(n))
+                gamma = np.zeros(len(n))
             elif not hasattr(gamma, "__len__"):
                 gamma = gamma * np.ones(len(n))
             if h is None:
-                h = 0.5 * numpy.ones(len(n))
+                h = 0.5 * np.ones(len(n))
             elif not hasattr(h, "__len__"):
                 h = h * np.ones(len(n))
             if m is None:
-                m = numpy.zeros([len(n), len(n)])
+                m = np.zeros([len(n), len(n)])
             if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver
                 # seems to be faster than the tridiag...
-                if (numpy.array(gamma) == 0).all() and len(n) < 3:
+                if (np.array(gamma) == 0).all() and len(n) < 3:
                     self.data[:] = moments.Integration_nomig.integrate_neutral(
                         self.data,
                         Npop,
@@ -905,15 +906,15 @@ class Spectrum(numpy.ma.masked_array):
             # First quantities from page 1360
             r = self.Npop
             ns = self.sample_sizes
-            nbar = numpy.mean(ns)
-            nsum = numpy.sum(ns)
-            nc = (nsum - numpy.sum(ns ** 2) / nsum) / (r - 1)
+            nbar = np.mean(ns)
+            nsum = np.sum(ns)
+            nc = (nsum - np.sum(ns ** 2) / nsum) / (r - 1)
 
             # counts_per_pop is an r+1 dimensional array, where the last axis simply
             # records the indices of the entry.
             # For example, counts_per_pop[4,19,8] = [4,19,8]
-            counts_per_pop = numpy.indices(self.shape)
-            counts_per_pop = numpy.transpose(
+            counts_per_pop = np.indices(self.shape)
+            counts_per_pop = np.transpose(
                 counts_per_pop, axes=list(range(1, r + 1)) + [0]
             )
 
@@ -922,12 +923,12 @@ class Spectrum(numpy.ma.masked_array):
             ptwiddle = 1.0 * counts_per_pop / ns
 
             # Note that pbar is of the same shape as fs...
-            pbar = numpy.sum(ns * ptwiddle, axis=-1) / nsum
+            pbar = np.sum(ns * ptwiddle, axis=-1) / nsum
 
             # We need to use 'this_slice' to get the proper aligment between
             # ptwiddle and pbar.
-            this_slice = [slice(None)] * r + [numpy.newaxis]
-            s2 = numpy.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
+            this_slice = [slice(None)] * r + [np.newaxis]
+            s2 = np.sum(ns * (ptwiddle - pbar[tuple(this_slice)]) ** 2, axis=-1) / (
                 (r - 1) * nbar
             )
 
@@ -968,7 +969,7 @@ class Spectrum(numpy.ma.masked_array):
 
         n = self.sample_sizes[0]
         S = self.S()
-        an = numpy.sum(1.0 / numpy.arange(1, n))
+        an = np.sum(1.0 / np.arange(1, n))
 
         return S / an
 
@@ -985,7 +986,7 @@ class Spectrum(numpy.ma.masked_array):
             raise ValueError("Only defined on a one-dimensional fs.")
 
         n = self.sample_sizes[0]
-        return numpy.sum(numpy.arange(1, n) * self[1:n]) / (n - 1)
+        return np.sum(np.arange(1, n) * self[1:n]) / (n - 1)
 
     def Zengs_E(self):
         """
@@ -999,9 +1000,9 @@ class Spectrum(numpy.ma.masked_array):
         n = self.sample_sizes[0]
 
         # See after Eq. 3
-        an = numpy.sum(1.0 / numpy.arange(1, n))
+        an = np.sum(1.0 / np.arange(1, n))
         # See after Eq. 9
-        bn = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
+        bn = np.sum(1.0 / np.arange(1, n) ** 2)
         s = self.S()
 
         # See immediately after Eq. 12
@@ -1016,7 +1017,7 @@ class Spectrum(numpy.ma.masked_array):
             - (3.0 * n + 1.0) / (n - 1.0)
         ) * theta_sq
 
-        return num / numpy.sqrt(var)
+        return num / np.sqrt(var)
 
     def pi(self):
         """
@@ -1032,10 +1033,10 @@ class Spectrum(numpy.ma.masked_array):
 
         n = self.sample_sizes[0]
         # sample frequencies p
-        p = numpy.arange(0, n + 1, dtype=float) / n
+        p = np.arange(0, n + 1, dtype=float) / n
         # This expression derives from Gillespie's _Population_Genetics:_A
         # _Concise_Guide_, 2nd edition, section 2.6.
-        return n / (n - 1.0) * 2 * numpy.ma.sum(self * p * (1 - p))
+        return n / (n - 1.0) * 2 * np.ma.sum(self * p * (1 - p))
 
     def Tajima_D(self):
         """
@@ -1053,14 +1054,14 @@ class Spectrum(numpy.ma.masked_array):
         pihat = self.pi()
         theta = self.Watterson_theta()
 
-        a1 = numpy.sum(1.0 / numpy.arange(1, n))
-        a2 = numpy.sum(1.0 / numpy.arange(1, n) ** 2)
+        a1 = np.sum(1.0 / np.arange(1, n))
+        a2 = np.sum(1.0 / np.arange(1, n) ** 2)
         b1 = (n + 1) / (3 * (n - 1))
         b2 = 2 * (n ** 2 + n + 3) / (9 * n * (n - 1))
         c1 = b1 - 1.0 / a1
         c2 = b2 - (n + 2) / (a1 * n) + a2 / a1 ** 2
 
-        C = numpy.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
+        C = np.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
 
         return (pihat - theta) / C
 
@@ -1084,7 +1085,7 @@ class Spectrum(numpy.ma.masked_array):
             pvals[flat.mask] = 0
         pvals /= pvals.sum()
 
-        sample = numpy.random.multinomial(int(nsamples), pvals)
+        sample = np.random.multinomial(int(nsamples), pvals)
         sample = sample.reshape(self.shape)
         sample = moments.Spectrum(sample, mask=self.mask, pop_ids=self.pop_ids)
         sample = sample.astype(int)
@@ -1102,7 +1103,7 @@ class Spectrum(numpy.ma.masked_array):
 
         # These are entries where the sampling has no meaning. Either the fs is
         # 0 there or masked.
-        bad_entries = numpy.logical_or(self == 0, self.mask)
+        bad_entries = np.logical_or(self == 0, self.mask)
         # We convert to a 1-d array for passing into the sampler
         means = self.ravel().copy()
         # Filter out those bad entries.
@@ -1125,7 +1126,7 @@ class Spectrum(numpy.ma.masked_array):
     ):
         """
         Generate a genotype matrix of independent loci. For multi-population spectra,
-        we the individual columns are filled in the sample order as the populations
+        the individual columns are filled in the sample order as the populations
         in the SFS.
 
         .. note::
@@ -1239,19 +1240,17 @@ class Spectrum(numpy.ma.masked_array):
             else:
                 pop_ids = None
 
-        data = numpy.fromstring(
-            fid.readline().strip(), count=numpy.product(shape), sep=" "
-        )
+        data = np.fromstring(fid.readline().strip(), count=np.product(shape), sep=" ")
         # fromfile returns a 1-d array. Reshape it to the proper form.
         data = data.reshape(*shape)
 
         maskline = fid.readline().strip()
         if not maskline:
             # The old file format didn't have a line for the mask
-            mask = None
+            mask = np.ma.nomask
         else:
             # This case handles the new file format
-            mask = numpy.fromstring(maskline, count=numpy.product(shape), sep=" ")
+            mask = np.fromstring(maskline, count=np.product(shape), sep=" ")
             mask = mask.reshape(*shape)
 
         # If we opened a new file, clean it up.
@@ -1331,14 +1330,14 @@ class Spectrum(numpy.ma.masked_array):
 
         if foldmaskinfo:
             # Write the mask to the file
-            numpy.asarray(self.mask, int).tofile(fid, " ")
+            np.asarray(self.mask, int).tofile(fid, " ")
             fid.write(os.linesep)
 
         # Close file
         if newfile:
             fid.close()
 
-    ## Overide the (perhaps confusing) original numpy tofile method.
+    ## Overide the (perhaps confusing) original np tofile method.
     tofile = to_file
 
     @staticmethod
@@ -1404,12 +1403,12 @@ class Spectrum(numpy.ma.masked_array):
         else:
             raise ValueError("Unrecognized command string: %s." % command)
 
-        total_samples = numpy.sum(pop_samples)
+        total_samples = np.sum(pop_samples)
         if pop_assignments:
             num_pops = len(pop_assignments)
             pop_samples = pop_assignments
 
-        sample_indices = numpy.cumsum([0] + pop_samples)
+        sample_indices = np.cumsum([0] + pop_samples)
         bottom_l = sample_indices[:-1]
         top_l = sample_indices[1:]
 
@@ -1417,8 +1416,8 @@ class Spectrum(numpy.ma.masked_array):
         while not line.startswith("//"):
             line = fid.readline()
 
-        counts = numpy.zeros(len(pop_samples), numpy.int_)
-        fs_shape = numpy.asarray(pop_samples) + 1
+        counts = np.zeros(len(pop_samples), np.int_)
+        fs_shape = np.asarray(pop_samples) + 1
         dimension = len(counts)
 
         if dimension > 1:
@@ -1440,7 +1439,7 @@ class Spectrum(numpy.ma.masked_array):
             top5 = top_l[5]
 
         all_data = [
-            numpy.zeros(fs_shape, numpy.int_) for boot_ii in range(bootstrap_segments)
+            np.zeros(fs_shape, np.int_) for boot_ii in range(bootstrap_segments)
         ]
         for run_ii in range(runs):
             line = fid.readline()
@@ -1458,9 +1457,9 @@ class Spectrum(numpy.ma.masked_array):
             # Read SNP positions for creating bootstrap segments
             positions = [float(_) for _ in line.split()[1:]]
             # Where we should break our interval to create our bootstraps
-            breakpts = numpy.linspace(0, 1, bootstrap_segments + 1)
+            breakpts = np.linspace(0, 1, bootstrap_segments + 1)
             # The indices that correspond to those breakpoints
-            break_iis = numpy.searchsorted(positions, breakpts)
+            break_iis = np.searchsorted(positions, breakpts)
             # Correct for searchsorted behavior if last position is 1,
             # to ensure all SNPs are captured
             break_iis[-1] = len(positions)
@@ -1479,7 +1478,7 @@ class Spectrum(numpy.ma.masked_array):
                     this_snp = chromos[snp :: segsites + 1]
                     # Count SNPs per population, and record them.
                     if dimension == 1:
-                        data[this_snumpy.count("1")] += 1
+                        data[this_snp.count("1")] += 1
                     elif dimension == 2:
                         data[
                             this_snp[bottom0:top0].count("1"),
@@ -1614,7 +1613,7 @@ class Spectrum(numpy.ma.masked_array):
                 2 * int(command_terms[pop_flag + ii]) for ii in range(1, 1 + num_pops)
             ]
 
-        pop_samples = numpy.asarray(pop_samples)
+        pop_samples = np.asarray(pop_samples)
         pop_digits = [str(i) for i in range(num_pops)]
         pop_fixed_str = [",%s.-1" % i for i in range(num_pops)]
         pop_count_str = [",%s." % i for i in range(num_pops)]
@@ -1622,7 +1621,7 @@ class Spectrum(numpy.ma.masked_array):
         seeds = fid.readline()
         line = fid.readline()
 
-        data = numpy.zeros(numpy.asarray(pop_samples) + 1, numpy.int_)
+        data = np.zeros(np.asarray(pop_samples) + 1, np.int_)
 
         # line = //iteration...
         line = fid.readline()
@@ -1644,7 +1643,7 @@ class Spectrum(numpy.ma.masked_array):
 
                 # Loop over mutations on this line.
                 for mut_ii, mutation in enumerate(split_line):
-                    counts_this_mut = numpy.zeros(num_pops, numpy.int_)
+                    counts_this_mut = np.zeros(num_pops, np.int_)
 
                     split_mut = mutation.split(",")
 
@@ -1688,12 +1687,12 @@ class Spectrum(numpy.ma.masked_array):
 
             # Now apply all the mutations with fixations that we deffered.
             for mut_id, counts in mut_dict.items():
-                if numpy.any(numpy.asarray(counts) > pop_samples):
+                if np.any(np.asarray(counts) > pop_samples):
                     sys.stderr.write(
                         "counts_this_mut > pop_samples: %s > "
                         "%s\n%s\n" % (counts, pop_samples, mut_id)
                     )
-                    counts = numpy.minimum(counts, pop_samples)
+                    counts = np.minimum(counts, pop_samples)
                 data[tuple(counts)] += 1
 
         if newfile:
@@ -1724,10 +1723,10 @@ class Spectrum(numpy.ma.masked_array):
         if original_folded:
             self = self.unfold()
 
-        total_samp = numpy.sum(self.sample_sizes)
+        total_samp = np.sum(self.sample_sizes)
 
         # First generate a 1d sfs for the pooled population.
-        combined = numpy.zeros(total_samp + 1)
+        combined = np.zeros(total_samp + 1)
         # For each entry in the fs, this is the total number of derived alleles
         total_per_entry = self._total_per_entry()
         # Sum up to generate the equivalent 1-d spectrum.
@@ -1739,8 +1738,8 @@ class Spectrum(numpy.ma.masked_array):
         #  e.g. counts_per_entry[3,4,5] = [3,4,5]
         counts_per_entry = self._counts_per_entry()
         # Reshape it to be 1-d, so we can iterate over it easily.
-        counts_per_entry = counts_per_entry.reshape(numpy.prod(self.shape), self.ndim)
-        resamp = numpy.zeros(self.shape)
+        counts_per_entry = counts_per_entry.reshape(np.prod(self.shape), self.ndim)
+        resamp = np.zeros(self.shape)
         for counts, derived in zip(counts_per_entry, total_per_entry.ravel()):
             # The probability here is
             # (t1 choose d1)*(t2 choose d2)/(ntot choose derived)
@@ -1748,7 +1747,7 @@ class Spectrum(numpy.ma.masked_array):
                 Numerics._lncomb(t, d) for t, d in zip(self.sample_sizes, counts)
             )
             lnprob -= Numerics._lncomb(total_samp, derived)
-            prob = numpy.exp(lnprob)
+            prob = np.exp(lnprob)
             # Assign result using the appropriate weighting
             resamp[tuple(counts)] += prob * combined[derived]
 
@@ -1793,7 +1792,7 @@ class Spectrum(numpy.ma.masked_array):
             and the returned spectrum is folded.
         """
         Npops = len(pop_ids)
-        fs = numpy.zeros(numpy.asarray(projections) + 1)
+        fs = np.zeros(np.asarray(projections) + 1)
         for snp, snp_info in data_dict.items():
             # Skip SNPs that aren't biallelic.
             if len(snp_info["segregating"]) != 2:
@@ -1832,7 +1831,7 @@ class Spectrum(numpy.ma.masked_array):
 
             # To handle arbitrary numbers of populations in the fs, we need
             # to do some tricky slicing.
-            slices = [[numpy.newaxis] * len(pop_ids) for ii in range(Npops)]
+            slices = [[np.newaxis] * len(pop_ids) for ii in range(Npops)]
             for ii in range(len(pop_ids)):
                 slices[ii][ii] = slice(None, None, None)
 
@@ -1877,12 +1876,12 @@ class Spectrum(numpy.ma.masked_array):
         """
 
         # create slices for projection calculation
-        slices = [[numpy.newaxis] * len(projections) for ii in range(len(projections))]
+        slices = [[np.newaxis] * len(projections) for ii in range(len(projections))]
         for ii in range(len(projections)):
             slices[ii][ii] = slice(None, None, None)
 
         fs_total = moments.Spectrum(
-            numpy.zeros(numpy.array(projections) + 1), pop_ids=pop_ids
+            np.zeros(np.array(projections) + 1), pop_ids=pop_ids
         )
         for (
             (called_by_pop, derived_by_pop, this_snp_polarized),
@@ -2020,7 +2019,7 @@ class Spectrum(numpy.ma.masked_array):
         # Divide the data into classes based on ('context', 'outgroup_allele')
         by_context = Spectrum._data_by_tri(data_dict)
 
-        fs = numpy.zeros(numpy.asarray(projections) + 1)
+        fs = np.zeros(np.asarray(projections) + 1)
         while by_context:
             # Each time through this loop, we eliminate two entries from the
             # data dictionary. These correspond to one class and its
@@ -2054,7 +2053,7 @@ class Spectrum(numpy.ma.masked_array):
         # Here we take the negative entries, and flip them back, so they end up
         # zero and the total number of SNPs is conserved.
         if force_pos:
-            negative_entries = numpy.minimum(0, fs)
+            negative_entries = np.minimum(0, fs)
             fs -= negative_entries
             fs += Numerics.reverse_array(negative_entries)
 
@@ -2184,6 +2183,59 @@ class Spectrum(numpy.ma.masked_array):
         )
         return fs
 
+    @staticmethod
+    def from_angsd(
+        sfs_file, sample_sizes, pop_ids=None, folded=False, mask_corners=True
+    ):
+        """
+        Convert ANGSD output to a moments Spectrum object. The sample sizes
+        are given as number of haploid genome copies (twice the number of
+        sampled diploid individuals).
+
+        :param string sfs_file: The n-dimensional SFS from ANGSD. This should be a
+            file with a single line of numbers, as entries in the SFS.
+        :param list sample_sizes: A list of integers with length equal to the number
+            of population, storing the haploid sample size in each population.
+            The order must match the population order provided to ANGSD.
+        :param list pop_ids: A list of strings equal with length equal to the number
+            of population, specifying the population name for each.
+        :param bool folded: If False (default), we assume ancestral states are
+            known, returning an unfolded SFS. If True, the returned SFS is folded.
+        :param bool mask_corners: If True (default), mask the fixed bins in the
+            SFS. If False, the fixed bins will remain unmasked.
+        :return: A ``moments`` site frequency spectrum.
+        :rtype: :class:`moments.Spectrum`
+        """
+        if pop_ids is not None and len(pop_ids) != len(sample_sizes):
+            raise ValueError(
+                "length of pop ids must equal the number of "
+                "populations given by sample sizes"
+            )
+
+        if len(sample_sizes) > 2:
+            warnings.warn(
+                "Importing ANGSD-formatted data has only been tested for 2 populations",
+                warnings.UserWarning,
+            )
+        # get the SFS data
+        with open(sfs_file) as f_data:
+            data_line = f_data.readline()
+
+        data = np.array([float(d) for d in data_line.split()])
+
+        # check that the length of data matches the number of bins in the SFS
+        reshape_dims = [n + 1 for n in sample_sizes]
+        if np.prod(reshape_dims) != len(data):
+            raise ValueError("size of data does not match input sample sizes")
+
+        data = np.reshape(data, reshape_dims)
+
+        # turn into moments object
+        fs = moments.Spectrum(data, mask_corners=mask_corners, pop_ids=pop_ids)
+        if folded:
+            fs = fs.fold()
+        return fs
+
     # The code below ensures that when I do arithmetic with Spectrum objects,
     # it is not done between a folded and an unfolded array. If it is, I raise
     # a ValueError.
@@ -2191,8 +2243,8 @@ class Spectrum(numpy.ma.masked_array):
     # While I'm at it, I'm also fixing the annoying behavior that if a1 and a2
     # are masked arrays, and a3 = a1 + a2. Then wherever a1 or a2 was masked,
     # a3.data ends up with the a1.data values, rather than a1.data + a2.data.
-    # Note that this fix doesn't work for operation by numpy.ma.exp and
-    # numpy.ma.log. Guess I can't have everything.
+    # Note that this fix doesn't work for operation by np.ma.exp and
+    # np.ma.log. Guess I can't have everything.
 
     # I'm using exec here to avoid copy-pasting a dozen boiler-plate functions.
     # The calls to check_folding_equal ensure that we don't try to combine
@@ -2226,9 +2278,9 @@ class Spectrum(numpy.ma.masked_array):
             """
 def %(method)s(self, other):
     self._check_other_folding(other)
-    if isinstance(other, numpy.ma.masked_array):
+    if isinstance(other, np.ma.masked_array):
         newdata = self.data.%(method)s (other.data)
-        newmask = numpy.ma.mask_or(self.mask, other.mask)
+        newmask = np.ma.mask_or(self.mask, other.mask)
     else:
         newdata = self.data.%(method)s (other)
         newmask = self.mask
@@ -2263,9 +2315,9 @@ def %(method)s(self, other):
             """
 def %(method)s(self, other):
     self._check_other_folding(other)
-    if isinstance(other, numpy.ma.masked_array):
+    if isinstance(other, np.ma.masked_array):
         self.data.%(method)s (other.data)
-        self.mask = numpy.ma.mask_or(self.mask, other.mask)
+        self.mask = np.ma.mask_or(self.mask, other.mask)
     else:
         self.data.%(method)s (other)
     if hasattr(other, 'pop_ids') and other.pop_ids is not None\
