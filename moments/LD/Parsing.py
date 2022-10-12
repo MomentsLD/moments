@@ -342,6 +342,11 @@ def _check_valid_genotype_matrix(G, genotypes):
                 "Haplotype matrix must have values of 0 or 1, or -1 for missing data"
             )
 
+    L, n = np.shape(G)
+    if L > 46340:
+        raise ValueError("Genotype matrix is too large, consider parallelizing LD calc")
+
+
 
 def compute_pairwise_stats(Gs, genotypes=True):
     """
