@@ -61,6 +61,12 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.13
+======
+
+- Function to parse ANGSD-formatted data as a moments.Spectrum object (issue #106)
+- Catch if genotype matrix is too large to compute pairwise LD (issue #105)
+
 1.1.12
 ======
 
