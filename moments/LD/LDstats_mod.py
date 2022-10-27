@@ -846,7 +846,16 @@ def %(method)s(self, other):
         )
 
     def integrate(
-        self, nu, tf, dt=0.001, rho=None, theta=0.001, m=None, selfing=None, frozen=None
+        self,
+        nu,
+        tf,
+        dt=0.001,
+        rho=None,
+        theta=0.001,
+        m=None,
+        selfing=None,
+        selfing_rate=None,
+        frozen=None,
     ):
         """
         Integrates the LD statistics forward in time. When integrating LD statistics
@@ -873,7 +882,9 @@ def %(method)s(self, other):
             m_ii is unused, and found by summing off diag elements in the ith row
         :type m: array
         :param selfing: A list of selfing probabilities, same length as nu.
-        :type selfing: list of bools
+        :type selfing: list of floats
+        :param selfing_rate: Alias for selfing.
+        :type selfing_rate: list of floats
         :param frozen: A list of True and False same length as nu. True implies that a
             lineage is frozen (as in ancient samples). False integrates as normal.
         :type frozen: list of bools
@@ -914,6 +925,10 @@ def %(method)s(self, other):
             if len(frozen) != num_pops:
                 raise ValueError("frozen must have same length as number of pops.")
 
+        if selfing_rate is not None:
+            if selfing is not None:
+                raise ValueError("Cannot specify both selfing and selfing_rate")
+            selfing = selfing_rate
         if selfing is not None:
             if len(selfing) != num_pops:
                 raise ValueError("selfing must have same length as number of pops.")

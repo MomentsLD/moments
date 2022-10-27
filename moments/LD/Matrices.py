@@ -238,6 +238,10 @@ def mutation_h(num_pops, theta, frozen=None, selfing=None):
         U = np.zeros(int(num_pops * (num_pops + 1) / 2))
         if selfing is None:
             selfing = [0] * num_pops
+        else:
+            for ii, f in enumerate(selfing):
+                if f == None:
+                    selfing[ii] = 0
         if frozen is None:
             frozen = [False] * num_pops
         c = 0
