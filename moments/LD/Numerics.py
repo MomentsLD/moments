@@ -309,10 +309,14 @@ def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
     if theta <= 0:
         raise ValueError("mutation rate must be positive")
 
-    if m01 <= 0 or m10 <= 0 or nu0 <= 0 or nu1 <= 0:
+    if nu0 <= 0 or nu1 <= 0:
         raise ValueError(
             "migration rates and relative population sizes must be positive"
         )
+    if m01 < 0 or m10 < 0:
+        raise ValueError("migration rates must be non-negative")
+    elif m01 == 0 and m10 == 0:
+        raise ValueError("there must be at least one non-negative migration rate")
 
     if selfing_rate is None:
         selfing_rate = [0, 0]
