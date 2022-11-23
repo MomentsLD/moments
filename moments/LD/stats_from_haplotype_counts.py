@@ -99,7 +99,7 @@ def Dz(counts, pop_nums):
                 * (c31 - c32 + c33 - c34)
             )
         )
-        return 1.0 * numer / denom / n1 / (n1 - 1) / n2 / n3
+        return 1.0 * numer / n1 / (n1 - 1) / n2 / n3
 
 
 def pi2(counts, pop_nums):
@@ -345,5 +345,4 @@ def pi2(counts, pop_nums):
             + ((c13 + c14) * (c21 + c22) * (c31 + c33) * (c42 + c44)) / 4.0
             + ((c11 + c12) * (c23 + c24) * (c31 + c33) * (c42 + c44)) / 4.0
         )
-        denom = n1 * n2 * n3 * n4
         return 1.0 * numer / n1 / n2 / n3 / n4
