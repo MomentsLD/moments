@@ -255,9 +255,22 @@ def integrate(
 
 
 def steady_state(theta=0.001, rho=None, selfing_rate=None):
+    if theta <= 0:
+        raise ValueError("theta must be positive")
+    if rho is not None:
+        if np.isscalar(rho) and rho < 0:
+            raise ValueError("rho cannot be negative")
+        if not np.isscalar(rho):
+            for r in rho:
+                if r < 0:
+                    raise ValueError("rho values cannot be negative")
     if selfing_rate is None:
         h_ss = np.array([theta])
+    elif not np.isscalar(selfing_rate):
+        raise ValueError("selfing rate must be a scalar")
     else:
+        if selfing_rate < 0 or selfing_rate > 1:
+            raise ValueError("selfing rate must be between 0 and 1")
         h_ss = np.array([theta * (1 - selfing_rate / 2)])
     if hasattr(rho, "__len__"):  # list of rhos
         ys_ss = [
@@ -280,3 +293,62 @@ def equilibrium_ld(theta=0.001, rho=0.0, selfing_rate=None):
     R = Matrices.recombination(1, rho, selfing=[selfing_rate])
     D = Matrices.drift_ld(1, [1.0])
     return factorized(D + R)(-U.dot(h_ss))
+
+
+def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
+    nu0, nu1 = nus
+    m01 = m[0][1]
+    m10 = m[1][0]
+    if rho is not None:
+        if np.isscalar(rho) and rho < 0:
+            raise ValueError("recombination rate cannot be negative")
+        elif not np.isscalar(rho):
+            for r in rho:
+                if r < 0:
+                    raise ValueError("recombination rate cannot be negative")
+    if theta <= 0:
+        raise ValueError("mutation rate must be positive")
+
+    if nu0 <= 0 or nu1 <= 0:
+        raise ValueError(
+            "migration rates and relative population sizes must be positive"
+        )
+    if m01 < 0 or m10 < 0:
+        raise ValueError("migration rates must be non-negative")
+    elif m01 == 0 and m10 == 0:
+        raise ValueError("there must be at least one non-negative migration rate")
+
+    if selfing_rate is None:
+        selfing_rate = [0, 0]
+    elif not hasattr(selfing_rate, "__len__") or len(selfing_rate) != 2:
+        raise ValueError("selfing rates must be given as list of length 2")
+    else:
+        for f in selfing_rate:
+            if f < 0 or f > 1:
+                raise ValueError("selfing rates must be between 0 and 1")
+
+    # get the two-population steady state of heterozygosity statistics
+    Mh = Matrices.migration_h(2, [[0, m01], [m10, 0]])
+    Dh = Matrices.drift_h(2, [nu0, nu1])
+    Uh = Matrices.mutation_h(2, theta, selfing=selfing_rate)
+    h_ss = np.linalg.inv(Mh + Dh).dot(-Uh)
+
+    # get the two-population steady state of LD statistics
+    if rho is None:
+        return [h_ss]
+
+    def two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss):
+        U = Matrices.mutation_ld(2, theta, selfing=selfing_rate)
+        R = Matrices.recombination(2, rho, selfing=selfing_rate)
+        D = Matrices.drift_ld(2, [nu0, nu1])
+        M = Matrices.migration_ld(2, [[0, m01], [m10, 0]])
+        return factorized(D + R + M)(-U.dot(h_ss))
+
+    if np.isscalar(rho):
+        y_ss = two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss)
+        return [y_ss, h_ss]
+
+    y_ss = []
+    for r in rho:
+        y_ss.append(two_pop_ld_ss(nu0, nu1, m01, m10, theta, r, selfing_rate, h_ss))
+    return y_ss + [h_ss]

@@ -430,3 +430,136 @@ class FStatistics(unittest.TestCase):
         self.assertTrue(y.f2(0, 1) == y.f3(1, 0, 0))
         self.assertTrue(y.f2(0, 1) == y.f4(0, 1, 0, 1))
         self.assertTrue(y.f2(0, 1) == -y.f4(0, 1, 1, 0))
+
+
+class SteadyState(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_one_pop(self):
+        for rho in [None, 0, 1, 10.5, [1, 2, 3]]:
+            y = moments.LD.Demographics1D.snm(rho=rho)
+            y.integrate([1], 1, rho=rho)
+            y2 = moments.LD.LDstats(
+                moments.LD.Numerics.steady_state(rho=rho), num_pops=1
+            )
+            for v, v2 in zip(y, y2):
+                self.assertTrue(np.allclose(v, v2))
+
+    def test_one_pop_selfing(self):
+        for rho in [None, 0, 1, 10.5, [1, 2, 3]]:
+            for f in [None, 0, 0.25, 1]:
+                y = moments.LD.LDstats(
+                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f),
+                    num_pops=1,
+                )
+                y.integrate([1], 1, rho=rho, selfing=[f])
+                y2 = moments.LD.LDstats(
+                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f),
+                    num_pops=1,
+                )
+                for v, v2 in zip(y, y2):
+                    self.assertTrue(np.all(np.allclose(v, v2)))
+
+    def test_two_pops(self):
+        nu0 = 1
+        nu1 = 1
+        m01 = 2.0
+        m10 = 4.0
+        nus = [nu0, nu1]
+        m = [[0, m01], [m10, 0]]
+        for selfing_rate in [None, [0.25, 0.5], [1, 1]]:
+            for rho in [None, 2.5, [1, 3]]:
+                if selfing_rate is None:
+                    f0 = 0
+                else:
+                    f0 = np.mean(selfing_rate)
+                y = moments.LD.LDstats(
+                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f0),
+                    num_pops=1,
+                )
+                y = y.split(0)
+                y.integrate(nus, 40, rho=rho, m=m, selfing=selfing_rate)
+                y2 = moments.LD.LDstats(
+                    moments.LD.Numerics.steady_state_two_pop(
+                        nus,
+                        m,
+                        rho=rho,
+                        selfing_rate=selfing_rate,
+                    ),
+                    num_pops=2,
+                )
+                for v, v2 in zip(y, y2):
+                    self.assertTrue(np.all(np.allclose(v, v2)))
+
+    def test_steady_state_solution(self):
+        y2 = moments.LD.LDstats(
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 0], [1, 0]], rho=1),
+            num_pops=2,
+        )
+        y1 = moments.LD.LDstats(moments.LD.Numerics.steady_state(rho=1), num_pops=1)
+        for yy2, yy1 in zip(y2.marginalize(1), y1):
+            self.assertTrue(np.allclose(yy2, yy1))
+        y2 = moments.LD.LDstats(
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [0, 0]], rho=1),
+            num_pops=2,
+        )
+        for yy2, yy1 in zip(y2.marginalize(0), y1):
+            self.assertTrue(np.allclose(yy2, yy1))
+
+    def test_bad_inputs_one_pop(self):
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state(theta=0)
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state(rho=-1)
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state(rho=[0, 1, -1])
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state(selfing_rate=[1, 2])
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state(selfing_rate=-1)
+
+    def test_bad_inputs_two_pop(self):
+        # theta cannot be zero
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [1, 0]], theta=0)
+        # rho values must be non-negative
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [1, 0]], rho=-1)
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop(
+                [1, 1], [[0, 1], [1, 0]], rho=[0, 1, -1]
+            )
+        # badly formed selfing rates
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop(
+                [1, 1], [[0, 1], [1, 0]], selfing_rate=0.5
+            )
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop(
+                [1, 1], [[0, 1], [1, 0]], selfing_rate=[0]
+            )
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop(
+                [1, 1], [[0, 1], [1, 0]], selfing_rate=[0, -1]
+            )
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop(
+                [1, 1], [[0, 1], [1, 0]], selfing_rate=[0, 2]
+            )
+        # bad pop sizes
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([-1, 1], [[0, 1], [1, 0]])
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, -1], [[0, 1], [1, 0]])
+        # bad migration rates
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, -1], [1, 0]])
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [-1, 0]])
+        with self.assertRaises(ValueError):
+            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 0], [0, 0]])

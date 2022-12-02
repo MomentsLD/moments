@@ -1324,7 +1324,6 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
     all_boot = []
 
     for rep in range(num_bootstraps):
-        print(f"running rep {rep}")
         temp_data = {}
         choices = np.random.choice(regions, num_regions, replace=True)
         for i, c in enumerate(choices):
