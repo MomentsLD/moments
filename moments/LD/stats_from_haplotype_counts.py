@@ -118,55 +118,27 @@ def pi2(counts, pop_nums):
         return 1.0 * numer / n / (n - 1) / (n - 2) / (n - 3)
     elif (pop1 == pop2 == pop3) or (
         pop1 == pop2 == pop4
-    ):  # pi2(i,i;i,j) or pi2(i,i;j,i)
-        if pop1 == pop3:
-            cs1, cs2 = counts[pop1], counts[pop3]
-        else:
+    ):  # pi2(i,i;i,j) or pi2(i,i;j,i) or pi2(i,j;i,i) or pi2(j,i;i,i)
+        if pop1 == pop2 == pop3:
             cs1, cs2 = counts[pop1], counts[pop4]
-        c11, c12, c13, c14 = cs1
-        c21, c22, c23, c24 = cs2
-        n1 = sum(cs1)
-        n2 = sum(cs2)
-        numer = (
-            -((c11 + c12) * c14 * (c21 + c23)) / 2.0
-            - (c12 * (c13 + c14) * (c21 + c23)) / 2.0
-            + ((c11 + c12) * (c12 + c14) * (c13 + c14) * (c21 + c23)) / 2.0
-            + ((c11 + c12) * (c13 + c14) * (-2 * c22 - 2 * c24)) / 2.0
-            + ((c11 + c12) * c14 * (c22 + c24)) / 2.0
-            + (c12 * (c13 + c14) * (c22 + c24)) / 2.0
-            + ((c11 + c12) * (c11 + c13) * (c13 + c14) * (c22 + c24)) / 2.0
-        )
-        return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
-
-    elif (pop1 == pop3 == pop4) or (pop2 == pop3 == pop4):  # pi2(i,j;i,i), pi2(j,i;i,i)
-        if pop1 == pop3:
+        elif pop1 == pop2 == pop4:
+            cs1, cs2 = counts[pop1], counts[pop3]
+        elif pop1 == pop3 == pop4:
             cs1, cs2 = counts[pop1], counts[pop2]
-        elif pop2 == pop3:
+        elif pop2 == pop3 == pop4:
             cs1, cs2 = counts[pop2], counts[pop1]
         c11, c12, c13, c14 = cs1
         c21, c22, c23, c24 = cs2
         n1 = sum(cs1)
         n2 = sum(cs2)
         numer = (
-            c12 ** 2 * (c11 + c13) * (c23 + c24)
-            + c12
-            * (
-                c13 ** 2 * (c21 + c22)
-                + (-2 + c11) * c11 * (c23 + c24)
-                + c11 * c14 * (c21 + c22 + c23 + c24)
-                + c13 * (-1 + c11 + c14) * (c21 + c22 + c23 + c24)
-            )
-            + c14
-            * (
-                c13 * (-2 + c13 + c14) * (c21 + c22)
-                + c11 ** 2 * (c23 + c24)
-                + c11
-                * (
-                    (-1 + c13 + c14) * c21
-                    + (-1 + c13 + c14) * c22
-                    + (-1 + c13) * (c23 + c24)
-                )
-            )
+            -((c11 + c12) * c14 * (c21 + c23))
+            - (c12 * (c13 + c14) * (c21 + c23))
+            + ((c11 + c12) * (c12 + c14) * (c13 + c14) * (c21 + c23))
+            + ((c11 + c12) * (c13 + c14) * (-2 * c22 - 2 * c24))
+            + ((c11 + c12) * c14 * (c22 + c24))
+            + (c12 * (c13 + c14) * (c22 + c24))
+            + ((c11 + c12) * (c11 + c13) * (c13 + c14) * (c22 + c24))
         ) / 2.0
         return 1.0 * numer / n2 / n1 / (n1 - 1) / (n1 - 2)
 
