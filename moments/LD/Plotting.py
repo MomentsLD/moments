@@ -86,16 +86,21 @@ def plot_ld_curves(
     axes = {}
     # loop through stats_to_plot, update axis, and plot
     for i, stats in enumerate(stats_to_plot):
+        # we don't want to plot log-scale if we predict negative values for stats
+        neg_vals = False
+
         axes[i] = plt.subplot(rows, cols, i + 1)
         for stat in stats:
             k = statistics[0].index(stat)
             to_plot = [ld_stats[j][k] for j in range(len(r_centers))]
             axes[i].plot(r_centers, to_plot, label=stat)
+            if np.any([e < 0 for e in to_plot]):
+                neg_vals = True
 
         axes[i].set_xscale("log")
         # don't log scale y axis for pi stats
         for stat in stats:
-            if not stat.startswith("pi2"):
+            if not (stat.startswith("pi2") or neg_vals):
                 axes[i].set_yscale("log")
 
         # only place x labels at bottom of columns
@@ -217,6 +222,9 @@ def plot_ld_curves_comp(
 
     # loop through stats_to_plot, update axis, and plot
     for i, (stats, label) in enumerate(zip(stats_to_plot, labels)):
+        # we don't want to plot log-scale if we predict negative values for stats
+        neg_vals = False
+
         axes[i].set_prop_cycle(None)
         if plot_vcs:
             for stat in stats:
@@ -246,12 +254,14 @@ def plot_ld_curves_comp(
         for ind, stat in enumerate(stats):
             k = statistics[0].index(stat)
             exp_to_plot = [ld_stats[j][k] for j in range(len(rs_to_plot))]
+            if np.any([e < 0 for e in exp_to_plot]):
+                neg_vals = True
             axes[i].plot(rs_to_plot, exp_to_plot, label=label[ind])
 
         axes[i].set_xscale("log")
         # don't log scale y axis for pi stats
         for stat in stats:
-            if not stat.startswith("pi2"):
+            if not (stat.startswith("pi2") or neg_vals):
                 axes[i].set_yscale("log")
 
         # only place x labels at bottom of columns
