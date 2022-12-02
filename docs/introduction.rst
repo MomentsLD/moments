@@ -37,29 +37,36 @@ Citations
 
 If you use ``moments`` in your research, please cite:
 
-- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint
-  demographic history of multiple populations: beyond the diffusion approximation.
-  *Genetics*, 206(3), 1549-1567.
+- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the
+  joint demographic history of multiple populations: beyond the diffusion
+  approximation. *Genetics*, 206(3), 1549-1567.
 
 If you use ``moments.LD`` in your research, please cite:
 
-- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history
-  from two-locus statistics. *PLoS Genetics*, 15(6), e1008204.
+- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent
+  history from two-locus statistics. *PLoS Genetics*, 15(6), e1008204.
 
-- Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
-  from unphased data. *Mol Biol Evol*, 37(3), 923-932.
+- Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage
+  disequilibrium from unphased data. *Mol Biol Evol*, 37(3), 923-932.
 
 
 If you use ``moments.TwoLocus`` in your research, please cite:
 
-- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
-  from linkage disequilibrium? BioRxiv, doi:
-  `https://doi.org/10.1101/2021.03.25.437004 <https://doi.org/10.1101/2021.03.25.437004>`_.
+- Ragsdale, A. P. (2022). Local fitness and epistatic effects lead to distinct
+  patterns of linkage disequilibrium in protein-coding genes. *Genetics*,
+  221(4), iyac097.
 
 
 **********
 Change log
 **********
+
+1.1.14
+======
+
+- Fix bugs when computing multi-population LD statistics using phased haplotype
+  data
+- Steady state LD statistics for two-population island models
 
 1.1.13
 ======
