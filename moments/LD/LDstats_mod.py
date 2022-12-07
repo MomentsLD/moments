@@ -6,10 +6,10 @@ logger = logging.getLogger("LDstats_mod")
 import os, sys
 import numpy, numpy as np
 import copy
+import demes
 
 from . import Numerics, Util
-
-_imported_demes = False
+import moments.Demes as Demes
 
 
 class LDstats(list):
@@ -763,19 +763,13 @@ class LDstats(list):
             to the length of ``sampled_demes``.
         :rtype: :class:`moments.LD.LDstats`
         """
-        if not _imported_demes:
-            try:
-                import demes
-            except ImportError:
-                raise ImportError("demes is not installed")
-            import moments.Demes
 
         if isinstance(g, str):
             dg = demes.load(g)
         else:
             dg = g
 
-        y = moments.Demes.LD(
+        y = Demes.LD(
             dg,
             sampled_demes,
             sample_times=sample_times,

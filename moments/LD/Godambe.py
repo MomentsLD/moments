@@ -11,7 +11,9 @@ import numpy as np, numpy
 from moments.LD import Inference
 from moments.LD.LDstats_mod import LDstats
 import copy
-from moments.Misc import delayed_flush
+
+# from moments.Misc import delayed_flush
+from .. import Misc
 import sys, os
 
 
@@ -357,7 +359,7 @@ def GIM_uncert(
             + str(_expected_number_of_calls(p0))
             + os.linesep
         )
-        delayed_flush(delay=0.5)
+        Misc.delayed_flush(delay=0.5)
 
     if statistics is None:
         # get statistics
@@ -385,7 +387,7 @@ def GIM_uncert(
         if (verbose > 0) and (_func_calls % verbose == 0):
             param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
             _output_stream.write("%-8i, %s%s" % (_func_calls, param_str, os.linesep))
-            delayed_flush(delay=0.5)
+            Misc.delayed_flush(delay=0.5)
 
         return y
 
@@ -458,7 +460,7 @@ def FIM_uncert(
             + str(_expected_number_of_calls(p0))
             + os.linesep
         )
-        delayed_flush(delay=0.5)
+        Misc.delayed_flush(delay=0.5)
 
     if statistics is None:
         # get statistics
@@ -486,7 +488,7 @@ def FIM_uncert(
         if (verbose > 0) and (_func_calls % verbose == 0):
             param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
             _output_stream.write("%-8i, %s%s" % (_func_calls, param_str, os.linesep))
-            delayed_flush(delay=0.5)
+            Misc.delayed_flush(delay=0.5)
 
         return y
 

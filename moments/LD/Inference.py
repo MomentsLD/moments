@@ -7,8 +7,9 @@ from moments.LD import Util
 
 import copy
 import moments
-from moments.Misc import perturb_params
-from moments.Misc import delayed_flush
+
+# from moments.Misc import delayed_flush
+from .. import Misc
 from moments.LD.LDstats_mod import LDstats
 
 from scipy.special import gammaln
@@ -111,7 +112,9 @@ def remove_normalized_lds(y, normalization=0):
     return y
 
 
-def remove_normalized_data(means, varcovs, normalization=0, num_pops=1, statistics=None):
+def remove_normalized_data(
+    means, varcovs, normalization=0, num_pops=1, statistics=None
+):
     """
     Returns data means and covariance matrices with the normalizing
     statistics removed.
@@ -349,7 +352,7 @@ def _object_func(
         output_stream.write(
             "%-8i, %-12g, %s%s" % (_counter, result, param_str, os.linesep)
         )
-        delayed_flush(delay=flush_delay)
+        Misc.delayed_flush(delay=flush_delay)
 
     return -result
 

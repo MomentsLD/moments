@@ -7,25 +7,10 @@ from collections import defaultdict
 import math
 import copy
 import numpy as np
+import demes
 
 import moments
 import moments.LD
-
-
-try:
-    import demes
-
-    _imported_demes = True
-except ImportError:
-    _imported_demes = False
-
-
-def _check_demes_imported():
-    if not _imported_demes:
-        raise ImportError(
-            "To simulate using demes, it must be installed -- "
-            "try `pip install demes`"
-        )
 
 
 def SFS(
@@ -90,7 +75,6 @@ def SFS(
         to n[i], where i is the deme index.
     :rtype: :class:`moments.Spectrum`
     """
-    _check_demes_imported()
     if len(sampled_demes) != len(sample_sizes):
         raise ValueError("sampled_demes and sample_sizes must be same length")
     if sample_times is not None and len(sampled_demes) != len(sample_times):
@@ -256,7 +240,6 @@ def LD(
         to the length of ``sampled_demes``.
     :rtype: :class:`moments.LD.LDstats`
     """
-    _check_demes_imported()
     if sample_times is not None and len(sampled_demes) != len(sample_times):
         raise ValueError("sample_times must have same length as sampled_demes")
     for deme in sampled_demes:

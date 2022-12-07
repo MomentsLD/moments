@@ -2,23 +2,8 @@
 # YAML stores in initial parameter guesses and fixed parameters.  A second YAML
 # specifies parameters to be fit that align with the input YAML demography.
 
-try:
-    import demes
-    import ruamel
-
-    _imported_demes = True
-except ImportError:
-    _imported_demes = False
-
-
-def _check_demes_imported():
-    if not _imported_demes:
-        raise ImportError(
-            "To simulate using demes, it must be installed -- "
-            "try `pip install demes`"
-        )
-
-
+import demes
+import ruamel
 import moments
 import numpy as np
 import scipy.optimize
@@ -458,7 +443,6 @@ def optimize(
     """
     # constraints. Other arguments should be kw args in the function.
 
-    _check_demes_imported()
     # load file, data,
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
@@ -718,7 +702,6 @@ def uncerts(
     :param overwrite: If True, overwrite the output table of uncertainties.
     :type overwrite: bool
     """
-    _check_demes_imported()
     func_calls = 0
 
     # Get p0 and parameter information
@@ -1040,7 +1023,6 @@ def optimize_LD(
     :param overwrite: If True, overwrites any existing file with the same output
         name.
     """
-    _check_demes_imported()
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
 
@@ -1238,7 +1220,6 @@ def uncerts_LD(
     Compute uncertainties for fitted parameters, using the output YAML from
     ``moments.Demes.Invascript:void(0); ference.optimize_LD()``.
     """
-    _check_demes_imported()
     func_calls = 0
 
     # Get p0 and parameter information

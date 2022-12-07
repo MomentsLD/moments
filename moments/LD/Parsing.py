@@ -347,7 +347,6 @@ def _check_valid_genotype_matrix(G, genotypes):
         raise ValueError("Genotype matrix is too large, consider parallelizing LD calc")
 
 
-
 def compute_pairwise_stats(Gs, genotypes=True):
     """
     Computes :math:`D^2`, :math:`Dz`, :math:`\\pi_2`, and :math:`D` for every

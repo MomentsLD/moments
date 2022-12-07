@@ -12,9 +12,11 @@ import sys
 import numpy as np
 from numpy import newaxis as nuax
 import scipy.misc as misc
+import scipy.stats
 import copy
 import itertools
 import warnings
+import demes
 
 # Account for difference in scipy installations.
 try:
@@ -30,6 +32,7 @@ from scipy.special import betainc
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
+import moments.Demes as Demes
 
 _plotting = True
 try:
@@ -37,8 +40,6 @@ try:
 except ImportError:
     # if matplotlib is not present, do not import, and do not run plotting functions
     _plotting = False
-
-_imported_demes = False
 
 
 class Spectrum(np.ma.masked_array):
@@ -1099,8 +1100,6 @@ class Spectrum(np.ma.masked_array):
         Entries where the current fs is masked or 0 will be masked in the
         output sampled fs.
         """
-        import scipy.stats
-
         # These are entries where the sampling has no meaning. Either the fs is
         # 0 there or masked.
         bad_entries = np.logical_or(self == 0, self.mask)
@@ -2133,18 +2132,6 @@ class Spectrum(np.ma.masked_array):
             to n[i], where i is the deme index.
         :rtype: :class:`moments.Spectrum`
         """
-        global _imported_demes
-        if not _imported_demes:
-            try:
-                global demes
-                global Demes
-                import demes
-                import moments.Demes as Demes
-
-                _imported_demes = True
-            except ImportError:
-                raise ImportError("demes is not installed, required for `from_demes()`")
-
         if isinstance(g, str):
             dg = demes.load(g)
         else:
