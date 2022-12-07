@@ -1,0 +1,17 @@
+# bitbucket-pipelines.yml
+image: python:3.10.9
+
+pipelines:
+  default:
+    - step:
+        name: Build
+        caches:
+          - pip
+        script:
+          - echo "Building .."
+          - pip install -r requirements.txt
+    - step:
+        name: Test
+        script:
+          - echo "Testing .."
+          - python -m pytest tests/
