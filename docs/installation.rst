@@ -38,6 +38,12 @@ using ``pip`` should install these dependencies automatically:
 
    pip install git+https://bitbucket.org/simongravel/moments.git
 
+This approach can also be used to install the development branch of ``moments``:
+
+.. code-block:: bash
+
+   pip install git+https://bitbucket.org/simongravel/moments.git@devel
+
 Alternatively, you can clone the git repository
 
 .. code-block:: bash
@@ -67,16 +73,15 @@ these include
 
 - mpmath
 
+- demes
 
-Dependencies can be installed using pip. For example to install ``cython``,
-run ``pip install cython``. All the dependencies can be installed together using
+
+All dependencies are listed in `requirements.txt`, and can be install together
+using
 
 .. code-block:: bash
 
    pip install -r requirements.txt
-
-Depending on the python distribution you use, it may be useful to add the directory
-to ``cython`` in your python path.
 
 We also strongly recommend installing ``ipython`` for interactive analyses.
 
@@ -95,6 +100,12 @@ in the moments directory:
    python setup.py build_ext --inplace
    python setup.py install
 
+or
+
+.. code-block:: bash
+
+   pip install .
+
 Note that you might need sudo privileges to install in this way.
 
 You should then be able to import ``moments`` in your python scripts. Entering an
@@ -109,4 +120,3 @@ additionally install
 - hdf5
 
 - scikit-allel
-

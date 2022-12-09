@@ -86,5 +86,11 @@ setup(
     cmdclass={"build_ext": build_ext},
     ext_modules=cythonize(extensions, language_level="3"),
     python_requires=">=3.6",
-    install_requires=["numpy >=1.12.1", "cython >=0.25", "scipy >=1.3", "mpmath >=1.0", "demes >=0.2"],
+    install_requires=[
+        "numpy >=1.12.1",
+        "cython >=0.25",
+        "scipy >=1.3",
+        "mpmath >=1.0",
+        "demes >=0.2",
+    ],
 )
