@@ -217,7 +217,16 @@ def _set_up_params_and_bounds(options, builder):
             upper_bound.append(param["upper_bound"])
         else:
             upper_bound.append(np.inf)
-    return param_names, np.array(p0), np.array(lower_bound), np.array(upper_bound)
+    p0 = np.array(p0)
+    lower_bound = np.array(lower_bound)
+    upper_bound = np.array(upper_bound)
+    if np.any(lower_bound >= upper_bound):
+        raise ValueError("All lower bounds must be less than upper bounds")
+    if np.any(p0 <= lower_bound):
+        raise ValueError("All initial parameters must be greater than lower bound")
+    if np.any(p0 >= upper_bound):
+        raise ValueError("All initial parameters must be less than upper bound")
+    return param_names, p0, lower_bound, upper_bound
 
 
 def _set_up_constraints(options, param_names):
@@ -263,9 +272,13 @@ def _perturb_params_constrained(
         p_guess = p0 * 2 ** (fold * (2 * np.random.random(len(p0)) - 1))
         conditions_satisfied = True
         if lower_bound is not None:
-            p_guess = np.maximum(p_guess, 1.01 * lower_bound)
+            p_guess = np.maximum(
+                p_guess, lower_bound + 0.01 * (upper_bound - lower_bound)
+            )
         if upper_bound is not None:
-            p_guess = np.minimum(p_guess, 0.99 * upper_bound)
+            p_guess = np.minimum(
+                p_guess, upper_bound - 0.01 * (upper_bound - lower_bound)
+            )
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
@@ -440,6 +453,7 @@ def optimize(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
+    :return: List of parameter names, optimal parameters, and LL
     """
     # constraints. Other arguments should be kw args in the function.
 
@@ -572,6 +586,7 @@ def optimize(
 # evaluation function
 
 _sfs_cache = {}
+
 
 def _get_godambe(
     func_ex,
@@ -867,6 +882,14 @@ def compute_bin_stats(g, sampled_demes, sample_times=None, rs=None):
     """
     Given a list of per-base recombination rates defining recombination bin
     edges, computes expected LD statistics within each bin.
+
+    :param g: A demes-formatted demographic model.
+    :param sampled_demes: List of populations to sample.
+    :param sample_types: Optional list of sample times for each population.
+    :param rs: The list of bin edges, as an array of increasing values. Bins
+        are defined using adjacent values, so that if ``rs`` has length n,
+        there are n-1 bins.
+    :return: An LDstats object.
     """
     # check for valid recombination rates
     if not hasattr(rs, "__len__"):
@@ -1022,6 +1045,7 @@ def optimize_LD(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
+    :return: List of parameter names, optimal parameters, and LL
     """
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
@@ -1140,6 +1164,7 @@ def optimize_LD(
 # Cache evaluations of the frequency spectrum inside our hessian/J
 # evaluation function
 _ld_cache = {}
+
 
 def _get_godambe_LD(
     func_ex,
