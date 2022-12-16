@@ -390,6 +390,7 @@ def _object_func(
     if verbose > 0 and _counter % verbose == 0:
         param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
         output_stream.write("%-8i, %-12g, %s%s" % (_counter, LL, param_str, os.linesep))
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     return -LL
 
@@ -572,6 +573,7 @@ def optimize(
                 "printed below. To overwrite, set overwrite=True." + os.linesep
             )
             output_stream.write(str(g))
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
         else:
             demes.dump(g, output)
 
@@ -740,7 +742,7 @@ def uncerts(
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )
-        moments.Misc.delayed_flush(delay=0.5)
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     if fit_ancestral_misid:
         if misid_fit is None:
@@ -833,7 +835,7 @@ def uncerts(
                 + f"of {exp_num_calls}"
                 + os.linesep
             )
-            moments.Misc.delayed_flush(delay=0.5)
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         return model
 
@@ -987,6 +989,7 @@ def _object_func_LD(
     if verbose > 0 and _counter % verbose == 0:
         param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
         output_stream.write("%-8i, %-12g, %s%s" % (_counter, LL, param_str, os.linesep))
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     return -LL
 
@@ -1280,7 +1283,7 @@ def uncerts_LD(
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )
-        moments.Misc.delayed_flush(delay=0.5)
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         eval_time_1 = -np.inf
         eval_time_2 = np.inf
@@ -1341,7 +1344,7 @@ def uncerts_LD(
                     + f"of {exp_num_calls}"
                     + os.linesep
                 )
-            moments.Misc.delayed_flush(delay=0.5)
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         return model
 
