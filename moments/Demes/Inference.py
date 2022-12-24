@@ -340,7 +340,7 @@ def _object_func(
     if upper_bound is not None and np.any(params > upper_bound):
         return -_out_of_bounds_val
     # check constraints
-    if cons is not None and np.any(cons(params) < 0):
+    if cons is not None and np.any(cons(params) <= 0):
         return -_out_of_bounds_val
 
     global _counter
@@ -937,7 +937,7 @@ def _object_func_LD(
     if upper_bound is not None and np.any(params > upper_bound):
         return -_out_of_bounds_val
     # check constraints
-    if cons is not None and np.any(cons(params) < 0):
+    if cons is not None and np.any(cons(params) <= 0):
         return -_out_of_bounds_val
 
     global _counter
