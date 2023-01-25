@@ -9,9 +9,6 @@ from . import (
     Godambe,
 )
 
-import genotype_calculations
-import genotype_calculations_multipop
-
 # Protect import of Plotting in case matplotlib is not installed.
 try:
     from . import Plotting
