@@ -1,4 +1,4 @@
-from moments.LD import genotype_calculations as geno_calc
+from moments.LD.Parsing import gcs as geno_calc
 import numpy as np
 import unittest
 import time
