@@ -1211,7 +1211,7 @@ def _get_godambe_LD(
                 func, p0, eps, args=[bs_ms, varcovs]
             )
         else:
-            grad_temp = momenst.LD.Godambe._get_grad(
+            grad_temp = moments.LD.Godambe._get_grad(
                 log_func, np.log(p0), eps, args=[bs_ms, varcovs]
             )
         J_temp = np.outer(grad_temp, grad_temp)
