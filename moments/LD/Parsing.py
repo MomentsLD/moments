@@ -308,6 +308,8 @@ def _sparsify_genotype_matrix(G):
         }
         if missing == True:
             G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+        else:
+            G_dict[i][-1] = set()
     return G_dict, missing
 
 
@@ -323,6 +325,8 @@ def _sparsify_haplotype_matrix(G):
         }
         if missing == True:
             G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+        else:
+            G_dict[i][-1] = set()
     return G_dict, missing
 
 
