@@ -342,7 +342,7 @@ def GIM_uncert(
         recombination rates.
     :param statistics: Statistics that we have included given as a list of lists:
         [ld_stats, h_stats]. If statistics is not given, we assume all statistics
-        are included except for the normalizing statistic in each
+        are included except for the normalizing statistic in each bin
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
@@ -444,7 +444,7 @@ def FIM_uncert(
         recombination rates.
     :param statistics: Statistics that we have included given as a list of lists:
         [ld_stats, h_stats]. If statistics is not given, we assume all statistics
-        are included except for the normalizing statistic in each
+        are included except for the normalizing statistic in each bin
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
