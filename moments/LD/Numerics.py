@@ -352,3 +352,76 @@ def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
     for r in rho:
         y_ss.append(two_pop_ld_ss(nu0, nu1, m01, m10, theta, r, selfing_rate, h_ss))
     return y_ss + [h_ss]
+
+
+## NOTE: The steady state solution could be made more general, to allow it to
+## be found for any number of populations. The only tricky part (which isn't that
+## tricky) is to ensure that migration connects all populations so that a steady
+## state solution exists.
+def steady_state_three_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
+    nus = np.array(nus)
+    m = np.array(m)
+
+    if rho is not None:
+        if np.isscalar(rho) and rho < 0:
+            raise ValueError("recombination rate cannot be negative")
+        elif not np.isscalar(rho):
+            for r in rho:
+                if r < 0:
+                    raise ValueError("recombination rate cannot be negative")
+    if theta <= 0:
+        raise ValueError("mutation rate must be positive")
+
+    if len(nus) != 3:
+        raise ValueError("relative population sizes must be array-like of length 3")
+    if np.any(nus <= 0):
+        raise ValueError("all relative population sizes must be positive")
+
+    if m.shape != (3, 3):
+        raise ValueError("migration matrix must be 3x3")
+    if np.any(m < 0):
+        raise ValueError("migration rates must be non-negative")
+    if not (
+        (m[0, 1] > 0 and m[1, 2] > 0)
+        or (m[0, 2] > 0 and m[2, 1] > 0)
+        or (m[1, 2] > 0 and m[2, 0] > 0)
+        or (m[1, 0] > 0 and m[0, 2] > 0)
+        or (m[2, 0] > 0 and m[0, 1] > 0)
+        or (m[2, 1] > 0 and m[1, 0] > 0)
+    ):
+        raise ValueError("populations are unconnected.. no steady state exists")
+
+    if selfing_rate is None:
+        selfing_rate = [0, 0, 0]
+    elif not hasattr(selfing_rate, "__len__") or len(selfing_rate) != 3:
+        raise ValueError("selfing rates must be given as list of length 3")
+    else:
+        for f in selfing_rate:
+            if f < 0 or f > 1:
+                raise ValueError("selfing rates must be between 0 and 1")
+
+    # get the two-population steady state of heterozygosity statistics
+    Mh = Matrices.migration_h(3, m)
+    Dh = Matrices.drift_h(3, nus)
+    Uh = Matrices.mutation_h(3, theta, selfing=selfing_rate)
+    h_ss = np.linalg.inv(Mh + Dh).dot(-Uh)
+
+    # get the two-population steady state of LD statistics
+    if rho is None:
+        return [h_ss]
+
+    def three_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss):
+        U = Matrices.mutation_ld(3, theta, selfing=selfing_rate)
+        R = Matrices.recombination(3, rho, selfing=selfing_rate)
+        D = Matrices.drift_ld(3, nus)
+        M = Matrices.migration_ld(3, m)
+        return factorized(D + R + M)(-U.dot(h_ss))
+
+    if np.isscalar(rho):
+        y_ss = three_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss)
+        return [y_ss, h_ss]
+
+    y_ss = []
+    for r in rho:
+        y_ss.append(three_pop_ld_ss(nus, m, theta, r, selfing_rate, h_ss))
+    return y_ss + [h_ss]

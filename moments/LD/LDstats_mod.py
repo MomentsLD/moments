@@ -822,15 +822,17 @@ class LDstats(list):
                 raise ValueError(
                     "Migration matrix cannot be provided for one population."
                 )
-        elif len(nus) == 2:
-            num_pops = 2
+        elif len(nus) == 2 or len(nus) == 3:
+            num_pops = len(nus)
             if m is None:
                 raise ValueError(
                     "Migration matrix must be provided for the steady state solution "
-                    "with two populations"
+                    "with two or three populations"
                 )
         else:
-            raise ValueError("nus must have length 1 or 2")
+            raise ValueError(
+                "steady state solution available for up to three populations"
+            )
 
         if pop_ids is not None and len(pop_ids) != len(nus):
             raise ValueError("pop_ids must be a list of length equal to nus.")
@@ -841,6 +843,10 @@ class LDstats(list):
             )
         elif num_pops == 2:
             data = Numerics.steady_state_two_pop(
+                nus, m, rho=rho, theta=theta, selfing_rate=selfing_rate
+            )
+        elif num_pops == 3:
+            data = Numerics.steady_state_three_pop(
                 nus, m, rho=rho, theta=theta, selfing_rate=selfing_rate
             )
         y = LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
