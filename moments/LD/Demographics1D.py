@@ -18,7 +18,7 @@ def snm(params=None, order=2, rho=None, theta=0.001, pop_ids=None):
     :param pop_ids: List of population IDs of length 1.
     :type pop_ids: lits of str, optional
     """
-    Y = Numerics.steady_state(rho=rho, theta=theta)
+    Y = Numerics.steady_state([1], rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     return Y
 
@@ -41,7 +41,7 @@ def two_epoch(params, order=2, rho=None, theta=0.001, pop_ids=None):
     :type pop_ids: lits of str, optional
     """
     nu, T = params
-    Y = Numerics.steady_state(rho=rho, theta=theta)
+    Y = Numerics.steady_state([1], rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     Y.integrate([nu], T, rho=rho, theta=theta)
     return Y
@@ -65,7 +65,7 @@ def three_epoch(params, order=2, rho=None, theta=0.001, pop_ids=None):
     :type pop_ids: lits of str, optional
     """
     nu1, nu2, T1, T2 = params
-    Y = Numerics.steady_state(rho=rho, theta=theta)
+    Y = Numerics.steady_state([1], rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     Y.integrate([nu1], T1, rho=rho, theta=theta)
     Y.integrate([nu2], T2, rho=rho, theta=theta)
@@ -90,7 +90,7 @@ def growth(params, order=2, rho=None, theta=0.001, pop_ids=None):
     :type pop_ids: lits of str, optional
     """
     nuF, T = params
-    Y = Numerics.steady_state(rho=rho, theta=theta)
+    Y = Numerics.steady_state([1], rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     nu_func = lambda t: [np.exp(np.log(nuF) * t / T)]
     Y.integrate(nu_func, T, rho=rho, theta=theta)
@@ -115,7 +115,7 @@ def bottlegrowth(params, order=2, rho=None, theta=0.001, pop_ids=None):
     :type pop_ids: lits of str, optional
     """
     nuB, nuF, T = params
-    Y = Numerics.steady_state(rho=rho, theta=theta)
+    Y = Numerics.steady_state([1], rho=rho, theta=theta)
     Y = LDstats(Y, num_pops=1, pop_ids=pop_ids)
     nu_func = lambda t: [nuB * np.exp(np.log(nuF / nuB) * t / T)]
     Y.integrate(nu_func, T, rho=rho, theta=theta)

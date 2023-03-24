@@ -786,22 +786,25 @@ class LDstats(list):
         nus, m=None, rho=None, theta=0.001, selfing_rate=None, pop_ids=None
     ):
         """
-        Computes the steady state solution for one or two populations. The number of
-        populations is determined by the length of ``nus``, which is a list with
-        relative population sizes (often, these will be set to 1, meaning sizes are
-        equal to some reference or ancestral population size).
 
-        The steady state can only be found for one- and two-population scenarios.
-        If two populations are desired, we must provide ``m``, a 2-by-2 migration
-        matrix, and there must be at least one nonzero migration rate. This
-        corresponds to an island model with asymmetric migration and potentially
-        unequal population sizes.
+        Computes the steady state solution for any number of populations. The
+        number of populations is determined by the length of ``nus``, which is
+        a list with relative population sizes (often, these will be set to 1,
+        meaning sizes are equal to some reference or ancestral population
+        size).
+
+        If the solution for more than one population is desired, we must
+        provide ``m``, an n-by-n migration matrix, and there must be migrations
+        that connect all populations so that a steady state solution exists.
+        This corresponds to an island model with potentially asymmetric
+        migration and allows for unequal population sizes.
 
         :param nus: The relative population sizes, with one or two entries,
             corresponding to a steady state solution with one or two populations,
             resp.
-        :type nus: list of numbers
-        :param m: A migration matrix, only provided when the length of `nus` is 2.
+        :type nus: list-like
+        :param m: A migration matrix, only provided when the length of `nus` is 2
+            or more.
         :type m: array-like
         :param rho: The population-size scaled recombination rate(s). Can be None, a
             non-negative float, or a list of values.
@@ -816,33 +819,25 @@ class LDstats(list):
         :return: A ``moments.LD`` LD statistics object.
         :rtype: :class:`moments.LD.LDstats`
         """
-        if len(nus) == 1:
-            num_pops = 1
+        num_pops = len(nus)
+        if num_pops == 1:
             if m is not None:
                 raise ValueError(
                     "Migration matrix cannot be provided for one population."
                 )
-        elif len(nus) == 2:
-            num_pops = 2
+        elif num_pops >= 2:
             if m is None:
                 raise ValueError(
                     "Migration matrix must be provided for the steady state solution "
-                    "with two populations"
+                    "with two or more populations"
                 )
-        else:
-            raise ValueError("nus must have length 1 or 2")
 
-        if pop_ids is not None and len(pop_ids) != len(nus):
+        if pop_ids is not None and len(pop_ids) != num_pops:
             raise ValueError("pop_ids must be a list of length equal to nus.")
 
-        if num_pops == 1:
-            data = Numerics.steady_state(
-                theta=theta, rho=rho, selfing_rate=selfing_rate
-            )
-        elif num_pops == 2:
-            data = Numerics.steady_state_two_pop(
-                nus, m, rho=rho, theta=theta, selfing_rate=selfing_rate
-            )
+        data = Numerics.steady_state(
+            nus, m=m, rho=rho, theta=theta, selfing_rate=selfing_rate
+        )
         y = LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
         return y
 

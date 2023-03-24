@@ -11,9 +11,9 @@ import pickle
 from . import Matrices
 from . import Util
 
-"""
-splits, marginalizations, and other manipulations
-"""
+##
+## Splits, marginalizations, and other manipulations
+##
 
 
 def split_h(h, pop_to_split, num_pops):
@@ -86,7 +86,9 @@ def admix(Y, num_pops, pop1, pop2, f):
         return [h_new]
 
 
-### transition matrices
+##
+## Transition matrices
+##
 
 
 def drift(num_pops, nus, frozen=None, rho=None):
@@ -128,7 +130,9 @@ def migration(num_pops, m, frozen=None, rho=None):
     return Mh, Mld
 
 
-### integration routines
+##
+## Integration routines
+##
 
 
 def integrate(
@@ -254,51 +258,97 @@ def integrate(
     return Y
 
 
-def steady_state(theta=0.001, rho=None, selfing_rate=None):
-    if theta <= 0:
-        raise ValueError("theta must be positive")
-    if rho is not None:
-        if np.isscalar(rho) and rho < 0:
-            raise ValueError("rho cannot be negative")
-        if not np.isscalar(rho):
-            for r in rho:
-                if r < 0:
-                    raise ValueError("rho values cannot be negative")
-    if selfing_rate is None:
-        h_ss = np.array([theta])
-    elif not np.isscalar(selfing_rate):
-        raise ValueError("selfing rate must be a scalar")
+##
+## Functions to get the steady state solution for given parameters, including
+## migration rates which must connect all populations.
+##
+
+
+def _path_exists(m, i, j):
+    """
+    Using a breadth-first approach.
+    """
+    if i == j:
+        return True
+    (n, _) = np.shape(m)
+    visited = [False for _ in range(n)]
+    visited[i] = True
+    traversal = []
+    traversal.insert(0, i)
+    while len(traversal) > 0:
+        i = traversal.pop()
+        for k in range(n):
+            if m[i][k] > 0:
+                if k == j:
+                    return True
+                if visited[k] == False:
+                    visited[k] = True
+                    traversal.insert(0, k)
+    return False
+
+
+def _connected_migration_matrix(m):
+    """
+    Tests if there is a path connecting any two lineages drawn under a given
+    migration matrix. This occurs if there is at least one single-direction
+    path between all pairs of populations, or if there is exactly one "sink"
+    population, but not more. This ensures that a coalescence will occur in
+    finite time given any sampling configuration.
+
+    There is surely a more efficient way to test this.
+    """
+    n0, n1 = np.shape(m)
+    if n0 != n1:
+        raise ValueError("badly shaped migration matrix")
+    if np.min(m) < 0:
+        raise ValueError("migration rates cannot be negative")
+
+    # keep track of connections
+    c = np.eye(n0, dtype=int)
+    all_connected = True
+    for pair in itertools.combinations(range(n0), 2):
+        if _path_exists(m, pair[0], pair[1]):
+            c[pair[0], pair[1]] = 1
+        if _path_exists(m, pair[1], pair[0]):
+            c[pair[1], pair[0]] = 1
+        if c[pair[0], pair[1]] + c[pair[1], pair[0]] == 0:
+            all_connected = False
+    if all_connected:
+        return True
     else:
-        if selfing_rate < 0 or selfing_rate > 1:
-            raise ValueError("selfing rate must be between 0 and 1")
-        h_ss = np.array([theta * (1 - selfing_rate / 2)])
-    if hasattr(rho, "__len__"):  # list of rhos
-        ys_ss = [
-            equilibrium_ld(theta=theta, rho=r, selfing_rate=selfing_rate) for r in rho
-        ]
-        return ys_ss + [h_ss]
-    elif np.isscalar(rho):  # one rho value
-        y_ss = equilibrium_ld(theta=theta, rho=rho, selfing_rate=selfing_rate)
-        return [y_ss, h_ss]
-    else:  # only het stats
-        return [h_ss]
+        # check if exactly one sink from all populations exists
+        if np.sum(np.sum(c, axis=1) == n0):
+            return True
 
 
-def equilibrium_ld(theta=0.001, rho=0.0, selfing_rate=None):
-    if selfing_rate is None:
-        h_ss = np.array([theta])
-    else:
-        h_ss = np.array([theta * (1 - selfing_rate / 2)])
-    U = Matrices.mutation_ld(1, theta, selfing=[selfing_rate])
-    R = Matrices.recombination(1, rho, selfing=[selfing_rate])
-    D = Matrices.drift_ld(1, [1.0])
-    return factorized(D + R)(-U.dot(h_ss))
+def steady_state(nus, m=None, rho=None, theta=0.001, selfing_rate=None):
+    """
+    Returns the steady state for given relative population sizes, recombination
+    and mutation rates, selfing rates, and migration matrix (if more than 1
+    populations). Returned as a list of LD and pairwise diversity statistics
+    that can be passed to `moments.LD.LDstats()`.
 
+    :param nus: List of relative population sizes. For all population sizes to
+        be equal and equal to Ne, specify all population sizes as 1.
+    :param m: An nxn migration matrix, where n is the number of populations.
+        Migration must allow all sampled lineages to coalesce in finite time,
+        so that populations must be connected via migration. This is unused
+        when there is a single population given by `nus`.
+    :param rho: The population size-scaed recombination rate, 4*Ne*r.
+    :param theta: The population size-scaled mutation rate, 4*Ne*u.
+    :param selfing_rate: List of selfing rates, with same length as `nus`. If
+        not given, we assume selfing rates are 0 in each population.
+    """
+    if len(nus) == 1:
+        m = np.zeros((1, 1))
+    if len(np.shape(m)) != 2 or np.shape(m)[0] != np.shape(m)[1]:
+        raise ValueError("migration matrix must be square")
+    elif np.shape(m)[0] != len(nus):
+        raise ValueError("migration matrix must have same number of populations as nus")
+    if not _connected_migration_matrix(m):
+        raise ValueError("migration matrix must have finite coalescence time")
+    n = np.shape(m)[0]
 
-def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
-    nu0, nu1 = nus
-    m01 = m[0][1]
-    m10 = m[1][0]
     if rho is not None:
         if np.isscalar(rho) and rho < 0:
             raise ValueError("recombination rate cannot be negative")
@@ -309,46 +359,42 @@ def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
     if theta <= 0:
         raise ValueError("mutation rate must be positive")
 
-    if nu0 <= 0 or nu1 <= 0:
-        raise ValueError(
-            "migration rates and relative population sizes must be positive"
-        )
-    if m01 < 0 or m10 < 0:
-        raise ValueError("migration rates must be non-negative")
-    elif m01 == 0 and m10 == 0:
-        raise ValueError("there must be at least one non-negative migration rate")
+    if len(nus) != n:
+        raise ValueError("mismatch number of population sizes")
+    if np.any([nu <= 0 for nu in nus]):
+        raise ValueError("relative population sizes must be positive")
 
     if selfing_rate is None:
-        selfing_rate = [0, 0]
-    elif not hasattr(selfing_rate, "__len__") or len(selfing_rate) != 2:
-        raise ValueError("selfing rates must be given as list of length 2")
+        selfing_rate = [0 for _ in range(n)]
+    elif not hasattr(selfing_rate, "__len__") or len(selfing_rate) != n:
+        raise ValueError("selfing rates must be given as list")
     else:
         for f in selfing_rate:
             if f < 0 or f > 1:
                 raise ValueError("selfing rates must be between 0 and 1")
 
-    # get the two-population steady state of heterozygosity statistics
-    Mh = Matrices.migration_h(2, [[0, m01], [m10, 0]])
-    Dh = Matrices.drift_h(2, [nu0, nu1])
-    Uh = Matrices.mutation_h(2, theta, selfing=selfing_rate)
+    # get the n-population steady state of heterozygosity statistics
+    Mh = Matrices.migration_h(n, m)
+    Dh = Matrices.drift_h(n, nus)
+    Uh = Matrices.mutation_h(n, theta, selfing=selfing_rate)
     h_ss = np.linalg.inv(Mh + Dh).dot(-Uh)
 
-    # get the two-population steady state of LD statistics
+    # get the n-population steady state of LD statistics
     if rho is None:
         return [h_ss]
 
-    def two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss):
-        U = Matrices.mutation_ld(2, theta, selfing=selfing_rate)
-        R = Matrices.recombination(2, rho, selfing=selfing_rate)
-        D = Matrices.drift_ld(2, [nu0, nu1])
-        M = Matrices.migration_ld(2, [[0, m01], [m10, 0]])
+    def two_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss):
+        U = Matrices.mutation_ld(n, theta, selfing=selfing_rate)
+        R = Matrices.recombination(n, rho, selfing=selfing_rate)
+        D = Matrices.drift_ld(n, nus)
+        M = Matrices.migration_ld(n, m)
         return factorized(D + R + M)(-U.dot(h_ss))
 
     if np.isscalar(rho):
-        y_ss = two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss)
+        y_ss = two_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss)
         return [y_ss, h_ss]
 
     y_ss = []
     for r in rho:
-        y_ss.append(two_pop_ld_ss(nu0, nu1, m01, m10, theta, r, selfing_rate, h_ss))
+        y_ss.append(two_pop_ld_ss(nus, m, theta, r, selfing_rate, h_ss))
     return y_ss + [h_ss]
