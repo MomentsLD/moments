@@ -61,6 +61,13 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.15
+======
+
+- Fix various bugs in LD parsing methods, including when data is missing and
+  recursion errors in cythonized genotype calculation methods
+- Add steady state solution to LD methods
+
 1.1.14
 ======
 
