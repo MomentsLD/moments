@@ -11,19 +11,13 @@ import numpy as np
 import sys, os
 
 
-# Set fontsize to 8
-matplotlib.rc(
-    "font",
-    **{
-        "family": "sans-serif",
-        "sans-serif": ["Helvetica"],
-        "style": "normal",
-        "size": 8,
-    }
-)
-# Set label tick sizes to 7
-matplotlib.rc("xtick", labelsize=7)
-matplotlib.rc("ytick", labelsize=7)
+FONT_SETTINGS = {
+    'xtick.labelsize': 7,
+    'ytick.labelsize': 7,
+    'font.size': 8,
+    'font.style': 'normal',
+    'font.family': 'sans-serif',
+}
 
 
 def plot_ld_curves(
@@ -111,15 +105,16 @@ def plot_ld_curves(
         if i % cols == 0:
             axes[i].set_ylabel("Statistic")
 
-    fig.tight_layout()
+    with matplotlib.rc_context(FONT_SETTINGS):
+        fig.tight_layout()
 
-    if output != None:
-        plt.savefig(output)
+        if output != None:
+            plt.savefig(output)
 
-    if show == True:
-        fig.show()
-    else:
-        return fig
+        if show == True:
+            fig.show()
+        else:
+            return fig
 
 
 def plot_ld_curves_comp(
@@ -273,10 +268,11 @@ def plot_ld_curves_comp(
             axes[i].set_ylabel("Statistic")
 
     if ax is None:
-        fig.tight_layout()
-        if output != None:
-            plt.savefig(output)
-        if show == True:
-            fig.show()
-        else:
-            return fig
+        with matplotlib.rc_context(FONT_SETTINGS):
+            fig.tight_layout()
+            if output != None:
+                plt.savefig(output)
+            if show == True:
+                fig.show()
+            else:
+                return fig

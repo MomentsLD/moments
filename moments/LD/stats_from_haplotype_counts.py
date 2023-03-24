@@ -116,8 +116,11 @@ def pi2(counts, pop_nums):
             - c2 * c3 * (-1 + 3 * c1 + c2 + c3 + 3 * c4)
         )
         return 1.0 * numer / n / (n - 1) / (n - 2) / (n - 3)
-    elif (pop1 == pop2 == pop3) or (
-        pop1 == pop2 == pop4
+    elif (
+        (pop1 == pop2 == pop3)
+        or (pop1 == pop2 == pop4)
+        or (pop1 == pop3 == pop4)
+        or (pop2 == pop3 == pop4)
     ):  # pi2(i,i;i,j) or pi2(i,i;j,i) or pi2(i,j;i,i) or pi2(j,i;i,i)
         if pop1 == pop2 == pop3:
             cs1, cs2 = counts[pop1], counts[pop4]

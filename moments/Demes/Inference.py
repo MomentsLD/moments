@@ -2,23 +2,8 @@
 # YAML stores in initial parameter guesses and fixed parameters.  A second YAML
 # specifies parameters to be fit that align with the input YAML demography.
 
-try:
-    import demes
-    import ruamel
-
-    _imported_demes = True
-except ImportError:
-    _imported_demes = False
-
-
-def _check_demes_imported():
-    if not _imported_demes:
-        raise ImportError(
-            "To simulate using demes, it must be installed -- "
-            "try `pip install demes`"
-        )
-
-
+import demes
+import ruamel
 import moments
 import numpy as np
 import scipy.optimize
@@ -232,7 +217,16 @@ def _set_up_params_and_bounds(options, builder):
             upper_bound.append(param["upper_bound"])
         else:
             upper_bound.append(np.inf)
-    return param_names, np.array(p0), np.array(lower_bound), np.array(upper_bound)
+    p0 = np.array(p0)
+    lower_bound = np.array(lower_bound)
+    upper_bound = np.array(upper_bound)
+    if np.any(lower_bound >= upper_bound):
+        raise ValueError("All lower bounds must be less than upper bounds")
+    if np.any(p0 <= lower_bound):
+        raise ValueError("All initial parameters must be greater than lower bound")
+    if np.any(p0 >= upper_bound):
+        raise ValueError("All initial parameters must be less than upper bound")
+    return param_names, p0, lower_bound, upper_bound
 
 
 def _set_up_constraints(options, param_names):
@@ -278,9 +272,13 @@ def _perturb_params_constrained(
         p_guess = p0 * 2 ** (fold * (2 * np.random.random(len(p0)) - 1))
         conditions_satisfied = True
         if lower_bound is not None:
-            p_guess = np.maximum(p_guess, 1.01 * lower_bound)
+            p_guess = np.maximum(
+                p_guess, lower_bound + 0.01 * (upper_bound - lower_bound)
+            )
         if upper_bound is not None:
-            p_guess = np.minimum(p_guess, 0.99 * upper_bound)
+            p_guess = np.minimum(
+                p_guess, upper_bound - 0.01 * (upper_bound - lower_bound)
+            )
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
@@ -342,7 +340,7 @@ def _object_func(
     if upper_bound is not None and np.any(params > upper_bound):
         return -_out_of_bounds_val
     # check constraints
-    if cons is not None and np.any(cons(params) < 0):
+    if cons is not None and np.any(cons(params) <= 0):
         return -_out_of_bounds_val
 
     global _counter
@@ -392,6 +390,7 @@ def _object_func(
     if verbose > 0 and _counter % verbose == 0:
         param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
         output_stream.write("%-8i, %-12g, %s%s" % (_counter, LL, param_str, os.linesep))
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     return -LL
 
@@ -455,10 +454,10 @@ def optimize(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
+    :return: List of parameter names, optimal parameters, and LL
     """
     # constraints. Other arguments should be kw args in the function.
 
-    _check_demes_imported()
     # load file, data,
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
@@ -574,6 +573,7 @@ def optimize(
                 "printed below. To overwrite, set overwrite=True." + os.linesep
             )
             output_stream.write(str(g))
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
         else:
             demes.dump(g, output)
 
@@ -588,6 +588,7 @@ def optimize(
 # evaluation function
 
 _sfs_cache = {}
+
 
 def _get_godambe(
     func_ex,
@@ -718,7 +719,6 @@ def uncerts(
     :param overwrite: If True, overwrite the output table of uncertainties.
     :type overwrite: bool
     """
-    _check_demes_imported()
     func_calls = 0
 
     # Get p0 and parameter information
@@ -742,7 +742,7 @@ def uncerts(
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )
-        moments.Misc.delayed_flush(delay=0.5)
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     if fit_ancestral_misid:
         if misid_fit is None:
@@ -835,7 +835,7 @@ def uncerts(
                 + f"of {exp_num_calls}"
                 + os.linesep
             )
-            moments.Misc.delayed_flush(delay=0.5)
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         return model
 
@@ -884,6 +884,14 @@ def compute_bin_stats(g, sampled_demes, sample_times=None, rs=None):
     """
     Given a list of per-base recombination rates defining recombination bin
     edges, computes expected LD statistics within each bin.
+
+    :param g: A demes-formatted demographic model.
+    :param sampled_demes: List of populations to sample.
+    :param sample_types: Optional list of sample times for each population.
+    :param rs: The list of bin edges, as an array of increasing values. Bins
+        are defined using adjacent values, so that if ``rs`` has length n,
+        there are n-1 bins.
+    :return: An LDstats object.
     """
     # check for valid recombination rates
     if not hasattr(rs, "__len__"):
@@ -929,7 +937,7 @@ def _object_func_LD(
     if upper_bound is not None and np.any(params > upper_bound):
         return -_out_of_bounds_val
     # check constraints
-    if cons is not None and np.any(cons(params) < 0):
+    if cons is not None and np.any(cons(params) <= 0):
         return -_out_of_bounds_val
 
     global _counter
@@ -981,6 +989,7 @@ def _object_func_LD(
     if verbose > 0 and _counter % verbose == 0:
         param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))
         output_stream.write("%-8i, %-12g, %s%s" % (_counter, LL, param_str, os.linesep))
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
     return -LL
 
@@ -1039,8 +1048,8 @@ def optimize_LD(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
+    :return: List of parameter names, optimal parameters, and LL
     """
-    _check_demes_imported()
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
 
@@ -1159,6 +1168,7 @@ def optimize_LD(
 # evaluation function
 _ld_cache = {}
 
+
 def _get_godambe_LD(
     func_ex,
     all_boot,
@@ -1201,7 +1211,7 @@ def _get_godambe_LD(
                 func, p0, eps, args=[bs_ms, varcovs]
             )
         else:
-            grad_temp = momenst.LD.Godambe._get_grad(
+            grad_temp = moments.LD.Godambe._get_grad(
                 log_func, np.log(p0), eps, args=[bs_ms, varcovs]
             )
         J_temp = np.outer(grad_temp, grad_temp)
@@ -1238,7 +1248,6 @@ def uncerts_LD(
     Compute uncertainties for fitted parameters, using the output YAML from
     ``moments.Demes.Invascript:void(0); ference.optimize_LD()``.
     """
-    _check_demes_imported()
     func_calls = 0
 
     # Get p0 and parameter information
@@ -1274,7 +1283,7 @@ def uncerts_LD(
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )
-        moments.Misc.delayed_flush(delay=0.5)
+        moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         eval_time_1 = -np.inf
         eval_time_2 = np.inf
@@ -1335,7 +1344,7 @@ def uncerts_LD(
                     + f"of {exp_num_calls}"
                     + os.linesep
                 )
-            moments.Misc.delayed_flush(delay=0.5)
+            moments.Misc.delayed_flush(stream=output_stream, delay=0.5)
 
         return model
 

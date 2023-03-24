@@ -308,6 +308,8 @@ def _sparsify_genotype_matrix(G):
         }
         if missing == True:
             G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+        else:
+            G_dict[i][-1] = set()
     return G_dict, missing
 
 
@@ -323,6 +325,8 @@ def _sparsify_haplotype_matrix(G):
         }
         if missing == True:
             G_dict[i][-1] = set(np.where(G[i, :] == -1)[0])
+        else:
+            G_dict[i][-1] = set()
     return G_dict, missing
 
 
@@ -345,7 +349,6 @@ def _check_valid_genotype_matrix(G, genotypes):
     L, n = np.shape(G)
     if L > 46340:
         raise ValueError("Genotype matrix is too large, consider parallelizing LD calc")
-
 
 
 def compute_pairwise_stats(Gs, genotypes=True):
@@ -1298,7 +1301,9 @@ def means_from_region_data(all_data, stats, norm_idx=0):
     return means
 
 
-def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
+def get_bootstrap_sets(
+    all_data, num_bootstraps=None, normalization=0, remove_norm_stats=True
+):
     """
     From a dictionary of all the regional data, resample with replacement
     to construct bootstrap data.
@@ -1328,7 +1333,17 @@ def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
         choices = np.random.choice(regions, num_regions, replace=True)
         for i, c in enumerate(choices):
             temp_data[i] = all_data[c]
-        all_boot.append(means_from_region_data(temp_data, stats, normalization))
+        boot_means = means_from_region_data(temp_data, stats, normalization)
+        if remove_norm_stats:
+            for ii in range(len(boot_means)):
+                if ii < len(boot_means) - 1:
+                    delete_idx = stats[0].index(
+                        "pi2_{0}_{0}_{0}_{0}".format(normalization)
+                    )
+                else:
+                    delete_idx = stats[1].index("H_{0}_{0}".format(normalization))
+                boot_means[ii] = np.delete(boot_means[ii], delete_idx)
+        all_boot.append(boot_means)
     return all_boot
 
 
@@ -1351,6 +1366,15 @@ def bootstrap_data(all_data, normalization=0):
     :param int normalization: we work with :math:`\\sigma_d^2` statistics,
         and by default we use population 0 to normalize stats
     """
+    # check that var-cov matrix will be able to be computed
+    k = list(all_data.keys())[0]
+    for v in all_data[k]["sums"]:
+        if len(all_data) < len(v):
+            raise ValueError(
+                "There are not enough independent regions to compute "
+                "variance-covariance matrix"
+            )
+
     norm_stats = [
         "pi2_{0}_{0}_{0}_{0}".format(normalization),
         "H_{0}_{0}".format(normalization),

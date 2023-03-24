@@ -6,10 +6,10 @@ logger = logging.getLogger("LDstats_mod")
 import os, sys
 import numpy, numpy as np
 import copy
+import demes
 
 from . import Numerics, Util
-
-_imported_demes = False
+import moments.Demes as Demes
 
 
 class LDstats(list):
@@ -763,19 +763,13 @@ class LDstats(list):
             to the length of ``sampled_demes``.
         :rtype: :class:`moments.LD.LDstats`
         """
-        if not _imported_demes:
-            try:
-                import demes
-            except ImportError:
-                raise ImportError("demes is not installed")
-            import moments.Demes
 
         if isinstance(g, str):
             dg = demes.load(g)
         else:
             dg = g
 
-        y = moments.Demes.LD(
+        y = Demes.LD(
             dg,
             sampled_demes,
             sample_times=sample_times,
@@ -785,6 +779,71 @@ class LDstats(list):
             u=u,
             Ne=Ne,
         )
+        return y
+
+    @staticmethod
+    def steady_state(
+        nus, m=None, rho=None, theta=0.001, selfing_rate=None, pop_ids=None
+    ):
+        """
+        Computes the steady state solution for one or two populations. The number of
+        populations is determined by the length of ``nus``, which is a list with
+        relative population sizes (often, these will be set to 1, meaning sizes are
+        equal to some reference or ancestral population size).
+
+        The steady state can only be found for one- and two-population scenarios.
+        If two populations are desired, we must provide ``m``, a 2-by-2 migration
+        matrix, and there must be at least one nonzero migration rate. This
+        corresponds to an island model with asymmetric migration and potentially
+        unequal population sizes.
+
+        :param nus: The relative population sizes, with one or two entries,
+            corresponding to a steady state solution with one or two populations,
+            resp.
+        :type nus: list of numbers
+        :param m: A migration matrix, only provided when the length of `nus` is 2.
+        :type m: array-like
+        :param rho: The population-size scaled recombination rate(s). Can be None, a
+            non-negative float, or a list of values.
+        :param theta: The population-size scaled mutation rate
+        :type theta: float
+        :param selfing_rate: Self-fertilization rate(s), given as a number (for a
+            single population, or list of numbers (for two populations). Selfing
+            rates must be between 0 and 1.
+        :type selfing_rate: number or list of numbers
+        :param pop_ids: The population IDs.
+        :type pop_ids: list of strings
+        :return: A ``moments.LD`` LD statistics object.
+        :rtype: :class:`moments.LD.LDstats`
+        """
+        if len(nus) == 1:
+            num_pops = 1
+            if m is not None:
+                raise ValueError(
+                    "Migration matrix cannot be provided for one population."
+                )
+        elif len(nus) == 2:
+            num_pops = 2
+            if m is None:
+                raise ValueError(
+                    "Migration matrix must be provided for the steady state solution "
+                    "with two populations"
+                )
+        else:
+            raise ValueError("nus must have length 1 or 2")
+
+        if pop_ids is not None and len(pop_ids) != len(nus):
+            raise ValueError("pop_ids must be a list of length equal to nus.")
+
+        if num_pops == 1:
+            data = Numerics.steady_state(
+                theta=theta, rho=rho, selfing_rate=selfing_rate
+            )
+        elif num_pops == 2:
+            data = Numerics.steady_state_two_pop(
+                nus, m, rho=rho, theta=theta, selfing_rate=selfing_rate
+            )
+        y = LDstats(data, num_pops=num_pops, pop_ids=pop_ids)
         return y
 
     # Ensures that when arithmetic is done with LDstats objects,
