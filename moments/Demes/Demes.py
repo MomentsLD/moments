@@ -1133,7 +1133,7 @@ def _compute_LD(
     # set up initial steady-state LD for ancestral deme
     y = moments.LD.LDstats(
         moments.LD.Numerics.steady_state(
-            theta=theta, rho=rho, selfing_rate=root_selfing_rate
+            [1], theta=theta, rho=rho, selfing_rate=[root_selfing_rate]
         ),
         num_pops=1,
         pop_ids=demes_present[integration_intervals[0]],
