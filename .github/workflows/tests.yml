@@ -3,11 +3,11 @@ name: tests
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ main, devel ]
 
 jobs:
   canceller:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.9.1
@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04]  # add back macos-10.15 later
+        os: [ubuntu-latest]  # add back macos-latest later
         python-version: [3.8, 3.9, "3.10"]
     env:
       OS: ${{ matrix.os }}
