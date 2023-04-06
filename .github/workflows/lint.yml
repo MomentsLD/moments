@@ -1,0 +1,24 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements/lint.txt
+          pip install -r requirements/tests.txt
+          python setup.py build
+      - name: black
+        run: black --check .
