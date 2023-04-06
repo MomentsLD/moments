@@ -24,7 +24,7 @@ cpdef compute_D(np.ndarray[np.int32_t, ndim=2] Counts):
     cdef np.ndarray[np.int32_t, ndim=1] n7 = Counts[:,6]
     cdef np.ndarray[np.int32_t, ndim=1] n8 = Counts[:,7]
     cdef np.ndarray[np.int32_t, ndim=1] n9 = Counts[:,8]
-    cdef np.ndarray[np.int32_t, ndim=1] n
+    cdef np.ndarray[np.int64_t, ndim=1] n
     n = np.sum(Counts, axis=1)
     cdef np.ndarray[np.float_t, ndim=1] numer
     cdef np.ndarray[np.float_t, ndim=1] denom
@@ -51,7 +51,7 @@ cpdef compute_D2(np.ndarray[np.int32_t, ndim=2] Counts):
     cdef np.ndarray[np.int32_t, ndim=1] n7 = Counts[:,6]
     cdef np.ndarray[np.int32_t, ndim=1] n8 = Counts[:,7]
     cdef np.ndarray[np.int32_t, ndim=1] n9 = Counts[:,8]
-    cdef np.ndarray[np.int32_t, ndim=1] n
+    cdef np.ndarray[np.int64_t, ndim=1] n
     n = np.sum(Counts, axis=1)
     cdef np.ndarray[np.float_t, ndim=1] numer
     cdef np.ndarray[np.float_t, ndim=1] denom
@@ -78,7 +78,7 @@ cpdef compute_Dz(np.ndarray[np.int32_t, ndim=2] Counts):
     cdef np.ndarray[np.int32_t, ndim=1] n7 = Counts[:,6]
     cdef np.ndarray[np.int32_t, ndim=1] n8 = Counts[:,7]
     cdef np.ndarray[np.int32_t, ndim=1] n9 = Counts[:,8]
-    cdef np.ndarray[np.int32_t, ndim=1] n
+    cdef np.ndarray[np.int64_t, ndim=1] n
     n = np.sum(Counts, axis=1)
     cdef np.ndarray[np.float_t, ndim=1] numer
     cdef np.ndarray[np.float_t, ndim=1] denom
@@ -105,7 +105,7 @@ cpdef compute_pi2(np.ndarray[np.int32_t, ndim=2] Counts):
     cdef np.ndarray[np.int32_t, ndim=1] n7 = Counts[:,6]
     cdef np.ndarray[np.int32_t, ndim=1] n8 = Counts[:,7]
     cdef np.ndarray[np.int32_t, ndim=1] n9 = Counts[:,8]
-    cdef np.ndarray[np.int32_t, ndim=1] n
+    cdef np.ndarray[np.int64_t, ndim=1] n
     n = np.sum(Counts, axis=1)
     cdef np.ndarray[np.float_t, ndim=1] numer
     cdef np.ndarray[np.float_t, ndim=1] denom
