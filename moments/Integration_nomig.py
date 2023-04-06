@@ -42,30 +42,6 @@ def _calcB(dims, u):
     return B
 
 
-# Finite genome mutation model
-def _calcB_FB(dims, u, v):
-    """
-    dims : List containing the pop sizes
-
-    u: vectors with the scalar forward mutation rates
-
-    v: scalar backward mutation rates
-
-    Returns mutation matrix for finite genome model
-
-    """
-    if len(dims) == 1:
-        return ls1.calcB_FB(dims[0], u[0], v[0])
-    elif len(dims) == 2:  # return list of mutation matrices
-        return [ls2.calcB_FB1(dims, u[0], v[0]), ls2.calcB_FB2(dims, u[1], v[1])]
-    elif len(dims) == 3:
-        return Reversible.calc_FB_3pop(dims, u, v)
-    elif len(dims) == 4:
-        return Reversible.calc_FB_4pop(dims, u, v)
-    elif len(dims) == 5:
-        return Reversible.calc_FB_5pop(dims, u, v)
-
-
 # ----------------------------------
 # updates for the time integration-
 # ----------------------------------
@@ -546,7 +522,7 @@ def integrate_nomig(
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, u, v)
+        B = Reversible._calcB_FB(dims, u, v)
 
     # time loop:
     t = 0.0
@@ -729,7 +705,7 @@ def integrate_neutral(
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, u, v)
+        B = Reversible._calcB_FB(dims, u, v)
 
     # time loop:
     t = 0.0

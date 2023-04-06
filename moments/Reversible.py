@@ -1,12 +1,47 @@
 import numpy as np
 from scipy.sparse import coo_matrix
+import LinearSystem_1D as ls1
+import LinearSystem_2D as ls2
+
 
 """
 Mutation matrices for reversible mutations, given spectrum dimension, u and v
 """
 
+# Finite genome mutation model
+def _calcB_FB(dims, theta_fd, theta_bd):
+    """
+    The mutation rates `theta_fd` and `theta_bd` must be given as lists,
+    with length equal to the length of `dims`, which stores the dimensions of
+    the data.
+
+    :param dims: List containing the pop sizes
+    :param theta_fd: List of forward mutation rates
+    :param theta_bd: List of backward mutation rates
+    :return: Mutation matrices for finite genome model
+    """
+    if len(theta_fd) != len(dims):
+        raise ValueError("theta_fd does not match sfs dimensions")
+    if len(theta_bd) != len(dims):
+        raise ValueError("theta_bd does not match sfs dimensions")
+
+    if len(dims) == 1:
+        return ls1.calcB_FB(dims[0], theta_fd[0], theta_bd[0])
+    elif len(dims) == 2:  # return list of mutation matrices
+        return [
+            ls2.calcB_FB1(dims, theta_fd[0], theta_bd[0]),
+            ls2.calcB_FB2(dims, theta_fd[1], theta_bd[1]),
+        ]
+    elif len(dims) == 3:
+        return _calc_FB_3pop(dims, theta_fd, theta_bd)
+    elif len(dims) == 4:
+        return _calc_FB_4pop(dims, theta_fd, theta_bd)
+    elif len(dims) == 5:
+        return _calc_FB_5pop(dims, theta_fd, theta_bd)
+
+
 # three populations
-def calc_FB_3pop(dims, u, v):
+def _calc_FB_3pop(dims, u, v):
     d = int(np.prod(dims))
     d1, d2, d3 = dims
     # arrays for the creation of the sparse (coo) matrices
@@ -56,7 +91,7 @@ def calc_FB_3pop(dims, u, v):
 
 
 # four populations
-def calc_FB_4pop(dims, u, v):
+def _calc_FB_4pop(dims, u, v):
     d = int(np.prod(dims))
     d1, d2, d3, d4 = dims
     # arrays for the creation of the sparse (coo) matrices
@@ -123,7 +158,7 @@ def calc_FB_4pop(dims, u, v):
 
 
 # 5 pops
-def calc_FB_5pop(dims, u, v):
+def _calc_FB_5pop(dims, u, v):
     d = int(np.prod(dims))
     d1, d2, d3, d4, d5 = dims
     # arrays for the creation of the sparse (coo) matrices
