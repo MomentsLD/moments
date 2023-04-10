@@ -32,7 +32,7 @@ from scipy.special import betainc
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
-import moments.Demes as Demes
+import moments.Demes.Demes
 
 _plotting = True
 try:
@@ -2158,7 +2158,7 @@ class Spectrum(np.ma.masked_array):
             sampled_demes = list(samples.keys())
             sample_sizes = list(samples.values())
 
-        fs = Demes.SFS(
+        fs = moments.Demes.Demes.SFS(
             dg,
             sampled_demes,
             sample_sizes,

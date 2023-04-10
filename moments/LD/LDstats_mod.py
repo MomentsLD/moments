@@ -9,7 +9,7 @@ import copy
 import demes
 
 from . import Numerics, Util
-import moments.Demes as Demes
+import moments.Demes.Demes
 
 
 class LDstats(list):
@@ -769,7 +769,7 @@ class LDstats(list):
         else:
             dg = g
 
-        y = Demes.LD(
+        y = moments.Demes.Demes.LD(
             dg,
             sampled_demes,
             sample_times=sample_times,

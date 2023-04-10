@@ -9,6 +9,7 @@ import moments.TwoLocus
 import pickle
 import time
 import copy
+import demes
 
 
 class LDTestCase(unittest.TestCase):
@@ -666,3 +667,18 @@ class SteadyState(unittest.TestCase):
             [[0, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
         ]:
             self.assertTrue(moments.LD.Numerics._connected_migration_matrix(M))
+
+
+class FromDemes(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_from_demes(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=0)])
+        g = b.resolve()
+        y = moments.LD.LDstats.from_demes(g, sampled_demes=["A"], rho=0)
