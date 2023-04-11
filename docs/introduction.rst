@@ -61,6 +61,14 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.16
+======
+
+- Flexible steady-state solution in LD statistics for multi-population
+  island models
+- Fix bug in reversible mutation model for SFS with multiple populations
+  with migration
+
 1.1.15
 ======
 
