@@ -9,6 +9,7 @@ import moments.TwoLocus
 import pickle
 import time
 import copy
+import demes
 
 
 class LDTestCase(unittest.TestCase):
@@ -432,6 +433,102 @@ class FStatistics(unittest.TestCase):
         self.assertTrue(y.f2(0, 1) == -y.f4(0, 1, 1, 0))
 
 
+# Older steady state functions
+def steady_state(theta=0.001, rho=None, selfing_rate=None):
+    if selfing_rate is None:
+        h_ss = np.array([theta])
+    else:
+        h_ss = np.array([theta * (1 - selfing_rate / 2)])
+    if hasattr(rho, "__len__"):  # list of rhos
+        ys_ss = [
+            equilibrium_ld(theta=theta, rho=r, selfing_rate=selfing_rate) for r in rho
+        ]
+        return ys_ss + [h_ss]
+    elif np.isscalar(rho):  # one rho value
+        y_ss = equilibrium_ld(theta=theta, rho=rho, selfing_rate=selfing_rate)
+        return [y_ss, h_ss]
+    else:  # only het stats
+        return [h_ss]
+
+
+def equilibrium_ld(theta=0.001, rho=0.0, selfing_rate=None):
+    if selfing_rate is None:
+        h_ss = np.array([theta])
+    else:
+        h_ss = np.array([theta * (1 - selfing_rate / 2)])
+    U = Matrices.mutation_ld(1, theta, selfing=[selfing_rate])
+    R = Matrices.recombination(1, rho, selfing=[selfing_rate])
+    D = Matrices.drift_ld(1, [1.0])
+    return factorized(D + R)(-U.dot(h_ss))
+
+
+def steady_state_two_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
+    nu0, nu1 = nus
+    m01 = m[0][1]
+    m10 = m[1][0]
+    if selfing_rate is None:
+        selfing_rate = [0, 0]
+
+    # get the two-population steady state of heterozygosity statistics
+    Mh = Matrices.migration_h(2, [[0, m01], [m10, 0]])
+    Dh = Matrices.drift_h(2, [nu0, nu1])
+    Uh = Matrices.mutation_h(2, theta, selfing=selfing_rate)
+    h_ss = np.linalg.inv(Mh + Dh).dot(-Uh)
+
+    # get the two-population steady state of LD statistics
+    if rho is None:
+        return [h_ss]
+
+    def two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss):
+        U = Matrices.mutation_ld(2, theta, selfing=selfing_rate)
+        R = Matrices.recombination(2, rho, selfing=selfing_rate)
+        D = Matrices.drift_ld(2, [nu0, nu1])
+        M = Matrices.migration_ld(2, [[0, m01], [m10, 0]])
+        return factorized(D + R + M)(-U.dot(h_ss))
+
+    if np.isscalar(rho):
+        y_ss = two_pop_ld_ss(nu0, nu1, m01, m10, theta, rho, selfing_rate, h_ss)
+        return [y_ss, h_ss]
+
+    y_ss = []
+    for r in rho:
+        y_ss.append(two_pop_ld_ss(nu0, nu1, m01, m10, theta, r, selfing_rate, h_ss))
+    return y_ss + [h_ss]
+
+
+def steady_state_three_pop(nus, m, rho=None, theta=0.001, selfing_rate=None):
+    nus = np.array(nus)
+    m = np.array(m)
+    if selfing_rate is None:
+        selfing_rate = [0, 0, 0]
+
+    # get the two-population steady state of heterozygosity statistics
+    Mh = Matrices.migration_h(3, m)
+    Dh = Matrices.drift_h(3, nus)
+    Uh = Matrices.mutation_h(3, theta, selfing=selfing_rate)
+    h_ss = np.linalg.inv(Mh + Dh).dot(-Uh)
+
+    # get the two-population steady state of LD statistics
+    if rho is None:
+        return [h_ss]
+
+    def three_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss):
+        U = Matrices.mutation_ld(3, theta, selfing=selfing_rate)
+        R = Matrices.recombination(3, rho, selfing=selfing_rate)
+        D = Matrices.drift_ld(3, nus)
+        M = Matrices.migration_ld(3, m)
+        return factorized(D + R + M)(-U.dot(h_ss))
+
+    if np.isscalar(rho):
+        y_ss = three_pop_ld_ss(nus, m, theta, rho, selfing_rate, h_ss)
+        return [y_ss, h_ss]
+
+    y_ss = []
+    for r in rho:
+        y_ss.append(three_pop_ld_ss(nus, m, theta, r, selfing_rate, h_ss))
+    return y_ss + [h_ss]
+
+
 class SteadyState(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -445,21 +542,21 @@ class SteadyState(unittest.TestCase):
             y = moments.LD.Demographics1D.snm(rho=rho)
             y.integrate([1], 1, rho=rho)
             y2 = moments.LD.LDstats(
-                moments.LD.Numerics.steady_state(rho=rho), num_pops=1
+                moments.LD.Numerics.steady_state([1], rho=rho), num_pops=1
             )
             for v, v2 in zip(y, y2):
                 self.assertTrue(np.allclose(v, v2))
 
     def test_one_pop_selfing(self):
         for rho in [None, 0, 1, 10.5, [1, 2, 3]]:
-            for f in [None, 0, 0.25, 1]:
+            for f in [0, 0.25, 1]:
                 y = moments.LD.LDstats(
-                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f),
+                    moments.LD.Numerics.steady_state([1], rho=rho, selfing_rate=[f]),
                     num_pops=1,
                 )
                 y.integrate([1], 1, rho=rho, selfing=[f])
                 y2 = moments.LD.LDstats(
-                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f),
+                    moments.LD.Numerics.steady_state([1], rho=rho, selfing_rate=[f]),
                     num_pops=1,
                 )
                 for v, v2 in zip(y, y2):
@@ -479,13 +576,13 @@ class SteadyState(unittest.TestCase):
                 else:
                     f0 = np.mean(selfing_rate)
                 y = moments.LD.LDstats(
-                    moments.LD.Numerics.steady_state(rho=rho, selfing_rate=f0),
+                    moments.LD.Numerics.steady_state([1], rho=rho, selfing_rate=[f0]),
                     num_pops=1,
                 )
                 y = y.split(0)
                 y.integrate(nus, 40, rho=rho, m=m, selfing=selfing_rate)
                 y2 = moments.LD.LDstats(
-                    moments.LD.Numerics.steady_state_two_pop(
+                    moments.LD.Numerics.steady_state(
                         nus,
                         m,
                         rho=rho,
@@ -498,14 +595,16 @@ class SteadyState(unittest.TestCase):
 
     def test_steady_state_solution(self):
         y2 = moments.LD.LDstats(
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 0], [1, 0]], rho=1),
+            moments.LD.Numerics.steady_state([1, 1], [[0, 0], [1, 0]], rho=1),
             num_pops=2,
         )
-        y1 = moments.LD.LDstats(moments.LD.Numerics.steady_state(rho=1), num_pops=1)
+        y1 = moments.LD.LDstats(
+            moments.LD.Numerics.steady_state([1], rho=1), num_pops=1
+        )
         for yy2, yy1 in zip(y2.marginalize(1), y1):
             self.assertTrue(np.allclose(yy2, yy1))
         y2 = moments.LD.LDstats(
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [0, 0]], rho=1),
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [0, 0]], rho=1),
             num_pops=2,
         )
         for yy2, yy1 in zip(y2.marginalize(0), y1):
@@ -513,53 +612,73 @@ class SteadyState(unittest.TestCase):
 
     def test_bad_inputs_one_pop(self):
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state(theta=0)
+            moments.LD.Numerics.steady_state([1], theta=0)
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state(rho=-1)
+            moments.LD.Numerics.steady_state([1], rho=-1)
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state(rho=[0, 1, -1])
+            moments.LD.Numerics.steady_state([1], rho=[0, 1, -1])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state(selfing_rate=[1, 2])
+            moments.LD.Numerics.steady_state([1], selfing_rate=[2])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state(selfing_rate=-1)
+            moments.LD.Numerics.steady_state([1], selfing_rate=[-1])
 
     def test_bad_inputs_two_pop(self):
         # theta cannot be zero
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [1, 0]], theta=0)
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [1, 0]], theta=0)
         # rho values must be non-negative
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [1, 0]], rho=-1)
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [1, 0]], rho=-1)
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop(
-                [1, 1], [[0, 1], [1, 0]], rho=[0, 1, -1]
-            )
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [1, 0]], rho=[0, 1, -1])
         # badly formed selfing rates
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop(
-                [1, 1], [[0, 1], [1, 0]], selfing_rate=0.5
-            )
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [1, 0]], selfing_rate=0.5)
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop(
-                [1, 1], [[0, 1], [1, 0]], selfing_rate=[0]
-            )
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [1, 0]], selfing_rate=[0])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop(
+            moments.LD.Numerics.steady_state(
                 [1, 1], [[0, 1], [1, 0]], selfing_rate=[0, -1]
             )
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop(
+            moments.LD.Numerics.steady_state(
                 [1, 1], [[0, 1], [1, 0]], selfing_rate=[0, 2]
             )
         # bad pop sizes
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([-1, 1], [[0, 1], [1, 0]])
+            moments.LD.Numerics.steady_state([-1, 1], [[0, 1], [1, 0]])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, -1], [[0, 1], [1, 0]])
+            moments.LD.Numerics.steady_state([1, -1], [[0, 1], [1, 0]])
         # bad migration rates
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, -1], [1, 0]])
+            moments.LD.Numerics.steady_state([1, 1], [[0, -1], [1, 0]])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 1], [-1, 0]])
+            moments.LD.Numerics.steady_state([1, 1], [[0, 1], [-1, 0]])
         with self.assertRaises(ValueError):
-            moments.LD.Numerics.steady_state_two_pop([1, 1], [[0, 0], [0, 0]])
+            moments.LD.Numerics.steady_state([1, 1], [[0, 0], [0, 0]])
+
+    def test_connected_migration_matrix(self):
+        M = [[0, 0], [0, 0]]
+        self.assertFalse(moments.LD.Numerics._connected_migration_matrix(M))
+        for M in [
+            [[0, 1], [0, 0]],
+            [[0, 0], [1, 0]],
+            [[0, 1, 0], [0, 0, 1], [0, 0, 0]],
+            [[0, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+        ]:
+            self.assertTrue(moments.LD.Numerics._connected_migration_matrix(M))
+
+
+class FromDemes(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_from_demes(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1000, end_time=0)])
+        g = b.resolve()
+        y = moments.LD.LDstats.from_demes(g, sampled_demes=["A"], rho=0)

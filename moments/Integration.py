@@ -38,32 +38,6 @@ def _calcB(dims, u):
     return B
 
 
-# Finite genome mutation model
-def _calcB_FB(dims, theta_fd, theta_bd):
-    """
-    dims : List containing the pop sizes
-
-    u: scalar forward mutation rate
-
-    v: scalar backward mutation rate
-
-    Returns mutation matrix for finite genome model
-    """
-    if len(dims) == 1:
-        return ls1.calcB_FB(dims[0], theta_fd, theta_bd)
-    elif len(dims) == 2:  # return list of mutation matrices
-        return [
-            ls2.calcB_FB1(dims, theta_fd, theta_bd),
-            ls2.calcB_FB2(dims, theta_fd, theta_bd),
-        ]
-    elif len(dims) == 3:
-        return Reversible.calc_FB_3pop(dims, theta_fd, theta_bd)
-    elif len(dims) == 4:
-        return Reversible.calc_FB_4pop(dims, theta_fd, theta_bd)
-    elif len(dims) == 5:
-        return Reversible.calc_FB_5pop(dims, theta_fd, theta_bd)
-
-
 # Drift
 def _calcD(dims):
     """
@@ -906,7 +880,7 @@ def integrate_nD(
     if finite_genome == False:
         B = _calcB(dims, u)
     else:
-        B = _calcB_FB(dims, u, v)
+        B = Reversible._calcB_FB(dims, u, v)
 
     # indexes for the permutation trick
     order = list(range(nbp))

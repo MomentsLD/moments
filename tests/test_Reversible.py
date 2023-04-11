@@ -1,7 +1,7 @@
 import os
 import unittest
 
-import numpy
+import numpy as np
 import scipy.special
 import moments
 
@@ -29,7 +29,7 @@ class FiniteGenomeTestCase(unittest.TestCase):
         fs.unmask_all()
         # integrate for T = 2 and check that it's close still
         fs.integrate([1.0], 2, finite_genome=True, theta_fd=theta_fd, theta_bd=theta_bd)
-        self.assertTrue(numpy.allclose(fs, exact))
+        self.assertTrue(np.allclose(fs, exact))
 
     def test_reversible_selection(self):
         gammas = [1, -1, -10]
@@ -51,7 +51,7 @@ class FiniteGenomeTestCase(unittest.TestCase):
                 theta_fd=theta_fd,
                 theta_bd=theta_bd,
             )
-            self.assertTrue(numpy.allclose(fs, exact, atol=1e-5))
+            self.assertTrue(np.allclose(fs, exact, atol=1e-5))
 
     def test_two_pop(self):
         ns1 = 30
@@ -78,9 +78,121 @@ class FiniteGenomeTestCase(unittest.TestCase):
             ns2, theta_fd=theta_fd, theta_bd=theta_bd
         )
         self.assertTrue(
-            numpy.allclose(fsm1, exact1, atol=1e-5)
-            and numpy.allclose(fsm2, exact2, atol=1e-5)
+            np.allclose(fsm1, exact1, atol=1e-5)
+            and np.allclose(fsm2, exact2, atol=1e-5)
         )
+
+    def test_two_pop_with_migration(self):
+        n1 = 30
+        n2 = 30
+        n = n1 + n2
+        u = 1e-3
+        v = 2e-3
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                n, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        fs = fs.split(0, n1, n2)
+        m = 1
+        fs.integrate(
+            [1, 1], 2, m=[[0, m], [0, 0]], theta_fd=u, theta_bd=v, finite_genome=True
+        )
+        fs_marg = fs.marginalize([0])
+        fs1 = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                n2, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        self.assertTrue(np.allclose(fs1, fs_marg, rtol=0.001))
+
+        fs2 = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                n, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        fs2 = fs2.split(0, n1, n2)
+        fs2.integrate(
+            [1, 1], 2, m=[[0, 0], [m, 0]], theta_fd=u, theta_bd=v, finite_genome=True
+        )
+        fs2_marg = fs2.marginalize([1])
+        self.assertTrue(np.allclose(fs2_marg, fs_marg))
+
+    def test_frozen(self):
+        n = 20
+        u = 1e-3
+        v = 2e-3
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                n, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        fs_ss = fs.copy()
+        fs.integrate([10], 1, theta_fd=u, theta_bd=v, finite_genome=True, frozen=[True])
+        self.assertTrue(np.all(fs_ss == fs))
+        fs.integrate([10], 1, theta_fd=u, theta_bd=v, finite_genome=True)
+        self.assertFalse(np.allclose(fs_ss, fs))
+        fs2 = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                2 * n, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        fs2 = fs2.split(0, n, n)
+        self.assertTrue(np.allclose(fs_ss, fs2.marginalize([1])))
+        self.assertTrue(np.allclose(fs_ss, fs2.marginalize([0])))
+        fs2.integrate(
+            [10, 10],
+            1,
+            theta_fd=u,
+            theta_bd=v,
+            finite_genome=True,
+            frozen=[False, True],
+        )
+        self.assertFalse(np.allclose(fs_ss, fs2.marginalize([1])))
+        self.assertTrue(np.allclose(fs_ss, fs2.marginalize([0])))
+
+    def test_three_pop(self):
+        n = 10
+        u = 1e-3
+        v = 2e-3
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                3 * n, theta_fd=u, theta_bd=v
+            ),
+            mask_corners=False,
+        )
+        fs_ss = fs.project([10])
+        fs = fs.split(0, 20, 10)
+        fs = fs.split(0, 10, 10)
+        fs.integrate([1, 1, 1], 1, theta_fd=u, theta_bd=v, finite_genome=True)
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([0, 1]), rtol=1e-4))
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([0, 2]), rtol=1e-4))
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([1, 2]), rtol=1e-4))
+
+        n = 30
+        u = 1e-3
+        v = 2e-3
+        gamma = -2
+        fs = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                3 * n, theta_fd=u, theta_bd=v, gamma=gamma
+            ),
+            mask_corners=False,
+        )
+        fs_ss = fs.project([n])
+        fs = fs.split(0, 2 * n, n)
+        fs = fs.split(0, n, n)
+        fs.integrate(
+            [1, 1, 1], 1, theta_fd=u, theta_bd=v, finite_genome=True, gamma=gamma
+        )
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([0, 1]), rtol=2e-3))
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([0, 2]), rtol=2e-3))
+        self.assertTrue(np.allclose(fs_ss, fs.marginalize([1, 2]), rtol=2e-3))
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(FiniteGenomeTestCase)

@@ -26,7 +26,7 @@ def load_pickle(filename):
 
 
 # Cache jackknife matrices in ~/.moments/TwoLocus_cache by default
-def set_cache_path(path="~/.moments/TwoLocus_cache"):
+def set_cache_path(path="~/.moments/TwoLocus_cache/"):
     """
     Set directory in which demographic equilibrium phi spectra will be cached.
 
@@ -35,8 +35,10 @@ def set_cache_path(path="~/.moments/TwoLocus_cache"):
     """
     global cache_path
     cache_path = os.path.expanduser(path)
-    if not os.path.isdir(cache_path):
+    try:
         os.makedirs(cache_path)
+    except FileExistsError:
+        pass
 
 
 cache_path = None

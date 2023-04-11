@@ -1,0 +1,51 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [ main, devel ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.9, "3.10"]
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python-version }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+          # pip install -r requirements/development.txt
+          ## can we get rid of requirements.txt?
+          pip install -r requirements/tests.txt
+          pip install -r requirements/lint.txt
+      
+      # Check that moments installs as expected.
+      - name: install moments
+        run: |
+          pip install .
+      
+      - name: run pytest
+        run: |
+          python -m pytest -n auto -v tests
