@@ -75,7 +75,7 @@ could be parameterized as
 
     def model_func(params, rho=None, theta=0.001):
         nu0, nu1, T, M = params
-        y = moments.LD.Numerics.steady_state(rho=rho, theta=theta)
+        y = moments.LD.Numerics.steady_state([1], rho=rho, theta=theta)
         y = moments.LD.LDstats(y, num_pops=1)
         y = y.split(0)
         y.integrate([nu0, nu1], T, m=[[0, M], [M, 0]], rho=rho, theta=theta)
