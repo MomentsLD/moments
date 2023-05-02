@@ -36,19 +36,19 @@ using ``pip`` should install these dependencies automatically:
 
 .. code-block:: bash
 
-   pip install git+https://bitbucket.org/simongravel/moments.git
+   pip install git+https://github.com/MomentsLD/moments.git
 
 This approach can also be used to install the development branch of ``moments``:
 
 .. code-block:: bash
 
-   pip install git+https://bitbucket.org/simongravel/moments.git@devel
+   pip install git+https://github.com/MomentsLD/moments.git@devel
 
 Alternatively, you can clone the git repository
 
 .. code-block:: bash
 
-   git clone https://bitbucket.org/simongravel/moments.git
+   git clone https://github.com/MomentsLD/moments.git
 
 
 and then from within the moments directory (``cd moments``), run
@@ -111,7 +111,7 @@ Note that you might need sudo privileges to install in this way.
 You should then be able to import ``moments`` in your python scripts. Entering an
 ipython or python session, type ``import moments``. If, for any reason, you have
 trouble installing ``moments`` after following these steps, please submit an
-`Issue <https://bitbucket.org/simongravel/moments/issues>`_.
+`Issue <https://github.com/MomentsLD/moments/issues>`_.
 
 If you use ``Parsing`` from ``moments.LD``, which reads VCF-formatted files and
 computes LD statistics to compare to predictions from ``moments.LD``, you will need to

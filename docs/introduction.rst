@@ -261,7 +261,7 @@ Change log
 =====
 
 - Fixes install issues using pip: ``pip install .`` or
-  ``pip install git+https://bitbucket.org/simongravel/moments.git`` is now functional.
+  ``pip install git+https://github.com/MomentsLD/moments.git`` is now functional.
 
 1.0.4
 =====

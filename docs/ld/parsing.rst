@@ -355,7 +355,7 @@ Normally, we'll want more data than from a single 1Mb region to compute
 averages and variances of statistics. Using the same approach as the above
 example, ``ld_stats`` for 100 replicates we computed (see example in the
 ``moments`` repository `here
-<https://bitbucket.org/simongravel/moments/src/master/examples/LD/>`_). From
+<https://github.com/MomentsLD/moments/tree/main/examples/LD>`_). From
 this, each replicate set of statistics were placed in a dictionary, as
 ``rep_stats = {0: ld_stats_0, 1: ld_stats_1, ..., 99: ld_stats_99}``. This
 dictionary can then be used to compute means and covariances of statistics.
