@@ -76,6 +76,10 @@ def admix_ld(ys, num_pops, pop1, pop2, f):
 
 
 def admix(Y, num_pops, pop1, pop2, f):
+    """
+    Creates a new population from admixing pop1 and pop2; 
+    admix treats the admixed population as a new population, so that there will be num_pops+1 populations.
+    The admixed population is the last population in the new statistics."""
     h = Y[-1]
     h_new = admix_h(h, num_pops, pop1, pop2, f)
     if len(Y) > 1:
