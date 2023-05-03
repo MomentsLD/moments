@@ -12,12 +12,21 @@ from . import Matrices
 from . import Util
 
 ##
-## Splits, marginalizations, and other manipulations
+## Population split and admixture fucntions, used in moments.LD.LDstats class methods.
 ##
 
 
 def split_h(h, pop_to_split, num_pops):
+    """
+    Split the single-locus (heterozygosity) statistics. `pop_to_split`
+    specifies the population index, while `num_pops` specifies the current
+    number of populations represented by `h`. Note that `h` must be "full",
+    meaning that it contains all statistics given in
+    `moments.LD.Util.het_names(num_pops)`.
+    """
     h_from = h
+    if len(h_from) != len(Util.het_names(num_pops)):
+        raise ValueError("length of het statistics does not match specified num_pops")
     h_new = np.empty(int((num_pops + 1) * (num_pops + 2) / 2))
     c = 0
     hn = Util.het_names(num_pops)
@@ -44,9 +53,16 @@ def split_h(h, pop_to_split, num_pops):
 
 
 def split_ld(y, pop_to_split, num_pops):
+    """
+    Split the two-locus (LD) statistics. `pop_to_split` specifies the
+    population index, while `num_pops` specifies the current number of
+    populations represented by `y`. Note that `y` must be "full", meaning that
+    it contains all statistics given in `moments.LD.Util.ld_names(num_pops)`.
+    """
     mom_list_from = Util.ld_names(num_pops)
     mom_list_to = Util.ld_names(num_pops + 1)
-
+    if len(y) != len(mom_list_from):
+        raise ValueError("length of input data and number of populations do not match")
     y_new = np.ones(len(mom_list_to))
     for ii, mom_to in enumerate(mom_list_to):
         if mom_to in mom_list_from:
@@ -62,12 +78,24 @@ def split_ld(y, pop_to_split, num_pops):
 
 
 def admix_h(h, num_pops, pop1, pop2, f):
+    """
+    Given heterozygosity statistics `h`, return a new array of single-locus
+    statistics after admixture between `pop1` and `pop2`, with proportions `f`
+    and `1-f`, respectively. `num_pops` is given as the number of populations
+    represented by `h`.
+    """
     Ah = Matrices.admix_h(num_pops, pop1, pop2, f)
     h_new = Ah.dot(h)
     return h_new
 
 
 def admix_ld(ys, num_pops, pop1, pop2, f):
+    """
+    Given linkage disequilibrium statistics `y`, return a new array of
+    two-locus statistics after admixture between `pop1` and `pop2`, with
+    proportions `f` and `1-f`, respectively. `num_pops` is given as the number
+    of populations represented by `y`.
+    """
     y_new = []
     Ald = Matrices.admix_ld(num_pops, pop1, pop2, f)
     for y in ys:
@@ -76,6 +104,14 @@ def admix_ld(ys, num_pops, pop1, pop2, f):
 
 
 def admix(Y, num_pops, pop1, pop2, f):
+    """
+    Given a list of LD and heterozygosity statistics, return a new list of
+    statistics after admixture between population indexes `pop1` and `pop2`
+    with proportions `f` and `1-f`. `num_pops` is given as the number of
+    populations represented by statistics in `Y`. The last element in `Y`
+    should be the array of single-locus statistics, while the rest are LD
+    statistics for different recombination values.
+    """
     h = Y[-1]
     h_new = admix_h(h, num_pops, pop1, pop2, f)
     if len(Y) > 1:
@@ -92,6 +128,10 @@ def admix(Y, num_pops, pop1, pop2, f):
 
 
 def drift(num_pops, nus, frozen=None, rho=None):
+    """
+    Build the heterozygosity and LD drift transition matrices, for a given
+    number of populations and relative population sizes.
+    """
     Dh = Matrices.drift_h(num_pops, nus, frozen=frozen)
     if rho is not None:
         Dld = Matrices.drift_ld(num_pops, nus, frozen=frozen)
@@ -101,6 +141,12 @@ def drift(num_pops, nus, frozen=None, rho=None):
 
 
 def mutation(num_pops, theta, frozen=None, selfing=None, rho=None):
+    """
+    Build the mutation matrices for a given number of populations and theta.
+    `rho` is provided to check if we need to build the mutation transition
+    matrix for LD statistics. If it is None, we assume we are only working
+    with single-locus statistics.
+    """
     ### mutation for ld also has dependence on H
     Uh = Matrices.mutation_h(num_pops, theta, frozen=frozen, selfing=selfing)
     if rho is not None:
@@ -111,6 +157,10 @@ def mutation(num_pops, theta, frozen=None, selfing=None, rho=None):
 
 
 def recombination(num_pops, rho=0.0, frozen=None, selfing=None):
+    """
+    Build the recombination transition matrices for the given number of
+    populations.
+    """
     if np.isscalar(rho):
         R = Matrices.recombination(num_pops, rho, frozen=frozen, selfing=selfing)
     else:
@@ -122,6 +172,10 @@ def recombination(num_pops, rho=0.0, frozen=None, selfing=None):
 
 
 def migration(num_pops, m, frozen=None, rho=None):
+    """
+    Build the migration transition matrices for the given number of populations
+    and migration matrix m.
+    """
     Mh = Matrices.migration_h(num_pops, m, frozen=frozen)
     if rho is not None:
         Mld = Matrices.migration_ld(num_pops, m, frozen=frozen)
@@ -147,7 +201,6 @@ def integrate(
     selfing=None,
     frozen=None,
 ):
-    """"""
     if num_pops == None:
         num_pops = len(nu)
 
