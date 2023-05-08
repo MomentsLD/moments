@@ -703,8 +703,10 @@ class Spectrum(np.ma.masked_array):
         :param dt_fac: The timestep factor, default is 0.02. This parameter typically
             does not need to be adjusted.
         :type dt_fac: float, optional
-        :param gamma: The selection coefficient (:math:`2 N_e s`), or list of selection
-            coefficients if more than one population.
+        :param gamma: The selection coefficient (:math:`2 N_e s`), or a list of
+            selection coefficients that may differ across populations. In this case,
+            one value must be provided for each population, so the vector must have
+            length equal to the number of populations.
         :type gamma: float or list of floats, optional
         :param h: The dominance coefficient, or list of dominance coefficients in
             each population, if more than one population.
@@ -815,11 +817,11 @@ class Spectrum(np.ma.masked_array):
         else:
             if gamma is None:
                 gamma = np.zeros(len(n))
-            elif not hasattr(gamma, "__len__"):
+            elif not hasattr(gamma, "__len__") and not callable(gamma):
                 gamma = gamma * np.ones(len(n))
             if h is None:
                 h = 0.5 * np.ones(len(n))
-            elif not hasattr(h, "__len__"):
+            elif not hasattr(h, "__len__") and not callable(h):
                 h = h * np.ones(len(n))
             if m is None:
                 m = np.zeros([len(n), len(n)])

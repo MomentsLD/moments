@@ -412,6 +412,8 @@ def integrate_nomig(
     frozen=[False],
 ):
     """
+    TODO: Docstring needs to be updated and filled.
+
     Integration in time
     tf : final simulation time (/2N1 generations)
     gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
@@ -428,6 +430,10 @@ def integrate_nomig(
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape) - 1
 
+    ## NOTE: many of these blocks are repeated in Integration.integrate_nD,
+    ## and should be made into their own functions that can be called by each
+    ## integration method
+
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
@@ -435,14 +441,26 @@ def integrate_nomig(
         h = 0.5 * np.ones(len(n))
 
     # we convert s and h into numpy arrays
-    if hasattr(gamma, "__len__"):
+    if callable(gamma):
+        if hasattr(gamma(0), "__len__"):
+            s = lambda t: np.array(gamma(t))
+        else:
+            s = lambda t: np.array([gamma(t)] * len(n))
+    elif hasattr(gamma, "__len__"):
         s = np.array(gamma)
     else:
-        s = np.array([gamma])
-    if hasattr(h, "__len__"):
-        h = np.array(h)
+        s = np.array([gamma] * len(n))
+    if callable(h):
+        h_func = copy.copy(h)
+        if hasattr(h(0), "__len__"):
+            h = lambda t: np.array(h_func(t))
+        else:
+            h = lambda t: np.array([h_func(t)] * len(n))
     else:
-        h = np.array([h])
+        if hasattr(h, "__len__"):
+            h = np.array(h)
+        else:
+            h = np.array([h] * len(n))
 
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
@@ -473,8 +491,12 @@ def integrate_nomig(
     if np.any(frozen):
         frozen_pops = np.where(np.array(frozen) == True)[0]
         # fix selection
-        for pop_num in frozen_pops:
-            s[pop_num] = 0.0
+        if callable(s):
+            s_func = copy.copy(s)
+            s = lambda t: s_func(t) * (1 - frozen)
+        else:
+            for pop_num in frozen_pops:
+                s[pop_num] = 0.0
         # fix population sizes
         if callable(Npop):
             nu_func = copy.copy(Npop)
@@ -510,13 +532,25 @@ def integrate_nomig(
     vd = [ls1.calcD(np.array(dims[i])) for i in range(len(dims))]
     D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
 
+    # selection
+    if callable(s):
+        s_new = s(0)
+    else:
+        s_new = s
+    s_old = s_new.copy()
+    if callable(h):
+        h_new = h(0)
+    else:
+        h_new = h
+    h_old = h_new.copy()
+
     # selection part 1
     vs = [ls1.calcS(dims[i], ljk[i]) for i in range(len(n))]
-    S1 = [s[i] * h[i] * vs[i] for i in range(len(n))]
+    S1 = [s_new[i] * h_new[i] * vs[i] for i in range(len(n))]
 
     # selection part 2
     vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
-    S2 = [s[i] * (1 - 2.0 * h[i]) * vs2[i] for i in range(len(n))]
+    S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(len(n))]
 
     # mutations
     if finite_genome == False:
@@ -530,7 +564,7 @@ def integrate_nomig(
     while t < Tmax:
         dt_old = dt
         # dt = compute_dt(sfs.shape, N, gamma, h, 0, Tmax * dt_fac)
-        dt = min(Integration.compute_dt(N, s=s, h=h), Tmax * dt_fac)
+        dt = min(Integration.compute_dt(N, s=s_new, h=h_new), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
 
@@ -574,9 +608,22 @@ def integrate_nomig(
                     print("relative change", np.max(np.abs(N - Nold) / Nold))
                     break
 
-        # we recompute the matrix only if N has changed...
-        if t == 0.0 or (Nold != N).any() or dt != dt_old:
+        if callable(s):
+            s_new = s((t + dt / 2) / 2.0)
+        if callable(h):
+            h_new = h((t + dt / 2) / 2.0)
+
+        # we recompute the matrix only if any parameter has changed
+        if (
+            t == 0.0
+            or (Nold != N).any()
+            or dt != dt_old
+            or (s_new != s_old).any()
+            or (h_new != h_old).any()
+        ):
             D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(dims))]
+            S1 = [s_new[i] * h_new[i] * vs[i] for i in range(len(n))]
+            S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(len(n))]
             # system inversion for backward scheme
             slv = [
                 linalg.factorized(
@@ -608,6 +655,8 @@ def integrate_nomig(
             sfs = _update_step2(sfs, slv)
         Nold = N
         t += dt
+        s_old = s_new
+        h_old = h_new
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)

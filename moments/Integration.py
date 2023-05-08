@@ -668,17 +668,6 @@ def _permute(tab):
 
 
 # timestep computation
-def compute_dt(sample_sizes, N, s, h, m, dt_default, factor=10.0):
-    sample_sizes = np.array(sample_sizes, dtype=np.float64)
-    N = np.amin(np.array(N) / sample_sizes)
-    sel1 = np.amax(abs(np.array(s) * np.array(h) * sample_sizes))
-    sel2 = np.amax(abs(np.array(s) * (1 - 2.0 * np.array(h)) * sample_sizes))
-    mig = np.amax(m) * np.amax(sample_sizes)
-    eps = 10e-16  # to avoid division by zero
-    return min(
-        dt_default,
-        factor * min(2 * N, 1.0 / (mig + eps), 1.0 / (sel1 + eps), 1.0 / (sel2 + eps)),
-    )
 
 
 def compute_dt_bis(N, T, drift, selmig, dims):
@@ -747,13 +736,18 @@ def integrate_nD(
     frozen=[False],
 ):
     """
-    N : total population size (vector N = (N1,...,Np))
-    tf : final simulation time (/2N1 generations)
-    gamma : selection coefficients (vector gamma = (gamma1,...,gammap))
-    theta : mutation rate
-    h : allele dominance (vector h = (h1,...,hp))
-    m : migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
-    finite_genome : whether to integrate under the finite genome model
+    TODO: Docstring needs to be updated and filled.
+
+    :param N: total population size (vector N = (N1,...,Np))
+    :param tf: final simulation time (/2N1 generations)
+    :param gamma: selection coefficients (vector gamma = (gamma1,...,gammap))
+    :param theta: mutation rate
+    :param h: allele dominance (vector h = (h1,...,hp))
+    :param m: migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
+    :param finite_genome: whether to integrate under the finite genome model
+    :param theta_fd:
+    :param theta_bd:
+
     if we integrate under finite genome model, theta_fd and theta_bd should be given
     for a "lambda" definition of N - with backward Euler integration scheme
     where t is the relative time in generations such as t = 0 initially
@@ -762,15 +756,37 @@ def integrate_nD(
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape) - 1
 
+    ## NOTE: many of these blocks are repeated in Integration_nomig.integrate_nomig,
+    ## and should be made into their own functions that can be called by each
+    ## integration method
+
     # neutral case if the parameters are not provided
     if gamma is None:
         gamma = np.zeros(len(n))
     if h is None:
         h = 0.5 * np.ones(len(n))
-    if m is None:
-        m = np.zeros([len(n), len(n)])
-    s = np.array(gamma)
-    h = np.array(h)
+
+    # we convert s and h into numpy arrays
+    if callable(gamma):
+        if hasattr(gamma(0), "__len__"):
+            s = lambda t: np.array(gamma(t))
+        else:
+            s = lambda t: np.array([gamma(t)] * len(n))
+    elif hasattr(gamma, "__len__"):
+        s = np.array(gamma)
+    else:
+        s = np.array([gamma] * len(n))
+    if callable(h):
+        h_func = copy.copy(h)
+        if hasattr(h(0), "__len__"):
+            h = lambda t: np.array(h_func(t))
+        else:
+            h = lambda t: np.array([h_func(t)] * len(n))
+    else:
+        if hasattr(h, "__len__"):
+            h = np.array(h)
+        else:
+            h = np.array([h] * len(n))
 
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
@@ -806,8 +822,12 @@ def integrate_nD(
     if np.any(frozen):
         frozen_pops = np.where(frozen == True)[0]
         # fix selection
-        for pop_num in frozen_pops:
-            s[pop_num] = 0.0
+        if callable(s):
+            s_func = copy.copy(s)
+            s = lambda t: s_func(t) * (1 - frozen)
+        else:
+            for pop_num in frozen_pops:
+                s[pop_num] = 0.0
         # fix population sizes
         if callable(Npop):
             nu_func = copy.copy(Npop)
@@ -864,13 +884,25 @@ def integrate_nD(
     vd = _calcD(dims)
     D = _buildD(vd, dims, N)
 
+    # selection
+    if callable(s):
+        s_new = s(0)
+    else:
+        s_new = s
+    s_old = s_new.copy()
+    if callable(h):
+        h_new = h(0)
+    else:
+        h_new = h
+    h_old = h_new.copy()
+
     # selection part 1
     vs = _calcS(dims, ljk)
-    S1 = _buildS(vs, dims, s, h)
+    S1 = _buildS(vs, dims, s_new, h_new)
 
     # selection part 2
     vs2 = _calcS2(dims, ljk2)
-    S2 = _buildS2(vs2, dims, s, h)
+    S2 = _buildS2(vs2, dims, s_new, h_new)
 
     # migration
     vm = _calcM(dims, ljk)
@@ -901,7 +933,7 @@ def integrate_nD(
         dt_old = dt
         sfs_old = sfs
         if neg == False:
-            dt = min(compute_dt(N, mig, s, h), Tmax * dt_fac)
+            dt = min(compute_dt(N, mig, s_new, h_new), Tmax * dt_fac)
         if t + dt > Tmax:
             dt = Tmax - t
 
@@ -942,17 +974,25 @@ def integrate_nD(
             mig = mm((t + dt / 2) / 2.0)
         if np.any(mig < 0):
             raise ValueError(f"Migration rate is below zero in matrix:\n{mig}")
+        if callable(s):
+            s_new = s((t + dt / 2) / 2.0)
+        if callable(h):
+            h_new = h((t + dt / 2) / 2.0)
 
-        # we recompute the matrix only if N or mig matrix has changed:
+        # we recompute the matrix only if any parameter has changed
         if (
             t == 0.0
             or (Nold != N).any()
             or dt != dt_old
             or neg == True
             or (mig != mig_old).any()
+            or (s_new != s_old).any()
+            or (h_new != h_old).any()
         ):
             D = _buildD(vd, dims, Neff)
             Mi = _buildM(vm, dims, mig)
+            S1 = _buildS(vs, dims, s_new, h_new)
+            S2 = _buildS2(vs2, dims, s_new, h_new)
             # system inversion for backward scheme
             slv = [
                 linalg.factorized(
@@ -1009,6 +1049,8 @@ def integrate_nD(
             Nold = N
             t += dt
             mig_old = mig
+            s_old = s_new
+            h_old = h_new
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)
