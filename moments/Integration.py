@@ -720,6 +720,114 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
     return min(timesteps)
 
 
+# ------------------------------
+# Manipulate parameters
+
+
+def _make_array_sel_dom(num_pops, gamma, h):
+    """
+    For any input of gamma and h, return parameters in array form.
+    Inputs could be None, scalar numbers, list of numberss,
+    or numpy arrays of numbers.
+    """
+    # neutral case if the parameters are not provided
+    if gamma is None:
+        gamma = np.zeros(num_pops)
+    if h is None:
+        h = 0.5 * np.ones(num_pops)
+
+    # we convert s and h into numpy arrays
+    if callable(gamma):
+        if hasattr(gamma(0), "__len__"):
+            s = lambda t: np.array(gamma(t))
+        else:
+            s = lambda t: np.array([gamma(t)] * num_pops)
+    elif hasattr(gamma, "__len__"):
+        s = np.array(gamma)
+    else:
+        s = np.array([gamma] * num_pops)
+    if callable(h):
+        h_func = copy.copy(h)
+        if hasattr(h(0), "__len__"):
+            h = lambda t: np.array(h_func(t))
+        else:
+            h = lambda t: np.array([h_func(t)] * num_pops)
+    else:
+        if hasattr(h, "__len__"):
+            h = np.array(h)
+        else:
+            h = np.array([h] * num_pops)
+    return s, h
+
+
+def _set_up_mutation_rates(num_pops, theta, theta_fd, theta_bd, finite_genome):
+    """
+    Mutation rates are scaled and returned as appropriately formatted arrays.
+    If theta is single value, mutation rate is the same in each population.
+    For the infinite sites model, the backward mutation rate `v` is set to None.
+    """
+    if not finite_genome:
+        if hasattr(theta, "__len__"):
+            u = np.array(theta) / 4.0
+        else:
+            u = np.array([theta / 4.0] * num_pops)
+        v = None
+    else:
+        if hasattr(theta_fd, "__len__"):
+            u = np.array(theta_fd) / 4.0
+        else:
+            u = np.array([theta_fd / 4.0] * num_pops)
+        if hasattr(theta_bd, "__len__"):
+            v = np.array(theta_bd) / 4.0
+        else:
+            v = np.array([theta_bd / 4.0] * num_pops)
+    return u, v
+
+
+def _apply_frozen_pops(frozen, finite_genome, u, v, Npop, s=None, mm=None):
+    """
+    If any populations are frozen, we set their population extremely large,
+    selection to zero, and mutations to zero in those pops. If migration is
+    also given, we set migration in and out of frozen populations to zero.
+    """
+    frozen = np.array(frozen)
+    if np.any(frozen):
+        frozen_pops = np.where(np.array(frozen) == True)[0]
+        if s is not None:
+            # fix selection
+            if callable(s):
+                s_func = copy.copy(s)
+                s = lambda t: s_func(t) * (1 - frozen)
+            else:
+                for pop_num in frozen_pops:
+                    s[pop_num] = 0.0
+        # fix population sizes
+        if callable(Npop):
+            nu_func = copy.copy(Npop)
+            Npop = lambda t: list(np.array(nu_func(t)) * (1 - frozen) + 1e40 * frozen)
+        else:
+            for pop_num in frozen_pops:
+                Npop[pop_num] = 1e40
+        # fix mutation to zero in frozen populations
+        u *= 1 - frozen
+        if finite_genome:
+            v *= 1 - frozen
+        if mm is not None:
+            # fix migration to zero to and from frozen populations
+            def fix_migrations(mig_matrix):
+                for pop_num in frozen_pops:
+                    mig_matrix[:, pop_num] = 0.0
+                    mig_matrix[pop_num, :] = 0.0
+                return mig_matrix
+
+            if callable(mm):
+                mm_func = copy.copy(mm)
+                mm = lambda t: fix_migrations(mm_func(t))
+            else:
+                mm = fix_migrations(mm)
+    return u, v, Npop, s, mm
+
+
 def integrate_nD(
     sfs0,
     Npop,
@@ -736,80 +844,60 @@ def integrate_nD(
     frozen=[False],
 ):
     """
-    TODO: Docstring needs to be updated and filled.
+    Integrate the SFS data array, allowing for migration between populations.
 
-    :param N: total population size (vector N = (N1,...,Np))
-    :param tf: final simulation time (/2N1 generations)
-    :param gamma: selection coefficients (vector gamma = (gamma1,...,gammap))
-    :param theta: mutation rate
-    :param h: allele dominance (vector h = (h1,...,hp))
-    :param m: migration rates matrix (2D array, m[i,j] is the migration rate from pop j to pop i, normalized by 1/4N1)
-    :param finite_genome: whether to integrate under the finite genome model
-    :param theta_fd:
-    :param theta_bd:
+    If we integrate under the finite genome model (i.e. with recurrent/reversible
+    mutations), theta_fd and theta_bd can be provided. If they are not given, we
+    assume equal forward and backward mutation rates, equal to theta.
 
-    if we integrate under finite genome model, theta_fd and theta_bd should be given
-    for a "lambda" definition of N - with backward Euler integration scheme
-    where t is the relative time in generations such as t = 0 initially
-    Npop is a lambda function of the time t returning the vector N = (N1,...,Np) or directly the vector if N does not evolve in time
+    :param sfs0: SFS data for p populations, as a p-dimensional array.
+    :param Npop: Relative population sizes (relative to some effective size Ne),
+        provided as a vector N = [N1,...,Np]. This can be given as a function that
+        returns such a vector, allowing for user-defined time-dependent size
+        functions.
+    :param tf: Total simulation time in genetic time units (2Ne generations).
+    :param dt_fac: Sets an upper bound for the time steps used in integration,
+        relative to `tf`. A smaller value provides a more accurate solution when
+        migration or selection are nonzero, but is slower as it would require
+        more iterations.
+    :param gamma: Scaled selection coefficients, which can be either a number
+        or a vector gamma = [gamma1,...,gammap], allowing for different selection
+        coefficients in each population. This can also be given as function
+        returning a number or such a vector, allowing for selection coefficients
+        to change over time.
+    :param h: Dominance coefficients (h=1/2 implies additive selection). Can be
+        given as a number or a vector h = [h1,...,hp], or a function that returns
+        a number or vector of coefficients, allowing for dominance coefficients
+        to change over time.
+    :param m: Matrix of migration rates as a 2D array, with size pxp. Entry
+        m[i,j] is the migration rate from pop j to pop i, forward in time,
+        normalized by 1/4Ne.
+    :param theta: The population size-scaled mutation rate 4*Ne*u.
+    :param finite_genome: If true, integrate under the finite genome (i.e.,
+        reversible mutation) model.
+    :param theta_fd: The forward scaled mutation rate 4*Ne*u. Only used with
+        finite_genome as True.
+    :param theta_bd: The backward scaled mutation rate 4*Ne*v. Only used with
+        finite_genome as True.
+    :param frozen: A list of length equal to the number of populations in the SFS,
+        specifying which populations are frozen, such as ancient samples. A
+        population indicated as frozen (by True) will have drift, selection,
+        mutation, and migration to and from that population turned off.
     """
     sfs0 = np.array(sfs0)
     n = np.array(sfs0.shape) - 1
+    num_pops = len(n)
 
-    ## NOTE: many of these blocks are repeated in Integration_nomig.integrate_nomig,
-    ## and should be made into their own functions that can be called by each
-    ## integration method
-
-    # neutral case if the parameters are not provided
-    if gamma is None:
-        gamma = np.zeros(len(n))
-    if h is None:
-        h = 0.5 * np.ones(len(n))
-
-    # we convert s and h into numpy arrays
-    if callable(gamma):
-        if hasattr(gamma(0), "__len__"):
-            s = lambda t: np.array(gamma(t))
-        else:
-            s = lambda t: np.array([gamma(t)] * len(n))
-    elif hasattr(gamma, "__len__"):
-        s = np.array(gamma)
-    else:
-        s = np.array([gamma] * len(n))
-    if callable(h):
-        h_func = copy.copy(h)
-        if hasattr(h(0), "__len__"):
-            h = lambda t: np.array(h_func(t))
-        else:
-            h = lambda t: np.array([h_func(t)] * len(n))
-    else:
-        if hasattr(h, "__len__"):
-            h = np.array(h)
-        else:
-            h = np.array([h] * len(n))
+    s, h = _make_array_sel_dom(num_pops, gamma, h)
 
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
 
     # dimensions of the sfs
-    dims = np.array(n + np.ones(len(n)), dtype=int)
+    dims = np.array(n + np.ones(num_pops), dtype=int)
     d = int(np.prod(dims))
 
-    # if theta is single value, mutation rate is same in each population
-    if finite_genome == False:
-        if hasattr(theta, "__len__"):
-            u = np.array(theta) / 4.0
-        else:
-            u = np.array([theta / 4.0] * len(dims))
-    else:
-        if hasattr(theta_fd, "__len__"):
-            u = np.array(theta_fd) / 4.0
-        else:
-            u = np.array([theta_fd / 4.0] * len(dims))
-        if hasattr(theta_bd, "__len__"):
-            v = np.array(theta_bd) / 4.0
-        else:
-            v = np.array([theta_bd / 4.0] * len(dims))
+    u, v = _set_up_mutation_rates(num_pops, theta, theta_fd, theta_bd, finite_genome)
 
     if callable(m):
         mm = lambda t: np.array(m(t)) / 2.0
@@ -820,39 +908,7 @@ def integrate_nD(
     # selection to zero, and mutations to zero in those pops
     frozen = np.array(frozen)
     if np.any(frozen):
-        frozen_pops = np.where(frozen == True)[0]
-        # fix selection
-        if callable(s):
-            s_func = copy.copy(s)
-            s = lambda t: s_func(t) * (1 - frozen)
-        else:
-            for pop_num in frozen_pops:
-                s[pop_num] = 0.0
-        # fix population sizes
-        if callable(Npop):
-            nu_func = copy.copy(Npop)
-            Npop = lambda t: list(np.array(nu_func(t)) * (1 - frozen) + 1e40 * frozen)
-        else:
-            for pop_num in frozen_pops:
-                Npop[pop_num] = 1e40
-        # fix mutation to zero in frozen populations
-        if finite_genome == False:
-            u *= 1 - frozen
-        else:
-            u *= 1 - frozen
-            v *= 1 - frozen
-        # fix migration to zero to and from frozen populations
-        def fix_migrations(mig_matrix):
-            for pop_num in frozen_pops:
-                mig_matrix[:, pop_num] = 0.0
-                mig_matrix[pop_num, :] = 0.0
-            return mig_matrix
-
-        if callable(mm):
-            mm_func = copy.copy(mm)
-            mm = lambda t: fix_migrations(mm_func(t))
-        else:
-            mm = fix_migrations(mm)
+        u, v, Npop, s, mm = _apply_frozen_pops(frozen, finite_genome, u, v, Npop, s, mm)
 
     # parameters of the equation
     if callable(Npop):

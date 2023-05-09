@@ -707,10 +707,12 @@ class Spectrum(np.ma.masked_array):
             selection coefficients that may differ across populations. In this case,
             one value must be provided for each population, so the vector must have
             length equal to the number of populations.
-        :type gamma: float or list of floats, optional
+        :type gamma: float or list of floats or function that returns a float or
+            list of floats, optional
         :param h: The dominance coefficient, or list of dominance coefficients in
             each population, if more than one population.
-        :type h: float or list of floats, optional
+        :type h: float or list of floats or function that returns a float or
+            list of floats, optional
         :param m: The migration rates matrix as a 2-D array with shape nxn,
             where n is the number of populations. The entry of the migration
             matrix m[i,j] is the migration rate from pop j to pop i in genetic
@@ -765,14 +767,10 @@ class Spectrum(np.ma.masked_array):
             else:
                 theta_fd = theta_bd = theta
 
-        if hasattr(Npop, "__len__"):
-            if np.any(frozen) and len(Npop) != len(frozen):
-                raise ValueError(
-                    "If one or more populations are frozen, length "
-                    "of frozen must match number of simulated pops."
-                )
-        else:
-            if np.any(frozen) and len(Npop(0)) != len(frozen):
+        if np.any(frozen):
+            if (hasattr(Npop, "__len__") and len(Npop) != len(frozen)) or (
+                callable(Npop) and len(Npop(0)) != len(frozen)
+            ):
                 raise ValueError(
                     "If one or more populations are frozen, length "
                     "of frozen must match number of simulated pops."
@@ -783,11 +781,12 @@ class Spectrum(np.ma.masked_array):
             if model is not None:
                 model.evolve(tf, Npop, m)
 
+        if gamma is None:
+            gamma = 0
+        if h is None:
+            h = 0.5
+
         if len(n) == 1:
-            if gamma is None:
-                gamma = 0.0
-            if h is None:
-                h = 0.5
             if gamma == 0:
                 self.data[:] = moments.Integration_nomig.integrate_neutral(
                     self.data,
@@ -815,14 +814,6 @@ class Spectrum(np.ma.masked_array):
                     frozen=frozen,
                 )
         else:
-            if gamma is None:
-                gamma = np.zeros(len(n))
-            elif not hasattr(gamma, "__len__") and not callable(gamma):
-                gamma = gamma * np.ones(len(n))
-            if h is None:
-                h = 0.5 * np.ones(len(n))
-            elif not hasattr(h, "__len__") and not callable(h):
-                h = h * np.ones(len(n))
             if m is None:
                 m = np.zeros([len(n), len(n)])
             if not callable(m) and (m == 0).all():
