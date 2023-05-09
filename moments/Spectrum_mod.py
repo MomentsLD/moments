@@ -707,10 +707,12 @@ class Spectrum(np.ma.masked_array):
             selection coefficients that may differ across populations. In this case,
             one value must be provided for each population, so the vector must have
             length equal to the number of populations.
-        :type gamma: float or list of floats, optional
+        :type gamma: float or list of floats or function that returns a float or
+            list of floats, optional
         :param h: The dominance coefficient, or list of dominance coefficients in
             each population, if more than one population.
-        :type h: float or list of floats, optional
+        :type h: float or list of floats or function that returns a float or
+            list of floats, optional
         :param m: The migration rates matrix as a 2-D array with shape nxn,
             where n is the number of populations. The entry of the migration
             matrix m[i,j] is the migration rate from pop j to pop i in genetic
