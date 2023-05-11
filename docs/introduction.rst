@@ -61,6 +61,12 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.17
+======
+
+- Allow selection and dominance to be specified as time-dependent functions
+  in SFS integration.
+
 1.1.16
 ======
 
