@@ -29,6 +29,7 @@ import copy
 # functions to compute the matrices-
 # -----------------------------------
 
+
 # Mutations
 def _calcB(dims, u):
     # u is a list of mutation rates in each population
@@ -48,6 +49,7 @@ def _calcB(dims, u):
 # we solve a system like PX = QY
 # step 1 functions correspond to the QY computation
 # and step 2 to the resolution of PX = Y'
+
 
 # 2D
 # step 1
@@ -404,6 +406,7 @@ def integrate_nomig(
     dt_fac=0.1,
     gamma=None,
     h=None,
+    overdominance=None,
     theta=1.0,
     adapt_tstep=False,
     finite_genome=False,
@@ -437,6 +440,13 @@ def integrate_nomig(
         given as a number or a vector h = [h1,...,hp], or a function that returns
         a number or vector of coefficients, allowing for dominance coefficients
         to change over time.
+    :param overdominance: Scaled selection coefficient that is applied only to
+        heterozygotes, in a selection system with fitnesses 1:1+s:1. Underdominance
+        can be modeled by passing a negative value. Not that this is a symmetric
+        under/over-dominance model, in which homozygotes for either the ancestral
+        or derived allele have equal fitness. `gamma`, `h`, and `overdominance`
+        can be combined (additively) to implement non-symmetric selection
+        scenarios.
     :param theta: The population size-scaled mutation rate 4*Ne*u.
     :param finite_genome: If true, integrate under the finite genome (i.e.,
         reversible mutation) model.
@@ -454,7 +464,9 @@ def integrate_nomig(
     n = np.array(sfs0.shape) - 1
     num_pops = len(n)
 
-    s, h = Integration._make_array_sel_dom(num_pops, gamma, h)
+    s, h, overdominance = Integration._make_array_sel_dom(
+        num_pops, gamma, h, overdominance
+    )
 
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
@@ -487,12 +499,12 @@ def integrate_nomig(
     Neff = N
 
     # we compute the matrices we will need
-    ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(len(dims))]
-    ljk2 = [jk.calcJK23(int(dims[i] - 1)) for i in range(len(dims))]
+    ljk = [jk.calcJK13(int(dims[i] - 1)) for i in range(num_pops)]
+    ljk2 = [jk.calcJK23(int(dims[i] - 1)) for i in range(num_pops)]
 
     # drift
-    vd = [ls1.calcD(np.array(dims[i])) for i in range(len(dims))]
-    D = [1.0 / 4 / N[i] * vd[i] for i in range(len(dims))]
+    vd = [ls1.calcD(np.array(dims[i])) for i in range(num_pops)]
+    D = [1.0 / 4 / N[i] * vd[i] for i in range(num_pops)]
 
     # selection
     if callable(s):
@@ -505,14 +517,23 @@ def integrate_nomig(
     else:
         h_new = h
     h_old = h_new.copy()
+    if callable(overdominance):
+        o_new = overdominance(0)
+    else:
+        o_new = overdominance
+    o_old = o_new.copy()
 
     # selection part 1
-    vs = [ls1.calcS(dims[i], ljk[i]) for i in range(len(n))]
-    S1 = [s_new[i] * h_new[i] * vs[i] for i in range(len(n))]
+    vs = [ls1.calcS(dims[i], ljk[i]) for i in range(num_pops)]
+    S1 = [s_new[i] * h_new[i] * vs[i] for i in range(num_pops)]
 
     # selection part 2
-    vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(len(n))]
-    S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(len(n))]
+    vs2 = [ls1.calcS2(dims[i], ljk2[i]) for i in range(num_pops)]
+    S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(num_pops)]
+
+    # overdominance term
+    vs3 = [ls1.calcUnderdominance(dims[i], ljk2[i]) for i in range(num_pops)]
+    S3 = [h_new[i] * o_new[i] * vs3[i] for i in range(num_pops)]
 
     # mutations
     if finite_genome == False:
@@ -563,6 +584,8 @@ def integrate_nomig(
             s_new = s((t + dt / 2) / 2.0)
         if callable(h):
             h_new = h((t + dt / 2) / 2.0)
+        if callable(overdominance):
+            o_new = overdominance((t + dt / 2) / 2.0)
 
         # we recompute the matrix only if any parameter has changed
         if (
@@ -571,21 +594,23 @@ def integrate_nomig(
             or dt != dt_old
             or (s_new != s_old).any()
             or (h_new != h_old).any()
+            or (o_new != o_old).any()
         ):
-            D = [1.0 / 4 / Neff[i] * vd[i] for i in range(len(dims))]
-            S1 = [s_new[i] * h_new[i] * vs[i] for i in range(len(n))]
-            S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(len(n))]
+            D = [1.0 / 4 / Neff[i] * vd[i] for i in range(num_pops)]
+            S1 = [s_new[i] * h_new[i] * vs[i] for i in range(num_pops)]
+            S2 = [s_new[i] * (1 - 2.0 * h_new[i]) * vs2[i] for i in range(num_pops)]
+            S3 = [h_new[i] * o_new[i] * vs3[i] for i in range(num_pops)]
             # system inversion for backward scheme
             slv = [
                 linalg.factorized(
                     sp.sparse.identity(S1[i].shape[0], dtype="float", format="csc")
-                    - dt / 2.0 * (D[i] + S1[i] + S2[i])
+                    - dt / 2.0 * (D[i] + S1[i] + S2[i] + S3[i])
                 )
                 for i in range(len(n))
             ]
             Q = [
                 sp.sparse.identity(S1[i].shape[0], dtype="float", format="csc")
-                + dt / 2.0 * (D[i] + S1[i] + S2[i])
+                + dt / 2.0 * (D[i] + S1[i] + S2[i] + S3[i])
                 for i in range(len(n))
             ]
 
@@ -608,6 +633,7 @@ def integrate_nomig(
         t += dt
         s_old = s_new
         h_old = h_new
+        o_old = o_new
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)
