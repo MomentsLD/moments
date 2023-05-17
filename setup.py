@@ -74,7 +74,7 @@ setup(
     version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),
     author="Aaron Ragsdale, Julien Jouganous, Simon Gravel, Ryan Gutenkunst",
     author_email="aaron.ragsdale@mail.mcgill.ca, simon.gravel@mcgill.ca",
-    url="http://bitbucket.org/simongravel/moments",
+    url="https://github.com/MomentsLD/moments",
     packages=[
         "moments",
         "moments.Triallele",

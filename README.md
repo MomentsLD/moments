@@ -50,13 +50,13 @@ are install requirements, but installing `moments` directly from the git reposit
 using `pip` should install these dependencies automatically:
 
 ```
-pip install git+https://bitbucket.org/simongravel/moments.git
+pip install git+https://github.com/MomentsLD/moments.git
 ```
 
 Alternatively, you can clone the git repository
 
 ```
-git clone https://bitbucket.org/simongravel/moments.git
+git clone https://github.com/MomentsLD/moments.git
 ```
 
 and then from within the moments directory (`cd moments`), run
@@ -124,7 +124,7 @@ can be found in the
 [documentation](https://moments.readthedocs.io/en/latest/installation.html).
 If, for any reason, you have trouble installing moments after following these
 steps, please submit an
-[issue](https://bitbucket.org/simongravel/moments/issues).
+[issue](https://github.com/MomentsLD/moments/issues).
 
 If you use `Parsing` from `moments.LD`, which reads vcf files and computes LD
 statistics to compare to predictions from `moments.LD`, you will need to

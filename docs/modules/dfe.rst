@@ -98,7 +98,7 @@ synonymous mutations than nonsynonymous mutations:
     import numpy as np
 
     # note that these frequency spectra are saved in the docs directory of the moments
-    # repository: https://bitbucket.org/simongravel/moments/src/master/docs/data/
+    # repository: https://github.com/MomentsLD/moments/tree/main/docs/data
     data = pickle.load(open("./data/msl_data.bp", "rb"))
 
     fs_syn = data["spectra"]["syn"]

@@ -387,7 +387,7 @@ def steady_state(nus, m=None, rho=None, theta=0.001, selfing_rate=None):
         Migration must allow all sampled lineages to coalesce in finite time,
         so that populations must be connected via migration. This is unused
         when there is a single population given by `nus`.
-    :param rho: The population size-scaed recombination rate, 4*Ne*r.
+    :param rho: The population size-scaled recombination rate, or list of rates, 4*Ne*r. 
     :param theta: The population size-scaled mutation rate, 4*Ne*u.
     :param selfing_rate: List of selfing rates, with same length as `nus`. If
         not given, we assume selfing rates are 0 in each population.
