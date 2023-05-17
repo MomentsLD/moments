@@ -162,11 +162,82 @@ cpdef calcS2(int d, np.ndarray[np.float64_t, ndim = 2] ljk):
     return coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
 
 
+
+# under/over-dominance
+cpdef calcUnderdominance(int d, np.ndarray[np.float64_t, ndim = 2] ljk):
+    cdef int i, n, i0, i1, i2
+    cdef list data1, row1, col1
+    cdef list data2, row2, col2
+    cdef np.float64_t g1, g2
+    n = d - 1
+    data = []
+    row = []
+    col = []
+
+    for i in range(d):
+        i0 = jk.index_bis(i, n)
+        i1 = jk.index_bis(i + 1, n)
+        i2 = jk.index_bis(i + 2, n)
+
+        # first term
+        fac = 1. / (n + 2.) / (n + 1.)
+        g1 = fac * i * (n - i + 2) * (n - i + 1)
+        g2 = -fac * (i + 1) * (n - i + 1) * (n - i)
+        if i > 0 and i < n:
+            data += [
+                g1 * ljk[i - 1, i0 - 1], g1 * ljk[i - 1, i0 - 2], g1 * ljk[i - 1, i0],
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 6 * [i]
+            col += [i0, i0 - 1, i0 + 1,
+                     i1, i1 - 1, i1 + 1]
+        elif i == 0:
+            data += [
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 3 * [i]
+            col += [i1, i1 - 1, i1 + 1]
+        elif i == n:
+            data += [
+                g1 * ljk[i - 1, i0 - 1], g1 * ljk[i - 1, i0 - 2], g1 * ljk[i - 1, i0]
+            ]
+            row += 3 * [i]
+            col += [i0, i0 - 1, i0 + 1]
+
+        # second term
+        g1 = fac * (i + 2) * (i + 1) * (n - i)
+        g2 = -fac * (i + 1) * i * (n - i + 1)
+        if i > 0 and i < n:
+            data += [
+                g1 * ljk[i + 1, i2 - 1], g1 * ljk[i + 1, i2 - 2], g1 * ljk[i + 1, i2],
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 6 * [i]
+            col += [i2, i2 - 1, i2 + 1,
+                     i1, i1 - 1, i1 + 1]
+        elif i == n:
+            data += [
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 3 * [i]
+            col += [i1, i1 - 1, i1 + 1]
+        elif i == 0:
+            data += [
+                g1 * ljk[i + 1, i2 - 1], g1 * ljk[i + 1, i2 - 2], g1 * ljk[i + 1, i2]
+            ]
+            row += 3 * [i]
+            col += [i2, i2 - 1, i2 + 1]
+    
+    M = coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+    return M
+
+
 """
 Steady state for 1D population
 """
 cpdef np.ndarray[np.float64_t] steady_state_1D(int n, float N=1.0, float gamma=0.0,
-                                               float h=0.5, float theta=1.0):
+                                               float h=0.5, float theta=1.0,
+                                               float overdominance=0.0):
     # Update ModelPlot if necessary
     import moments.ModelPlot as ModelPlot
     model = ModelPlot._get_model()
@@ -194,8 +265,10 @@ cpdef np.ndarray[np.float64_t] steady_state_1D(int n, float N=1.0, float gamma=0
 
     S2 = s * (1-2.0*h) * calcS2(d, ljk2)
 
+    S3 = h * overdominance * calcUnderdominance(d, ljk2)
+
     # matrix for migration
-    Mat = D + S + S2
+    Mat = D + S + S2 + S3
 
     sfs = linalg.spsolve(Mat[1:d-1, 1:d-1], -B[1:d-1])
     sfs = np.insert(sfs, 0, 0.0)

@@ -249,7 +249,7 @@ cpdef calcS2_1(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
 # selection along the second dimension, part related to h2 != 0.5
 # ljk is a 2-jumps jackknife
 cpdef calcS2_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
-    cdef int d, d2, k, i, j, j_ter, j_qua
+    cdef int d, d1, d2, k, i, j, j_ter, j_qua
     cdef np.float64_t g1, g2
     cdef list data, row, col
     # number of degrees of freedom
@@ -282,6 +282,149 @@ cpdef calcS2_2(np.ndarray dims, np.ndarray[np.float64_t, ndim = 2] ljk):
             col += [i*d2 + j_ter, i*d2 + j_ter - 1, i*d2 + j_ter + 1]
 
     return coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+
+
+# over and under dominance
+cpdef calcUnderdominance_1(np.ndarray dims, np.ndarray[np.float64_t, ndim=2] ljk):
+    cdef int d, d2, k, i, j, i0, i1, i2
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
+
+    d = int(np.prod(dims))
+    d1, d2 = dims
+    
+    data = []
+    row = []
+    col = []
+
+    for k in range(d):
+        i, j = k // d2, k % d2
+        i0 = jk.index_bis(i, d1 - 1)
+        i1 = jk.index_bis(i + 1, d1 - 1)
+        i2 = jk.index_bis(i + 2, d1 - 1)
+
+        # first term
+        fac = 1. / (d1 + 1.) / np.float64(d1)
+        g1 = fac * i * (d1 - i + 1) * (d1 - i)
+        g2 = -fac * (i + 1) * (d1 - i) * (d1 - i - 1)
+        if i > 0 and i < d1 - 1:
+            data += [
+                g1 * ljk[i - 1, i0 - 1], g1 * ljk[i - 1, i0 - 2], g1 * ljk[i - 1, i0],
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 6 * [k]
+            col += [i0 * d2 + j, (i0 - 1) * d2 + j, (i0 + 1) * d2 + j,
+                    i1 * d2 + j, (i1 - 1) * d2 + j, (i1 + 1) * d2 + j]
+        elif i == 0:
+            data += [
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 3 * [k]
+            col += [i1 * d2 + j, (i1 - 1) * d2 + j, (i1 + 1) * d2 + j]
+        elif i == d1 - 1:
+            data += [
+                g1 * ljk[i - 1, i0 - 1], g1 * ljk[i - 1, i0 - 2], g1 * ljk[i - 1, i0]
+            ]
+            row += 3 * [k]
+            col += [i0 * d2 + j, (i0 - 1) * d2 + j, (i0 + 1) * d2 + j]
+        
+        # second term
+        g1 = fac * (i + 2) * (i + 1) * (d1 - 1 - i)
+        g2 = -fac * (i + 1) * i * (d1 - i)
+        if i > 0 and i < d1 - 1:
+            data += [
+                g1 * ljk[i + 1, i2 - 1], g1 * ljk[i + 1, i2 - 2], g1 * ljk[i + 1, i2],
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 6 * [k]
+            col += [i2 * d2 + j, (i2 - 1) * d2 + j, (i2 + 1) * d2 + j,
+                    i1 * d2 + j, (i1 - 1) * d2 + j, (i1 + 1) * d2 + j]
+        elif i == d1 - 1:
+            data += [
+                g2 * ljk[i, i1 - 1], g2 * ljk[i, i1 - 2], g2 * ljk[i, i1]
+            ]
+            row += 3 * [k]
+            col += [i1 * d2 + j, (i1 - 1) * d2 + j, (i1 + 1) * d2 + j]
+        elif i == 0:
+            data += [
+                g1 * ljk[i + 1, i2 - 1], g1 * ljk[i + 1, i2 - 2], g1 * ljk[i + 1, i2]
+            ]
+            row += 3 * [k]
+            col += [i2 * d2 + j, (i2 - 1) * d2 + j, (i2 + 1) * d2 + j]
+
+    M = coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+    return M
+
+
+cpdef calcUnderdominance_2(np.ndarray dims, np.ndarray[np.float64_t, ndim=2] ljk):
+    cdef int d, d2, k, i, j, i0, i1, i2
+    cdef np.float64_t g1, g2
+    cdef list data, row, col
+
+    d = int(np.prod(dims))
+    d2 = dims[1]
+    
+    data = []
+    row = []
+    col = []
+
+    for k in range(d):
+        i, j = k // d2, k % d2
+        j0 = jk.index_bis(j, d2 - 1)
+        j1 = jk.index_bis(j + 1, d2 - 1)
+        j2 = jk.index_bis(j + 2, d2 - 1)
+
+        # first term
+        fac = 1. / (d2 + 1.) / np.float64(d2)
+        g1 = fac * j * (d2 - j + 1) * (d2 - j)
+        g2 = -fac * (j + 1) * (d2 - j) * (d2 - j - 1)
+        if j > 0 and j < d2 - 1:
+            data += [
+                g1 * ljk[j - 1, j0 - 1], g1 * ljk[j - 1, j0 - 2], g1 * ljk[j - 1, j0],
+                g2 * ljk[j, j1 - 1], g2 * ljk[j, j1 - 2], g2 * ljk[j, j1]
+            ]
+            row += 6 * [k]
+            col += [i * d2 + j0, i * d2 + (j0 - 1), i * d2 + (j0 + 1),
+                    i * d2 + j1, i * d2 + (j1 - 1), i * d2 + (j1 + 1)]
+        elif j == 0:
+            data += [
+                g2 * ljk[j, j1 - 1], g2 * ljk[j, j1 - 2], g2 * ljk[j, j1]
+            ]
+            row += 3 * [k]
+            col += [i * d2 + j1, i * d2 + (j1 - 1), i * d2 + (j1 + 1)]
+        elif j == d2 - 1:
+            data += [
+                g1 * ljk[j - 1, j0 - 1], g1 * ljk[j - 1, j0 - 2], g1 * ljk[j - 1, j0]
+            ]
+            row += 3 * [k]
+            col += [i * d2 + j0, i * d2 + (j0 - 1), i * d2 + (j0 + 1)]
+        
+        # second term
+        g1 = fac * (j + 2) * (j + 1) * (d2 - 1 - j)
+        g2 = -fac * (j + 1) * j * (d2 - j)
+        if j > 0 and j < d2 - 1:
+            data += [
+                g1 * ljk[j + 1, j2 - 1], g1 * ljk[j + 1, j2 - 2], g1 * ljk[j + 1, j2],
+                g2 * ljk[j, j1 - 1], g2 * ljk[j, j1 - 2], g2 * ljk[j, j1]
+            ]
+            row += 6 * [k]
+            col += [i * d2 + j2, i * d2 + (j2 - 1), i * d2 + (j2 + 1),
+                    i * d2 + j1, i * d2 + (j1 - 1), i * d2 + (j1 + 1)]
+        elif j == d2 - 1:
+            data += [
+                g2 * ljk[j, j1 - 1], g2 * ljk[j, j1 - 2], g2 * ljk[j, j1]
+            ]
+            row += 3 * [k]
+            col += [i * d2 + j1, i * d2 + (j1 - 1), i * d2 + (j1 + 1)]
+        elif j == 0:
+            data += [
+                g1 * ljk[j + 1, j2 - 1], g1 * ljk[j + 1, j2 - 2], g1 * ljk[j + 1, j2]
+            ]
+            row += 3 * [k]
+            col += [i * d2 + j2, i * d2 + (j2 - 1), i * d2 + (j2 + 1)]
+
+    M = coo_matrix((data, (row, col)), shape=(d, d), dtype='float').tocsc()
+    return M
 
 
 """
