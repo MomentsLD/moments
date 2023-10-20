@@ -22,6 +22,7 @@ from . import Reversible
 #       S2n is the effect of h != 0.5
 # ------------------------------------------------------------------------------
 
+
 # -----------------------------------
 # functions to compute the matrices-
 # -----------------------------------
@@ -147,6 +148,20 @@ def _calcS2(dims, ljk):
     return res
 
 
+# Over/Under-dominance
+def _calcUnderdominance(dims, ljk):
+    res = []
+    for i in range(len(dims)):
+        for j in range(i + 1, len(dims)):
+            res.append(
+                [
+                    ls2.calcUnderdominance_1(np.array([dims[i], dims[j]]), ljk[i]),
+                    ls2.calcUnderdominance_2(np.array([dims[i], dims[j]]), ljk[j]),
+                ]
+            )
+    return res
+
+
 def _buildS2(vs, dims, s, h):
     """
     Builds the effective selection matrices (part due to dominance)
@@ -172,6 +187,32 @@ def _buildS2(vs, dims, s, h):
                 s[i] * (1 - 2.0 * h[i]) * vs[ctr][0]
                 + s[j] * (1 - 2.0 * h[j]) * vs[ctr][1]
             )
+            ctr += 1
+    return res
+
+
+def _buildS3(vs, dims, o, h):
+    """
+    Builds the effective selection matrices (for symmetric overdominance)
+    by multiplying by the correct coeff
+
+    vs : List containing the selection matrices
+
+    dims : List containing the pop sizes
+
+    o : List containing the selection coefficients
+
+    h : List containing the dominance coefficients
+
+    Returns a list of effective selection matrices for each pair of pops
+    """
+    if len(dims) == 1:
+        return [vs[0][0]]
+    res = []
+    ctr = 0
+    for i in range(len(dims)):
+        for j in range(i + 1, len(dims)):
+            res.append(h[i] * o[i] * vs[ctr][0] + h[j] * o[j] * vs[ctr][1])
             ctr += 1
     return res
 
@@ -225,6 +266,7 @@ def _buildM(vm, dims, m):
 # step 1 functions correspond to the QY computation
 # and step 2 to the resolution of PX = Y'
 
+
 # 2D
 # step 1
 def _ud1_2pop_1(sfs, Q, dims):
@@ -241,6 +283,7 @@ def _ud2_2pop_1(sfs, slv, dims):
 # for 3D, 4D and 5D cases, each couple of directions are coded separately to simplify the permutations...
 # ------------------------------
 # 3D
+
 
 # step 1
 def _ud1_3pop_1(sfs, Q, dims):
@@ -294,6 +337,7 @@ def _ud2_3pop_3(sfs, slv, dims):
 
 # ------------------------------
 # 4D
+
 
 # step 1
 def _ud1_4pop_1(sfs, Q, dims):
@@ -421,6 +465,7 @@ def _ud2_4pop_6(sfs, slv, dims):
 
 # ------------------------------
 # 5D
+
 
 # step 1
 def _ud1_5pop_1(sfs, Q, dims):
@@ -724,7 +769,7 @@ def compute_dt(N, m=None, s=None, h=None, timescale_factor=0.1):
 # Manipulate parameters
 
 
-def _make_array_sel_dom(num_pops, gamma, h):
+def _make_array_sel_dom(num_pops, gamma, h, overdominance=None):
     """
     For any input of gamma and h, return parameters in array form.
     Inputs could be None, scalar numbers, list of numberss,
@@ -735,6 +780,8 @@ def _make_array_sel_dom(num_pops, gamma, h):
         gamma = np.zeros(num_pops)
     if h is None:
         h = 0.5 * np.ones(num_pops)
+    if overdominance is None:
+        overdominance = np.zeros(num_pops)
 
     # we convert s and h into numpy arrays
     if callable(gamma):
@@ -757,7 +804,18 @@ def _make_array_sel_dom(num_pops, gamma, h):
             h = np.array(h)
         else:
             h = np.array([h] * num_pops)
-    return s, h
+    if callable(overdominance):
+        o_func = copy.copy(overdominance)
+        if hasattr(overdominance(0), "__len__"):
+            overdominance = lambda t: np.array(overdominance_func(t))
+        else:
+            overdominance = lambda t: np.array([overdominance_func(t)] * num_pops)
+    else:
+        if hasattr(overdominance, "__len__"):
+            overdominance = np.array(overdominance)
+        else:
+            overdominance = np.array([overdominance] * num_pops)
+    return s, h, overdominance
 
 
 def _set_up_mutation_rates(num_pops, theta, theta_fd, theta_bd, finite_genome):
@@ -835,6 +893,7 @@ def integrate_nD(
     dt_fac=0.1,
     gamma=None,
     h=None,
+    overdominance=None,
     m=None,
     theta=1.0,
     adapt_dt=False,
@@ -869,6 +928,13 @@ def integrate_nD(
         given as a number or a vector h = [h1,...,hp], or a function that returns
         a number or vector of coefficients, allowing for dominance coefficients
         to change over time.
+    :param overdominance: Scaled selection coefficient that is applied only to
+        heterozygotes, in a selection system with fitnesses 1:1+s:1. Underdominance
+        can be modeled by passing a negative value. Not that this is a symmetric
+        under/over-dominance model, in which homozygotes for either the ancestral
+        or derived allele have equal fitness. `gamma`, `h`, and `overdominance`
+        can be combined (additively) to implement non-symmetric selection
+        scenarios.
     :param m: Matrix of migration rates as a 2D array, with size pxp. Entry
         m[i,j] is the migration rate from pop j to pop i, forward in time,
         normalized by 1/4Ne.
@@ -888,7 +954,7 @@ def integrate_nD(
     n = np.array(sfs0.shape) - 1
     num_pops = len(n)
 
-    s, h = _make_array_sel_dom(num_pops, gamma, h)
+    s, h, overdominance = _make_array_sel_dom(num_pops, gamma, h, overdominance)
 
     Tmax = tf * 2.0
     dt = Tmax * dt_fac
@@ -951,6 +1017,11 @@ def integrate_nD(
     else:
         h_new = h
     h_old = h_new.copy()
+    if callable(overdominance):
+        o_new = overdominance(0)
+    else:
+        o_new = overdominance
+    o_old = o_new.copy()
 
     # selection part 1
     vs = _calcS(dims, ljk)
@@ -959,6 +1030,9 @@ def integrate_nD(
     # selection part 2
     vs2 = _calcS2(dims, ljk2)
     S2 = _buildS2(vs2, dims, s_new, h_new)
+
+    vs3 = _calcUnderdominance(dims, ljk2)
+    S3 = _buildS3(vs3, dims, o_new, h_new)
 
     # migration
     vm = _calcM(dims, ljk)
@@ -1034,6 +1108,8 @@ def integrate_nD(
             s_new = s((t + dt / 2) / 2.0)
         if callable(h):
             h_new = h((t + dt / 2) / 2.0)
+        if callable(overdominance):
+            o_new = overdominance((t + dt / 2) / 2.0)
 
         # we recompute the matrix only if any parameter has changed
         if (
@@ -1044,11 +1120,13 @@ def integrate_nD(
             or (mig != mig_old).any()
             or (s_new != s_old).any()
             or (h_new != h_old).any()
+            or (o_new != o_old).any()
         ):
             D = _buildD(vd, dims, Neff)
             Mi = _buildM(vm, dims, mig)
             S1 = _buildS(vs, dims, s_new, h_new)
             S2 = _buildS2(vs2, dims, s_new, h_new)
+            S3 = _buildS3(vs3, dims, o_new, h_new)
             # system inversion for backward scheme
             slv = [
                 linalg.factorized(
@@ -1056,7 +1134,10 @@ def integrate_nD(
                     - dt
                     / 2.0
                     / split_dt
-                    * (1.0 / (max(len(n), 2) - 1) * (D[i] + S1[i] + S2[i]) + Mi[i])
+                    * (
+                        1.0 / (max(len(n), 2) - 1) * (D[i] + S1[i] + S2[i] + S3[i])
+                        + Mi[i]
+                    )
                 )
                 for i in range(nbp)
             ]
@@ -1066,7 +1147,7 @@ def integrate_nD(
                 + dt
                 / 2.0
                 / split_dt
-                * (1.0 / (max(len(n), 2) - 1) * (D[i] + S1[i] + S2[i]) + Mi[i])
+                * (1.0 / (max(len(n), 2) - 1) * (D[i] + S1[i] + S2[i] + S3[i]) + Mi[i])
                 for i in range(nbp)
             ]
 
@@ -1107,6 +1188,7 @@ def integrate_nD(
             mig_old = mig
             s_old = s_new
             h_old = h_new
+            o_old = o_new
 
     if finite_genome == False:
         return moments.Spectrum_mod.Spectrum(sfs)

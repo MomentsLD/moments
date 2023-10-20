@@ -212,13 +212,13 @@ class TriSpectrum(numpy.ma.masked_array):
         shape = [int(shape) + 1, int(shape) + 1]
 
         data = numpy.fromstring(
-            fid.readline().strip(), count=numpy.product(shape), sep=" "
+            fid.readline().strip(), count=numpy.prod(shape), sep=" "
         )
         # fromfile returns a 1-d array. Reshape it to the proper form.
         data = data.reshape(*shape)
 
         maskline = fid.readline().strip()
-        mask = numpy.fromstring(maskline, count=numpy.product(shape), sep=" ")
+        mask = numpy.fromstring(maskline, count=numpy.prod(shape), sep=" ")
         mask = mask.reshape(*shape)
 
         if folded_major == "folded_major":

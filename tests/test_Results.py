@@ -25,7 +25,7 @@ class ResultsTestCase(unittest.TestCase):
         n = 15
         f = lambda x: [1 + 0.0001 * x]
         sfs = moments.Spectrum(numpy.zeros([n + 1]))
-        sfs.integrate(f, 5, 0.01, theta=1.0, h=0.1, gamma=-1)
+        sfs.integrate(f, 5, dt_fac=0.01, theta=1.0, h=0.1, gamma=-1)
         sfs_ref = moments.Spectrum.from_file(
             os.path.join(os.path.dirname(__file__), "test_files/1_pop.fs")
         )
@@ -36,7 +36,7 @@ class ResultsTestCase(unittest.TestCase):
         mig = numpy.ones([2, 2])
         f = lambda x: [1, 1 + 0.0001 * x]
         sfs = moments.Spectrum(numpy.zeros([n + 1, n + 1]))
-        sfs.integrate(f, 10, 0.005, theta=1.0, h=[0.5, 0.5], gamma=[0, 0], m=mig)
+        sfs.integrate(f, 10, dt_fac=0.005, theta=1.0, h=[0.5, 0.5], gamma=[0, 0], m=mig)
         sfs_ref = moments.Spectrum.from_file(
             os.path.join(os.path.dirname(__file__), "test_files/2_pops_neutral.fs")
         )
@@ -47,7 +47,7 @@ class ResultsTestCase(unittest.TestCase):
         mig = numpy.ones([2, 2])
         f = lambda x: [1, 1 + 0.0001 * x]
         sfs = moments.Spectrum(numpy.zeros([n1 + 1, n2 + 1]))
-        sfs.integrate(f, 10, 0.005, theta=1.0, h=[0.6, 0.6], gamma=[2, 2], m=mig)
+        sfs.integrate(f, 10, dt_fac=0.005, theta=1.0, h=[0.6, 0.6], gamma=[2, 2], m=mig)
         sfs_ref = moments.Spectrum.from_file(
             os.path.join(os.path.dirname(__file__), "test_files/2_pops.fs")
         )

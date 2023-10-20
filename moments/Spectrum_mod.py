@@ -680,6 +680,7 @@ class Spectrum(np.ma.masked_array):
         dt_fac=0.02,
         gamma=None,
         h=None,
+        overdominance=None,
         m=None,
         theta=1.0,
         adapt_dt=False,
@@ -703,15 +704,27 @@ class Spectrum(np.ma.masked_array):
         :param dt_fac: The timestep factor, default is 0.02. This parameter typically
             does not need to be adjusted.
         :type dt_fac: float, optional
-        :param gamma: The selection coefficient (:math:`2 N_e s`), or a list of
-            selection coefficients that may differ across populations. In this case,
-            one value must be provided for each population, so the vector must have
-            length equal to the number of populations.
+        :param gamma: Scaled selection coefficient(s), which can be either a number
+            or a vector gamma = [gamma1,...,gammap], allowing for different selection
+            coefficients in each population. This can also be given as function
+            returning a number or such a vector, allowing for selection coefficients
+            to change over time.
         :type gamma: float or list of floats or function that returns a float or
             list of floats, optional
-        :param h: The dominance coefficient, or list of dominance coefficients in
-            each population, if more than one population.
+        :param h: Dominance coefficient(s) (h=1/2 implies additive selection). Can be
+            given as a number or a vector h = [h1,...,hp], or a function that returns
+            a number or vector of coefficients, allowing for dominance coefficients
+            to change over time.
         :type h: float or list of floats or function that returns a float or
+            list of floats, optional
+        :param overdominance: Scaled selection coefficient(s) that is applied only to
+            heterozygotes, in a selection system with fitnesses 1:1+s:1. Underdominance
+            can be modeled by passing a negative value. Not that this is a symmetric
+            under/over-dominance model, in which homozygotes for either the ancestral
+            or derived allele have equal fitness. `gamma`, `h`, and `overdominance`
+            can be combined (additively) to implement non-symmetric selection
+            scenarios.
+        :type overdominance: float or list of floats or function that returns a float or
             list of floats, optional
         :param m: The migration rates matrix as a 2-D array with shape nxn,
             where n is the number of populations. The entry of the migration
@@ -785,15 +798,17 @@ class Spectrum(np.ma.masked_array):
             gamma = 0
         if h is None:
             h = 0.5
+        if overdominance is None:
+            overdominance = 0
 
         if len(n) == 1:
-            if gamma == 0:
+            if gamma == 0 and overdominance == 0:
                 self.data[:] = moments.Integration_nomig.integrate_neutral(
                     self.data,
                     Npop,
                     tf,
-                    dt_fac,
-                    theta,
+                    dt_fac=dt_fac,
+                    theta=theta,
                     finite_genome=finite_genome,
                     theta_fd=theta_fd,
                     theta_bd=theta_bd,
@@ -804,10 +819,11 @@ class Spectrum(np.ma.masked_array):
                     self.data,
                     Npop,
                     tf,
-                    dt_fac,
-                    gamma,
-                    h,
-                    theta,
+                    dt_fac=dt_fac,
+                    gamma=gamma,
+                    h=h,
+                    overdominance=overdominance,
+                    theta=theta,
                     finite_genome=finite_genome,
                     theta_fd=theta_fd,
                     theta_bd=theta_bd,
@@ -819,13 +835,17 @@ class Spectrum(np.ma.masked_array):
             if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver
                 # seems to be faster than the tridiag...
-                if (np.array(gamma) == 0).all() and len(n) < 3:
+                if (
+                    (np.array(gamma) == 0).all()
+                    and (np.array(overdominance) == 0).all()
+                    and len(n) < 3
+                ):
                     self.data[:] = moments.Integration_nomig.integrate_neutral(
                         self.data,
                         Npop,
                         tf,
-                        dt_fac,
-                        theta,
+                        dt_fac=dt_fac,
+                        theta=theta,
                         finite_genome=finite_genome,
                         theta_fd=theta_fd,
                         theta_bd=theta_bd,
@@ -836,10 +856,11 @@ class Spectrum(np.ma.masked_array):
                         self.data,
                         Npop,
                         tf,
-                        dt_fac,
-                        gamma,
-                        h,
-                        theta,
+                        dt_fac=dt_fac,
+                        gamma=gamma,
+                        h=h,
+                        overdominance=overdominance,
+                        theta=theta,
                         finite_genome=finite_genome,
                         theta_fd=theta_fd,
                         theta_bd=theta_bd,
@@ -850,12 +871,13 @@ class Spectrum(np.ma.masked_array):
                     self.data,
                     Npop,
                     tf,
-                    dt_fac,
-                    gamma,
-                    h,
-                    m,
-                    theta,
-                    adapt_dt,
+                    dt_fac=dt_fac,
+                    gamma=gamma,
+                    h=h,
+                    overdominance=overdominance,
+                    m=m,
+                    theta=theta,
+                    adapt_dt=adapt_dt,
                     finite_genome=finite_genome,
                     theta_fd=theta_fd,
                     theta_bd=theta_bd,
@@ -902,7 +924,7 @@ class Spectrum(np.ma.masked_array):
             ns = self.sample_sizes
             nbar = np.mean(ns)
             nsum = np.sum(ns)
-            nc = (nsum - np.sum(ns ** 2) / nsum) / (r - 1)
+            nc = (nsum - np.sum(ns**2) / nsum) / (r - 1)
 
             # counts_per_pop is an r+1 dimensional array, where the last axis simply
             # records the indices of the entry.
@@ -1001,11 +1023,11 @@ class Spectrum(np.ma.masked_array):
 
         # See immediately after Eq. 12
         theta = self.Watterson_theta()
-        theta_sq = s * (s - 1.0) / (an ** 2 + bn)
+        theta_sq = s * (s - 1.0) / (an**2 + bn)
 
         # Eq. 14
         var = (n / (2.0 * (n - 1.0)) - 1.0 / an) * theta + (
-            bn / an ** 2
+            bn / an**2
             + 2.0 * (n / (n - 1.0)) ** 2 * bn
             - 2 * (n * bn - n + 1.0) / ((n - 1.0) * an)
             - (3.0 * n + 1.0) / (n - 1.0)
@@ -1051,11 +1073,11 @@ class Spectrum(np.ma.masked_array):
         a1 = np.sum(1.0 / np.arange(1, n))
         a2 = np.sum(1.0 / np.arange(1, n) ** 2)
         b1 = (n + 1) / (3 * (n - 1))
-        b2 = 2 * (n ** 2 + n + 3) / (9 * n * (n - 1))
+        b2 = 2 * (n**2 + n + 3) / (9 * n * (n - 1))
         c1 = b1 - 1.0 / a1
-        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1 ** 2
+        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1**2
 
-        C = np.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
+        C = np.sqrt((c1 / a1) * S + c2 / (a1**2 + a2) * S * (S - 1))
 
         return (pihat - theta) / C
 
@@ -1232,7 +1254,7 @@ class Spectrum(np.ma.masked_array):
             else:
                 pop_ids = None
 
-        data = np.fromstring(fid.readline().strip(), count=np.product(shape), sep=" ")
+        data = np.fromstring(fid.readline().strip(), count=np.prod(shape), sep=" ")
         # fromfile returns a 1-d array. Reshape it to the proper form.
         data = data.reshape(*shape)
 
@@ -1242,7 +1264,7 @@ class Spectrum(np.ma.masked_array):
             mask = np.ma.nomask
         else:
             # This case handles the new file format
-            mask = np.fromstring(maskline, count=np.product(shape), sep=" ")
+            mask = np.fromstring(maskline, count=np.prod(shape), sep=" ")
             mask = mask.reshape(*shape)
 
         # If we opened a new file, clean it up.

@@ -61,6 +61,11 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.1.18
+======
+
+- Implement underdominance and overdominance in SFS integration.
+
 1.1.17
 ======
 

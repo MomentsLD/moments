@@ -315,12 +315,12 @@ class TLSpectrum(np.ma.masked_array):
         shape, folded = line.split()
         shape = [int(shape) + 1, int(shape) + 1, int(shape) + 1]
 
-        data = np.fromstring(fid.readline().strip(), count=np.product(shape), sep=" ")
+        data = np.fromstring(fid.readline().strip(), count=np.prod(shape), sep=" ")
         # fromfile returns a 1-d array. Reshape it to the proper form.
         data = data.reshape(*shape)
 
         maskline = fid.readline().strip()
-        mask = np.fromstring(maskline, count=np.product(shape), sep=" ")
+        mask = np.fromstring(maskline, count=np.prod(shape), sep=" ")
         mask = mask.reshape(*shape)
 
         if folded == "folded":
