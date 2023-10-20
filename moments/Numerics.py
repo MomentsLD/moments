@@ -178,7 +178,7 @@ def array_from_file(fid, return_comments=False):
     # Read the shape of the data
     shape = tuple([int(d) for d in line.split()])
 
-    data = numpy.fromfile(fid, count=numpy.product(shape), sep=" ")
+    data = numpy.fromfile(fid, count=numpy.prod(shape), sep=" ")
     # fromfile returns a 1-d array. Reshape it to the proper form.
     data = data.reshape(*shape)
 

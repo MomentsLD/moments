@@ -1254,7 +1254,7 @@ class Spectrum(np.ma.masked_array):
             else:
                 pop_ids = None
 
-        data = np.fromstring(fid.readline().strip(), count=np.product(shape), sep=" ")
+        data = np.fromstring(fid.readline().strip(), count=np.prod(shape), sep=" ")
         # fromfile returns a 1-d array. Reshape it to the proper form.
         data = data.reshape(*shape)
 
@@ -1264,7 +1264,7 @@ class Spectrum(np.ma.masked_array):
             mask = np.ma.nomask
         else:
             # This case handles the new file format
-            mask = np.fromstring(maskline, count=np.product(shape), sep=" ")
+            mask = np.fromstring(maskline, count=np.prod(shape), sep=" ")
             mask = mask.reshape(*shape)
 
         # If we opened a new file, clean it up.
