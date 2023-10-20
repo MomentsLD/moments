@@ -1,6 +1,6 @@
 # moments: tools for diversity statistics and inference
 
-Please see the [documentation](https://moments.readthedocs.io/)
+Please see the [documentation](https://momentsld.github.io/moments/)
 for more details, examples, and tutorials.
 
 `moments` implements methods for demographic history and selection inference
