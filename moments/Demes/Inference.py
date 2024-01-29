@@ -3,7 +3,7 @@
 # specifies parameters to be fit that align with the input YAML demography.
 
 import demes
-import ruamel
+import ruamel.yaml
 import moments
 import numpy as np
 import scipy.optimize
@@ -30,9 +30,23 @@ def _get_params_dict(fname):
     Options:
     - parameters (what to fit)
     - constraints
+    Below note is from the demes load_dump.py file, re: YAML support in python.
     """
-    with open(fname, "r") as fin:
-        options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
+    # NOTE: The state of Python YAML libraries in 2020 leaves much to be desired.
+    # The pyyaml library supports only YAML v1.1, which has some awkward corner
+    # cases that have been fixed in YAML v1.2. A fork of pyaml, ruamel.yaml,
+    # does support YAML v1.2, and introduces a new API for parsing/emitting
+    # with additional features and desirable behaviour.
+    # However, neither pyyaml nor ruamel guarantee API stability, and neither
+    # provide complete reference documentation for their APIs.
+    # The YAML code in demes is limited to the following two functions,
+    # which are hopefully simple enough to not suffer from API instability.
+    
+    #with open(fname, "r") as fin:
+    #    options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
+    with ruamel.yaml.YAML(typ="safe") as yaml, open(fname, "r") as fin:
+        options = yaml.load(fin)
+
     if "parameters" not in options.keys():
         raise ValueError("parameters to fit must be specified")
     return options

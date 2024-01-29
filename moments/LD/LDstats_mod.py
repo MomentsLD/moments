@@ -7,6 +7,7 @@ import os, sys
 import numpy, numpy as np
 import copy
 import demes
+import warnings
 
 from . import Numerics, Util
 import moments.Demes.Demes
@@ -276,6 +277,68 @@ class LDstats(list):
         H_YZ = self.H()[stats.index(Util.map_moment(f"H_{Y}_{Z}"))]
 
         return (H_XW - H_XZ - H_YW + H_YZ) / 2
+
+    def H2(self, X, Y=None, phased=True):
+        """
+        Note: the H2 name may change! This is sometimes called "D+".
+
+        This is the statistics E[2*fAB*fab + 2*fAb*faB], which measures
+        the probability of polymorphism between two sampled genome copies
+        at two loci.
+
+        This is closely related to pi2=p(1-p)q(1-q), which is inherently
+        a four-haplotype statistic. Instead, H2 is a two-haplotype
+        statistic, which can be measured with just a single diploid.
+
+        In the one population case, it equals 4D^2+2Dz+4pi2. In the two
+        population case, it equals 4D1*D2+Dz(1,2,2)+Dz(2,1,1)+4pi2(1,2,1,2).
+
+        At steady state, the solution is
+        theta**2 * (36 + 14*rho + rho**2) / (18 + 13*rho + rho**2).
+
+        To compare to unphased data estimated assuming that double
+        heterozygotes have equal probability of being in coupling or
+        repulsion LD, the statistic equals
+        D1*D2+1/2(Dz(1,2,2)+Dz(2,1,1)+4pi2.
+
+        Note: This unphased case (setting phased=False) is only relevant to
+        comparing to data where a single diploid individual exists from each
+        population, and it is only needed for cross-population H2!
+        """
+        if type(X) is str:
+            if X not in self.pop_ids:
+                raise ValueError(f"Population {X} not in pop_ids")
+            X = self.pop_ids.index(X)
+
+        if Y is None:
+            Y = X
+        else:
+            if type(Y) is str:
+                if Y not in self.pop_ids:
+                    raise ValueError(f"Population {Y} not in pop_ids")
+                Y = self.pop_ids.index(Y)
+
+        if X < 0 or X >= self.num_pops or Y < 0 or Y >= self.num_pops:
+            raise ValueError("Population indexes out of bounds")
+
+        if Y < X:
+            X, Y = Y, X
+
+        DD = self.names()[0].index(f"DD_{X}_{Y}")
+        Dz0 = self.names()[0].index(f"Dz_{X}_{Y}_{Y}")
+        Dz1 = self.names()[0].index(f"Dz_{Y}_{X}_{X}")
+        pi2 = self.names()[0].index(f"pi2_{X}_{Y}_{X}_{Y}")
+        data = self.LD()
+        if phased:
+            Dplus = 4 * data[:, DD] + data[:, Dz0] + data[:, Dz1] + 4 * data[:, pi2]
+        else:
+            Dplus = (
+                data[:, DD]
+                + 1 / 2 * data[:, Dz0]
+                + 1 / 2 * data[:, Dz1]
+                + 4 * data[:, pi2]
+            )
+        return Dplus
 
     # demographic and manipulation functions
     def split(self, pop_to_split, new_ids=None):
