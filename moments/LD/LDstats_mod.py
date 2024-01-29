@@ -966,7 +966,8 @@ def %(method)s(self, other):
         self,
         nu,
         tf,
-        dt=0.001,
+        dt=None,
+        dt_fac=0.02,
         rho=None,
         theta=0.001,
         m=None,
@@ -986,8 +987,12 @@ def %(method)s(self, other):
         :type nu: list or function
         :param tf: Total time to integrate
         :type tf: float
-        :param dt: Integration timestep
+        :param dt: Integration timestep. This is deprecated! Use `dt_fac` instead.
         :type dt: float
+        :param dt_fac: The integration time step factor, so that dt is determined by
+            `tf * dt_fac`. Note: Should also build in adaptive time-stepping... this
+            is to come.
+        :type dt_fac: float
         :param rho: Can be a single recombination rate or list of recombination rates
             (in which case we are integrating a list of LD stats for each rate)
         :type rho: float or list of floats
@@ -1010,6 +1015,8 @@ def %(method)s(self, other):
 
         if tf == 0.0:
             return
+        if tf < 0 or np.isinf(tf):
+            raise ValueError("Integration time must be positive and finite.")
 
         if rho is None and len(self) > 1:
             raise ValueError("There are LD statistics, but rho is None.")
@@ -1051,16 +1058,24 @@ def %(method)s(self, other):
                 raise ValueError("selfing must have same length as number of pops.")
 
         # enforce minimum 10 time steps per integration
-        if tf < dt * 10:
-            dt_adj = tf / 10
-        else:
-            dt_adj = dt * 1.0
+        # if tf < dt * 10:
+        #    dt_adj = tf / 10
+        # else:
+        #    dt_adj = dt * 1.0
+        if dt is not None:
+            warnings.warn(
+                "dt is deprecated, use dt_fac to control integration time steps",
+                DeprecationWarning,
+            )
+        if dt_fac <= 0 or dt_fac > 1:
+            raise ValueError("dt_fac must be between 0 and 1")
 
         self[:] = Numerics.integrate(
             self[:],
             nu,
             tf,
-            dt=dt_adj,
+            dt=None,
+            dt_fac=dt_fac,
             rho=rho,
             theta=theta,
             m=m,

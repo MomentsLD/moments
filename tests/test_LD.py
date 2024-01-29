@@ -580,7 +580,7 @@ class SteadyState(unittest.TestCase):
                     num_pops=1,
                 )
                 y = y.split(0)
-                y.integrate(nus, 40, rho=rho, m=m, selfing=selfing_rate)
+                y.integrate(nus, 40, rho=rho, m=m, selfing=selfing_rate, dt_fac=0.02)
                 y2 = moments.LD.LDstats(
                     moments.LD.Numerics.steady_state(
                         nus,
