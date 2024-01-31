@@ -433,6 +433,24 @@ class FStatistics(unittest.TestCase):
         self.assertTrue(y.f2(0, 1) == -y.f4(0, 1, 1, 0))
 
 
+class DplusStatistic(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_steady_state(self):
+        # at steady state, we expect it to be theta**2 as r -> 1/2 and
+        # 2*theta**2 at r=0
+        theta = 0.001
+        y = moments.LD.Demographics1D.snm(theta=theta, rho=[0, 1000])
+        H2 = y.H2(0)
+        self.assertTrue(np.isclose(H2[0], 2 * theta ** 2))
+        self.assertTrue(np.isclose(H2[1], theta ** 2))
+
+
 # Older steady state functions
 def steady_state(theta=0.001, rho=None, selfing_rate=None):
     if selfing_rate is None:
