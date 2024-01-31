@@ -659,10 +659,18 @@ def __nnls_mod__(A, b):
     w = zeros((n,), dtype=double)
     zz = zeros((m,), dtype=double)
     index = zeros((n,), dtype=int)
-    try:
-        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
-    except:
-        x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
+
+    # It's unclear to me (APR) what is going on
+    # as far as which nnls function gets called
+    if sp.__version__ < "1.12":
+        try:
+            x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
+        except:
+            x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
+    else:
+        x, rnorm = _nnls.nnls(A, b)
+        mode = 1
+
     if mode != 1:
         warnings.warn(
             "Too many iterations in nnls. This usually occurs under "
