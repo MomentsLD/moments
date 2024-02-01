@@ -193,7 +193,8 @@ def integrate(
     Y,
     nu,
     T,
-    dt=0.001,
+    dt=None,
+    dt_fac=0.1,
     theta=0.001,
     rho=None,
     m=None,
@@ -225,6 +226,8 @@ def integrate(
     if num_pops > 1 and m is not None:
         if np.any(np.array(m) != 0):
             Mh, Mld = migration(num_pops, m, frozen=frozen, rho=rho)
+
+    dt = T * dt_fac
 
     dt_last = dt
     nus_last = nus
@@ -387,7 +390,7 @@ def steady_state(nus, m=None, rho=None, theta=0.001, selfing_rate=None):
         Migration must allow all sampled lineages to coalesce in finite time,
         so that populations must be connected via migration. This is unused
         when there is a single population given by `nus`.
-    :param rho: The population size-scaled recombination rate, or list of rates, 4*Ne*r. 
+    :param rho: The population size-scaled recombination rate, or list of rates, 4*Ne*r.
     :param theta: The population size-scaled mutation rate, 4*Ne*u.
     :param selfing_rate: List of selfing rates, with same length as `nus`. If
         not given, we assume selfing rates are 0 in each population.

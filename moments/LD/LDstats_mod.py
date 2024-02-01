@@ -7,6 +7,7 @@ import os, sys
 import numpy, numpy as np
 import copy
 import demes
+import warnings
 
 from . import Numerics, Util
 import moments.Demes.Demes
@@ -276,6 +277,68 @@ class LDstats(list):
         H_YZ = self.H()[stats.index(Util.map_moment(f"H_{Y}_{Z}"))]
 
         return (H_XW - H_XZ - H_YW + H_YZ) / 2
+
+    def H2(self, X, Y=None, phased=True):
+        """
+        Note: the H2 name may change! This is sometimes called "D+".
+
+        This is the statistics E[2*fAB*fab + 2*fAb*faB], which measures
+        the probability of polymorphism between two sampled genome copies
+        at two loci.
+
+        This is closely related to pi2=p(1-p)q(1-q), which is inherently
+        a four-haplotype statistic. Instead, H2 is a two-haplotype
+        statistic, which can be measured with just a single diploid.
+
+        In the one population case, it equals 4D^2+2Dz+4pi2. In the two
+        population case, it equals 4D1*D2+Dz(1,2,2)+Dz(2,1,1)+4pi2(1,2,1,2).
+
+        At steady state, the solution is
+        theta**2 * (36 + 14*rho + rho**2) / (18 + 13*rho + rho**2).
+
+        To compare to unphased data estimated assuming that double
+        heterozygotes have equal probability of being in coupling or
+        repulsion LD, the statistic equals
+        D1*D2+1/2(Dz(1,2,2)+Dz(2,1,1)+4pi2.
+
+        Note: This unphased case (setting phased=False) is only relevant to
+        comparing to data where a single diploid individual exists from each
+        population, and it is only needed for cross-population H2!
+        """
+        if type(X) is str:
+            if X not in self.pop_ids:
+                raise ValueError(f"Population {X} not in pop_ids")
+            X = self.pop_ids.index(X)
+
+        if Y is None:
+            Y = X
+        else:
+            if type(Y) is str:
+                if Y not in self.pop_ids:
+                    raise ValueError(f"Population {Y} not in pop_ids")
+                Y = self.pop_ids.index(Y)
+
+        if X < 0 or X >= self.num_pops or Y < 0 or Y >= self.num_pops:
+            raise ValueError("Population indexes out of bounds")
+
+        if Y < X:
+            X, Y = Y, X
+
+        DD = self.names()[0].index(f"DD_{X}_{Y}")
+        Dz0 = self.names()[0].index(f"Dz_{X}_{Y}_{Y}")
+        Dz1 = self.names()[0].index(f"Dz_{Y}_{X}_{X}")
+        pi2 = self.names()[0].index(f"pi2_{X}_{Y}_{X}_{Y}")
+        data = self.LD()
+        if phased:
+            Dplus = 4 * data[:, DD] + data[:, Dz0] + data[:, Dz1] + 4 * data[:, pi2]
+        else:
+            Dplus = (
+                data[:, DD]
+                + 1 / 2 * data[:, Dz0]
+                + 1 / 2 * data[:, Dz1]
+                + 4 * data[:, pi2]
+            )
+        return Dplus
 
     # demographic and manipulation functions
     def split(self, pop_to_split, new_ids=None):
@@ -903,7 +966,8 @@ def %(method)s(self, other):
         self,
         nu,
         tf,
-        dt=0.001,
+        dt=None,
+        dt_fac=0.02,
         rho=None,
         theta=0.001,
         m=None,
@@ -923,8 +987,12 @@ def %(method)s(self, other):
         :type nu: list or function
         :param tf: Total time to integrate
         :type tf: float
-        :param dt: Integration timestep
+        :param dt: Integration timestep. This is deprecated! Use `dt_fac` instead.
         :type dt: float
+        :param dt_fac: The integration time step factor, so that dt is determined by
+            `tf * dt_fac`. Note: Should also build in adaptive time-stepping... this
+            is to come.
+        :type dt_fac: float
         :param rho: Can be a single recombination rate or list of recombination rates
             (in which case we are integrating a list of LD stats for each rate)
         :type rho: float or list of floats
@@ -947,6 +1015,8 @@ def %(method)s(self, other):
 
         if tf == 0.0:
             return
+        if tf < 0 or np.isinf(tf):
+            raise ValueError("Integration time must be positive and finite.")
 
         if rho is None and len(self) > 1:
             raise ValueError("There are LD statistics, but rho is None.")
@@ -988,16 +1058,24 @@ def %(method)s(self, other):
                 raise ValueError("selfing must have same length as number of pops.")
 
         # enforce minimum 10 time steps per integration
-        if tf < dt * 10:
-            dt_adj = tf / 10
-        else:
-            dt_adj = dt * 1.0
+        # if tf < dt * 10:
+        #    dt_adj = tf / 10
+        # else:
+        #    dt_adj = dt * 1.0
+        if dt is not None:
+            warnings.warn(
+                "dt is deprecated, use dt_fac to control integration time steps",
+                DeprecationWarning,
+            )
+        if dt_fac <= 0 or dt_fac > 1:
+            raise ValueError("dt_fac must be between 0 and 1")
 
         self[:] = Numerics.integrate(
             self[:],
             nu,
             tf,
-            dt=dt_adj,
+            dt=None,
+            dt_fac=dt_fac,
             rho=rho,
             theta=theta,
             m=m,
