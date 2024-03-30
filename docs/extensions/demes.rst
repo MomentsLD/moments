@@ -265,7 +265,7 @@ We can compare the neutral and selected spectra:
     ax = plt.subplot(111)
     ax.semilogy(fs_yri, "-o", ms=6, lw=1, mfc="w", label="Neutral");
     ax.semilogy(fs_yri_sel, "-o", ms=3, lw=1,
-        label=f"Selected, $\gamma={gamma}$, $h={h}$");
+        label=f"Selected, $\\gamma={gamma}$, $h={h}$");
     ax.set_ylabel("Density");
     ax.set_xlabel("Derived allele count");
     ax.legend();
