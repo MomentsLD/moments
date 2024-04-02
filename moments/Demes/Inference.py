@@ -1256,7 +1256,7 @@ def uncerts_LD(
 ):
     """
     Compute uncertainties for fitted parameters, using the output YAML from
-    ``moments.Demes.Invascript:void(0); ference.optimize_LD()``.
+    ``moments.Demes.Inference.optimize_LD()``.
     """
     func_calls = 0
 
