@@ -5,8 +5,9 @@ import math
 
 def slice(g, t):
     """
-    Slice a Demes graph at a given time, return the top portion with times shifted
-    to the slice time.
+    Slice a Demes graph at a given time, returning the portion of the
+    demographic model above the given time, and all model times are
+    shifted to the specified slice time.
 
     :param g: The input resolved Demes graph.
     :param t: The time in the past at which to slice the graph.

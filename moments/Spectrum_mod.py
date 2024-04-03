@@ -924,7 +924,7 @@ class Spectrum(np.ma.masked_array):
             ns = self.sample_sizes
             nbar = np.mean(ns)
             nsum = np.sum(ns)
-            nc = (nsum - np.sum(ns**2) / nsum) / (r - 1)
+            nc = (nsum - np.sum(ns ** 2) / nsum) / (r - 1)
 
             # counts_per_pop is an r+1 dimensional array, where the last axis simply
             # records the indices of the entry.
@@ -1023,11 +1023,11 @@ class Spectrum(np.ma.masked_array):
 
         # See immediately after Eq. 12
         theta = self.Watterson_theta()
-        theta_sq = s * (s - 1.0) / (an**2 + bn)
+        theta_sq = s * (s - 1.0) / (an ** 2 + bn)
 
         # Eq. 14
         var = (n / (2.0 * (n - 1.0)) - 1.0 / an) * theta + (
-            bn / an**2
+            bn / an ** 2
             + 2.0 * (n / (n - 1.0)) ** 2 * bn
             - 2 * (n * bn - n + 1.0) / ((n - 1.0) * an)
             - (3.0 * n + 1.0) / (n - 1.0)
@@ -1073,11 +1073,11 @@ class Spectrum(np.ma.masked_array):
         a1 = np.sum(1.0 / np.arange(1, n))
         a2 = np.sum(1.0 / np.arange(1, n) ** 2)
         b1 = (n + 1) / (3 * (n - 1))
-        b2 = 2 * (n**2 + n + 3) / (9 * n * (n - 1))
+        b2 = 2 * (n ** 2 + n + 3) / (9 * n * (n - 1))
         c1 = b1 - 1.0 / a1
-        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1**2
+        c2 = b2 - (n + 2) / (a1 * n) + a2 / a1 ** 2
 
-        C = np.sqrt((c1 / a1) * S + c2 / (a1**2 + a2) * S * (S - 1))
+        C = np.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
 
         return (pihat - theta) / C
 
@@ -2080,10 +2080,10 @@ class Spectrum(np.ma.masked_array):
         sample_sizes=None,
         sample_times=None,
         samples=None,
-        Ne=None,
         unsampled_n=4,
         gamma=None,
         h=None,
+        theta=1,
     ):
         """
         Takes a deme graph and computes the SFS. ``demes`` is a package for
@@ -2117,9 +2117,6 @@ class Spectrum(np.ma.masked_array):
             deme. Sampling times are given in time units of the original deme graph,
             so might not necessarily be generations (e.g. if ``g.time_units`` is years)
         :type sample_times: list of floats, optional
-        :param Ne: reference population size. If none is given, we use the initial
-            size of the root deme.
-        :type Ne: float, optional
         :param unsampled_n: The default sample size of unsampled demes, which must be
             greater than or equal to 4.
         :type unsampled_n: int, optional
@@ -2141,6 +2138,13 @@ class Spectrum(np.ma.masked_array):
             coefficient can be provided, using the key `_default`. See the Demes
             exension documentation for more details and examples.
         :type h: float or dict
+        :param theta: The population-size scaled mutation rate (4*Ne*u or 4*Ne*u*L).
+            The default value is 1. For more control of mutation rates and mutation
+            models (including using a reversible mutation model), please use
+            `moments.Demes.SFS`, which has options to specify theta, the per-base
+            mutation rate u, and/or a reversible mutation model that allows for
+            different forward and backward mutation rates.
+        :type theta: scalar
         :return: A ``moments`` site frequency spectrum, with dimension equal to the
             length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
             in each dimension, indexing the allele frequency in each deme from 0
@@ -2152,36 +2156,16 @@ class Spectrum(np.ma.masked_array):
         else:
             dg = g
 
-        if samples is None:
-            if sampled_demes is None or sample_sizes is None:
-                raise ValueError(
-                    "must specify either samples (as a dict mapping demes to sample sizes,"
-                    " or specify both sampled_demes and sample_times"
-                )
-        elif samples is not None:
-            if type(samples) is not dict:
-                raise ValueError("samples must be a dict mapping demes to sample sizes")
-            if sampled_demes is not None or sample_sizes is not None:
-                raise ValueError(
-                    "if samples is given as dict, cannot "
-                    "specify sampled_demes or sample_sizes"
-                )
-            if sample_times is not None:
-                raise ValueError(
-                    "if samples is given as dict, cannot specify sample times"
-                )
-            sampled_demes = list(samples.keys())
-            sample_sizes = list(samples.values())
-
         fs = moments.Demes.Demes.SFS(
             dg,
             sampled_demes,
             sample_sizes,
             sample_times=sample_times,
-            Ne=Ne,
+            samples=samples,
             unsampled_n=unsampled_n,
             gamma=gamma,
             h=h,
+            theta=theta,
         )
         return fs
 

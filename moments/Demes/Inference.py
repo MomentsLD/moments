@@ -41,8 +41,8 @@ def _get_params_dict(fname):
     # provide complete reference documentation for their APIs.
     # The YAML code in demes is limited to the following two functions,
     # which are hopefully simple enough to not suffer from API instability.
-    
-    #with open(fname, "r") as fin:
+
+    # with open(fname, "r") as fin:
     #    options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
     with ruamel.yaml.YAML(typ="safe") as yaml, open(fname, "r") as fin:
         options = yaml.load(fin)
@@ -282,17 +282,17 @@ def _perturb_params_constrained(
 ):
     tries = 0
     conditions_satisfied = False
+    sep = upper_bound - lower_bound
+    for i, val in enumerate(sep):
+        if np.isinf(val):
+            sep = 1
     while tries < reps and not conditions_satisfied:
         p_guess = p0 * 2 ** (fold * (2 * np.random.random(len(p0)) - 1))
         conditions_satisfied = True
         if lower_bound is not None:
-            p_guess = np.maximum(
-                p_guess, lower_bound + 0.01 * (upper_bound - lower_bound)
-            )
+            p_guess = np.maximum(p_guess, lower_bound + 0.01 * sep)
         if upper_bound is not None:
-            p_guess = np.minimum(
-                p_guess, upper_bound - 0.01 * (upper_bound - lower_bound)
-            )
+            p_guess = np.minimum(p_guess, upper_bound - 0.01 * sep)
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
@@ -385,17 +385,13 @@ def _object_func(
             sample_times.append(end_times[deme])
 
     model = moments.Demes.SFS(
-        g, input_sampled_demes, sample_sizes, sample_times=sample_times
+        g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
     )
     if fit_ancestral_misid:
         model = moments.Misc.flip_ancestral_misid(model, params[-1])
 
     # get log-likelihood
     if uL is not None:
-        root = _get_root(g)
-        Ne = g[root].epochs[0].start_size
-        theta = 4 * Ne * uL
-        model *= theta
         LL = moments.Inference.ll(model, data)
     else:
         LL = moments.Inference.ll_multinom(model, data)
