@@ -2005,3 +2005,50 @@ class TestSFSScaling(unittest.TestCase):
         fs3 = Demes.SFS(g, samples={"A": n}, reversible=True, u=u, L=1)
         self.assertTrue(np.allclose(fs, fs2))
         self.assertTrue(np.allclose(fs, fs3))
+
+
+class TestDemesRescaling(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_scaling_value(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1)])
+        g = b.resolve()
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, -1)
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, 0)
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, np.inf)
+
+    def test_rescaling(self):
+        b = demes.Builder()
+        b.add_deme(
+            "anc",
+            epochs=[
+                dict(start_size=100, end_time=100),
+                dict(start_size=200, end_size=300, end_time=50),
+            ],
+        )
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=500)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=100, end_size=10)])
+        b.add_migration(demes=["A", "B"], rate=0.01)
+        b.add_pulse(sources=["A"], dest="B", proportions=[0.1], time=20)
+        b.add_pulse(sources=["B"], dest="A", proportions=[0.2], time=10)
+        g = b.resolve()
+
+        g2 = moments.Demes.DemesUtil.rescale(g, 1)
+        g.assert_close(g2)
+
+        g3 = moments.Demes.DemesUtil.rescale(g, 0.1)
+        g4 = moments.Demes.DemesUtil.rescale(g3, 10)
+        g.assert_close(g4)
+
+        g5 = moments.Demes.DemesUtil.rescale(g3, 0.2)
+        g6 = moments.Demes.DemesUtil.rescale(g5, 50)
+        g.assert_close(g6)

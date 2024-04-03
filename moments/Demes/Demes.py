@@ -43,8 +43,8 @@ def SFS(
     coefficient). The mutation rate can be given as either a
     per-base rate (possibly multiplied by the sequence length),
     or as a population size-scaled rate. If mutation rates are not
-    given, the SFS is scaled by `4*N_e`, so that multiplying the
-    output SFS by `u` results in a properly scaled SFS.
+    given, the SFS is scaled by ``4*N_e``, so that multiplying the
+    output SFS by ``u`` results in a properly scaled SFS.
 
     :param g: A ``demes`` DemeGraph from which to compute the SFS.
     :type g: :class:`demes.DemeGraph`
@@ -65,13 +65,13 @@ def SFS(
     :param unsampled_n: The default sample size of unsampled demes, which must be
         greater than or equal to 4.
     :type unsampled_n: int, optional
-    :param gamma: The scaled selection coefficient(s), 2*Ne*s. Defaults to None,
+    :param gamma: The scaled selection coefficient(s), ``2*Ne*s``. Defaults to None,
         which implies neutrality. Can be given as a scalar value, in which case
         all populations have the same selection coefficient. Alternatively, can
         be given as a dictionary, with keys given as population names in the
         input Demes model. Any population missing from this dictionary will be
         assigned a selection coefficient of zero. A non-zero default selection
-        coefficient can be provided, using the key `_default`. See the Demes
+        coefficient can be provided, using the key ``_default``. See the Demes
         exension documentation for more details and examples.
     :type gamma: scalar or dict
     :param h: The dominance coefficient(s). Defaults to additivity (or genic
@@ -79,27 +79,27 @@ def SFS(
         have the same dominance coefficient. Alternatively, can be given as a
         dictionary, with keys given as population names in the input Demes model.
         Any population missing from this dictionary will be assigned a dominance
-        coefficient of 1/2 (additivity). A different default dominance
-        coefficient can be provided, using the key `_default`. See the Demes
+        coefficient of ``1/2`` (additivity). A different default dominance
+        coefficient can be provided, using the key ``_default``. See the Demes
         exension documentation for more details and examples.
     :type h: scalar or dict
     :param theta: The scaled mutation rate(s), 4*Ne*u. When simulating under the
-        infinite sites model (the default mutation model), `theta` should be given
+        infinite sites model (the default mutation model), ``theta`` should be given
         as a scalar value greater than zero. If it is not provided, it is computed
-        using the input value of `u` as 4*Ne*u. If `u` is not provided, then
-        the SFS is scaled by 4*Ne, and the user can recover a properly scaled SFS
-        by multiplying it by `u` or `u*L`. When simulating under the reversible
-        mutation model (with `reversible=True`), `theta` may be a list of length
+        using the input value of ``u`` as ``4*Ne*u``. If ``u`` is not provided, then
+        the SFS is scaled by ``4*Ne``, and the user can recover a properly scaled SFS
+        by multiplying it by ``u`` or ``u*L``. When simulating under the reversible
+        mutation model (with ``reversible=True``), ``theta`` may be a list of length
         2 and both the forward and backward scaled mutation rates must be less
         than 1.
     :type theta: scalar or list of length 2
     :param u: The per-base mutation rate. When simulating under the infinite sites
-        model (the default mutation model), `u` should be a scalar. When simulating
-        under the reversible mutation model (with `reversible=True`), `u` may
+        model (the default mutation model), ``u`` should be a scalar. When simulating
+        under the reversible mutation model (with ``reversible=True``), ``u`` may
         be a list of length 2, and mutation rate(s) must be small enough so that
-        the product of `4*Ne*u` is less than 1.
+        the product of ``4*Ne*u`` is less than 1.
     :type u: scalar or list of length 2
-    :param L: The effective sequence length, which may be used along with `u` to
+    :param L: The effective sequence length, which may be used along with ``u`` to
         set the total mutation rate. Defaults to 1, and it must be 1 when using
         the reversible mutation model.
     :type L: scalar
@@ -334,7 +334,7 @@ def LD(
     :param r: The raw recombination rate. Can be None, a non-negative float, or a
         list of values. Must be used with ``Ne``.
     :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
-        ``theta`` is set to ``4 * Ne * u``.
+        ``theta`` is set to ``4*Ne*u``.
     :param Ne: The reference population size. If none is given, we use the initial
         size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
         ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.

@@ -5,12 +5,18 @@ import math
 
 def slice(g, t):
     """
-    Slice a Demes graph at a given time, returning the portion of the
+    Slice a Demes model at a given time, returning the portion of the
     demographic model above the given time, and all model times are
     shifted to the specified slice time.
 
-    :param g: The input resolved Demes graph.
+    :param g: The input demes model.
+    :type g: :class:`demes.Graph`
     :param t: The time in the past at which to slice the graph.
+    :type t: scalar
+    :return: A new demes model with demography more recent than the
+        specified time removed and time shifted to that time ``t``
+        is time "zero" in the new model.
+    :rtype: :class:`demes.Graph`
     """
     if t < 0:
         raise ValueError("Slice time must be positive")
@@ -90,16 +96,18 @@ def _shift_deme_time(d, t):
 
 def swipe(g, t):
     """
-    ..note::
-        Don't really like this function name... any suggestions?
-
     Returns a new demes graph with demography above the given time removed.
     Demes that existed before that time are removed, and demes that overlap
     with that time are given a constant size equal to their size at that time
     extending into the past.
 
-    :param g: The input demes graph object.
+    :param g: The input demes model.
+    :type g: :class:`demes.Graph`
     :param t: The time at which to erase preceding demographic events.
+    :type t: scalar
+    :return: A new demes model with demographic events above the specified time
+        removed.
+    :rtype: :class:`demes.Graph`
     """
     if t <= 0:
         raise ValueError("Slice time must be positive")
@@ -204,3 +212,49 @@ def _size_at(t, start_size, end_size, start_time, end_time, size_function):
             / (start_time - end_time)
         )
         return size_func(t)
+
+
+def rescale(g, Q=1):
+    """
+    Rescale a demes model by scaling factor ``Q``. This rescaling is done so
+    that compount parameters (e.g., ``Ne*m``) remain constant. In the new
+    model, population sizes are ``Q*Ne``, model times are `'Q*T'`, and
+    migration rates are ``m/Q``.
+
+    For example, setting ``Q=0.1`` will reduce all population sizes by a factor
+    of :math:`1/10`, all times will be reduced by that same amount, and
+    migration rates will increase by a factor of 10 so that the product
+    ``2*Ne*m`` remains constant.
+
+    When simulating with mutation and recombination rates, or with selection,
+    those values should also be scaled by :math:`1/Q` to ensure that compound
+    parameters remain constant.
+
+    :param g: A ``demes`` demographic model.
+    :type: :class:`demes.Graph`
+    :param Q: The scaling factor. Population sizes and times are scaled by
+        multiplying values by ``Q``. Migration rates are scaled by dividing
+        by ``Q``. Admixture and ancestry proportions are unchanged, though
+        the timing of those events are scaled. Generation times and units
+        are unchanged.
+    :type: scalar
+    :return: A new, rescaled ``demes`` demographic model.
+    :rtype: :class:`demes.Graph`
+    """
+    if Q <= 0 or math.isinf(Q):
+        raise ValueError("Scaling factor Q must be positive and finite")
+    d = g.asdict()
+    for i, deme in enumerate(d["demes"]):
+        d["demes"][i]["start_time"] *= Q
+        for j, epoch in enumerate(d["demes"][i]["epochs"]):
+            d["demes"][i]["epochs"][j]["start_size"] *= Q
+            d["demes"][i]["epochs"][j]["end_size"] *= Q
+            d["demes"][i]["epochs"][j]["end_time"] *= Q
+    for i, mig in enumerate(d["migrations"]):
+        d["migrations"][i]["start_time"] *= Q
+        d["migrations"][i]["end_time"] *= Q
+        d["migrations"][i]["rate"] /= Q
+    for i, pulse in enumerate(d["pulses"]):
+        d["pulses"][i]["time"] *= Q
+    b = demes.Builder.fromdict(d)
+    return b.resolve()
