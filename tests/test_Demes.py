@@ -2026,7 +2026,7 @@ class TestDemesRescaling(unittest.TestCase):
         with self.assertRaises(ValueError):
             moments.Demes.DemesUtil.rescale(g, np.inf)
 
-    def test_rescaling(self):
+    def test_rescaling_reversal(self):
         b = demes.Builder()
         b.add_deme(
             "anc",
@@ -2052,3 +2052,66 @@ class TestDemesRescaling(unittest.TestCase):
         g5 = moments.Demes.DemesUtil.rescale(g3, 0.2)
         g6 = moments.Demes.DemesUtil.rescale(g5, 50)
         g.assert_close(g6)
+
+    def IM_model(self, Ne=10000):
+        b = demes.Builder()
+        b.add_deme(
+            "anc",
+            epochs=[
+                dict(start_size=Ne, end_time=0.1 * 2 * Ne),
+            ],
+        )
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=0.5 * Ne)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=2 * Ne)])
+        return b
+
+    def test_rescaled_mutation_rate(self):
+        Ne = 10000
+        g = self.IM_model(Ne=Ne).resolve()
+        samples = {"A": 30, "B": 30}
+        u = 1e-8
+        L = 1e4
+        fs = moments.Demes.SFS(g, samples=samples, u=u, L=L)
+        fsb = moments.Demes.SFS(g, samples=samples, theta=4 * Ne * u * L)
+        self.assertTrue(np.allclose(fs, fsb))
+        fsc = moments.Demes.SFS(g, samples=samples, theta=4 * Ne * u, L=L)
+        self.assertTrue(np.allclose(fs, fsc))
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u / Q, L=L)
+            self.assertTrue(np.allclose(fs, fs2))
+            fs3 = moments.Demes.SFS(g2, samples=samples, theta=4 * Ne * u, L=L)
+            self.assertTrue(np.allclose(fs, fs3))
+
+    def test_rescaled_with_migration(self):
+        b = self.IM_model(Ne=10000)
+        b.add_migration(source="A", dest="B", rate=1e-4)
+        b.add_migration(source="B", dest="A", rate=2e-4, start_time=2000, end_time=1000)
+        g = b.resolve()
+
+        samples = {"A": 30, "B": 30}
+        u = 1e-8
+        fs = moments.Demes.SFS(g, samples=samples, u=u)
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u / Q)
+            self.assertTrue(np.allclose(fs, fs2))
+
+    def test_rescaled_reversible_mutation(self):
+        Ne = 10000
+        g = self.IM_model(Ne=Ne).resolve()
+        samples = {"A": 30, "B": 30}
+        u1 = 1e-8
+        u2 = 2e-8
+        u = [u1, u2]
+        theta = [4 * Ne * u1, 4 * Ne * u2]
+        fs = moments.Demes.SFS(g, samples=samples, u=u, reversible=True)
+        fsb = moments.Demes.SFS(g, samples=samples, theta=theta, reversible=True)
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            u_scaled = [u1 / Q, u2 / Q]
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u_scaled, reversible=True)
+            self.assertTrue(np.allclose(fs, fs2))

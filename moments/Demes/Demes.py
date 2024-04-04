@@ -208,6 +208,16 @@ def SFS(
     else:
         if u is not None:
             raise ValueError("Only one of u or theta may be specified")
+        if np.isscalar(theta):
+            theta *= L
+        else:
+            if np.ndim(theta) != 1 or len(theta) != 2:
+                raise ValueError(
+                    "Mutation rates must be a list of length 2 when using "
+                    "the reversible mutation model"
+                )
+            theta[0] *= L
+            theta[1] *= L
 
     # if a scalar, must be positive; if list-like, must be length 2 and both positive
     if not reversible:
@@ -224,11 +234,6 @@ def SFS(
             )
         if np.isscalar(theta):
             theta = [theta, theta]
-        if np.ndim(theta) != 1 or len(theta) != 2:
-            raise ValueError(
-                "Mutation rates must be a list of length 2 when using "
-                "the reversible mutation model"
-            )
         if theta[0] <= 0 or theta[1] <= 0:
             raise ValueError("Mutation rates must be positive")
         if theta[0] >= 1 or theta[1] >= 1:
