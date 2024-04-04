@@ -1506,8 +1506,8 @@ class TestSelectionSFS(unittest.TestCase):
         b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
         g = b.resolve()
 
-        for gamma in ["hi", ["hi"], {1, 2}, [1, 2]]:
-            with self.assertRaises(TypeError):
+        for gamma in ["hi", ["hi"], {1, 2}, [1, 2], np.inf, np.nan]:
+            with self.assertRaises(ValueError):
                 Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma, theta=1)
 
         for gamma in [{"D": 1}]:
@@ -2115,3 +2115,43 @@ class TestDemesRescaling(unittest.TestCase):
             u_scaled = [u1 / Q, u2 / Q]
             fs2 = moments.Demes.SFS(g2, samples=samples, u=u_scaled, reversible=True)
             self.assertTrue(np.allclose(fs, fs2))
+
+
+class TestDemesSelectionCoefficients(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_inputs(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=10000)])
+        g = b.resolve()
+        samples = {"A": 40}
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, gamma=[-1])
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, gamma=np.inf)
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, s=[0.0001])
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, s=np.inf)
+
+    def test_selection_one_pop(self):
+        b = demes.Builder()
+        Ne = 1e4
+        b.add_deme("A", epochs=[dict(start_size=Ne)])
+        g = b.resolve()
+        samples = {"A": 40}
+        s = -1e-4
+        gamma = 2 * Ne * s
+
+        fs1 = moments.Demes.SFS(g, samples=samples, gamma=gamma)
+        fs2 = moments.Demes.SFS(g, samples=samples, s=s)
+        self.assertTrue(np.allclose(fs1, fs2))
+
+        s2 = {"A": s}
+        fs3 = moments.Demes.SFS(g, samples=samples, s=s2)
+        self.assertTrue(np.allclose(fs1, fs3))
