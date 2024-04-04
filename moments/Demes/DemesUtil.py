@@ -93,7 +93,7 @@ def swipe(g, t):
     ..note::
         Don't really like this function name... any suggestions?
 
-    Returns a new demes graph with demography about the given time removed.
+    Returns a new demes graph with demography above the given time removed.
     Demes that existed before that time are removed, and demes that overlap
     with that time are given a constant size equal to their size at that time
     extending into the past.
