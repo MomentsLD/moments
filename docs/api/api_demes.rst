@@ -27,9 +27,11 @@ Running LD inference using ``demes``
 
 .. autofunction:: moments.Demes.Inference.compute_bin_stats
 
-Manipulating ``demes`` models to compute statistics
----------------------------------------------------
+Manipulating ``demes`` models
+-----------------------------
 
 .. autofunction:: moments.Demes.DemesUtil.slice
 
 .. autofunction:: moments.Demes.DemesUtil.swipe
+
+.. autofunction:: moments.Demes.DemesUtil.rescale
