@@ -22,6 +22,7 @@ def SFS(
     samples=None,
     unsampled_n=4,
     gamma=None,
+    s=None,
     h=None,
     theta=None,
     u=None,
@@ -176,16 +177,34 @@ def SFS(
     # get reference Ne from demes model
     Ne = _get_root_Ne(g)
 
+    # if (unscaled) s is provided, convert into (scaled) gamma selection coefficients
+    if s is not None:
+        if gamma is not None:
+            raise ValueError("Cannot specify both gamma and s")
+        if isinstance(s, (int, float)):
+            gamma = 2 * Ne * s
+        elif type(s) is dict:
+            gamma = {}
+            for k, v in s.items():
+                gamma[k] = 2 * Ne * v
+        else:
+            raise ValueError("Selection coefficient must be a scalar value or dict")
+
     # check selection and dominance inputs
     if gamma is not None:
         if "_default" in g:
             raise ValueError(
                 "Cannot use `_default` as a deme name when selection is specified"
             )
-        if type(gamma) is dict:
+        if isinstance(gamma, (int, float)):
+            if not np.isfinite(gamma):
+                raise ValueError("Selection coefficient must be a finite number")
+        elif type(gamma) is dict:
             for k in gamma.keys():
                 if k != "_default" and k not in g:
                     raise ValueError(f"Deme {k} in gamma, but {k} not in input graph")
+        else:
+            raise ValueError("Selection coefficient must be a scalar value or dict")
     if h is not None:
         if type(h) is dict:
             for k in h.keys():
@@ -196,7 +215,7 @@ def SFS(
     if theta is None:
         if u is None:
             u = 1
-        if np.isscalar(u):
+        if isinstance(u, (int, float)):
             theta = 4 * Ne * u * L
         else:
             if np.ndim(u) != 1 or len(u) != 2:
@@ -208,7 +227,7 @@ def SFS(
     else:
         if u is not None:
             raise ValueError("Only one of u or theta may be specified")
-        if np.isscalar(theta):
+        if isinstance(theta, (int, float)):
             theta *= L
         else:
             if np.ndim(theta) != 1 or len(theta) != 2:
@@ -221,7 +240,7 @@ def SFS(
 
     # if a scalar, must be positive; if list-like, must be length 2 and both positive
     if not reversible:
-        if not np.isscalar(theta):
+        if not isinstance(theta, (int, float)):
             raise ValueError(
                 "Mutation rate must be a scalar value for the default ISM model"
             )
@@ -232,7 +251,7 @@ def SFS(
             raise ValueError(
                 "Sequence length L must be 1 when using the reversible mutation model"
             )
-        if np.isscalar(theta):
+        if isinstance(theta, (int, float)):
             theta = [theta, theta]
         if theta[0] <= 0 or theta[1] <= 0:
             raise ValueError("Mutation rates must be positive")
@@ -945,7 +964,7 @@ def _compute_sfs(
         mask_corners = False
     else:
         # theta is a scalar
-        assert np.isscalar(theta)
+        assert isinstance(theta, (int, float))
         mask_corners = True
 
     integration_intervals = sorted(list(demes_present.keys()))[::-1]
