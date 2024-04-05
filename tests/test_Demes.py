@@ -1707,18 +1707,22 @@ class TestAncientSamples(unittest.TestCase):
         g = b.resolve()
 
         # test some results
-        y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[100, 200])
-        y2 = moments.LD.Demographics1D.snm()
+        theta = 0.001
+        y = Demes.LD(
+            g, sampled_demes=["deme1", "deme2"], sample_times=[100, 200], theta=theta
+        )
+        y2 = moments.LD.Demographics1D.snm(theta=theta)
         y2 = y2.split(0)
-        y2.integrate([0.5, 2.0], 0.125, m=[[0, 8], [8, 0]])
+        y2.integrate([0.5, 2.0], 0.125, m=[[0, 8], [8, 0]], theta=theta)
         y2 = y2.pulse_migrate(0, 1, 0.1)
-        y2.integrate([0.5, 2.0], 0.075, m=[[0, 8], [8, 0]])
+        y2.integrate([0.5, 2.0], 0.075, m=[[0, 8], [8, 0]], theta=theta)
         y2 = y2.split(1)
         y2.integrate(
             [0.5, 2.0, 2.0],
             0.025,
             m=[[0, 8, 0], [8, 0, 0], [0, 0, 0]],
             frozen=[False, False, True],
+            theta=theta,
         )
         y2 = y2.marginalize([1])
         self.assertTrue(np.allclose(y[0], y2[0]))

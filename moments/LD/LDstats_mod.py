@@ -789,7 +789,6 @@ class LDstats(list):
         theta=0.001,
         r=None,
         u=None,
-        Ne=None,
     ):
         """
         Takes a deme graph and computes the LD stats. ``demes`` is a package for
@@ -812,16 +811,13 @@ class LDstats(list):
             so might not necessarily be generations (e.g. if ``g.time_units`` is years)
         :type sample_times: list of floats, optional
         :param rho: The population-size scaled recombination rate(s). Can be None, a
-            non-negative float, or a list of values. Cannot be used with ``Ne``.
-        :param theta: The population-size scaled mutation rate. Cannot be used with ``Ne``.
+            non-negative float, or a list of values.
+        :param theta: The population-size scaled mutation rate. This defaults to
+            ``theta=0.001``, which is very roughly what is observed in humans.
         :param r: The raw recombination rate. Can be None, a non-negative float, or a
-            list of values. Must be used with ``Ne``.
-        :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
-            ``theta`` is set to ``4 * Ne * u``.
-        :param Ne: The reference population size. If none is given, we use the initial
-            size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
-            ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.
-        :type Ne: float, optional
+            list of values.
+        :param u: The raw per-base mutation rate. ``theta`` is set to ``4 * Ne * u``,
+            where ``Ne`` is the reference population size from the root deme.
         :return: A ``moments.LD`` LD statistics object, with number of populations equal
             to the length of ``sampled_demes``.
         :rtype: :class:`moments.LD.LDstats`
@@ -840,7 +836,6 @@ class LDstats(list):
             theta=theta,
             r=r,
             u=u,
-            Ne=Ne,
         )
         return y
 
