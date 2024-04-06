@@ -970,7 +970,7 @@ def _object_func_LD(
     # normalize statistics based on normalization population
     norm_idx = pop_ids.index(normalization)
     model = moments.LD.Inference.sigmaD2(model, normalization=norm_idx)
-    if statistics is None:
+    if (statistics is None) or (np.linalg.det(varcovs[0]) == 0):
         model = moments.LD.Inference.remove_normalized_lds(
             model, normalization=norm_idx
         )
