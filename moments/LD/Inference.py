@@ -154,9 +154,15 @@ def remove_normalized_data(
             np.delete(np.delete(varcovs[i], to_delete_ld, axis=0), to_delete_ld, axis=1)
         )
     ms.append(np.delete(means[-1], to_delete_h))
-    vcs.append(
-        np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
-    )
+    # Single population data will have 1-D array for H
+    if varcovs[-1].size > 1:
+        vcs.append(
+            np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
+        )
+    else:
+        vcs.append(
+            np.delete(varcovs[-1], to_delete_h)
+        )
     if statistics is None:
         return ms, vcs
     else:
