@@ -974,6 +974,7 @@ def _object_func_LD(
         model = moments.LD.Inference.remove_normalized_lds(
             model, normalization=norm_idx
         )
+        means, varcovs = moments.LD.Inference.remove_normalized_data(means,varcovs)
     else:
         model = moments.LD.Inference.remove_nonpresent_statistics(
             model, statistics=statistics
