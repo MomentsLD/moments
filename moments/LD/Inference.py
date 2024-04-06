@@ -237,13 +237,19 @@ def ll_over_bins(xs, mus, Sigmas):
                 Sigma_inv = _varcov_inv_cache[ii]["inv"]
             else:
                 _varcov_inv_cache[ii]["data"] = Sigmas[ii]
-                Sigma_inv = np.linalg.inv(Sigmas[ii])
-                _varcov_inv_cache[ii]["inv"] = Sigma_inv
+                if Sigmas[ii].size > 1:
+                    Sigma_inv = np.linalg.inv(Sigmas[ii])
+                    _varcov_inv_cache[ii]["inv"] = Sigma_inv
+                else:
+                    _varcov_inv_cache[ii]["inv"] = np.array([])
         else:
             _varcov_inv_cache[ii] = {}
             _varcov_inv_cache[ii]["data"] = Sigmas[ii]
-            Sigma_inv = np.linalg.inv(Sigmas[ii])
-            _varcov_inv_cache[ii]["inv"] = Sigma_inv
+                if Sigmas[ii].size > 1:
+                    Sigma_inv = np.linalg.inv(Sigmas[ii])
+                    _varcov_inv_cache[ii]["inv"] = Sigma_inv
+                else:
+                    _varcov_inv_cache[ii]["inv"] = np.array([])
         # append log-likelihood for this bin
         ll_vals.append(_ll(xs[ii], mus[ii], Sigma_inv))
     # sum over bins to get composite log-likelihood
