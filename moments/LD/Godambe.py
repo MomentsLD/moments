@@ -272,8 +272,12 @@ def _remove_normalized_data(statistics, normalization, means, varcovs, all_boot)
     for ii in range(len(varcovs) - 1):
         varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=0)
         varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=1)
-    varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=0)
-    varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=1)
+    if varcovs[-1].size > 1:
+        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=0)
+        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=1)
+    # Single poopulation data has 1D H array
+    else: 
+        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del)
     # remove from all_boot
     if len(all_boot) > 0:
         for jj, boot in enumerate(all_boot):
