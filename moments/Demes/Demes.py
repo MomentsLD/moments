@@ -325,9 +325,7 @@ def SFS(
     return fs
 
 
-def LD(
-    g, sampled_demes, sample_times=None, rho=None, theta=0.001, r=None, u=None, Ne=None
-):
+def LD(g, sampled_demes, sample_times=None, rho=None, theta=None, r=None, u=None):
     """
     Compute LD statistics from a ``demes``-specified demographic model.
     ``demes`` is a package for specifying demographic models in a
@@ -335,9 +333,13 @@ def LD(
     automatically parses the demographic model and returns LD statistics
     for the specified populations and (optionally) sampling times.
 
-    NOTE: Future versions will change the behavior of mutation and recombination
-    rate scaling, so that Ne isn't required as an input parameter but is instead
-    read directly from the demes model.
+    No mutation or recombination rates are required. If recombination
+    rates are omitted, only single-locus allelic diversity statistics
+    will be computed. If mutation rates are omitted, that is, neither
+    ``theta`` nor ``u`` are provided, the per-base mutation rate is set
+    to 1. Thus, to recover the correctly scaled LD statistics, multiply
+    the two-locus statistics by :math:`u^2` and the single-locus
+    statistics by :math:`u`.
 
     :param g: A ``demes`` DemeGraph from which to compute the LD.
     :type g: :class:`demes.DemeGraph`
@@ -354,15 +356,16 @@ def LD(
     :type sample_times: list of floats, optional
     :param rho: The population-size scaled recombination rate(s). Can be None, a
         non-negative float, or a list of values. Cannot be used with ``Ne``.
-    :param theta: The population-size scaled mutation rate. Cannot be used with ``Ne``.
-    :param r: The raw recombination rate. Can be None, a non-negative float, or a
-        list of values. Must be used with ``Ne``.
-    :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
+    :param theta: The population-size scaled mutation rate. Cannot be used
+        with ``u``.
+    :param r: The unscaled recombination rate(s). Can be None, a non-negative
+        float, or a list of values. Recombination rates are scaled by ``Ne`` to
+        get ``rho=4*Ne*u``, and ``Ne`` is determined by the root population size.
+    :type r: scalar or list of scalars
+    :param u: The raw per-base mutation rate. The reference effective population
+        size ``Ne`` is determined from the demograhic model, after which
         ``theta`` is set to ``4*Ne*u``.
-    :param Ne: The reference population size. If none is given, we use the initial
-        size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
-        ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.
-    :type Ne: float, optional
+    :type u: scalar
     :return: A ``moments.LD`` LD statistics object, with number of populations equal
         to the length of ``sampled_demes``.
     :rtype: :class:`moments.LD.LDstats`
@@ -417,6 +420,7 @@ def LD(
 
     # get the list of size functions, migration matrices, and frozen attributes from
     # the deme graph and event times, matching the integration times
+    Ne = _get_root_Ne(g)
     nu_funcs, mig_mats, Ts, frozen_pops = _get_integration_parameters(
         g, demes_present, list_of_frozen_demes, Ne=Ne
     )
@@ -425,20 +429,30 @@ def LD(
     root_selfing_rate = _get_root_selfing_rate(g)
 
     # set recombination and mutation rates
-    if Ne is None:
-        Ne = _get_root_Ne(g)
     if rho is not None and r is not None:
         raise ValueError("Can only specify rho or r, but not both")
     if rho is None:
         if r is not None:
-            rho = 4 * Ne * np.array(r)
-    elif hasattr(rho, "__len__"):
-        rho = np.array(rho)
-    else:
-        if rho < 0:
-            raise ValueError("rho must be non-negative")
+            if hasattr(r, "__len__"):
+                rho = 4 * Ne * np.array(r)
+            else:
+                rho = 4 * Ne * r
+    if rho is not None:
+        if hasattr(rho, "__len__"):
+            rho = np.array(rho)
+            if np.any(rho < 0):
+                raise ValueError("rho must be non-negative")
+        else:
+            if rho < 0:
+                raise ValueError("rho must be non-negative")
+    if u is None and theta is None:
+        u = 1
     if u is not None:
+        if theta is not None:
+            raise ValueError("Only one of theta and u may be specified")
         theta = 4 * Ne * u
+    if theta <= 0:
+        raise ValueError("Mutation rate must be positive")
 
     # compute LD
     y = _compute_LD(
