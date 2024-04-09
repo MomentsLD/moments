@@ -202,24 +202,139 @@ sample is taken from just before its split into the CEU and CHB branches.
 Linkage disequilibrium
 ======================
 
-We can similarly compute :ref:`LD statistics <sec_ld>`. Here, we compute
-the set of multi-population Hill-Robertson statistics for the three
-contemporary populations (YRI, CEU, and CHB), for three different
-recombination rates, :math:`\rho=4Nr=0, 1, 2`.
+We can similarly compute :ref:`LD statistics <sec_ld>`. Here, we compute the
+set of multi-population Hill-Robertson statistics for the three contemporary
+populations (YRI, CEU, and CHB), for three different recombination rates,
+:math:`\rho=4Nr=0, 1, 2`. Here, the default ``theta`` (:math:`\theta=4N_eu`) is
+:math:`10^{-3}`. This very roughly corresponds to human-like scaled mutation
+rates. Using ``moments.LD.LDstats.from_demes(...)``, we can specify the
+mutation rate, as shown below.
+
 
 .. jupyter-execute::
 
     import moments.LD
+    model = demes.load(ooa_model)
     
     sampled_demes = ["YRI", "CEU", "CHB"]
+    rho = [0, 1, 2]
+    theta = 0.0008
     y = moments.LD.LDstats.from_demes(
-        ooa_model, sampled_demes=sampled_demes, rho=[0, 1, 2]
+        model, sampled_demes=sampled_demes, rho=rho, theta=theta
     )
 
     print("sampled populations:", y.pop_ids)
+    sigmaD2 = moments.LD.Inference.sigmaD2(y, normalization=0)
+    print(
+        "E[sigma_D^2] in YRI:",
+        ", ".join([f"{sigmaD2[i][0]:0.3f}" for i in range(len(rho))])
+    )
 
-Selection and dominance in Demes.SFS
-====================================
+The function ``from_demes(...)`` in the above code block is a wrapper for
+a more flexible function to compute LD statistics from a Demes model:
+``moments.Demes.LD(...)``. In this function, we can either specify scaled or
+unscaled recombination and mutation rates. If we provide unscaled,
+recombination probabilities ``r``, then scaled recombination rates
+``rho=4*Ne*r`` are determined by taking the root deme's initial population size
+for ``Ne``. This provides a "naturally" scaled model.
+
+Similarly, a per-base mutation rate ``u`` can be provided instead of ``theta``,
+and ``Ne`` is determined directly from the demographic model to properly scale
+mutation rates. Using the OOA model again, the following code block
+demonstrates this usage.
+
+.. jupyter-execute::
+
+    sampled_demes = ["YRI", "CEU", "CHB"]
+    Ne = model.demes[0].epochs[0].start_size
+    r = [0, 1 / 4 / Ne, 2 / 4 / Ne]
+    u = 0.0008 / 4 / Ne
+    y = moments.Demes.LD(
+        model, sampled_demes=sampled_demes, r=r, u=u
+    )
+
+    print("Ne in model:", Ne)
+    print("sampled populations:", y.pop_ids)
+    sigmaD2 = moments.LD.Inference.sigmaD2(y, normalization=0)
+    print(
+        "E[sigma_D^2] in YRI:",
+        ", ".join([f"{sigmaD2[i][0]:0.3f}" for i in range(len(rho))])
+    )
+
+*************************************************
+Mutation rates, selection, and scaling of the SFS
+*************************************************
+
+The function ``moments.Spectrum.from_demes(model, samples=samples)`` is likely
+"good enough" for most applications. It provides basic usage with selection
+(see "Selection and dominance" section below), and allows for ``theta`` to be
+set, which defaults to 1. More fine-scale control of mutation (and selection)
+parameters is provided in ``moments.Demes.SFS(...)``. This is because ``theta``
+(and ``gamma``, the scaled selection coefficient) are scaled by ``Ne``, but
+``demes`` models are already given in physical units, meaning, drift-effective
+population sizes are provided for each deme. We can therefore determine
+a reference ``Ne`` directly from the demographic model. This reference ``Ne``
+is taken to be the initial size of the root, or ancestral, deme.
+
+Mutation rates and sequence length
+==================================
+
+Since ``Ne`` can be determined from the demographic model, we may provide the
+per-base mutation rate ``u`` instead of ``theta`` (in humans, ``u`` is
+estimated to be between ``1e-8`` and ``1.5e-8``). Then the output SFS is
+naturally scaled by the per-base pair scaled mutation rate given by the model.
+Below, we demonstrate this scaling using a steady state demographic model.
+
+.. jupyter-execute::
+
+    Ne = 10000
+    u = 1.5e-8
+    print("theta:", 4 * Ne * u)
+
+    b = demes.Builder(time_units="generations")
+    b.add_deme("A", epochs=[dict(start_size=Ne)])
+    g = b.resolve()
+
+    fs_demes = moments.Demes.SFS(g, samples={"A": 8}, u=u)
+    
+    print("SFS:", repr(fs_demes))
+    print()
+
+    # some statistics
+    print("pi:", fs_demes.pi())
+    print("theta_W:", fs_demes.Watterson_theta())
+
+If we do not provide the mutation rate, the output SFS is scaled by ``4*Ne``.
+Thus, without a mutation rate passed to the ``moments.Demes.SFS()`` function,
+we would need to multiply the output SFS by the mutation rate ``u`` to recover
+a properly scaled SFS.
+
+.. jupyter-execute::
+
+    fs_demes = moments.Demes.SFS(g, samples={"A": 8})
+    print("SFS:", repr(fs_demes))
+    print()
+
+    # some statistics
+    print("pi:", u * fs_demes.pi())
+
+If we want to simulate or compare to data from a large length of sequenced
+genome, we can also specify the length ``L``. This length defaults to 1, i.e.,
+a single base pair. Note that setting some value for ``L`` is equivalent to
+specifying the mutation rate as ``u*L`` and not passing a value to ``L`` in
+as a function argument.
+
+.. note::
+
+    If we simulate under the reversible mutation model, by setting
+    ``reversible=True``, the sequence length ``L`` must be 1 (its default
+    value). Then a single mutation rate ``u`` can be provided, assuming
+    equal forward and backward mutation rates, or ``u`` can be given as
+    a list of length two. Mutation rates cannot be too large in the
+    reversible mutation model (:math:`u<1/4N_e`).
+
+Selection and dominance
+=======================
 
 Moments can compute the SFS under selection and dominance. The ``demes`` model
 format currently lets us specify a single selection and dominance coefficient
@@ -227,9 +342,13 @@ for each population in the model, or we can set different selection parameters
 in each populations.
 
 The most simple scenario is to specify a single selection and dominance
-parameter that applied to all populations in the demographic model. In this
-case, we can pass ``gamma`` and/or ``h`` as scalar values to the function
-``moments.Spectrum.from_demes()``:
+parameter that applied to all populations in the demographic model. We can use
+either the class function ``moments.Spectrum.from_demes()``, or the more
+flexible function ``moments.Demes.SFS()`` (which
+``moments.Spectrum.from_demes()`` is a wrapper of). Both functions accept
+``gamma`` (:math:`\gamma=2N_es`) and/or ``h`` as input parameters, and
+``moments.Demes.SFS()`` allows "raw" selection coefficients ``s`` to be input
+instead. These can be passed as scalar values:
 
 .. code-block::
 
@@ -256,7 +375,7 @@ case, we can pass ``gamma`` and/or ``h`` as scalar values to the function
 
     fs_yri_sel = moments.Spectrum.from_file("./data/ooa.yri.40.sel.fs")
 
-We can compare the neutral and selected spectra:
+Let's compare the neutral and selected spectra:
 
 .. jupyter-execute::
 
@@ -276,8 +395,8 @@ population names to the coefficients. There can be as many different
 coefficient values as there are different demes in the demographic model.
 However, if a population is missing from the dictionary, it is assigned the
 default selection or dominance coefficient. In most cases the default values
-are :math:`\gamma = 0` and :math:`h=1/2`, but these can be changed by specifying
-a ``_default`` value in the selection and dominance dictionaries.
+are :math:`\gamma = 0` and :math:`h=1/2`, but these can be changed by
+specifying a ``_default`` value in the selection and dominance dictionaries.
 
 For example:
 
@@ -320,6 +439,11 @@ demographic model). Taking the example above:
     )
 
     assert np.allclose(fs, fs_defaults)
+
+In ``moments.Demes.SFS()``, the ``s`` can be provided in the same way as
+``gamma``. Internally, the ``SFS()`` function determines the appropriate ``Ne``
+value from the demographic model, so that selection is appropriately scaled
+relative to drift in your simulation.
 
 ***********************************
 Using ``Demes`` to infer demography
