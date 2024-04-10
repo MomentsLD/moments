@@ -5,4 +5,5 @@ include LICENSE.txt
 #recursive-include doc *.html *.css *.js manual.pdf *.tex *.py *.fs *.bib
 #recursive-include examples *
 recursive-include tests *
+recursive-include moments *.py *.pyx
 #global-exclude *.msout *.swp *.pyc seedms *.png
