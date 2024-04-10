@@ -49,3 +49,8 @@ jobs:
       - name: run pytest
         run: |
           python -m pytest -n auto -v tests
+
+      - name: Test build with build module
+        run: |
+          python -m pip install build
+          python -m build .
