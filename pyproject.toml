@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools",
+    "setuptools_scm>=8",
     "wheel",
     "numpy==1.12.1; python_version=='3.6'",
     "numpy==1.15.4; python_version=='3.7'",
@@ -9,6 +10,34 @@ requires = [
     "numpy==1.22.3; python_version=='3.10'",
     # do not pin numpy on future versions of python to avoid incompatible numpy and python versions
     "numpy; python_version>='3.11'",
-    "Cython>=0.25.0"
+    "Cython>=0.25.0",
+    "bdist_mpkg"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "moments/_version.py"
+
+[project]
+name = "moments"
+authors = [
+    {name = "Aaron Ragsdale", email = "apgragsdale@wisc.edu"},
+    {name = "Julien Jouganous"},
+    {name = "Simon Gravel", email = "simon.gravel@mcgill.ca"},
+    {name = "Ryan Gutenkunst"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.9, <3.13"
+dynamic = ["version"]
+dependencies=[
+    "numpy >=1.12.1",
+    "cython >=0.25",
+    "scipy >=1.3",
+    "mpmath >=1.0",
+    "demes >=0.2",
+]
+
+[project.urls]
+Repository = "https://github.com/MomentsLD/moments"
+Documentation = "https://moments.readthedocs.io"
+
