@@ -11,7 +11,6 @@ requires = [
     # do not pin numpy on future versions of python to avoid incompatible numpy and python versions
     "numpy; python_version>='3.11'",
     "Cython>=0.25.0",
-    "bdist_mpkg"
 ]
 build-backend = "setuptools.build_meta"
 
