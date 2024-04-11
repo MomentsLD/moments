@@ -433,11 +433,17 @@ def optimize(
     inference options that specify which parameters to fit, and bounds or constraints
     on those parameters.
 
-    :param deme_graph: A YAML file in ``demes`` format.
-    :param inference_options: See (url) for how to set this up.
-    :param data: The SFS to fit, which must have pop_ids specified. Can either be a Spectrum
-        object or the file path to the stored frequency spectrum. The populations
-        in the SFS need to be present (with matching IDs) in the deme graph.
+    :param deme_graph: A demographic model as a YAML file in ``demes`` format. This
+        should be given as a string specifying the path and file name of the model.
+    :param inference_options: A second YAML file, specifying the parameters to be
+        optimized, parameter bounds, and constraints between parameters. Please see
+        the documentation at
+        `https://momentsld.github.io/moments/extensions/demes.html#the-options-file
+        <https://momentsld.github.io/moments/extensions/demes.html#the-options-file>`
+    :param data: The SFS to fit, which must have pop_ids specified. Can either be a
+        Spectrum object or the file path to the stored frequency spectrum. The
+        populations in the SFS (as given by ``sfs.pop_ids``) need to be present in
+        the demographic model and have matching IDs.
     :param maxiter: The maximum number of iterations to run optimization. Defaults
         to 1000. Note: maxiter does not seem to work with the Powell method! This
         appears to be a bug within scipy.optimize.
@@ -1034,14 +1040,26 @@ def optimize_LD(
     inference options that specify which parameters to fit, and bounds or constraints
     on those parameters.
 
-    :param deme_graph: A YAML file in ``demes`` format.
-    :param inference_options: See (url) for how to set this up.
-    :param means:
-    :param varcovs:
-    :param pop_ids:
-    :param rs:
-    :param statistics:
-    :param normalization:
+    :param deme_graph: A demographic model as a YAML file in ``demes`` format. This
+        should be given as a string specifying the path and file name of the model.
+    :param inference_options: A second YAML file, specifying the parameters to be
+        optimized, parameter bounds, and constraints between parameters. Please see
+        the documentation at
+        `https://momentsld.github.io/moments/extensions/demes.html#the-options-file
+        <https://momentsld.github.io/moments/extensions/demes.html#the-options-file>`
+    :param means: The list of average normalized LD and H statistics, as produced by
+         the parsing function ``moments.LD.Parsing.bootstrap_data(region_data)``.
+    :param varcovs: The list of variance-covariance matrices for data within each
+        recombination bin, as produced by the parsing function
+        ``moments.LD.Parsing.bootstrap_data(region_data)``.
+    :param pop_ids: The list of population names corresponding to the data.
+    :param rs: A list of recombination bin edges, defining the recombination
+        distance bins.
+    :param statistics: A list of two lists, the first being the LD statistics
+        present in the data, and the second the list of single-locus statistics
+        present in the data.
+    :param normalization: The name of the population that was used to normalize
+        the data. See documentation for examples specifying each of these arguments.
     :param maxiter: The maximum number of iterations to run optimization. Defaults
         to 1000. Note: maxiter does not seem to work with the Powell method! This
         appears to be a bug within scipy.optimize.
@@ -1058,7 +1076,7 @@ def optimize_LD(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
-    :return: List of parameter names, optimal parameters, and LL
+    :return: List of parameter names, optimized parameter values, and LL
     """
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
