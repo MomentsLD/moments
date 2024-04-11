@@ -438,8 +438,7 @@ def optimize(
     :param inference_options: A second YAML file, specifying the parameters to be
         optimized, parameter bounds, and constraints between parameters. Please see
         the documentation at
-        `https://momentsld.github.io/moments/extensions/demes.html#the-options-file
-        <https://momentsld.github.io/moments/extensions/demes.html#the-options-file>`
+        https://momentsld.github.io/moments/extensions/demes.html#the-options-file
     :param data: The SFS to fit, which must have pop_ids specified. Can either be a
         Spectrum object or the file path to the stored frequency spectrum. The
         populations in the SFS (as given by ``sfs.pop_ids``) need to be present in
@@ -1045,8 +1044,7 @@ def optimize_LD(
     :param inference_options: A second YAML file, specifying the parameters to be
         optimized, parameter bounds, and constraints between parameters. Please see
         the documentation at
-        `https://momentsld.github.io/moments/extensions/demes.html#the-options-file
-        <https://momentsld.github.io/moments/extensions/demes.html#the-options-file>`
+        https://momentsld.github.io/moments/extensions/demes.html#the-options-file
     :param means: The list of average normalized LD and H statistics, as produced by
          the parsing function ``moments.LD.Parsing.bootstrap_data(region_data)``.
     :param varcovs: The list of variance-covariance matrices for data within each

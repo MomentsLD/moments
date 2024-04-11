@@ -170,7 +170,7 @@ def get_genotypes(
         all_genotypes = all_genotypes.compress(in_chromosome)
 
     if bed_file is not None:
-        bed_file_data = pandas.read_csv(bed_file, sep="\s+", header=None)
+        bed_file_data = pandas.read_csv(bed_file, sep=r"\s+", header=None)
         bed_chromosomes = np.array(bed_file_data[0])
         bed_lefts = np.array(bed_file_data[1])
         bed_rights = np.array(bed_file_data[2])
@@ -262,7 +262,7 @@ def _assign_recombination_rates(
         )
         sys.stdout.flush()
     try:
-        rec_map = pandas.read_csv(map_file, sep="\s+")
+        rec_map = pandas.read_csv(map_file, sep=r"\s+")
     except:
         raise ValueError("Error loading recombination map.")
         sys.stdout.flush()
@@ -528,7 +528,7 @@ def _count_types_sparse(
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
-        samples = pandas.read_csv(pop_file, sep="\s+")
+        samples = pandas.read_csv(pop_file, sep=r"\s+")
         cols_to_keep = np.array([False] * np.shape(genotypes)[1])
         all_samples_to_keep = []
         for pop in pops:
@@ -998,7 +998,7 @@ def _get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, sep="\s+")
+        samples = pandas.read_csv(pop_file, sep=r"\s+")
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 
