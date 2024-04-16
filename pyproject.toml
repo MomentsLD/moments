@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 write_to = "moments/_version.py"
 
 [project]
-name = "moments"
+name = "moments-popgen"
 authors = [
     {name = "Aaron Ragsdale", email = "apgragsdale@wisc.edu"},
     {name = "Julien Jouganous"},
@@ -29,7 +29,7 @@ license = {text = "MIT"}
 requires-python = ">=3.9, <3.13"
 dynamic = ["version"]
 dependencies=[
-    "numpy >=1.12.1",
+    "numpy >=1.12.1, <2.0",
     "cython >=0.25",
     "scipy >=1.3",
     "mpmath >=1.0",
