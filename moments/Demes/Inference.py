@@ -282,23 +282,27 @@ def _perturb_params_constrained(
 ):
     tries = 0
     conditions_satisfied = False
-    sep = upper_bound - lower_bound
-    for i, val in enumerate(sep):
-        if np.isinf(val):
-            sep = 1
-    while tries < reps and not conditions_satisfied:
+    while not conditions_satisfied:
+        if tries == reps:
+            raise ValueError("Failed to set up initial parameters with constraints")
+        # perturb initial parameters and make sure they are within our bounds
         p_guess = p0 * 2 ** (fold * (2 * np.random.random(len(p0)) - 1))
+        if np.any(p_guess <= lower_bound) or np.any(p_guess >= upper_bound):
+            for i in range(len(p_guess)):
+                tries_bounds = 0
+                while p_guess[i] <= lower_bound[i] or p_guess[i] >= upper_bound[i]:
+                    if tries_bounds == reps:
+                        raise ValueError(
+                            "Failed to set up initial parameters within bounds"
+                        )
+                    p_guess[i] = p0[i] * 2 ** (fold * (2 * np.random.random() - 1))
+                    tries_bounds += 1
+        # check that our constraints are satisfied
         conditions_satisfied = True
-        if lower_bound is not None:
-            p_guess = np.maximum(p_guess, lower_bound + 0.01 * sep)
-        if upper_bound is not None:
-            p_guess = np.minimum(p_guess, upper_bound - 0.01 * sep)
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
         tries += 1
-        if tries == reps:
-            raise ValueError("Failed to set up initial parameters with constraints")
     return p_guess
 
 
