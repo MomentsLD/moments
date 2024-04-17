@@ -188,7 +188,9 @@ jobs:
     name: Upload to PyPI
     runs-on: ubuntu-latest
     needs: ['manylinux2_28', 'manylinux2_28_test', 'manylinux2_28_test_install_wheel', 'macos_test_install_wheel']
-    environment: release
+    environment:
+      name: pypi
+      url: https://pypi.org/p/moments-popgen
     permissions:
       id-token: write
     steps:
