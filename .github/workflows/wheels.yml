@@ -6,7 +6,13 @@ on:
   release:
     types: [created]
   pull_request:
-    branches: [main, dev]
+    branches: [main, devel]
+  push:
+    branches: [main, devel]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build_sdist:
