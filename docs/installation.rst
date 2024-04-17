@@ -9,6 +9,9 @@ Python 2, we do not actively ensure that moments remains fully compatable with P
 Using pip
 =========
 
+.. todo::
+    Update docs when moments is installable via pip, as ``pip install moments-popgen``.
+
 A simple way to install ``moments`` is via ``pip``. ``numpy``, ``mpmath``, and ``cython``
 are install requirements, but installing ``moments`` directly from the git repository
 using ``pip`` should install these dependencies automatically:
