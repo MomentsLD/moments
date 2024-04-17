@@ -37,7 +37,7 @@ class LinearSystemTestCase(unittest.TestCase):
         )
         dims = numpy.array([25])
         ljk = jk.calcJK13(int(dims[0] - 1))
-        s = LinearSystem_1D.calcS(dims, ljk)
+        s = LinearSystem_1D.calcS(dims[0], ljk)
         S = -0.1 * s
         self.assertTrue(numpy.allclose(S.todense(), S1ref))
 
@@ -50,7 +50,7 @@ class LinearSystemTestCase(unittest.TestCase):
         )
         dims = numpy.array([25])
         ljk = jk.calcJK23(int(dims[0] - 1))
-        s = LinearSystem_1D.calcS2(dims, ljk)
+        s = LinearSystem_1D.calcS2(dims[0], ljk)
         S = -1.0 * (1 - 2 * 0.1) * s
         self.assertTrue(numpy.allclose(S.todense(), S2ref))
 

@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 write_to = "moments/_version.py"
 
 [project]
-name = "moments"
+name = "moments-popgen"
 authors = [
     {name = "Aaron Ragsdale", email = "apgragsdale@wisc.edu"},
     {name = "Julien Jouganous"},
@@ -29,7 +29,7 @@ license = {text = "MIT"}
 requires-python = ">=3.9, <3.13"
 dynamic = ["version"]
 dependencies=[
-    "numpy >=1.12.1",
+    "numpy >=1.12.1, <2.0",
     "cython >=0.25",
     "scipy >=1.3",
     "mpmath >=1.0",
@@ -38,5 +38,16 @@ dependencies=[
 
 [project.urls]
 Repository = "https://github.com/MomentsLD/moments"
-Documentation = "https://moments.readthedocs.io"
+Documentation = "https://momentsld.github.io/moments/"
 
+[tool.cibuildwheel]
+test-requires = "pytest"
+test-command = "pytest {project}/tests"
+build-frontend = "build"
+
+[tool.cibuildwheel.macos]
+build = "cp3{11,12}-*"
+
+[tool.cibuildwheel.linux]
+build = "cp*manylinux*"
+archs = "x86_64"
