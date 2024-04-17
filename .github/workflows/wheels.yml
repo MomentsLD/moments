@@ -152,7 +152,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          python -m pip install --no-cache-dir --only-binary=moments --pre --find-links . moments
+          python -m pip install --no-cache-dir --only-binary=moments-popgen --pre --find-links . moments-popgen
           python -m moments --includes
           python -c "import moments;print(moments.__version__)"
           python -c "import moments;print(moments.__file__)"
@@ -181,7 +181,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          python -m pip install --no-cache-dir --only-binary=moments --pre --find-links . moments
+          python -m pip install --no-cache-dir --only-binary=moments-popgen --pre --find-links . moments-popgen
           python -m moments --includes
           python -c "import moments;print(moments.__version__)"
           python -c "import moments;print(moments.__file__)"
