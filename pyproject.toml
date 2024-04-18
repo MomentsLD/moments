@@ -35,6 +35,7 @@ dependencies=[
     "mpmath >=1.0",
     "demes >=0.2",
 ]
+readme = "README.md"
 
 [project.urls]
 Repository = "https://github.com/MomentsLD/moments"
