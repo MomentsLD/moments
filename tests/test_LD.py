@@ -406,7 +406,8 @@ class CopyAndPickle(unittest.TestCase):
         temp_file = "temp.bp"
         with open(temp_file, "wb+") as fout:
             pickle.dump(y, fout)
-        y2 = pickle.load(open(temp_file, "rb"))
+        with open(temp_file, "rb") as fin:
+            y2 = pickle.load(fin)
         self.assertEqual(y.num_pops, y2.num_pops)
         self.assertEqual(y.pop_ids, y2.pop_ids)
         for x1, x2 in zip(y[:], y2[:]):
