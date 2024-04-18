@@ -6,29 +6,11 @@ Installation
 Python 2, we do not actively ensure that moments remains fully compatable with Python
 2, and strongly recommend using Python 3.
 
-Using conda
-===========
-
-``moments`` is available via `Bioconda <https://anaconda.org/bioconda/moments>`_.
-
-The most recent release of ``moments`` can be installed by running
-
-.. code-block:: bash
-
-   conda install -c bioconda moments
-
-The `conda channels <https://bioconda.github.io/user/install.html#set-up-channels>`_
-must be set up to include bioconda, which can be done by running
-
-.. code-block:: bash
-   
-   conda config --add channels defaults
-   conda config --add channels bioconda
-   conda config --add channels conda-forge
-
-
 Using pip
 =========
+
+.. todo::
+    Update docs when moments is installable via pip, as ``pip install moments-popgen``.
 
 A simple way to install ``moments`` is via ``pip``. ``numpy``, ``mpmath``, and ``cython``
 are install requirements, but installing ``moments`` directly from the git repository
@@ -58,6 +40,27 @@ and then from within the moments directory (``cd moments``), run
    pip install -r requirements.txt
    pip install .
 
+Using conda
+===========
+
+``moments`` is available via `Bioconda <https://anaconda.org/bioconda/moments>`_.
+
+The most recent release of ``moments`` can be installed by running
+
+.. code-block:: bash
+
+   conda install -c bioconda moments
+
+The `conda channels <https://bioconda.github.io/user/install.html#set-up-channels>`_
+must be set up to include bioconda, which can be done by running
+
+.. code-block:: bash
+   
+   conda config --add channels defaults
+   conda config --add channels bioconda
+   conda config --add channels conda-forge
+
+
 
 Dependencies and details
 ========================
@@ -81,7 +84,7 @@ using
 
 .. code-block:: bash
 
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
 
 We also strongly recommend installing ``ipython`` for interactive analyses.
 
@@ -97,14 +100,7 @@ in the moments directory:
 
 .. code-block:: bash
 
-   python setup.py build_ext --inplace
-   python setup.py install
-
-or
-
-.. code-block:: bash
-
-   pip install .
+    python -m pip install -e .
 
 Note that you might need sudo privileges to install in this way.
 

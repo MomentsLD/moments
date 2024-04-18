@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools",
+    "setuptools_scm>=8",
     "wheel",
     "numpy==1.12.1; python_version=='3.6'",
     "numpy==1.15.4; python_version=='3.7'",
@@ -9,6 +10,44 @@ requires = [
     "numpy==1.22.3; python_version=='3.10'",
     # do not pin numpy on future versions of python to avoid incompatible numpy and python versions
     "numpy; python_version>='3.11'",
-    "Cython>=0.25.0"
+    "Cython>=0.25.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "moments/_version.py"
+
+[project]
+name = "moments-popgen"
+authors = [
+    {name = "Aaron Ragsdale", email = "apgragsdale@wisc.edu"},
+    {name = "Julien Jouganous"},
+    {name = "Simon Gravel", email = "simon.gravel@mcgill.ca"},
+    {name = "Ryan Gutenkunst"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.8, <3.13"
+dynamic = ["version"]
+dependencies=[
+    "numpy >=1.12.1, <2.0",
+    "cython >=0.25",
+    "scipy >=1.3",
+    "mpmath >=1.0",
+    "demes >=0.2",
+]
+
+[project.urls]
+Repository = "https://github.com/MomentsLD/moments"
+Documentation = "https://momentsld.github.io/moments/"
+
+[tool.cibuildwheel]
+test-requires = "pytest"
+test-command = "pytest {project}/tests"
+build-frontend = "build"
+
+[tool.cibuildwheel.macos]
+build = "cp3{11,12}-*"
+
+[tool.cibuildwheel.linux]
+build = "cp*manylinux*"
+archs = "x86_64"

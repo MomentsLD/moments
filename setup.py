@@ -1,27 +1,9 @@
-# Importing these adds a 'bdist_mpkg' option that allows building binary
-# packages on OS X.
-try:
-    import setuptools
-    import bdist_mpkg
-except ImportError:
-    pass
-
-
 from distutils.core import setup
 from distutils.extension import Extension
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
 
-try:
-    from Cython.Build import cythonize
-    from Cython.Distutils import build_ext
-except ImportError as e:
-    print("cython not installed, please install cython first")
-    raise e
-
-try:
-    import numpy as np
-except ImportError as e:
-    print("numpy not installed, please install numpy first")
-    raise e
+import numpy as np
 
 # cython extensions for moments
 extensions = [
@@ -70,10 +52,6 @@ extensions = [
 ]
 
 setup(
-    name="moments",
-    version=open("moments/_version.py").readlines()[-1].split()[-1].strip("\"'"),
-    author="Aaron Ragsdale, Julien Jouganous, Simon Gravel, Ryan Gutenkunst",
-    author_email="aaron.ragsdale@mail.mcgill.ca, simon.gravel@mcgill.ca",
     url="https://github.com/MomentsLD/moments",
     packages=[
         "moments",
@@ -82,15 +60,6 @@ setup(
         "moments.LD",
         "moments.Demes",
     ],
-    license="MIT",
     cmdclass={"build_ext": build_ext},
     ext_modules=cythonize(extensions, language_level="3"),
-    python_requires=">=3.6",
-    install_requires=[
-        "numpy >=1.12.1",
-        "cython >=0.25",
-        "scipy >=1.3",
-        "mpmath >=1.0",
-        "demes >=0.2",
-    ],
 )

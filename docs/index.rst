@@ -55,3 +55,4 @@ Welcome to moments's documentation!
 
    api/api_moments
    api/api_ld
+   api/api_demes

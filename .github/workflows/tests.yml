@@ -18,8 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: [3.9, "3.10"]
+        os: [ubuntu-latest, macos-13, macos-14]
+        python-version: ["3.11", "3.12"]
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
@@ -49,3 +49,19 @@ jobs:
       - name: run pytest
         run: |
           python -m pytest -n auto -v tests
+
+      - name: Test build with build module
+        run: |
+          python -m pip install build
+          python -m build .
+
+      - name: Test pip install from wheel in fresh venv
+        run: |
+            cd dist
+            python -m venv venv
+            source venv/bin/activate
+            python -m pip install --no-cache-dir ./moments*-*.whl
+            python -c "import moments;print(moments.__file__)"
+            python -c "import moments;print(moments.__version__)"
+            deactivate
+            rm -rf venv

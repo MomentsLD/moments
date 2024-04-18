@@ -107,7 +107,11 @@ def remove_normalized_lds(y, normalization=0):
     to_delete_ld = y.names()[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
     to_delete_h = y.names()[1].index("H_{0}_{0}".format(normalization))
     for i in range(len(y) - 1):
+        if len(y[i]) != len(y.names()[0]):
+            raise ValueError("Unexpected number of LD stats in data")
         y[i] = np.delete(y[i], to_delete_ld)
+    if len(y[-1]) != len(y.names()[1]):
+        raise ValueError("Unexpected number of H stats in data")
     y[-1] = np.delete(y[-1], to_delete_h)
     return y
 
@@ -154,9 +158,13 @@ def remove_normalized_data(
             np.delete(np.delete(varcovs[i], to_delete_ld, axis=0), to_delete_ld, axis=1)
         )
     ms.append(np.delete(means[-1], to_delete_h))
-    vcs.append(
-        np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
-    )
+    # Single population data will have 1-D array for H
+    if varcovs[-1].size > 1:
+        vcs.append(
+            np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
+        )
+    else:
+        vcs.append(np.delete(varcovs[-1], to_delete_h))
     if statistics is None:
         return ms, vcs
     else:
@@ -226,17 +234,19 @@ def ll_over_bins(xs, mus, Sigmas):
     ll_vals = []
     for ii in range(len(xs)):
         # get var-cov inverse from cache dictionary, or compute it
-        if ii in _varcov_inv_cache:
-            if np.all(_varcov_inv_cache[ii]["data"] == Sigmas[ii]):
-                Sigma_inv = _varcov_inv_cache[ii]["inv"]
-            else:
-                _varcov_inv_cache[ii]["data"] = Sigmas[ii]
-                Sigma_inv = np.linalg.inv(Sigmas[ii])
-                _varcov_inv_cache[ii]["inv"] = Sigma_inv
-        else:
+        recompute = True
+        if ii in _varcov_inv_cache and np.all(
+            _varcov_inv_cache[ii]["data"] == Sigmas[ii]
+        ):
+            Sigma_inv = _varcov_inv_cache[ii]["inv"]
+            recompute = False
+        if recompute:
             _varcov_inv_cache[ii] = {}
             _varcov_inv_cache[ii]["data"] = Sigmas[ii]
-            Sigma_inv = np.linalg.inv(Sigmas[ii])
+            if Sigmas[ii].size == 0:
+                Sigma_inv = np.array([])
+            else:
+                Sigma_inv = np.linalg.inv(Sigmas[ii])
             _varcov_inv_cache[ii]["inv"] = Sigma_inv
         # append log-likelihood for this bin
         ll_vals.append(_ll(xs[ii], mus[ii], Sigma_inv))

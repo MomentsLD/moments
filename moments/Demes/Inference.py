@@ -3,7 +3,7 @@
 # specifies parameters to be fit that align with the input YAML demography.
 
 import demes
-import ruamel
+import ruamel.yaml
 import moments
 import numpy as np
 import scipy.optimize
@@ -30,9 +30,23 @@ def _get_params_dict(fname):
     Options:
     - parameters (what to fit)
     - constraints
+    Below note is from the demes load_dump.py file, re: YAML support in python.
     """
-    with open(fname, "r") as fin:
-        options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
+    # NOTE: The state of Python YAML libraries in 2020 leaves much to be desired.
+    # The pyyaml library supports only YAML v1.1, which has some awkward corner
+    # cases that have been fixed in YAML v1.2. A fork of pyaml, ruamel.yaml,
+    # does support YAML v1.2, and introduces a new API for parsing/emitting
+    # with additional features and desirable behaviour.
+    # However, neither pyyaml nor ruamel guarantee API stability, and neither
+    # provide complete reference documentation for their APIs.
+    # The YAML code in demes is limited to the following two functions,
+    # which are hopefully simple enough to not suffer from API instability.
+
+    # with open(fname, "r") as fin:
+    #    options = ruamel.yaml.load(fin, Loader=ruamel.yaml.Loader)
+    with ruamel.yaml.YAML(typ="safe") as yaml, open(fname, "r") as fin:
+        options = yaml.load(fin)
+
     if "parameters" not in options.keys():
         raise ValueError("parameters to fit must be specified")
     return options
@@ -268,23 +282,27 @@ def _perturb_params_constrained(
 ):
     tries = 0
     conditions_satisfied = False
-    while tries < reps and not conditions_satisfied:
+    while not conditions_satisfied:
+        if tries == reps:
+            raise ValueError("Failed to set up initial parameters with constraints")
+        # perturb initial parameters and make sure they are within our bounds
         p_guess = p0 * 2 ** (fold * (2 * np.random.random(len(p0)) - 1))
+        if np.any(p_guess <= lower_bound) or np.any(p_guess >= upper_bound):
+            for i in range(len(p_guess)):
+                tries_bounds = 0
+                while p_guess[i] <= lower_bound[i] or p_guess[i] >= upper_bound[i]:
+                    if tries_bounds == reps:
+                        raise ValueError(
+                            "Failed to set up initial parameters within bounds"
+                        )
+                    p_guess[i] = p0[i] * 2 ** (fold * (2 * np.random.random() - 1))
+                    tries_bounds += 1
+        # check that our constraints are satisfied
         conditions_satisfied = True
-        if lower_bound is not None:
-            p_guess = np.maximum(
-                p_guess, lower_bound + 0.01 * (upper_bound - lower_bound)
-            )
-        if upper_bound is not None:
-            p_guess = np.minimum(
-                p_guess, upper_bound - 0.01 * (upper_bound - lower_bound)
-            )
         if cons is not None:
             if np.any(cons(p_guess) < 0):
                 conditions_satisfied = False
         tries += 1
-        if tries == reps:
-            raise ValueError("Failed to set up initial parameters with constraints")
     return p_guess
 
 
@@ -371,17 +389,13 @@ def _object_func(
             sample_times.append(end_times[deme])
 
     model = moments.Demes.SFS(
-        g, input_sampled_demes, sample_sizes, sample_times=sample_times
+        g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
     )
     if fit_ancestral_misid:
         model = moments.Misc.flip_ancestral_misid(model, params[-1])
 
     # get log-likelihood
     if uL is not None:
-        root = _get_root(g)
-        Ne = g[root].epochs[0].start_size
-        theta = 4 * Ne * uL
-        model *= theta
         LL = moments.Inference.ll(model, data)
     else:
         LL = moments.Inference.ll_multinom(model, data)
@@ -423,11 +437,16 @@ def optimize(
     inference options that specify which parameters to fit, and bounds or constraints
     on those parameters.
 
-    :param deme_graph: A YAML file in ``demes`` format.
-    :param inference_options: See (url) for how to set this up.
-    :param data: The SFS to fit, which must have pop_ids specified. Can either be a Spectrum
-        object or the file path to the stored frequency spectrum. The populations
-        in the SFS need to be present (with matching IDs) in the deme graph.
+    :param deme_graph: A demographic model as a YAML file in ``demes`` format. This
+        should be given as a string specifying the path and file name of the model.
+    :param inference_options: A second YAML file, specifying the parameters to be
+        optimized, parameter bounds, and constraints between parameters. Please see
+        the documentation at
+        https://momentsld.github.io/moments/extensions/demes.html#the-options-file
+    :param data: The SFS to fit, which must have pop_ids specified. Can either be a
+        Spectrum object or the file path to the stored frequency spectrum. The
+        populations in the SFS (as given by ``sfs.pop_ids``) need to be present in
+        the demographic model and have matching IDs.
     :param maxiter: The maximum number of iterations to run optimization. Defaults
         to 1000. Note: maxiter does not seem to work with the Powell method! This
         appears to be a bug within scipy.optimize.
@@ -1024,14 +1043,25 @@ def optimize_LD(
     inference options that specify which parameters to fit, and bounds or constraints
     on those parameters.
 
-    :param deme_graph: A YAML file in ``demes`` format.
-    :param inference_options: See (url) for how to set this up.
-    :param means:
-    :param varcovs:
-    :param pop_ids:
-    :param rs:
-    :param statistics:
-    :param normalization:
+    :param deme_graph: A demographic model as a YAML file in ``demes`` format. This
+        should be given as a string specifying the path and file name of the model.
+    :param inference_options: A second YAML file, specifying the parameters to be
+        optimized, parameter bounds, and constraints between parameters. Please see
+        the documentation at
+        https://momentsld.github.io/moments/extensions/demes.html#the-options-file
+    :param means: The list of average normalized LD and H statistics, as produced by
+         the parsing function ``moments.LD.Parsing.bootstrap_data(region_data)``.
+    :param varcovs: The list of variance-covariance matrices for data within each
+        recombination bin, as produced by the parsing function
+        ``moments.LD.Parsing.bootstrap_data(region_data)``.
+    :param pop_ids: The list of population names corresponding to the data.
+    :param rs: A list of recombination bin edges, defining the recombination
+        distance bins.
+    :param statistics: A list of two lists, the first being the LD statistics
+        present in the data, and the second the list of single-locus statistics
+        present in the data.
+    :param normalization: The name of the population that was used to normalize
+        the data. See documentation for examples specifying each of these arguments.
     :param maxiter: The maximum number of iterations to run optimization. Defaults
         to 1000. Note: maxiter does not seem to work with the Powell method! This
         appears to be a bug within scipy.optimize.
@@ -1048,7 +1078,7 @@ def optimize_LD(
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
         name.
-    :return: List of parameter names, optimal parameters, and LL
+    :return: List of parameter names, optimized parameter values, and LL
     """
     builder = _get_demes_dict(deme_graph)
     options = _get_params_dict(inference_options)
@@ -1246,7 +1276,7 @@ def uncerts_LD(
 ):
     """
     Compute uncertainties for fitted parameters, using the output YAML from
-    ``moments.Demes.Invascript:void(0); ference.optimize_LD()``.
+    ``moments.Demes.Inference.optimize_LD()``.
     """
     func_calls = 0
 

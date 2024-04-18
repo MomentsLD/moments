@@ -426,7 +426,9 @@ class ComputeFromGraphs(unittest.TestCase):
         fs.integrate([1, 1], 50 / 2 / 100)
         fs = fs.admix(0, 1, 10, 0.75)
         fs.integrate([1, 1], 50 / 2 / 100)
-        fs_demes = moments.Demes.SFS(g, sampled_demes=["A", "C"], sample_sizes=[10, 10])
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["A", "C"], sample_sizes=[10, 10], theta=1
+        )
         self.assertTrue(np.allclose(fs.data, fs_demes.data))
 
         y = moments.LD.Demographics1D.snm()
@@ -435,7 +437,7 @@ class ComputeFromGraphs(unittest.TestCase):
         y = y.admix(0, 1, 0.75)
         y = y.marginalize([1])
         y.integrate([1, 1], 50 / 2 / 100)
-        y_demes = moments.Demes.LD(g, sampled_demes=["A", "C"])
+        y_demes = Demes.LD(g, sampled_demes=["A", "C"])
 
     def test_migration_end_and_marginalize(self):
         # ghost population with migration that ends before time zero
@@ -464,8 +466,8 @@ class ComputeFromGraphs(unittest.TestCase):
         b.add_migration
         g = b.resolve()
 
-        fs_demes = moments.Demes.SFS(g, sampled_demes=["C", "D"], sample_sizes=[4, 4])
-        y_demes = moments.Demes.LD(g, sampled_demes=["C", "D"])
+        fs_demes = Demes.SFS(g, sampled_demes=["C", "D"], sample_sizes=[4, 4], theta=1)
+        y_demes = Demes.LD(g, sampled_demes=["C", "D"])
         self.assertTrue(fs_demes.ndim == 2)
         self.assertTrue(np.all([x == y for x, y in zip(fs_demes.pop_ids, ["C", "D"])]))
         self.assertTrue(y_demes.num_pops == 2)
@@ -598,7 +600,7 @@ class TestMomentsSFS(unittest.TestCase):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Pop", epochs=[dict(start_size=1000, end_time=0)])
         g = b.resolve()
-        fs = Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20], theta=1)
         fs_m = moments.Demographics1D.snm([20])
         self.assertTrue(np.allclose(fs.data, fs_m.data))
 
@@ -611,7 +613,7 @@ class TestMomentsSFS(unittest.TestCase):
             ],
         )
         g = b.resolve()
-        fs = Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20], theta=1)
         fs_m = moments.Demographics1D.snm([20])
         fs_m.integrate([10], 1)
         self.assertTrue(np.allclose(fs.data, fs_m.data))
@@ -627,7 +629,7 @@ class TestMomentsSFS(unittest.TestCase):
             )
         g = b.resolve()
         with self.assertRaises(ValueError):
-            Demes.SFS(g, ["pop{i}" for i in range(6)], [10 for i in range(6)])
+            Demes.SFS(g, ["pop{i}" for i in range(6)], [10 for i in range(6)], theta=1)
 
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("anc", epochs=[dict(start_size=1000, end_time=1000)])
@@ -644,13 +646,14 @@ class TestMomentsSFS(unittest.TestCase):
                 ["pop{i}" for i in range(3)],
                 [10 for i in range(3)],
                 sample_times=[5, 10, 15],
+                theta=1,
             )
 
     def test_one_pop_ancient_samples(self):
         b = demes.Builder(description="test", time_units="generations")
         b.add_deme("Pop", epochs=[dict(start_size=1000, end_time=0)])
         g = b.resolve()
-        fs = Demes.SFS(g, ["Pop", "Pop"], [20, 4], sample_times=[0, 100])
+        fs = Demes.SFS(g, ["Pop", "Pop"], [20, 4], sample_times=[0, 100], theta=1)
         fs_m = moments.Demographics1D.snm([24])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 4)
         fs_m.integrate([1, 1], 100 / 2 / 1000, frozen=[False, True])
@@ -677,7 +680,7 @@ class TestMomentsSFS(unittest.TestCase):
             epochs=[dict(start_size=4000, end_time=0)],
         )
         g = b.resolve()
-        fs = Demes.SFS(g, ["Pop"], [20])
+        fs = Demes.SFS(g, ["Pop"], [20], theta=1)
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)
@@ -707,7 +710,7 @@ class TestMomentsSFS(unittest.TestCase):
             epochs=[dict(start_size=4000, end_time=0)],
         )
         g = b.resolve()
-        fs = Demes.SFS(g, ["Source1", "Source2", "Pop"], [10, 10, 10])
+        fs = Demes.SFS(g, ["Source1", "Source2", "Pop"], [10, 10, 10], theta=1)
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)
@@ -726,7 +729,7 @@ class TestMomentsSFS(unittest.TestCase):
             ],
         )
         g = b.resolve()
-        fs = Demes.SFS(g, ["Pop"], [100])
+        fs = Demes.SFS(g, ["Pop"], [100], theta=1)
 
         fs_m = moments.Demographics1D.snm([100])
 
@@ -773,7 +776,7 @@ class TestMomentsSFS(unittest.TestCase):
         )
         b.add_pulse(sources=["source"], dest="dest", time=10, proportions=[0.1])
         g = b.resolve()
-        fs = Demes.SFS(g, ["source", "dest"], [20, 20])
+        fs = Demes.SFS(g, ["source", "dest"], [20, 20], theta=1)
 
         fs_m = moments.Demographics1D.snm([60])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 40, 20)
@@ -802,7 +805,7 @@ class TestMomentsSFS(unittest.TestCase):
         )
         g = b.resolve()
         ns = [10, 15, 20]
-        fs = Demes.SFS(g, ["deme1", "deme2", "deme3"], ns)
+        fs = Demes.SFS(g, ["deme1", "deme2", "deme3"], ns, theta=1)
         self.assertTrue(np.all([fs.sample_sizes[i] == ns[i] for i in range(len(ns))]))
 
         fs_m1 = moments.Demographics1D.snm([sum(ns)])
@@ -846,7 +849,7 @@ class TestMomentsSFS(unittest.TestCase):
         )
         g = b.resolve()
         ns = [10]
-        fs = Demes.SFS(g, ["merged"], ns)
+        fs = Demes.SFS(g, ["merged"], ns, theta=1)
 
         fs_m = moments.Demographics1D.snm([30])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 10, 20)
@@ -884,7 +887,7 @@ class TestMomentsSFS(unittest.TestCase):
         )
         g = b.resolve()
         ns = [10]
-        fs = Demes.SFS(g, ["admixed"], ns)
+        fs = Demes.SFS(g, ["admixed"], ns, theta=1)
 
         fs_m = moments.Demographics1D.snm([30])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 10, 20)
@@ -896,7 +899,7 @@ class TestMomentsSFS(unittest.TestCase):
 
         self.assertTrue(np.allclose(fs_m.data[1:-1], fs.data[1:-1]))
 
-        fs = Demes.SFS(g, ["source1", "admixed"], [10, 10])
+        fs = Demes.SFS(g, ["source1", "admixed"], [10, 10], theta=1)
 
         fs_m = moments.Demographics1D.snm([40])
         fs_m = moments.Manips.split_1D_to_2D(fs_m, 20, 20)
@@ -1071,7 +1074,7 @@ class TestConcurrentEvents(unittest.TestCase):
         )
         graph = b.resolve()
 
-        y_graph = moments.Demes.LD(graph, sampled_demes=["c", "d"], theta=1)
+        y_graph = Demes.LD(graph, sampled_demes=["c", "d"], theta=1)
 
         y = moments.LD.Demographics1D.snm(theta=1)
         y = y.split(0)
@@ -1122,13 +1125,11 @@ class TestFStatistics(unittest.TestCase):
         g3 = b3.resolve()
 
         theta = 0.001
-        y1 = moments.Demes.LD(
+        y1 = Demes.LD(
             g1, sampled_demes=["A", "A"], sample_times=[0, 2 * T], theta=theta
         )
-        y2 = moments.Demes.LD(
-            g2, sampled_demes=["A", "B"], sample_times=[0, 0], theta=theta
-        )
-        y3 = moments.Demes.LD(g3, sampled_demes=["A", "B"], theta=theta)
+        y2 = Demes.LD(g2, sampled_demes=["A", "B"], sample_times=[0, 0], theta=theta)
+        y3 = Demes.LD(g3, sampled_demes=["A", "B"], theta=theta)
 
         assert np.allclose(y1[0], y2[0])
         assert np.allclose(y1[0], y3[0])
@@ -1149,13 +1150,13 @@ class TestFStatistics(unittest.TestCase):
         g = b.resolve()
 
         theta = 1
-        y1 = moments.Demes.LD(
+        y1 = Demes.LD(
             g,
             sampled_demes=["A", "B", "A", "B"],
             sample_times=[0, 0, T / 2, T / 2],
             theta=theta,
         )
-        y2 = moments.Demes.LD(
+        y2 = Demes.LD(
             g,
             sampled_demes=["A", "B", "A", "B"],
             sample_times=[0, 0, 3 * T / 4, T / 4],
@@ -1186,7 +1187,7 @@ class TestFStatistics(unittest.TestCase):
         theta = 1
         for f in [0, 0.1, 0.5, 1.0]:
             g = build_model(T1, T2, f)
-            y = moments.Demes.LD(g, sampled_demes=["A", "B"], theta=theta)
+            y = Demes.LD(g, sampled_demes=["A", "B"], theta=theta)
             assert np.isclose(
                 y.f2(0, 1),
                 theta * (T2 + (1 - f) ** 2 * T1) / 2 / N,
@@ -1214,7 +1215,7 @@ class TestFStatistics(unittest.TestCase):
 
         for f in [0.1, 0.5, 0.8]:
             g = build_model(100, 100, 100, f)
-            y = moments.Demes.LD(
+            y = Demes.LD(
                 g,
                 sampled_demes=["modern1", "modern2", "stem1", "stem2"],
                 sample_times=[0, 0, 250, 250],
@@ -1240,7 +1241,7 @@ class TestFStatistics(unittest.TestCase):
         for x in [0.1, 0.2, 0.5, 0.8]:
             for f in [0, 0.1, 0.2, 0.5, 0.8, 1]:
                 g = build_model(T1, T2, x, f)
-                y = moments.Demes.LD(
+                y = Demes.LD(
                     g,
                     sampled_demes=["modern1", "modern2", "stem1", "stem2"],
                     sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
@@ -1248,13 +1249,13 @@ class TestFStatistics(unittest.TestCase):
                 print(x, f, f * y.f2(2, 3), y.f4(0, 1, 2, 3))
                 assert np.isclose(f * y.f2(2, 3), y.f4(0, 1, 2, 3))
         g1 = build_model(T1, T2, 0.1, 0.5)
-        y1 = moments.Demes.LD(
+        y1 = Demes.LD(
             g1,
             sampled_demes=["modern1", "modern2", "stem1", "stem2"],
             sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
         )
         g2 = build_model(T1, T2, 0.9, 0.5)
-        y2 = moments.Demes.LD(
+        y2 = Demes.LD(
             g2,
             sampled_demes=["modern1", "modern2", "stem1", "stem2"],
             sample_times=[0, 0, T1 + T2 / 2, T1 + T2 / 2],
@@ -1306,7 +1307,9 @@ class TestSelectionSFS(unittest.TestCase):
         b = demes.Builder()
         b.add_deme("A", epochs=[dict(start_size=1)])
         g = b.resolve()
-        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma, theta=1
+        )
 
         assert np.allclose(fs, fs_demes)
 
@@ -1317,7 +1320,9 @@ class TestSelectionSFS(unittest.TestCase):
             "A", epochs=[dict(start_size=1000, end_time=200), dict(start_size=2000)]
         )
         g = b.resolve()
-        fs_demes = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma)
+        fs_demes = Demes.SFS(
+            g, sampled_demes=["A"], sample_sizes=[n], gamma=gamma, theta=1
+        )
 
         assert np.allclose(fs, fs_demes)
 
@@ -1333,7 +1338,11 @@ class TestSelectionSFS(unittest.TestCase):
         b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
         g = b.resolve()
         fs_demes = Demes.SFS(
-            g, sampled_demes=["B"], sample_sizes=[n], gamma={"A": gamma1, "B": gamma2}
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"A": gamma1, "B": gamma2},
+            theta=1,
         )
 
         assert np.allclose(fs, fs_demes)
@@ -1353,7 +1362,12 @@ class TestSelectionSFS(unittest.TestCase):
         b.add_deme("B", ancestors=["A"], epochs=[dict(start_size=1000)])
         g = b.resolve()
         fs_demes = Demes.SFS(
-            g, sampled_demes=["B"], sample_sizes=[n], gamma=gamma, h={"A": h1, "B": h2}
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma=gamma,
+            h={"A": h1, "B": h2},
+            theta=1,
         )
 
         assert np.allclose(fs, fs_demes)
@@ -1379,6 +1393,7 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n],
             gamma={"A": gamma1, "B": gamma2},
             h={"A": h1, "B": h2},
+            theta=1,
         )
         fs_demes2 = Demes.SFS(
             g,
@@ -1386,6 +1401,7 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n],
             gamma={"_default": -5, "B": gamma2},
             h={"_default": 0, "A": h1},
+            theta=1,
         )
 
         assert np.allclose(fs, fs_demes)
@@ -1412,9 +1428,15 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n],
             gamma={"A": gamma1, "B": gamma2},
             h={"A": h1, "B": h2},
+            theta=1,
         )
         fs_demes2 = Demes.SFS(
-            g, sampled_demes=["B"], sample_sizes=[n], gamma={"B": gamma2}, h={"A": h1}
+            g,
+            sampled_demes=["B"],
+            sample_sizes=[n],
+            gamma={"B": gamma2},
+            h={"A": h1},
+            theta=1,
         )
 
         assert np.allclose(fs, fs_demes)
@@ -1447,6 +1469,7 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n, n],
             gamma={"A": gamma0, "B": gamma1, "C": gamma2},
             h={"A": h0, "B": h1, "C": h2},
+            theta=1,
         )
 
         assert np.allclose(fs, fs_demes)
@@ -1464,6 +1487,7 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n],
             gamma=gamma,
             h=h,
+            theta=1,
         )
         fs2 = Demes.SFS(
             g,
@@ -1471,6 +1495,7 @@ class TestSelectionSFS(unittest.TestCase):
             sample_sizes=[n],
             gamma={"_default": gamma},
             h={"_default": h},
+            theta=1,
         )
         assert np.allclose(fs1, fs2)
 
@@ -1481,13 +1506,13 @@ class TestSelectionSFS(unittest.TestCase):
         b.add_deme("C", ancestors=["A"], epochs=[dict(start_size=1000)])
         g = b.resolve()
 
-        for gamma in ["hi", ["hi"], {1, 2}, [1, 2]]:
-            with self.assertRaises(TypeError):
-                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+        for gamma in ["hi", ["hi"], {1, 2}, [1, 2], np.inf, np.nan]:
+            with self.assertRaises(ValueError):
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma, theta=1)
 
         for gamma in [{"D": 1}]:
             with self.assertRaises(ValueError):
-                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma)
+                Demes.SFS(g, ["B", "C"], [10, 10], gamma=gamma, theta=1)
 
     def test_bad_dominance(self):
         b = demes.Builder()
@@ -1498,11 +1523,11 @@ class TestSelectionSFS(unittest.TestCase):
 
         for h in ["hi", ["hi"], {1, 2}, [1, 2]]:
             with self.assertRaises(TypeError):
-                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h, theta=1)
 
         for g in [{"D": 1}]:
             with self.assertRaises(ValueError):
-                Demes.SFS(g, ["B", "C"], [10, 10], h=h)
+                Demes.SFS(g, ["B", "C"], [10, 10], h=h, theta=1)
 
     def test_bad_graph_with_selection(self):
         b = demes.Builder()
@@ -1512,12 +1537,12 @@ class TestSelectionSFS(unittest.TestCase):
         g = b.resolve()
 
         with self.assertRaises(ValueError):
-            Demes.SFS(g, ["B"], [10], gamma=-1)
+            Demes.SFS(g, ["B"], [10], gamma=-1, theta=1)
 
         with self.assertRaises(ValueError):
-            Demes.SFS(g, ["B"], [10], gamma={"_default": -1})
+            Demes.SFS(g, ["B"], [10], gamma={"_default": -1}, theta=1)
 
-        Demes.SFS(g, ["B"], [10], h=0.1)
+        Demes.SFS(g, ["B"], [10], h=0.1, theta=1)
 
 
 class TestSamplesSpecification(unittest.TestCase):
@@ -1648,43 +1673,25 @@ class TestAncientSamples(unittest.TestCase):
 
         # test that they run properly
         for t in [0, 1, 10]:
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
-            )
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[0, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t])
 
         b.add_migration(demes=["deme1", "deme2"], rate=2e-3)
         g = b.resolve()
 
         for t in [0, 1, 10]:
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
-            )
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[0, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t])
 
         b.add_pulse(sources=["deme1"], dest="deme2", proportions=[0.1], time=200)
         g = b.resolve()
 
         for t in [0, 1, 10]:
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[0, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, t]
-            )
-            y = moments.Demes.LD(
-                g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t]
-            )
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[0, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, t])
+            y = Demes.LD(g, sampled_demes=["deme1", "deme2"], sample_times=[t, 2 * t])
 
     def test_slice_results(self):
         b = demes.Builder()
@@ -1700,20 +1707,22 @@ class TestAncientSamples(unittest.TestCase):
         g = b.resolve()
 
         # test some results
-        y = moments.Demes.LD(
-            g, sampled_demes=["deme1", "deme2"], sample_times=[100, 200]
+        theta = 0.001
+        y = Demes.LD(
+            g, sampled_demes=["deme1", "deme2"], sample_times=[100, 200], theta=theta
         )
-        y2 = moments.LD.Demographics1D.snm()
+        y2 = moments.LD.Demographics1D.snm(theta=theta)
         y2 = y2.split(0)
-        y2.integrate([0.5, 2.0], 0.125, m=[[0, 8], [8, 0]])
+        y2.integrate([0.5, 2.0], 0.125, m=[[0, 8], [8, 0]], theta=theta)
         y2 = y2.pulse_migrate(0, 1, 0.1)
-        y2.integrate([0.5, 2.0], 0.075, m=[[0, 8], [8, 0]])
+        y2.integrate([0.5, 2.0], 0.075, m=[[0, 8], [8, 0]], theta=theta)
         y2 = y2.split(1)
         y2.integrate(
             [0.5, 2.0, 2.0],
             0.025,
             m=[[0, 8, 0], [8, 0, 0], [0, 0, 0]],
             frozen=[False, False, True],
+            theta=theta,
         )
         y2 = y2.marginalize([1])
         self.assertTrue(np.allclose(y[0], y2[0]))
@@ -1806,7 +1815,6 @@ class TestAncientSamples(unittest.TestCase):
         g6 = moments.Demes.DemesUtil.swipe(g, 2000)
         self.assertFalse(g == g6)
 
-
     def test_ancient_samples(self):
         # test SFS inference with many pops in recent time but ancient samples
         b = demes.Builder()
@@ -1836,3 +1844,318 @@ class TestAncientSamples(unittest.TestCase):
         sfs2 = moments.Demographics1D.snm([10])
         sfs2.integrate([2], 0.5)
         self.assertTrue(np.allclose(sfs.data, sfs2.data))
+
+
+class TestSFSScaling(unittest.TestCase):
+    # Scaling of the SFS
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_mutation_rates(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=5678)])
+        g = b.resolve()
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], theta=[1])
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], theta=0)
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], theta=-1)
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], theta=1, u=1)
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], theta=1, u=1e-8)
+        with self.assertRaises(ValueError):
+            Demes.SFS(
+                g, sampled_demes=["A"], sample_sizes=[4], theta=1, reversible=True
+            )
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], reversible=True)
+        with self.assertRaises(ValueError):
+            Demes.SFS(g, sampled_demes=["A"], sample_sizes=[4], reversible=True, u=1)
+        with self.assertRaises(ValueError):
+            Demes.SFS(
+                g,
+                sampled_demes=["A"],
+                sample_sizes=[4],
+                reversible=True,
+                theta=[[0.1, 0.1]],
+            )
+        with self.assertRaises(ValueError):
+            Demes.SFS(
+                g,
+                sampled_demes=["A"],
+                sample_sizes=[4],
+                reversible=True,
+                u=[[1e-8, 1e-8]],
+            )
+        with self.assertRaises(ValueError):
+            Demes.SFS(
+                g, sampled_demes=["A"], sample_sizes=[4], reversible=True, u=1e-8, L=2
+            )
+
+    def test_default_theta(self):
+        # default scaling of SFS should be with theta = 1
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=5678)])
+        g = b.resolve()
+        n = 100
+        fs_demes = moments.Spectrum.from_demes(g, samples={"A": n})
+        fs_demes2 = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], theta=1)
+        fs = moments.Demographics1D.snm([n])
+        self.assertTrue(np.allclose(fs, fs_demes))
+        self.assertTrue(np.allclose(fs, fs_demes2))
+
+    def test_theta_not_one(self):
+        # default scaling of SFS should be with theta = 1
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=5678)])
+        g = b.resolve()
+        n = 100
+        theta = 1000
+        fs_demes = moments.Spectrum.from_demes(g, samples={"A": n}, theta=theta)
+        fs_demes2 = Demes.SFS(g, sampled_demes=["A"], sample_sizes=[n], theta=theta)
+        fs = moments.Demographics1D.snm([n]) * theta
+        self.assertTrue(np.allclose(fs, fs_demes))
+        self.assertTrue(np.allclose(fs, fs_demes2))
+
+    def test_no_theta_given(self):
+        b = demes.Builder()
+        Ne = 15000
+        b.add_deme("A", epochs=[dict(start_size=Ne)])
+        g = b.resolve()
+        n = 20
+        fs = moments.Spectrum.from_demes(g, samples={"A": n})
+        fs2 = moments.Demographics1D.snm([n])
+        self.assertTrue(np.allclose(fs, fs2))
+        fs = Demes.SFS(g, samples={"A": n})
+        fs2 = moments.Demographics1D.snm([n]) * 4 * Ne
+        self.assertTrue(np.allclose(fs, fs2))
+
+    def test_size_change(self):
+        b = demes.Builder()
+        Ne = 10000
+        b.add_deme(
+            "A", epochs=[dict(start_size=Ne, end_time=2000), dict(start_size=2 * Ne)]
+        )
+        g = b.resolve()
+        n = 40
+        fs = Demes.SFS(g, samples={"A": n}, theta=1)
+        fs2 = moments.Demographics1D.two_epoch([2, 0.1], [n])
+        self.assertTrue(np.allclose(fs, fs2))
+        fs = Demes.SFS(g, samples={"A": n})
+        fs2 = moments.Demographics1D.two_epoch([2, 0.1], [n]) * 4 * Ne
+        self.assertTrue(np.allclose(fs, fs2))
+
+    def test_two_pops(self):
+        b = demes.Builder()
+        Ne = 10000
+        b.add_deme("anc", epochs=[dict(start_size=Ne, end_time=2000)])
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=2 * Ne)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=3 * Ne)])
+        g = b.resolve()
+        n = 20
+        fs = Demes.SFS(g, samples={"A": n, "B": n})
+        fs2 = moments.Demographics2D.split_mig([2, 3, 0.1, 0], [n, n]) * 4 * Ne
+        self.assertTrue(np.allclose(fs, fs2))
+
+    def test_reversible(self):
+        b = demes.Builder()
+        Ne = 10000
+        b.add_deme(
+            "A",
+            epochs=[
+                dict(start_size=Ne, end_time=0.1 * 2 * Ne),
+                dict(start_size=2 * Ne),
+            ],
+        )
+        g = b.resolve()
+        n = 40
+        u = [2e-8, 1e-8]
+        gamma = -1
+        fs = Demes.SFS(g, samples={"A": n}, reversible=True, u=u, gamma=gamma)
+        self.assertFalse(np.any(fs.mask))
+        fs2 = moments.Spectrum(
+            moments.LinearSystem_1D.steady_state_1D_reversible(
+                n, gamma=gamma, theta_fd=4 * Ne * u[0], theta_bd=4 * Ne * u[1]
+            ),
+            mask_corners=False,
+        )
+        fs2.integrate(
+            [2],
+            0.1,
+            gamma=gamma,
+            theta_fd=4 * Ne * u[0],
+            theta_bd=4 * Ne * u[1],
+            finite_genome=True,
+        )
+        self.assertTrue(np.allclose(fs, fs2))
+
+    def test_reversible_mutation_rates(self):
+        b = demes.Builder()
+        Ne = 10000
+        b.add_deme(
+            "A", epochs=[dict(start_size=Ne, end_time=1000), dict(start_size=5 * Ne)]
+        )
+        g = b.resolve()
+        n = 30
+        u = 1e-7
+        fs = Demes.SFS(g, samples={"A": n}, reversible=True, u=u)
+        fs2 = Demes.SFS(g, samples={"A": n}, reversible=True, u=[u, u])
+        fs3 = Demes.SFS(g, samples={"A": n}, reversible=True, u=u, L=1)
+        self.assertTrue(np.allclose(fs, fs2))
+        self.assertTrue(np.allclose(fs, fs3))
+
+
+class TestDemesRescaling(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_scaling_value(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1)])
+        g = b.resolve()
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, -1)
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, 0)
+        with self.assertRaises(ValueError):
+            moments.Demes.DemesUtil.rescale(g, np.inf)
+
+    def test_rescaling_reversal(self):
+        b = demes.Builder()
+        b.add_deme(
+            "anc",
+            epochs=[
+                dict(start_size=100, end_time=100),
+                dict(start_size=200, end_size=300, end_time=50),
+            ],
+        )
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=500)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=100, end_size=10)])
+        b.add_migration(demes=["A", "B"], rate=0.01)
+        b.add_pulse(sources=["A"], dest="B", proportions=[0.1], time=20)
+        b.add_pulse(sources=["B"], dest="A", proportions=[0.2], time=10)
+        g = b.resolve()
+
+        g2 = moments.Demes.DemesUtil.rescale(g, 1)
+        g.assert_close(g2)
+
+        g3 = moments.Demes.DemesUtil.rescale(g, 0.1)
+        g4 = moments.Demes.DemesUtil.rescale(g3, 10)
+        g.assert_close(g4)
+
+        g5 = moments.Demes.DemesUtil.rescale(g3, 0.2)
+        g6 = moments.Demes.DemesUtil.rescale(g5, 50)
+        g.assert_close(g6)
+
+    def IM_model(self, Ne=10000):
+        b = demes.Builder()
+        b.add_deme(
+            "anc",
+            epochs=[
+                dict(start_size=Ne, end_time=0.1 * 2 * Ne),
+            ],
+        )
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=0.5 * Ne)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=2 * Ne)])
+        return b
+
+    def test_rescaled_mutation_rate(self):
+        Ne = 10000
+        g = self.IM_model(Ne=Ne).resolve()
+        samples = {"A": 30, "B": 30}
+        u = 1e-8
+        L = 1e4
+        fs = moments.Demes.SFS(g, samples=samples, u=u, L=L)
+        fsb = moments.Demes.SFS(g, samples=samples, theta=4 * Ne * u * L)
+        self.assertTrue(np.allclose(fs, fsb))
+        fsc = moments.Demes.SFS(g, samples=samples, theta=4 * Ne * u, L=L)
+        self.assertTrue(np.allclose(fs, fsc))
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u / Q, L=L)
+            self.assertTrue(np.allclose(fs, fs2))
+            fs3 = moments.Demes.SFS(g2, samples=samples, theta=4 * Ne * u, L=L)
+            self.assertTrue(np.allclose(fs, fs3))
+
+    def test_rescaled_with_migration(self):
+        b = self.IM_model(Ne=10000)
+        b.add_migration(source="A", dest="B", rate=1e-4)
+        b.add_migration(source="B", dest="A", rate=2e-4, start_time=2000, end_time=1000)
+        g = b.resolve()
+
+        samples = {"A": 30, "B": 30}
+        u = 1e-8
+        fs = moments.Demes.SFS(g, samples=samples, u=u)
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u / Q)
+            self.assertTrue(np.allclose(fs, fs2))
+
+    def test_rescaled_reversible_mutation(self):
+        Ne = 10000
+        g = self.IM_model(Ne=Ne).resolve()
+        samples = {"A": 30, "B": 30}
+        u1 = 1e-8
+        u2 = 2e-8
+        u = [u1, u2]
+        theta = [4 * Ne * u1, 4 * Ne * u2]
+        fs = moments.Demes.SFS(g, samples=samples, u=u, reversible=True)
+        fsb = moments.Demes.SFS(g, samples=samples, theta=theta, reversible=True)
+
+        for Q in [0.1, 0.5, 2]:
+            g2 = moments.Demes.DemesUtil.rescale(g, Q)
+            u_scaled = [u1 / Q, u2 / Q]
+            fs2 = moments.Demes.SFS(g2, samples=samples, u=u_scaled, reversible=True)
+            self.assertTrue(np.allclose(fs, fs2))
+
+
+class TestDemesSelectionCoefficients(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_bad_inputs(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=10000)])
+        g = b.resolve()
+        samples = {"A": 40}
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, gamma=[-1])
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, gamma=np.inf)
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, s=[0.0001])
+        with self.assertRaises(ValueError):
+            moments.Demes.SFS(g, samples=samples, s=np.inf)
+
+    def test_selection_one_pop(self):
+        b = demes.Builder()
+        Ne = 1e4
+        b.add_deme("A", epochs=[dict(start_size=Ne)])
+        g = b.resolve()
+        samples = {"A": 40}
+        s = -1e-4
+        gamma = 2 * Ne * s
+
+        fs1 = moments.Demes.SFS(g, samples=samples, gamma=gamma)
+        fs2 = moments.Demes.SFS(g, samples=samples, s=s)
+        self.assertTrue(np.allclose(fs1, fs2))
+
+        s2 = {"A": s}
+        fs3 = moments.Demes.SFS(g, samples=samples, s=s2)
+        self.assertTrue(np.allclose(fs1, fs3))

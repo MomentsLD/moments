@@ -14,6 +14,7 @@ _build/
 *.gz
 moments.egg-info
 .DS_Store
+_version.py
 
 UNKNOWN.egg-info/
 dist/

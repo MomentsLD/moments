@@ -2,6 +2,12 @@ _imported_h5py = 0
 _imported_allel = 0
 _imported_pandas = 0
 import os
+from datetime import datetime
+
+
+def current_time():
+    return " [" + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "]"
+
 
 try:
     os.environ["NUMEXPR_MAX_THREADS"] = "272"
@@ -30,11 +36,11 @@ from . import Util
 
 def check_imports():
     if _imported_allel == 0:
-        raise ("Failed to import allel package needed for Parsing.")
+        raise ImportError("Failed to import scikit-allel which is needed for Parsing")
     if _imported_h5py == 0:
-        raise ("Failed to import h5py package needed for Parsing.")
+        raise ImportError("Failed to import h5py which is needed for Parsing")
     if _imported_pandas == 0:
-        raise ("Failed to import pandas package needed for Parsing.")
+        raise ImportError("Failed to import pandas which is needed for Parsing")
 
 
 import numpy as np
@@ -76,7 +82,7 @@ def _load_h5(vcf_file, report=True):
         callset = h5py.File(h5_file_path, mode="r")
     except (OSError, IOError):  # IOError merged into OSError in python 3
         if report is True:
-            print("creating and saving h5 file")
+            print(current_time(), "creating and saving h5 file")
             sys.stdout.flush()
         allel.vcf_to_hdf5(
             vcf_file,
@@ -164,7 +170,7 @@ def get_genotypes(
         all_genotypes = all_genotypes.compress(in_chromosome)
 
     if bed_file is not None:
-        bed_file_data = pandas.read_csv(bed_file, delim_whitespace=True, header=None)
+        bed_file_data = pandas.read_csv(bed_file, sep=r"\s+", header=None)
         bed_chromosomes = np.array(bed_file_data[0])
         bed_lefts = np.array(bed_file_data[1])
         bed_rights = np.array(bed_file_data[2])
@@ -256,27 +262,32 @@ def _assign_recombination_rates(
         )
         sys.stdout.flush()
     try:
-        rec_map = pandas.read_csv(map_file, delim_whitespace=True)
+        rec_map = pandas.read_csv(map_file, sep=r"\s+")
     except:
         raise ValueError("Error loading recombination map.")
         sys.stdout.flush()
 
-    map_positions = rec_map[rec_map.keys()[0]]
-    if map_name == None:  # we use the first map column
-        if report is True:
-            print("No recombination map name given, using first column.")
-            sys.stdout.flush()
-        map_values = rec_map[rec_map.keys()[1]]
+    if "Position(bp)" in rec_map.keys():
+        map_positions = rec_map["Position(bp)"]
     else:
-        try:
-            map_values = rec_map[map_name]
-        except KeyError:
-            print(
-                "WARNING: map_name did not match map names in recombination map file. Using the first column."
-            )
-            map_values = rec_map[rec_map.keys()[1]]
+        map_positions = rec_map[rec_map.keys()[0]]
+    if map_name is None:  # we use the first map column
+        if report is True:
+            print(current_time(), "No recombination map name given, trying Map(cM).")
+            sys.stdout.flush()
+        map_name = "Map(cM)"
+    try:
+        map_values = rec_map[map_name]
+    except KeyError:
+        print(
+            current_time(),
+            f"WARNING: map_name did not match {map_name}"
+            " in recombination map file. Using the first column.",
+        )
+        map_values = rec_map[rec_map.keys()[1]]
 
-    # for positions sticking out the end of the map, they take the value of the closest position
+    # for positions sticking out the end of the map,
+    # they take the value of the closest position
     # ideally, you'd filter these out
 
     if cM == True:
@@ -517,7 +528,7 @@ def _count_types_sparse(
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
-        samples = pandas.read_csv(pop_file, delim_whitespace=True)
+        samples = pandas.read_csv(pop_file, sep=r"\s+")
         cols_to_keep = np.array([False] * np.shape(genotypes)[1])
         all_samples_to_keep = []
         for pop in pops:
@@ -540,6 +551,8 @@ def _count_types_sparse(
             pop_indexes[pop] = np.array([False] * np.shape(genotypes_pops)[1])
             for s in samples[samples["pop"] == pop]["sample"]:
                 pop_indexes[pop][sample_ids_pops.index(s)] = True
+            if not np.any(pop_indexes[pop]):
+                raise ValueError(f"population {pop} has no samples in data")
 
         if use_genotypes == False:
             pop_indexes_haps = {}
@@ -556,7 +569,10 @@ def _count_types_sparse(
 
     else:
         if report == True:
-            print("No populations given, using all samples as one population.")
+            print(
+                current_time(),
+                "No populations given, using all samples as one population.",
+            )
             sys.stdout.flush()
         pops = ["ALL"]
         pop_indexes["ALL"] = np.array([True] * np.shape(genotypes)[1])
@@ -577,7 +593,8 @@ def _count_types_sparse(
             haplotypes_pops_01 = genotypes_pops.to_haplotypes()
         except AttributeError:
             print(
-                "warning: attempted to get haplotypes from phased genotypes, returned attribute error. Using input as haplotypes."
+                current_time(),
+                "warning: attempted to get haplotypes from phased genotypes, returned attribute error. Using input as haplotypes.",
             )
             haplotypes_pops_01 = genotypes_pops
 
@@ -643,7 +660,8 @@ def _count_types_sparse(
         if report is True:
             if ii % report_spacing == 0:
                 print(
-                    "tallied two locus counts {0} of {1} positions".format(ii, len(rs))
+                    current_time(),
+                    "tallied two locus counts {0} of {1} positions".format(ii, len(rs)),
                 )
                 sys.stdout.flush()
 
@@ -896,7 +914,7 @@ def _cache_ld_statistics(type_counts, ld_stats, bins, use_genotypes=True, report
 
     for stat in ld_stats:
         if report is True:
-            print("computing " + stat)
+            print(current_time(), "computing " + stat)
             sys.stdout.flush()
         vals = _call_sgc(stat, all_counts, use_genotypes)
         for ii in range(len(all_counts[0, 0])):
@@ -920,7 +938,7 @@ def _get_ld_stat_sums(type_counts, ld_stats, bins, use_genotypes=True, report=Tr
 
     for stat in ld_stats:
         if report is True:
-            print("computing " + stat)
+            print(current_time(), "computing " + stat)
             sys.stdout.flush()
         # set counts of non-used stats to zeros, then take set
         pops_in_stat = sorted(list(set(int(p) for p in stat.split("_")[1:])))
@@ -964,8 +982,9 @@ def _get_H_statistics(
     if pop_file == None and pops == None:
         if report == True:
             print(
+                current_time(),
                 "No population file or population names given, "
-                "assuming all samples as single pop."
+                "assuming all samples as single pop.",
             )
             sys.stdout.flush()
     elif pops == None:
@@ -979,7 +998,7 @@ def _get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, delim_whitespace=True)
+        samples = pandas.read_csv(pop_file, sep=r"\s+")
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 
@@ -1106,7 +1125,7 @@ def _get_reported_stats(
         )
 
     if report is True:
-        print("computed sums\ngetting heterozygosity statistics")
+        print(current_time(), "computed sums\ngetting heterozygosity statistics")
         sys.stdout.flush()
 
     if len(stats_to_compute[1]) == 0:
@@ -1236,12 +1255,12 @@ def compute_ld_statistics(
     )
 
     if report == True:
-        print("kept {0} total variants".format(len(positions)))
+        print(current_time(), "kept {0} total variants".format(len(positions)))
         sys.stdout.flush()
 
     if rec_map_file is not None and r_bins is not None:
         if report is True:
-            print("assigning recombination rates to positions")
+            print(current_time(), "assigning recombination rates to positions")
             sys.stdout.flush()
         pos_rs = _assign_recombination_rates(
             positions, rec_map_file, map_name=map_name, cM=cM, report=report
@@ -1249,7 +1268,9 @@ def compute_ld_statistics(
         bins = r_bins
     else:
         if report is True:
-            print("no recombination map provided, using physical distance")
+            print(
+                current_time(), "no recombination map provided, using physical distance"
+            )
             sys.stdout.flush()
         pos_rs = None
         if bp_bins is not None:

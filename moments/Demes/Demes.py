@@ -8,6 +8,7 @@ import math
 import copy
 import numpy as np
 import demes
+import warnings
 
 import moments
 import moments.LD
@@ -15,19 +16,36 @@ import moments.LD
 
 def SFS(
     g,
-    sampled_demes,
-    sample_sizes,
+    sampled_demes=None,
+    sample_sizes=None,
     sample_times=None,
-    Ne=None,
+    samples=None,
     unsampled_n=4,
     gamma=None,
+    s=None,
     h=None,
+    theta=None,
+    u=None,
+    reversible=False,
+    L=1,
 ):
     """
-    Takes a deme graph and computes the SFS. ``demes`` is a package for
-    specifying demographic models in a user-friendly, human-readable YAML
-    format. This function automatically parses the demographic description
-    and returns a SFS for the specified populations and sample sizes.
+    Compute the SFS from a ``demes``-specified demographic model.
+    ``demes`` is a package for specifying demographic models in a
+    user-friendly, human-readable YAML format. This function
+    automatically parses the demographic model and returns the SFS
+    for the specified populations, sample sizes, and (optionally)
+    sampling times.
+
+    Selection and dominance can be specified as a single value for
+    all populations, or on a per-deme basis using a dictionary
+    mapping deme name to the coefficient (defaults can also be set
+    if multiple demes have the same selection or dominance
+    coefficient). The mutation rate can be given as either a
+    per-base rate (possibly multiplied by the sequence length),
+    or as a population size-scaled rate. If mutation rates are not
+    given, the SFS is scaled by ``4*N_e``, so that multiplying the
+    output SFS by ``u`` results in a properly scaled SFS.
 
     :param g: A ``demes`` DemeGraph from which to compute the SFS.
     :type g: :class:`demes.DemeGraph`
@@ -44,37 +62,74 @@ def SFS(
         ``sampled_demes``, giving the sampling times for each sampled
         deme. Sampling times are given in time units of the original deme graph,
         so might not necessarily be generations (e.g. if ``g.time_units`` is years)
-    :type sample_times: list of floats, optional
-    :param Ne: reference population size. If none is given, we use the initial
-        size of the root deme.
-    :type Ne: float, optional
+    :type sample_times: list of scalars, optional
     :param unsampled_n: The default sample size of unsampled demes, which must be
         greater than or equal to 4.
     :type unsampled_n: int, optional
-    :param gamma: The scaled selection coefficient(s), 2*Ne*s. Defaults to None,
+    :param gamma: The scaled selection coefficient(s), ``2*Ne*s``. Defaults to None,
         which implies neutrality. Can be given as a scalar value, in which case
         all populations have the same selection coefficient. Alternatively, can
         be given as a dictionary, with keys given as population names in the
         input Demes model. Any population missing from this dictionary will be
         assigned a selection coefficient of zero. A non-zero default selection
-        coefficient can be provided, using the key `_default`. See the Demes
+        coefficient can be provided, using the key ``_default``. See the Demes
         exension documentation for more details and examples.
-    :type gamma: float or dict
+    :type gamma: scalar or dict
     :param h: The dominance coefficient(s). Defaults to additivity (or genic
         selection). Can be given as a scalar value, in which case all populations
         have the same dominance coefficient. Alternatively, can be given as a
         dictionary, with keys given as population names in the input Demes model.
         Any population missing from this dictionary will be assigned a dominance
-        coefficient of 1/2 (additivity). A different default dominance
-        coefficient can be provided, using the key `_default`. See the Demes
+        coefficient of ``1/2`` (additivity). A different default dominance
+        coefficient can be provided, using the key ``_default``. See the Demes
         exension documentation for more details and examples.
-    :type h: float or dict
+    :type h: scalar or dict
+    :param theta: The scaled mutation rate(s), 4*Ne*u. When simulating under the
+        infinite sites model (the default mutation model), ``theta`` should be given
+        as a scalar value greater than zero. If it is not provided, it is computed
+        using the input value of ``u`` as ``4*Ne*u``. If ``u`` is not provided, then
+        the SFS is scaled by ``4*Ne``, and the user can recover a properly scaled SFS
+        by multiplying it by ``u`` or ``u*L``. When simulating under the reversible
+        mutation model (with ``reversible=True``), ``theta`` may be a list of length
+        2 and both the forward and backward scaled mutation rates must be less
+        than 1.
+    :type theta: scalar or list of length 2
+    :param u: The per-base mutation rate. When simulating under the infinite sites
+        model (the default mutation model), ``u`` should be a scalar. When simulating
+        under the reversible mutation model (with ``reversible=True``), ``u`` may
+        be a list of length 2, and mutation rate(s) must be small enough so that
+        the product of ``4*Ne*u`` is less than 1.
+    :type u: scalar or list of length 2
+    :param L: The effective sequence length, which may be used along with ``u`` to
+        set the total mutation rate. Defaults to 1, and it must be 1 when using
+        the reversible mutation model.
+    :type L: scalar
     :return: A ``moments`` site frequency spectrum, with dimension equal to the
         length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
         in each dimension, indexing the allele frequency in each deme from 0
         to n[i], where i is the deme index.
     :rtype: :class:`moments.Spectrum`
     """
+    # could specify samples as a dict instead of sampled_demes and sample_sizes
+    if samples is None:
+        if sampled_demes is None or sample_sizes is None:
+            raise ValueError(
+                "must specify either samples (as a dict mapping demes to sample sizes,"
+                " or specify both sampled_demes and sample_times"
+            )
+    else:
+        if type(samples) is not dict:
+            raise ValueError("samples must be a dict mapping demes to sample sizes")
+        if sampled_demes is not None or sample_sizes is not None:
+            raise ValueError(
+                "if samples is given as dict, cannot "
+                "specify sampled_demes or sample_sizes"
+            )
+        if sample_times is not None:
+            raise ValueError("if samples is given as dict, cannot specify sample times")
+        sampled_demes = list(samples.keys())
+        sample_sizes = list(samples.values())
+
     if len(sampled_demes) != len(sample_sizes):
         raise ValueError("sampled_demes and sample_sizes must be same length")
     if sample_times is not None and len(sampled_demes) != len(sample_times):
@@ -119,21 +174,89 @@ def SFS(
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError("sample time for {deme} must be within its time span")
 
+    # get reference Ne from demes model
+    Ne = _get_root_Ne(g)
+
+    # if (unscaled) s is provided, convert into (scaled) gamma selection coefficients
+    if s is not None:
+        if gamma is not None:
+            raise ValueError("Cannot specify both gamma and s")
+        if isinstance(s, (int, float)):
+            gamma = 2 * Ne * s
+        elif type(s) is dict:
+            gamma = {}
+            for k, v in s.items():
+                gamma[k] = 2 * Ne * v
+        else:
+            raise ValueError("Selection coefficient must be a scalar value or dict")
+
     # check selection and dominance inputs
     if gamma is not None:
         if "_default" in g:
             raise ValueError(
-                "Cannot use `_default` as a deme name when gamma is not None"
+                "Cannot use `_default` as a deme name when selection is specified"
             )
-        if type(gamma) is dict:
+        if isinstance(gamma, (int, float)):
+            if not np.isfinite(gamma):
+                raise ValueError("Selection coefficient must be a finite number")
+        elif type(gamma) is dict:
             for k in gamma.keys():
                 if k != "_default" and k not in g:
                     raise ValueError(f"Deme {k} in gamma, but {k} not in input graph")
+        else:
+            raise ValueError("Selection coefficient must be a scalar value or dict")
     if h is not None:
         if type(h) is dict:
             for k in h.keys():
                 if k != "_default" and k not in g:
                     raise ValueError(f"Deme {k} in h, but {k} not in input graph")
+
+    # set up the mutation rates as needed
+    if theta is None:
+        if u is None:
+            u = 1
+        if isinstance(u, (int, float)):
+            theta = 4 * Ne * u * L
+        else:
+            if np.ndim(u) != 1 or len(u) != 2:
+                raise ValueError(
+                    "Mutation rates must be a list of length 2 when using "
+                    "the reversible mutation model"
+                )
+            theta = [4 * Ne * u[0], 4 * Ne * u[1]]
+    else:
+        if u is not None:
+            raise ValueError("Only one of u or theta may be specified")
+        if isinstance(theta, (int, float)):
+            theta *= L
+        else:
+            if np.ndim(theta) != 1 or len(theta) != 2:
+                raise ValueError(
+                    "Mutation rates must be a list of length 2 when using "
+                    "the reversible mutation model"
+                )
+            theta[0] *= L
+            theta[1] *= L
+
+    # if a scalar, must be positive; if list-like, must be length 2 and both positive
+    if not reversible:
+        if not isinstance(theta, (int, float)):
+            raise ValueError(
+                "Mutation rate must be a scalar value for the default ISM model"
+            )
+        if theta <= 0:
+            raise ValueError("Mutation rate must be positive")
+    if reversible:
+        if L != 1:
+            raise ValueError(
+                "Sequence length L must be 1 when using the reversible mutation model"
+            )
+        if isinstance(theta, (int, float)):
+            theta = [theta, theta]
+        if theta[0] <= 0 or theta[1] <= 0:
+            raise ValueError("Mutation rates must be positive")
+        if theta[0] >= 1 or theta[1] >= 1:
+            raise ValueError("Mutation rates too large for reversible mutation model")
 
     # get the list of demographic events from demes, which is a dictionary with
     # lists of splits, admixtures, mergers, branches, and pulses
@@ -181,10 +304,10 @@ def SFS(
         mig_mats,
         Ts,
         frozen_pops,
-        1,  # theta
+        theta=theta,
         gamma=gamma,
         h=h,
-        reversible=False,  # only ISM available
+        reversible=reversible,
     )
 
     fs = _reorder_fs(fs, sampled_pops)
@@ -202,15 +325,21 @@ def SFS(
     return fs
 
 
-def LD(
-    g, sampled_demes, sample_times=None, rho=None, theta=0.001, r=None, u=None, Ne=None
-):
+def LD(g, sampled_demes, sample_times=None, rho=None, theta=None, r=None, u=None):
     """
-    Takes a deme graph and computes the LD stats. ``demes`` is a package for
-    specifying demographic models in a user-friendly, human-readable YAML
-    format. This function automatically parses the demographic description
-    and returns a LD for the specified populations and recombination and
-    mutation rates.
+    Compute LD statistics from a ``demes``-specified demographic model.
+    ``demes`` is a package for specifying demographic models in a
+    user-friendly, human-readable YAML format. This function
+    automatically parses the demographic model and returns LD statistics
+    for the specified populations and (optionally) sampling times.
+
+    No mutation or recombination rates are required. If recombination
+    rates are omitted, only single-locus allelic diversity statistics
+    will be computed. If mutation rates are omitted, that is, neither
+    ``theta`` nor ``u`` are provided, the per-base mutation rate is set
+    to 1. Thus, to recover the correctly scaled LD statistics, multiply
+    the two-locus statistics by :math:`u^2` and the single-locus
+    statistics by :math:`u`.
 
     :param g: A ``demes`` DemeGraph from which to compute the LD.
     :type g: :class:`demes.DemeGraph`
@@ -227,15 +356,16 @@ def LD(
     :type sample_times: list of floats, optional
     :param rho: The population-size scaled recombination rate(s). Can be None, a
         non-negative float, or a list of values. Cannot be used with ``Ne``.
-    :param theta: The population-size scaled mutation rate. Cannot be used with ``Ne``.
-    :param r: The raw recombination rate. Can be None, a non-negative float, or a
-        list of values. Must be used with ``Ne``.
-    :param u: The raw per-base mutation rate. Must be used with ``Ne``, in which case
-        ``theta`` is set to ``4 * Ne * u``.
-    :param Ne: The reference population size. If none is given, we use the initial
-        size of the root deme. For use with ``r`` and ``u``, to compute ``rho`` and
-        ``theta``. If ``rho`` and/or ``theta`` are given, we do not pass Ne.
-    :type Ne: float, optional
+    :param theta: The population-size scaled mutation rate. Cannot be used
+        with ``u``.
+    :param r: The unscaled recombination rate(s). Can be None, a non-negative
+        float, or a list of values. Recombination rates are scaled by ``Ne`` to
+        get ``rho=4*Ne*u``, and ``Ne`` is determined by the root population size.
+    :type r: scalar or list of scalars
+    :param u: The raw per-base mutation rate. The reference effective population
+        size ``Ne`` is determined from the demograhic model, after which
+        ``theta`` is set to ``4*Ne*u``.
+    :type u: scalar
     :return: A ``moments.LD`` LD statistics object, with number of populations equal
         to the length of ``sampled_demes``.
     :rtype: :class:`moments.LD.LDstats`
@@ -290,6 +420,7 @@ def LD(
 
     # get the list of size functions, migration matrices, and frozen attributes from
     # the deme graph and event times, matching the integration times
+    Ne = _get_root_Ne(g)
     nu_funcs, mig_mats, Ts, frozen_pops = _get_integration_parameters(
         g, demes_present, list_of_frozen_demes, Ne=Ne
     )
@@ -298,20 +429,30 @@ def LD(
     root_selfing_rate = _get_root_selfing_rate(g)
 
     # set recombination and mutation rates
-    if Ne is None:
-        Ne = _get_root_Ne(g)
     if rho is not None and r is not None:
         raise ValueError("Can only specify rho or r, but not both")
     if rho is None:
         if r is not None:
-            rho = 4 * Ne * np.array(r)
-    elif hasattr(rho, "__len__"):
-        rho = np.array(rho)
-    else:
-        if rho < 0:
-            raise ValueError("rho must be non-negative")
+            if hasattr(r, "__len__"):
+                rho = 4 * Ne * np.array(r)
+            else:
+                rho = 4 * Ne * r
+    if rho is not None:
+        if hasattr(rho, "__len__"):
+            rho = np.array(rho)
+            if np.any(rho < 0):
+                raise ValueError("rho must be non-negative")
+        else:
+            if rho < 0:
+                raise ValueError("rho must be non-negative")
+    if u is None and theta is None:
+        u = 1
     if u is not None:
+        if theta is not None:
+            raise ValueError("Only one of theta and u may be specified")
         theta = 4 * Ne * u
+    if theta <= 0:
+        raise ValueError("Mutation rate must be positive")
 
     # compute LD
     y = _compute_LD(
@@ -384,7 +525,9 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
             sd_frozen = sd + f"_sampled_{'_'.join(str(float(st + t)).split('.'))}"
             # update names of sampled demes
             sampled_demes[ii] = sd_frozen
-            deme_sample_times = [y for x, y in zip(sampled_demes, sample_times) if x == sd]
+            deme_sample_times = [
+                y for x, y in zip(sampled_demes, sample_times) if x == sd
+            ]
             if st > 0:
                 # add the frozen branch, as sample time is nonzero
                 frozen_demes.append(sd_frozen)
@@ -524,6 +667,12 @@ def _get_integration_parameters(g, demes_present, frozen_list, Ne=None):
 
     if Ne is None:
         Ne = _get_root_Ne(g)
+    else:
+        if Ne != _get_root_Ne(g):
+            warnings.warn(
+                "Input Ne is different from root population initial size, "
+                "subsequent population size scaling may be incorrect"
+            )
 
     for interval, live_demes in sorted(demes_present.items())[::-1]:
         # get intergration time for interval
@@ -826,9 +975,11 @@ def _compute_sfs(
         theta_fd = theta[0]
         theta_bd = theta[1]
         assert theta_fd < 1 and theta_bd < 1
+        mask_corners = False
     else:
         # theta is a scalar
-        assert type(theta) in [int, float]
+        assert isinstance(theta, (int, float))
+        mask_corners = True
 
     integration_intervals = sorted(list(demes_present.keys()))[::-1]
     root_deme = demes_present[integration_intervals[0]][0]
@@ -861,7 +1012,7 @@ def _compute_sfs(
         )
         if h0 != 0.5:
             raise ValueError("can only use h=0.5 with reversible mutation model")
-    fs = moments.Spectrum(fs, pop_ids=[root_deme])
+    fs = moments.Spectrum(fs, pop_ids=[root_deme], mask_corners=mask_corners)
 
     # for each set of demographic events and integration epochs, step through
     # integration, apply events, and then reorder populations to align with demes

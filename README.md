@@ -53,7 +53,14 @@ using `pip` should install these dependencies automatically:
 pip install git+https://github.com/MomentsLD/moments.git
 ```
 
-Alternatively, you can clone the git repository
+or install the development branch by running
+
+```
+pip install git+https://github.com/MomentsLD/moments.git@devel
+```
+
+Alternatively, you can clone the git repository to make an editable or
+development build.
 
 ```
 git clone https://github.com/MomentsLD/moments.git
@@ -114,8 +121,7 @@ Once dependencies are installed, to install `moments`, run the following command
 in the moments directory:
 
 ```
-python setup.py build_ext -i
-python setup.py install
+python -m pip install -e .
 ```
 
 You should then be able to import `moments` in your python scripts. Entering an
