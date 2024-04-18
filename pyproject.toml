@@ -52,3 +52,8 @@ build = "cp3{11,12}-*"
 [tool.cibuildwheel.linux]
 build = "cp*manylinux*"
 archs = "x86_64"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+]
