@@ -2,25 +2,24 @@
 Installation
 ============
 
-``moments`` now supports Python 3. Because Python is soon discontinuing support for
-Python 2, we do not actively ensure that moments remains fully compatable with Python
-2, and strongly recommend using Python 3.
+``moments`` now supports Python 3. Because Python has discontinued support for
+Python 2, we do not actively ensure that moments remains fully compatible with
+Python 2, and strongly recommend using Python 3.
 
 Using pip
 =========
 
-.. todo::
-    Update docs when moments is installable via pip, as ``pip install moments-popgen``.
-
-A simple way to install ``moments`` is via ``pip``. ``numpy``, ``mpmath``, and ``cython``
-are install requirements, but installing ``moments`` directly from the git repository
-using ``pip`` should install these dependencies automatically:
+The simplest way to install the latest stable version of ``moments`` is to
 
 .. code-block:: bash
+    
+    pip install moments-popgen
 
-   pip install git+https://github.com/MomentsLD/moments.git
+This installs ``moments`` along with the minimal dependencies, and you should
+be able to ``import moments``.
 
-This approach can also be used to install the development branch of ``moments``:
+To install the development version of ``moments``, you can install directly
+from the development branch at Github:
 
 .. code-block:: bash
 
@@ -43,16 +42,16 @@ and then from within the moments directory (``cd moments``), run
 Using conda
 ===========
 
-``moments`` is available via `Bioconda <https://anaconda.org/bioconda/moments>`_.
-
-The most recent release of ``moments`` can be installed by running
+``moments`` is available via `Bioconda
+<https://anaconda.org/bioconda/moments>`_, and can be installed by running
 
 .. code-block:: bash
 
    conda install -c bioconda moments
 
-The `conda channels <https://bioconda.github.io/user/install.html#set-up-channels>`_
-must be set up to include bioconda, which can be done by running
+The `conda channels
+<https://bioconda.github.io/user/install.html#set-up-channels>`_ must be set up
+to include bioconda, which can be done by running
 
 .. code-block:: bash
    
@@ -65,8 +64,8 @@ must be set up to include bioconda, which can be done by running
 Dependencies and details
 ========================
 
-``moments`` and ``moments.LD`` requires a number of dependencies. Minimally,
-these include
+If you are building ``moments`` from source, you will need to first install
+a handful of dependencies. Minimally, these include
 
 - numpy
 
@@ -79,8 +78,8 @@ these include
 - demes
 
 
-All dependencies are listed in `requirements.txt`, and can be install together
-using
+All dependencies are listed in `requirements.txt`, and can be installed
+together using
 
 .. code-block:: bash
 
@@ -95,8 +94,8 @@ moments directory and then running
 
    conda install --file requirements.txt
 
-Once dependencies are installed, to install ``moments``, run the following commands
-in the moments directory:
+Once dependencies are installed, to install ``moments``, run the following
+commands in the moments directory:
 
 .. code-block:: bash
 
@@ -104,15 +103,17 @@ in the moments directory:
 
 Note that you might need sudo privileges to install in this way.
 
-You should then be able to import ``moments`` in your python scripts. Entering an
-ipython or python session, type ``import moments``. If, for any reason, you have
-trouble installing ``moments`` after following these steps, please submit an
-`Issue <https://github.com/MomentsLD/moments/issues>`_.
+You should then be able to import ``moments`` in your python scripts. Entering
+an ipython or python session, type ``import moments``. If, for any reason, you
+have trouble installing ``moments`` after following these steps, please submit
+an `Issue <https://github.com/MomentsLD/moments/issues>`_.
 
 If you use ``Parsing`` from ``moments.LD``, which reads VCF-formatted files and
-computes LD statistics to compare to predictions from ``moments.LD``, you will need to
-additionally install
+computes LD statistics to compare to predictions from ``moments.LD``, you will
+need to additionally install
 
 - hdf5
 
 - scikit-allel
+
+- pandas

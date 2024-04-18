@@ -1059,7 +1059,11 @@ def optimize_LD(
         distance bins.
     :param statistics: A list of two lists, the first being the LD statistics
         present in the data, and the second the list of single-locus statistics
-        present in the data.
+        present in the data.  **WARNING**: This option should *only* be used if
+        there are missing or masked statistics in your data, aside from the
+        normalizing pi2 statistic!  If there are no missing or removed
+        statistics other than the normalization statistic, this option should
+        not be used.
     :param normalization: The name of the population that was used to normalize
         the data. See documentation for examples specifying each of these arguments.
     :param maxiter: The maximum number of iterations to run optimization. Defaults

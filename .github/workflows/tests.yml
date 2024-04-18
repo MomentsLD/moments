@@ -25,15 +25,15 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v2
 
-      - name: setup python
+      - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           pip install -r requirements.txt
           # pip install -r requirements/development.txt
@@ -42,11 +42,12 @@ jobs:
           pip install -r requirements/lint.txt
       
       # Check that moments installs as expected.
-      - name: install moments
+      - name: Install moments
         run: |
           pip install .
       
-      - name: run pytest
+      # Run tests, with warnings triggered as errors
+      - name: Run pytest
         run: |
           python -m pytest -n auto -v tests
 

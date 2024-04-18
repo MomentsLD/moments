@@ -1,19 +1,19 @@
-# moments: tools for diversity statistics and inference
+# moments: population genetic analyses and inference using diversity statistics
 
 Please see the [documentation](https://momentsld.github.io/moments/)
-for more details, examples, and tutorials.
+for more details, examples, tutorials and API usage.
 
-`moments` implements methods for demographic history and selection inference
-from genetic data, based on diffusion approximations to the allele frequency spectrum.
-`moments` is based on the  [∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open
-source package developed by [Ryan Gutenkunst](http://gutengroup.mcb.arizona.edu).
-We largely reuse `∂a∂i`'s interface but introduced a new simulation engine. This
-new method is based on the direct computation of the frequency spectrum without
-solving the diffusion system. Consequently we circumvent the numerical PDE
-approximations and we get rid of the frequency grids used in `∂a∂i`.
-
-`moments.LD` implements methods for computing linkage disequilibrium statistics and
-running multi-population demographic inference using patterns of LD.
+`moments` provides a suite of methods for demographic history and selection
+inference from genetic data, based on diffusion approximations to the one- and
+two-locus allele frequency spectrum. `moments` is modeled after the
+[∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open source package developed
+by [Ryan Gutenkunst](http://gutengroup.mcb.arizona.edu). For SFS-based methdos,
+we largely reuse `∂a∂i`'s API, but introduce a new simulation engine. This new
+method is based on the direct computation of the frequency spectrum without
+solving the diffusion system, removing the need for frequency grids as used in
+`∂a∂i`. `moments.LD`, packaged within `moments`, implements methods for
+computing linkage disequilibrium statistics and running multi-population
+demographic inference using patterns of LD.
 
 If you use `moments` in your research, please cite:
 
@@ -34,26 +34,26 @@ If you use `moments.TwoLocus` in your research, please cite:
 - Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
   from linkage disequilibrium? BioRxiv, doi: https://doi.org/10.1101/2021.03.25.437004
 
-`moments` is developed in [Simon Gravel's
-group](http://simongravel.lab.mcgill.ca/Home.html) in the Human Genetics
-department at McGill University, with with ongoing maintenance and development
-by the Gravel Lab and [Aaron Ragsdale](http://apragsdale.github.io).
+`moments` is developed in the [Simon
+Gravel](http://simongravel.lab.mcgill.ca/Home.html) and [Aaron
+Ragsdale](https://apragsdale.github.io/) research groups, at McGill University and
+UW-Madison, respectively. For any issues, questions or bug reports, please open
+an [issue on Github](https://github.com/MomentsLD/moments/issues).
 
 ## Getting started
 
-`moments` now supports python 3. Because python is soon discontinuing support for
-python 2, we do not actively ensure that moments remains fully compatable with python
-2, and strongly recommend using python 3.
+`moments` now supports Python 3, and we no longer guarantee compatibility with
+Python 2.
 
-The simplest way to install `moments` is using `pip`. Note that `numpy` and `cython`
-are install requirements, but installing `moments` directly from the git repository
-using `pip` should install these dependencies automatically:
+The simplest way to install `moments` is using `pip`:
 
 ```
-pip install git+https://github.com/MomentsLD/moments.git
+pip install moments-popgen
 ```
 
-or install the development branch by running
+`moments` can then be imported using `import moments`.
+
+We can install the development branch directly from Github by running
 
 ```
 pip install git+https://github.com/MomentsLD/moments.git@devel
@@ -69,7 +69,7 @@ git clone https://github.com/MomentsLD/moments.git
 and then from within the moments directory (`cd moments`), run
 
 ```
-pip install numpy, cython, scipy, mpmath
+pip install -r requirements.txt
 pip install .
 ```
 
@@ -80,41 +80,37 @@ conda config --add channels bioconda
 conda install moments
 ```
 
-### Dependencies and details
+### Dependencies
 
-`moments` and `moments.LD` requires a number of dependencies. At a minimum,
-these include
-
-- numpy
-
-- scipy
-
-- cython
-
-- mpmath
-
-Dependencies can be installed using pip. For example to install `cython`,
-
-```
-pip install cython
-```
-
-Depending on the python distribution you use, it may be useful to add the directory
-to `cython` in your python path.
-
-We also strongly recommend installing `ipython`.
-
-If you are using conda, all dependencies can be installed by navigating to the
-moments directory and then running
-
-```
-conda install --file requirements.txt
-```
-
-or, alternatively,
+If you install `moments` from source (e.g., after cloning the repository), you
+will need to install the dependencies. These are all listed in
+`requirements.txt`, and can be installed via `pip` after navigating to the
+`moments` directory:
 
 ```
 pip install -r requirements.txt
+```
+
+A few more details: `moments` and `moments.LD` requires a handful of
+dependencies. At a minimum, these include
+
+- `numpy`
+
+- `scipy`
+
+- `cython`
+
+- `mpmath`
+
+- `demes`
+
+We also strongly recommend installing `ipython`.
+
+If you are using `conda`, all dependencies can be installed by navigating to
+the moments directory and then running
+
+```
+conda install --file requirements.txt
 ```
 
 Once dependencies are installed, to install `moments`, run the following command
@@ -125,20 +121,21 @@ python -m pip install -e .
 ```
 
 You should then be able to import `moments` in your python scripts. Entering an
-ipython or python session, type `import moments`. More details on installation
-can be found in the
-[documentation](https://moments.readthedocs.io/en/latest/installation.html).
-If, for any reason, you have trouble installing moments after following these
-steps, please submit an
-[issue](https://github.com/MomentsLD/moments/issues).
+`ipython` or python session, try to `import moments`. More details on
+installation can be found in the
+[documentation](https://momentsld.github.io/moments/installation.html). If, for
+any reason, you have trouble installing moments after following these steps,
+please submit an [issue](https://github.com/MomentsLD/moments/issues).
 
-If you use `Parsing` from `moments.LD`, which reads vcf files and computes LD
+If you use `Parsing` from `moments.LD`, which reads VCF files and computes LD
 statistics to compare to predictions from `moments.LD`, you will need to
 additionally install
 
-- hdf5
+- `hdf5`
 
-- scikit-allel
+- `scikit-allel`
+
+- `pandas`
 
 ## Changelog
 

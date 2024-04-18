@@ -35,6 +35,7 @@ dependencies=[
     "mpmath >=1.0",
     "demes >=0.2",
 ]
+readme = "README.md"
 
 [project.urls]
 Repository = "https://github.com/MomentsLD/moments"
@@ -51,3 +52,8 @@ build = "cp3{11,12}-*"
 [tool.cibuildwheel.linux]
 build = "cp*manylinux*"
 archs = "x86_64"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+]
