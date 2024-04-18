@@ -61,6 +61,15 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.2.0
+=====
+
+- Change project name to ``moments-popgen``, still imports as ``moments``
+- Fix unexpected behavior when perturbing input parameters in Demes inference
+- Change scaling behavior for mutation, selection and recombination  when
+  computing statistics using Demes (detailed in documentation)
+- Add ``H2()`` function to LD statistics
+
 1.1.18
 ======
 

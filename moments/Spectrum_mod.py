@@ -1864,8 +1864,7 @@ class Spectrum(np.ma.masked_array):
             if np.sum(fsout) == 0:
                 warnings.warn(
                     "Spectrum is empty. Did you compute the outgroup alleles "
-                    "at variable sites?",
-                    warnings.RuntimeWarning,
+                    "at variable sites?"
                 )
             return fsout
         else:
