@@ -61,6 +61,11 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.2.0
+=====
+
+- 
+
 1.1.18
 ======
 
