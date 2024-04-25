@@ -1081,6 +1081,55 @@ class Spectrum(np.ma.masked_array):
 
         return (pihat - theta) / C
 
+    def f2(self, X, Y):
+        """
+        Returns :math:`f_2(X, Y) = (pX-pY)^2`, where :math:`p` are observed
+        allele frequencies in populations X and Y.
+
+        X, and Y can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: One of the populations, as index or population ID.
+        :param Y: The other population, as index or population ID.
+        :return: Patterson's f2 statistics.
+        """
+        if type(X) is int and type(Y) is int:
+            idx0 = X
+            idx1 = Y
+        elif type(X) is str and type(Y) is str:
+            if self.pop_ids is None:
+                raise ValueError("Populations given a strings, but pop_ids is None")
+            for _ in [X, Y]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} is not in pop_ids")
+            idx0 = self.pop_ids.index(X)
+            idx1 = self.pop_ids.index(Y)
+        else:
+            raise ValueError(
+                "Populations X and Y must both be population indexes or IDs"
+            )
+
+        to_marginalize = [i for i in range(self.Npop) if i not in [idx0, idx1]]
+        fs = self.marginalize(to_marginalize)
+
+        n0, n1 = fs.sample_sizes
+        i0 = np.arange(n0 + 1)[:, np.newaxis]
+        i1 = np.arange(n1 + 1)[np.newaxis, :]
+
+        # To account for sampling bias
+        fac = (
+            i0 * (i0 - 1) / n0 / (n0 - 1)
+            - 2 * i0 * i1 / n0 / n1
+            + i1 * (i1 - 1) / n1 / (n1 - 1)
+        )
+        return np.sum(fac * fs)
+
+    def f3(X, Y, Z):
+        pass
+
+    def f4(X, Y, Z, W):
+        pass
+
     # Functions for resampling or generating "data" from an SFS
 
     def fixed_size_sample(self, nsamples, include_masked=False):
