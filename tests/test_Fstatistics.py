@@ -4,6 +4,7 @@ import numpy as np
 import moments
 import time
 import demes
+import copy
 
 
 class FStatistics(unittest.TestCase):
@@ -39,3 +40,54 @@ class FStatistics(unittest.TestCase):
         f2_SFS = fs.f2("A", "B")
 
         self.assertTrue(np.isclose(f2_LD, f2_SFS, rtol=2e-4))
+
+    def test_F3_LD_against_SFS(self):
+        b = demes.Builder()
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=200)])
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=2000)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=3000)])
+        b.add_deme("C", ancestors=["anc"], epochs=[dict(start_size=4000)])
+        g = b.resolve()
+        y = moments.Demes.LD(g, ["A", "B", "C"], u=1e-6)
+        fs = moments.Demes.SFS(g, samples={"A": 20, "B": 20, "C": 20}, u=1e-6)
+
+        assert np.isclose(y.f3(0, 1, 2), fs.f3(0, 1, 2))
+        assert np.isclose(y.f3(1, 0, 2), fs.f3(1, 0, 2))
+        assert np.isclose(y.f3(2, 1, 0), fs.f3(2, 1, 0))
+        assert np.isclose(y.f3(0, 2, 1), fs.f3(0, 2, 1))
+        assert np.isclose(y.f3(1, 2, 0), fs.f3(1, 2, 0))
+        assert np.isclose(y.f3(2, 0, 1), fs.f3(2, 0, 1))
+
+    def test_ordering(self):
+        y = moments.LD.Demographics2D.snm()
+        y = y.split(1)
+        y.integrate([1, 2, 3], 0.1)
+        y = y.split(0)
+        y.integrate([1, 2, 3, 4], 0.1)
+
+        assert np.isclose(y.f2(0, 1), y.f2(1, 0))
+        assert np.isclose(y.f2(0, 3), y.f2(3, 0))
+        assert np.isclose(y.f4(0, 1, 2, 3), y.f4(1, 0, 3, 2))
+        assert np.isclose(y.f4(0, 1, 2, 3), -y.f4(1, 0, 2, 3))
+
+        y2 = copy.deepcopy(y)
+        y2 = y2.swap_pops(0, 3)
+        assert np.isclose(y.f3(0, 2, 3), y2.f3(3, 2, 0))
+        assert np.isclose(y.f3(0, 1, 2), y.f3(0, 2, 1))
+
+    def test_ordering_SFS(self):
+        fs = moments.Demographics2D.snm([12, 12])
+        fs = fs.split(1, 6, 6)
+        fs.integrate([1, 2, 3], 0.1)
+        fs = fs.split(0, 6, 6)
+        fs.integrate([1, 2, 3, 4], 0.1)
+
+        assert np.isclose(fs.f2(0, 1), fs.f2(1, 0))
+        assert np.isclose(fs.f2(0, 3), fs.f2(3, 0))
+        assert np.isclose(fs.f4(0, 1, 2, 3), fs.f4(1, 0, 3, 2))
+        assert np.isclose(fs.f4(0, 1, 2, 3), -fs.f4(1, 0, 2, 3))
+
+        fs2 = copy.deepcopy(fs)
+        fs2 = fs2.swap_axes(0, 3)
+        assert np.isclose(fs.f3(0, 2, 3), fs2.f3(3, 2, 0))
+        assert np.isclose(fs.f3(0, 1, 2), fs.f3(0, 2, 1))

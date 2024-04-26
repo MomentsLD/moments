@@ -1180,6 +1180,7 @@ class Spectrum(np.ma.masked_array):
         if idx1 == idx2:
             return self.f2(idx0, idx1)
 
+        # reorder as needed so X is first population index
         if idx0 > idx1 or idx0 > idx2:
             fs = self.swap_axes(0, idx0)
             if idx1 == 0:
@@ -1187,9 +1188,11 @@ class Spectrum(np.ma.masked_array):
             if idx2 == 0:
                 idx2 = idx0
             idx0 = 0
+        else:
+            fs = copy.deepcopy(self)
 
-        to_marginalize = [i for i in range(self.Npop) if i not in [idx0, idx1, idx2]]
-        fs = self.marginalize(to_marginalize)
+        to_marginalize = [i for i in range(fs.Npop) if i not in [idx0, idx1, idx2]]
+        fs = fs.marginalize(to_marginalize)
 
         n0, n1, n2 = fs.sample_sizes
         i0 = np.arange(n0 + 1)[:, np.newaxis, np.newaxis]
