@@ -91,3 +91,20 @@ class FStatistics(unittest.TestCase):
         fs2 = fs2.swap_axes(0, 3)
         assert np.isclose(fs.f3(0, 2, 3), fs2.f3(3, 2, 0))
         assert np.isclose(fs.f3(0, 1, 2), fs.f3(0, 2, 1))
+
+    def test_SFS_equiv_index_names(self):
+        size = (4, 5, 6, 7, 8)
+        fs = moments.Spectrum(np.random.rand(np.prod(size)).reshape(size))
+        fs.pop_ids = ["A", "B", "C", "D", "E"]
+
+        for i in range(5):
+            x = fs.pop_ids[i]
+            for j in range(5):
+                y = fs.pop_ids[j]
+                assert fs.f2(i, j) == fs.f2(x, y)
+                for k in range(5):
+                    z = fs.pop_ids[k]
+                    assert fs.f3(i, j, k) == fs.f3(x, y, z)
+                    for l in range(5):
+                        w = fs.pop_ids[l]
+                        assert fs.f4(i, j, k, l) == fs.f4(x, y, z, w)
