@@ -108,3 +108,37 @@ class FStatistics(unittest.TestCase):
                     for l in range(5):
                         w = fs.pop_ids[l]
                         assert fs.f4(i, j, k, l) == fs.f4(x, y, z, w)
+    
+    def test_ordering_equiv_models(self):
+        b = demes.Builder()
+        b.add_deme("anc", epochs=[dict(start_size=1000, end_time=200)])
+        b.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=2000)])
+        b.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=3000)])
+        b.add_deme("C", ancestors=["anc"], epochs=[dict(start_size=4000)])
+        g = b.resolve()
+        
+        b2 = demes.Builder()
+        b2.add_deme("anc", epochs=[dict(start_size=1000, end_time=200)])
+        b2.add_deme("B", ancestors=["anc"], epochs=[dict(start_size=3000)])
+        b2.add_deme("C", ancestors=["anc"], epochs=[dict(start_size=4000)])
+        b2.add_deme("A", ancestors=["anc"], epochs=[dict(start_size=2000)])
+        g2 = b2.resolve()
+
+        y = moments.Demes.LD(g, ["A", "B", "C"], u=1e-6)
+        y2 = moments.Demes.LD(g2, ["A", "B", "C"], u=1e-6)
+        
+        assert np.all(y[-1] == y2[-1])
+        assert y.f2("A", "C") == y2.f2("A", "C")
+        assert y.f3("B", "A", "C") == y2.f3("B", "C", "A")
+
+        fs = moments.Demes.SFS(g, samples={"A": 10, "B": 10, "C":10}, u=1e-6)
+        fs2 = moments.Demes.SFS(g2, samples={"A":10, "B":10, "C":10}, u=1e-6)
+
+        assert np.allclose(fs, fs2)
+        assert np.isclose(fs.f2("A", "C"), fs2.f2("A", "C"))
+        assert np.isclose(fs.f3("B", "A", "C"), fs2.f3("B", "C", "A"))
+
+        assert np.isclose(fs.f2("B", "C"), y.f2("B", "C"))
+        assert np.isclose(fs.f3("C", "A", "B"), y.f3("C", "A", "B"))
+
+
