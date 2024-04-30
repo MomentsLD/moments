@@ -235,13 +235,14 @@ class LDstats(list):
         """
         Returns :math:`f_4(X, Y; Z, W) = (X-Y)(Z-W)`.
 
-        X, Y, and Z can be specified as population ID strings, or as indexes
+        X, Y, Z and W can be specified as population ID strings, or as indexes
         (but these cannot be mixed).
 
-        :param X: The "test" population, as index or population ID.
-        :param Y: The first reference population, as index or population ID.
-        :param Z: The second reference population, as index or population ID.
-        :param W:
+        :param X: A population index or ID.
+        :param Y: A population index or ID.
+        :param Z: A population index or ID.
+        :param W: A population index or ID.
+        :returns: Patterson's f4 statistic (pX-pY)*(pZ-pW).
         """
         if type(X) is str:
             if type(Y) is not str or type(Z) is not str or type(W) is not str:
