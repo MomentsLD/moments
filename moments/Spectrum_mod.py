@@ -18,17 +18,6 @@ import itertools
 import warnings
 import demes
 
-# Account for difference in scipy installations.
-try:
-    from scipy.misc import comb
-except ImportError:
-    try:
-        from scipy.special import comb
-    except:
-        from scipy import comb
-from scipy.integrate import trapz
-from scipy.special import betainc
-
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
