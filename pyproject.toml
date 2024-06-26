@@ -36,6 +36,7 @@ dependencies=[
     "demes >=0.2",
 ]
 readme = "README.md"
+description = "Population genetic statistics for evolutionary inference"
 
 [project.urls]
 Repository = "https://github.com/MomentsLD/moments"
