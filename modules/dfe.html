@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DFE inference &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Linkage disequilibrium and recombination" href="recombination.html" />
+    <link rel="prev" title="Demography and genetic diversity" href="diversity.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DFE inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data">Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mutation-rates">Mutation rates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-for-demography">Controlling for demography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inferring-the-dfe">Inferring the DFE</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#caching-sfs">Caching SFS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization-of-the-dfe">Optimization of the DFE</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sensitivity-to-the-demographic-model">Sensitivity to the demographic model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">DFE inference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/dfe.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="jupyter_cell docutils container" id="sec-dfe-inferenc">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="dfe-inference">
+<h1>DFE inference<a class="headerlink" href="#dfe-inference" title="Link to this heading"></a></h1>
+<p>By Aaron Ragsdale, November 2020.</p>
+<p>The distribution of fitness effects (DFE) for new mutations describes is a fundamental
+parameter in evolutionary biology - it determines the fixation probability of new
+functional mutations, the strength of background selection, and the genetic architecture
+of traits and disease.</p>
+<p>Very roughly, most new mutations across the genome are effectively neutral or
+deleterious, with a small fraction being beneficial (e.g. <a class="reference internal" href="#keightley" id="id1"><span>[Keightley]</span></a>, <a class="reference internal" href="#boyko" id="id2"><span>[Boyko]</span></a>).
+In coding regions, the average selection coefficient for a new mutation depends on
+its functional effect: we typically assume synonymous (or silent) mutations are
+effectively neutral (though this may be a tenuous assumption!), missense (or
+nonsynonymous) mutations are more deleterious on average, and loss-of-function
+(or nonsense) mutations are often very damaging. We can learn about the DFE in
+each of these categories by studying the distributions allele frequencies for variants
+in each class.</p>
+<section id="data">
+<h2>Data<a class="headerlink" href="#data" title="Link to this heading"></a></h2>
+<p>Let’s first look at the data we’ll be working with. Here, I used single-population data
+from the Mende from Sierre Leone (MSL) from the 1000 Genomes Project <a class="reference internal" href="#g" id="id3"><span>[1000G]</span></a>. In
+<a class="reference internal" href="#all-data"><span class="std std-numref">Fig. 2</span></a>, I plotted the unfolded SFS for three classes of mutations
+in coding regions genome-wide. We can see that the missense variants are skewed
+to lower frequencies than synonymous variants, on average, and loss-of-function
+(LOF) variants are skewed to even lower frequencies.</p>
+<p>It can be difficult to judge the skew of the SFS based on SFS counts, since the total
+mutational target for each mutation class differs (<a class="reference internal" href="#id5"><span class="std std-numref">Table 1</span></a>). In the
+bottom panel of the plot, we can see that of all LOF variants observed in the MSL
+population, roughly 50% of them are singletons; compare that to synonymous variants,
+of which less than 30% are singletons.</p>
+<figure class="align-center" id="id8">
+<span id="all-data"></span><img alt="../_images/msl_spectra.png" src="../_images/msl_spectra.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Synonymous, missense, and loss-of-function SFS from the 1000 Genomes Project
+across all autosomal genes. Top: counts in each frequency bin. Bottom: proportions
+in each frequency bin.</span><a class="headerlink" href="#id8" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="mutation-rates">
+<h3>Mutation rates<a class="headerlink" href="#mutation-rates" title="Link to this heading"></a></h3>
+<p>The overall scaling of the SFS from mutation classes is also informative, because
+strongly deleterious or lethal mutations are quickly lost from the population and
+so are often unseen. Thus, seeing fewer mutations that expected in a given class
+tells us that some fraction of those mutations are highly deleterious. To make such
+an inference about the strongly damaging tail fo the DFE we need to know the
+total mutation rates for each class of mutations.</p>
+<p>Using the mutation model from <a class="reference internal" href="#karczewski" id="id4"><span>[Karczewski]</span></a>, I summed across all possible mutations in
+genes genome-wide, their mutational probability, and their functional consequences to
+get the total mutation rate (<code class="docutils literal notranslate"><span class="pre">u*L</span></code> - here, <code class="docutils literal notranslate"><span class="pre">L</span></code> is roughly 36 Mb of annotated coding
+regions) for each of the three mutation classes shown in <a class="reference internal" href="#all-data"><span class="std std-numref">Fig. 2</span></a>:</p>
+<span id="id5"></span><table class="docutils align-center" id="id9">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Total mutation rates for classes of mutations in coding regions.</span><a class="headerlink" href="#id9" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Mutation class</p></td>
+<td><p>Total mutation rate</p></td>
+</tr>
+<tr class="row-even"><td><p>Synonymous variants</p></td>
+<td><p>0.1442</p></td>
+</tr>
+<tr class="row-odd"><td><p>Missense variants</p></td>
+<td><p>0.3426</p></td>
+</tr>
+<tr class="row-even"><td><p>Loss-of-function variants</p></td>
+<td><p>0.0256</p></td>
+</tr>
+</tbody>
+</table>
+<p>We can see here that the mutational target for nonsynonymous variants is about 2.37
+times larger than for synonymous variants. Still, we see far more segregating
+synonymous mutations than nonsynonymous mutations:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># note that these frequency spectra are saved in the docs directory of the moments</span>
+<span class="c1"># repository: https://github.com/MomentsLD/moments/tree/main/docs/data</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;./data/msl_data.bp&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+
+<span class="n">fs_syn</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">][</span><span class="s2">&quot;syn&quot;</span><span class="p">]</span>
+<span class="n">fs_mis</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">][</span><span class="s2">&quot;mis&quot;</span><span class="p">]</span>
+<span class="n">fs_lof</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">][</span><span class="s2">&quot;lof&quot;</span><span class="p">]</span>
+
+<span class="n">u_syn</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;rates&quot;</span><span class="p">][</span><span class="s2">&quot;syn&quot;</span><span class="p">]</span>
+<span class="n">u_mis</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;rates&quot;</span><span class="p">][</span><span class="s2">&quot;mis&quot;</span><span class="p">]</span>
+<span class="n">u_lof</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;rates&quot;</span><span class="p">][</span><span class="s2">&quot;lof&quot;</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Diversity:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;synonymous:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_syn</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missense:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_mis</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loss of func:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_lof</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Diversity scaled by total mutation rate:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;synonymous:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_syn</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u_syn</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missense:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_mis</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u_mis</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loss of func:</span><span class="se">\t</span><span class="si">{</span><span class="n">fs_lof</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u_lof</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Diversity:
+synonymous:	8452.01
+missense:	6991.16
+loss of func:	95.16
+
+Diversity scaled by total mutation rate:
+synonymous:	58614.15
+missense:	20408.81
+loss of func:	3718.19
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="controlling-for-demography">
+<h2>Controlling for demography<a class="headerlink" href="#controlling-for-demography" title="Link to this heading"></a></h2>
+<p>Demography (in this case, the population size history) affects mutation frequency
+trajectories and the SFS, so we need to control for non-steady-state demography in
+some way. Using our assumption that synonymous variants are effectively neutral, we
+first fit a demographic model to synonymous variants, and then with that inferred
+demography we fit the DFE to selected variants.</p>
+<p>We could pick any plausible demographic model to fit. The main consideration is to
+choose a demographic model that can adequately fit the data, but is not so
+over-parameterized to be overfitting to the noise in the SFS. In <a class="reference internal" href="#all-data"><span class="std std-numref">Fig. 2</span></a>,
+we can also see the telltale sign of ancestral misidentification by the uptick
+of high-frequency variants. In addition to the demographic parameters (sizes and
+epoch times), we wil also fit a parameter to account for the probability of
+mis-polarizing a variant.</p>
+<p>Let’s fit a model with three epochs: the ancestral size, an ancient expansion, and a
+recent exponential growth. In fitting the demography, we keep <code class="docutils literal notranslate"><span class="pre">multinom=True</span></code>, the
+default, as we don’t have an estimate for <span class="math notranslate nohighlight">\(N_e\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="n">nuA</span><span class="p">,</span> <span class="n">nuF</span><span class="p">,</span> <span class="n">TA</span><span class="p">,</span> <span class="n">TF</span><span class="p">,</span> <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nuA</span><span class="p">],</span> <span class="n">TA</span><span class="p">)</span>
+    <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">nuA</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nuF</span> <span class="o">/</span> <span class="n">nuA</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">TF</span><span class="p">)]</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">TF</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">opt_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">)</span>
+<span class="n">Ne</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">/</span> <span class="n">u_syn</span> <span class="o">/</span> <span class="mi">4</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal demog. parameters:&quot;</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;inferred Ne:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Ne</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal demog. parameters: [2.21531687 5.29769918 0.55450117 0.04088086]
+anc misid: 0.01975812
+inferred Ne: 11372.91
+Log-likelihood: -689.7426549382199
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that I initialized the model parameters fairly close to the optimal parameters.
+In practice, you would want to test a wide range of initial conditions to make sure
+our inference didn’t get stuck at a local minimum.</p>
+<p>We can see how well our model fit the synonymous data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+
+<span class="c1"># Demographic model fit to the MSL synonymous data. Top: model (red) and synonymous</span>
+<span class="c1"># data (blue) SFS. Bottom: residuals, plotted as ``(model - data) / sqrt(data)``.</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/dfe_1_2_0.png" src="../_images/dfe_1_2_0.png" />
+</div>
+</div>
+<p>That’s a pretty good fit! Now that we have our inferred demographic model, let’s
+move on to inferring the DFEs for missense and LOF variants.</p>
+</section>
+<section id="inferring-the-dfe">
+<h2>Inferring the DFE<a class="headerlink" href="#inferring-the-dfe" title="Link to this heading"></a></h2>
+<p>Now that we have a plausible demographic model, we can move to the selected SFS.
+Not every new missense mutation or every new LOF mutation will have the same
+fitness effect, so we aim to learn the <em>distribution</em> of selection coefficients
+of new mutations. Here, we are going to assume an additive model of selection -
+that is, heterozygotes have fitness <span class="math notranslate nohighlight">\(1+s\)</span> while homozygotes for the
+derived allele have fitness <span class="math notranslate nohighlight">\(1+2s\)</span>. We’re also only going to focus
+on the deleterious DFE - we assume beneficial mutations are very rare, and we’ll
+ignore them.</p>
+<p>The general strategy is to pick some distribution (here, we’ll choose a
+<a class="reference external" href="https://www.wikipedia.org/wiki/Gamma_distribution">gamma distribution</a>,
+though other distributions such a log-normal or point masses could be used),
+and then infer the parameters of that distribution. To do so, we compute a large
+number of SFS spanning the range of the distribution of possible <span class="math notranslate nohighlight">\(\gamma=2N_es\)</span>
+values, and then combine them based on weights given by the parameterized DFE
+(for example, <a class="reference internal" href="#ragsdale" id="id6"><span>[Ragsdale]</span></a>, <a class="reference internal" href="#kim" id="id7"><span>[Kim]</span></a>).</p>
+<p>Because the underlying demographic model does not change, we can cache the SFS
+for each value of <span class="math notranslate nohighlight">\(\gamma\)</span>. Then in optimizing the DFE parameters, we just
+have a weighted sum across this cache, and this makes the actual DFE inference
+very rapid.</p>
+<section id="caching-sfs">
+<h3>Caching SFS<a class="headerlink" href="#caching-sfs" title="Link to this heading"></a></h3>
+<p>We cache the SFS for the inferred demography and a grid of selection coefficients
+ranging from neutral to strongly deleterious. For the SFS with very deleterious
+selection coefficients, the computation is only stable with large sample sizes.
+Thus, after each computation for a given selection coefficient, we check to make
+sure that the SFS does not have large negative oscillations and did not fail
+to converge. If the computation failed, we doube the sample size and recompute
+the SFS, repeating until we have a sample size large enough to stably compute
+the SFS. That SFS is then projected to the needed sample size and chached.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">selection_spectrum</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="n">rerun</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">ns_sim</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">while</span> <span class="n">rerun</span><span class="p">:</span>
+        <span class="n">ns_sim</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ns_sim</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns_sim</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+        <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">opt_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">opt_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">opt_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span>
+        <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fs</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">)):</span>
+            <span class="c1"># large gamma-values can require large sample sizes for stability</span>
+            <span class="n">rerun</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rerun</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">spectrum_cache</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">61</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gammas</span><span class="p">:</span>
+    <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="o">-</span><span class="n">gamma</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="optimization-of-the-dfe">
+<h3>Optimization of the DFE<a class="headerlink" href="#optimization-of-the-dfe" title="Link to this heading"></a></h3>
+<p>We’ll fit a gamma distribution for the DFE, which has parameters alpha and beta.
+First, we set up the expected thetas for both missense and LOF mutations, as well
+as the function that weights the cached spectra based on the gamma distribution.
+The parameters we fit are then alpha and beta (or shape and scale) of the gamma
+distribution and the misidentification rate.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="n">theta_mis</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_mis</span> <span class="o">/</span> <span class="n">u_syn</span>
+<span class="n">theta_lof</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_lof</span> <span class="o">/</span> <span class="n">u_syn</span>
+
+<span class="n">dxs</span> <span class="o">=</span> <span class="p">((</span><span class="n">gammas</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">gammas</span><span class="p">))[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">gammas</span><span class="p">,</span> <span class="p">[</span><span class="n">gammas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">gammas</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">dxs</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="n">fs</span> <span class="o">+=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">w</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">fs</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">model_func_missense</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_mis</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">model_func_lof</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_lof</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Fit missense variants:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_mis</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">model_func_missense</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_mis</span> <span class="o">=</span> <span class="n">model_func_missense</span><span class="p">(</span><span class="n">opt_params_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters:
+shape: 0.1596
+scale: 2332.3
+anc misid: 0.0137
+Log-likelihood: -695.1273435550039
+</pre></div>
+</div>
+</div>
+</div>
+<p>To visualize the fit of our inferred model to the missense data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_Poisson</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+
+<span class="c1"># Gamma-DFE fit to the MSL missense data.</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/dfe_1_6_0.png" src="../_images/dfe_1_6_0.png" />
+</div>
+</div>
+<p>Next, we fit LOF variants in exactly the same way:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_lof</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">model_func_lof</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_lof</span> <span class="o">=</span> <span class="n">model_func_lof</span><span class="p">(</span><span class="n">opt_params_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters:
+shape: 0.3589
+scale: 7830.5
+anc misid: 0.0021
+Log-likelihood: -232.5947964981528
+</pre></div>
+</div>
+</div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters:
+shape: 0.3589
+scale: 7830.5
+anc misid: 0.0021
+Log-likelihood: -232.59479649929824
+</pre></div>
+</div>
+</div>
+</div>
+<p>And again we visualize the fit of our inferred model to the LOF data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_Poisson</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+
+<span class="c1"># Gamma-DFE fit to the MSL loss-of-function data.</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/dfe_1_9_0.png" src="../_images/dfe_1_9_0.png" />
+</div>
+</div>
+<p>Using the inferred <span class="math notranslate nohighlight">\(N_e\)</span> from fitting the demographic model to the synonymous
+data and the function <code class="docutils literal notranslate"><span class="pre">scipy.stats.gamma.cdf()</span></code>, we can compute the proportions
+of new missense and LOF mutations across bins of selection coefficients:</p>
+<span id="dfes"></span><table class="docutils align-center" id="id10">
+<caption><span class="caption-number">Table 2 </span><span class="caption-text">The DFE for missense and loss-of-function variants binned by selection
+coefficients, ranging from neutral or nearly neutral (<span class="math notranslate nohighlight">\(|s| &lt; 10^{-5}\)</span>) to
+strongly deleterious and lethal (<span class="math notranslate nohighlight">\(|s|\geq10^{-2}\)</span>).</span><a class="headerlink" href="#id10" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Class</p></td>
+<td><p><span class="math notranslate nohighlight">\(| s | &lt; 10^{-5}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(10^{-5} \leq | s | &lt; 10^{-4}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(10^{-4} \leq | s | &lt; 10^{-3}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(10^{-3} \leq | s | &lt; 10^{-2}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(| s | \geq 10^{-2}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Missense</p></td>
+<td><p>0.246</p></td>
+<td><p>0.109</p></td>
+<td><p>0.157</p></td>
+<td><p>0.219</p></td>
+<td><p>0.268</p></td>
+</tr>
+<tr class="row-odd"><td><p>LOF</p></td>
+<td><p>0.026</p></td>
+<td><p>0.034</p></td>
+<td><p>0.078</p></td>
+<td><p>0.175</p></td>
+<td><p>0.687</p></td>
+</tr>
+</tbody>
+</table>
+<p>Here, we clearly see that LOF variants are inferred to be very deleterious,
+with roughly 2/3 of all new LOF mutations having a selection coefficient larger
+that <span class="math notranslate nohighlight">\(10^{-2}\)</span>.</p>
+</section>
+</section>
+<section id="sensitivity-to-the-demographic-model">
+<h2>Sensitivity to the demographic model<a class="headerlink" href="#sensitivity-to-the-demographic-model" title="Link to this heading"></a></h2>
+<p>Here, we’ll fit a simpler models to the synonymous variants, and rerun the same DFE
+inference to check if the results are robust. We’ll first fit a two-epoch model (again
+accounting for ancestral misidentification), and then simply use a standard neutral
+model without size changes.</p>
+<p>Throughout this section, we again print log-likelihoods of the fits, which can
+be compared to the fits made with the more complex demographic model above.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="n">nu</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">two_epoch</span><span class="p">([</span><span class="n">nu</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span> <span class="n">ns</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">opt_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">)</span>
+<span class="n">Ne</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">/</span> <span class="n">u_syn</span> <span class="o">/</span> <span class="mi">4</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal demog. parameters:&quot;</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;inferred Ne:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Ne</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">))</span>
+<span class="c1"># compare log-likelihood to the more complex demographic model above</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal demog. parameters: [2.55501781 0.31744642]
+anc misid: 0.01842965
+inferred Ne: 12518.37
+Log-likelihood: -908.8631695023321
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_10_1.png" src="../_images/dfe_1_10_1.png" />
+</div>
+</div>
+<p>Now we cache the selection-SFS for this demography and refit the DFE to the missense
+variants:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">selection_spectrum</span><span class="p">(</span><span class="n">gamma</span><span class="p">):</span>
+    <span class="n">rerun</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">ns_sim</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">while</span> <span class="n">rerun</span><span class="p">:</span>
+        <span class="n">ns_sim</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ns_sim</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns_sim</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+        <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">opt_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fs</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">)):</span>
+            <span class="c1"># large gamma-values can require large sample sizes for stability</span>
+            <span class="n">rerun</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rerun</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">spectrum_cache</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">61</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gammas</span><span class="p">:</span>
+    <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="o">-</span><span class="n">gamma</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Set up the mutation rates and DFE functions:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">theta_mis</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_mis</span> <span class="o">/</span> <span class="n">u_syn</span>
+<span class="n">theta_lof</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_lof</span> <span class="o">/</span> <span class="n">u_syn</span>
+
+<span class="n">dxs</span> <span class="o">=</span> <span class="p">((</span><span class="n">gammas</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">gammas</span><span class="p">))[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">gammas</span><span class="p">,</span> <span class="p">[</span><span class="n">gammas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">gammas</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">dxs</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="n">fs</span> <span class="o">+=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">w</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">fs</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">model_func_missense</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_mis</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">model_func_lof</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_lof</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Fit the missense data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_mis</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">model_func_missense</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_mis</span> <span class="o">=</span> <span class="n">model_func_missense</span><span class="p">(</span><span class="n">opt_params_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters (missense):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_Poisson</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters (missense):
+shape: 0.1830
+scale: 733.6
+anc misid: 0.0134
+Log-likelihood: -999.0833946058096
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_13_1.png" src="../_images/dfe_1_13_1.png" />
+</div>
+</div>
+<p>Fit the LOF data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_lof</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">model_func_lof</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_lof</span> <span class="o">=</span> <span class="n">model_func_lof</span><span class="p">(</span><span class="n">opt_params_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_Poisson</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters:
+shape: 0.3937
+scale: 3802.9
+anc misid: 0.0021
+Log-likelihood: -246.78811141192315
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_14_1.png" src="../_images/dfe_1_14_1.png" />
+</div>
+</div>
+<p>We can compare our results using this simpler two-epoch demographic model to our
+previous findings:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Missense DFE:&quot;</span><span class="p">)</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ss</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">s0</span><span class="p">,</span> <span class="n">s1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ss</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="n">cdf0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s0</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="n">cdf1</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s1</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s0</span><span class="si">}</span><span class="s2"> &lt;= s &lt; </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cdf1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">cdf0</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">ss</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s &gt;= </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">cdf1</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOF DFE:&quot;</span><span class="p">)</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ss</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">s0</span><span class="p">,</span> <span class="n">s1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ss</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="n">cdf0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s0</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="n">cdf1</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s1</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s0</span><span class="si">}</span><span class="s2"> &lt;= s &lt; </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cdf1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">cdf0</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">ss</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s &gt;= </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">cdf1</span><span class="si">:</span><span class="s2">1.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Missense DFE:
+0 &lt;= s &lt; 1e-05: 0.251
+1e-05 &lt;= s &lt; 0.0001: 0.132
+0.0001 &lt;= s &lt; 0.001: 0.198
+0.001 &lt;= s &lt; 0.01: 0.266
+s &gt;= 0.01: 0.153
+
+LOF DFE:
+0 &lt;= s &lt; 1e-05: 0.025
+1e-05 &lt;= s &lt; 0.0001: 0.038
+0.0001 &lt;= s &lt; 0.001: 0.093
+0.001 &lt;= s &lt; 0.01: 0.223
+s &gt;= 0.01: 0.621
+</pre></div>
+</div>
+</div>
+</div>
+<p>Comparing to the table above, these look pretty similar - that’s a good sign
+that our inferences are fairly robust to slightly poorer fits of the
+demographic model.</p>
+<p>But what if our demographic model is way off, such as assuming constant
+population size?</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># here, we&#39;ll only fit the ancestral-state misidentification rate</span>
+<span class="k">def</span> <span class="nf">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">opt_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">)</span>
+<span class="n">Ne</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">/</span> <span class="n">u_syn</span> <span class="o">/</span> <span class="mi">4</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal Ne scaling:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Ne</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs_syn</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal Ne scaling: 20930.55
+Log-likelihood: -4856.9252040098
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_16_1.png" src="../_images/dfe_1_16_1.png" />
+</div>
+</div>
+<p>Set up the spectrum cache for this constant-size demographic model:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">selection_spectrum</span><span class="p">(</span><span class="n">gamma</span><span class="p">):</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">fs_syn</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+<span class="n">spectrum_cache</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">61</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gammas</span><span class="p">:</span>
+    <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection_spectrum</span><span class="p">(</span><span class="o">-</span><span class="n">gamma</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Set up the mutation rates and DFE functions:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">theta_mis</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_mis</span> <span class="o">/</span> <span class="n">u_syn</span>
+<span class="n">theta_lof</span> <span class="o">=</span> <span class="n">opt_theta</span> <span class="o">*</span> <span class="n">u_lof</span> <span class="o">/</span> <span class="n">u_syn</span>
+
+<span class="n">dxs</span> <span class="o">=</span> <span class="p">((</span><span class="n">gammas</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">gammas</span><span class="p">))[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">gammas</span><span class="p">,</span> <span class="p">[</span><span class="n">gammas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">gammas</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">p_misid</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">dxs</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="n">fs</span> <span class="o">+=</span> <span class="n">spectrum_cache</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">w</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">fs</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">model_func_missense</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_mis</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">model_func_lof</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dfe_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta_lof</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Fit the missense data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_mis</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">model_func_missense</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_mis</span> <span class="o">=</span> <span class="n">model_func_missense</span><span class="p">(</span><span class="n">opt_params_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters (missense):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">model_mis</span><span class="p">,</span> <span class="n">fs_mis</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters (missense):
+shape: 0.4448
+scale: 82.4
+anc misid: 0.0147
+Log-likelihood: -1065.0798831624043
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_19_1.png" src="../_images/dfe_1_19_1.png" />
+</div>
+</div>
+<p>Fit the LOF data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]</span>
+
+<span class="n">opt_params_lof</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">model_func_lof</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">model_lof</span> <span class="o">=</span> <span class="n">model_func_lof</span><span class="p">(</span><span class="n">opt_params_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal parameters:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scale:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;anc misid:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">model_lof</span><span class="p">,</span> <span class="n">fs_lof</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>optimal parameters:
+shape: 0.5298
+scale: 1601.8
+anc misid: 0.0021
+Log-likelihood: -237.79096099886442
+</pre></div>
+</div>
+<img alt="../_images/dfe_1_20_1.png" src="../_images/dfe_1_20_1.png" />
+</div>
+</div>
+<p>And now comparing our results using the standard neutral model as the underlying
+demography:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Missense DFE:&quot;</span><span class="p">)</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">opt_params_mis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ss</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">s0</span><span class="p">,</span> <span class="n">s1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ss</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="n">cdf0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s0</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="n">cdf1</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s1</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s0</span><span class="si">}</span><span class="s2"> &lt;= s &lt; </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">cdf1</span> <span class="o">-</span> <span class="n">cdf0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">ss</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s &gt;= </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">cdf1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOF DFE:&quot;</span><span class="p">)</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">opt_params_lof</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ss</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">s0</span><span class="p">,</span> <span class="n">s1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ss</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="n">cdf0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s0</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="n">cdf1</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gamma</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s1</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s0</span><span class="si">}</span><span class="s2"> &lt;= s &lt; </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">cdf1</span> <span class="o">-</span> <span class="n">cdf0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">ss</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s &gt;= </span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">cdf1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Missense DFE:
+0 &lt;= s &lt; 1e-05: 0.10753022385488102
+1e-05 &lt;= s &lt; 0.0001: 0.18776852548601913
+0.0001 &lt;= s &lt; 0.001: 0.42679335393077866
+0.001 &lt;= s &lt; 0.01: 0.27674764907249993
+s &gt;= 0.01: 0.0011602476558212338
+
+LOF DFE:
+0 &lt;= s &lt; 1e-05: 0.014239643653461635
+1e-05 &lt;= s &lt; 0.0001: 0.03395207585847486
+0.0001 &lt;= s &lt; 0.001: 0.11371870531196526
+0.001 &lt;= s &lt; 0.01: 0.3451015784641346
+s &gt;= 0.01: 0.4929879967119637
+</pre></div>
+</div>
+</div>
+</div>
+<p>These distributions look quite different - in particular, both the missense and LOF
+variants are inferred to be much more deleterious. This is because we did not account
+for population size expansions in it history, which leads to an excess of rare variants
+for each class of mutations, and the model over-compensates for the excess of rare
+variants by fitting a DFE that is more skewed toward larger selection coefficients.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="boyko" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Boyko</a><span class="fn-bracket">]</span></span>
+<p>Boyko, Adam R., et al. “Assessing the evolutionary impact of amino acid mutations
+in the human genome.” <em>PLoS Genetics</em> 4.5 (2008): e1000083.</p>
+</div>
+<div class="citation" id="karczewski" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">Karczewski</a><span class="fn-bracket">]</span></span>
+<p>Karczewski, Konrad J., et al. “The mutational constraint spectrum quantified
+from variation in 141,456 humans.” <em>Nature</em> 581.7809 (2020): 434-443.</p>
+</div>
+<div class="citation" id="keightley" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Keightley</a><span class="fn-bracket">]</span></span>
+<p>Keightley, Peter D., and Adam Eyre-Walker. “Joint inference of the distribution
+of fitness effects of deleterious mutations and population demography based on
+nucleotide polymorphism frequencies.” <em>Genetics</em> 177.4 (2007): 2251-2261.</p>
+</div>
+<div class="citation" id="kim" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">Kim</a><span class="fn-bracket">]</span></span>
+<p>Kim, Bernard Y., Christian D. Huber, and Kirk E. Lohmueller. “Inference of the
+distribution of selection coefficients for new nonsynonymous mutations using
+large samples.” <em>Genetics</em> 206.1 (2017): 345-361.</p>
+</div>
+<div class="citation" id="ragsdale" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">Ragsdale</a><span class="fn-bracket">]</span></span>
+<p>Ragsdale, Aaron P., et al. “Triallelic population genomics for inferring
+correlated fitness effects of same site nonsynonymous mutations.”
+<em>Genetics</em> 203.1 (2016): 513-523.</p>
+</div>
+<div class="citation" id="g" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1000G</a><span class="fn-bracket">]</span></span>
+<p>1000 Genomes Project Consortium. “A global reference for human genetic variation.”
+<em>Nature</em> 526.7571 (2015): 68-74.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="diversity.html" class="btn btn-neutral float-left" title="Demography and genetic diversity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="recombination.html" class="btn btn-neutral float-right" title="Linkage disequilibrium and recombination" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.Demographics1D &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.Demographics1D</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.Demographics1D</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Single-population demographic models.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">moments</span>
+
+
+<div class="viewcode-block" id="snm">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Demographics1D.snm">[docs]</a>
+<span class="k">def</span> <span class="nf">snm</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard neutral model with theta=1.</span>
+
+<span class="sd">    :param ns: Number of samples in resulting Spectrum. Must be a list</span>
+<span class="sd">        of length one.</span>
+<span class="sd">    :param pop_ids: Optional list of length one specifying the population ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must have length 1&quot;</span><span class="p">)</span>
+    <span class="n">sts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span></div>
+
+
+
+<div class="viewcode-block" id="two_epoch">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Demographics1D.two_epoch">[docs]</a>
+<span class="k">def</span> <span class="nf">two_epoch</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instantaneous size change some time ago.</span>
+
+<span class="sd">    params = (nu, T)</span>
+
+<span class="sd">    :param params: Tuple of length two, specifying (nu, T).</span>
+
+<span class="sd">        - nu: the ratio of contemporary to ancient population size.</span>
+<span class="sd">        - T: the time in the past at which size change happened</span>
+<span class="sd">          (in units of 2*Ne generations).</span>
+
+<span class="sd">    :param ns: Number of samples in resulting Spectrum. Must be a list of</span>
+<span class="sd">        length one.</span>
+<span class="sd">    :param pop_ids: Optional list of length one specifying the population ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must have length 1&quot;</span><span class="p">)</span>
+    <span class="n">nu</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">sts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nu</span><span class="p">],</span> <span class="n">T</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span></div>
+
+
+
+<div class="viewcode-block" id="growth">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Demographics1D.growth">[docs]</a>
+<span class="k">def</span> <span class="nf">growth</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exponential growth beginning some time ago.</span>
+
+<span class="sd">    params = (nu, T)</span>
+
+<span class="sd">    :param params: Tupe of length two, specifying (nu, t).</span>
+
+<span class="sd">        - nu: the final population size.</span>
+<span class="sd">        - T: the time in the past at which growth began</span>
+<span class="sd">          (in units of 2*Ne generations).</span>
+
+<span class="sd">    :param ns: Number of samples in resulting Spectrum. Must be a list of</span>
+<span class="sd">        length one.</span>
+<span class="sd">    :param pop_ids: Optional list of length one specifying the population ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must have length 1&quot;</span><span class="p">)</span>
+    <span class="n">nu</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">T</span><span class="p">)]</span>
+    <span class="n">sts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span></div>
+
+
+
+<div class="viewcode-block" id="bottlegrowth">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Demographics1D.bottlegrowth">[docs]</a>
+<span class="k">def</span> <span class="nf">bottlegrowth</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instantanous size change followed by exponential growth.</span>
+
+<span class="sd">    params = (nuB, nuF, T)</span>
+
+<span class="sd">    :param params: Tuple of length three specifying (nuB, nuF, T).</span>
+
+<span class="sd">        - nuB: Ratio of population size after instantanous change to ancient</span>
+<span class="sd">          population size.</span>
+<span class="sd">        - nuF: Ratio of contemporary to ancient population size.</span>
+<span class="sd">        - T: Time in the past at which instantaneous change happened and growth began</span>
+<span class="sd">          (in units of 2*Na generations).</span>
+
+<span class="sd">    :param ns: Number of samples in resulting Spectrum.</span>
+<span class="sd">    :param pop_ids: Optional list of length one specifying the population ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must have length 1&quot;</span><span class="p">)</span>
+    <span class="n">nuB</span><span class="p">,</span> <span class="n">nuF</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">nuB</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nuF</span> <span class="o">/</span> <span class="n">nuB</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">T</span><span class="p">)]</span>
+    <span class="n">sts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span></div>
+
+
+
+<div class="viewcode-block" id="three_epoch">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Demographics1D.three_epoch">[docs]</a>
+<span class="k">def</span> <span class="nf">three_epoch</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Three epoch model of constant sizes.</span>
+
+<span class="sd">    params = (nuB, nuF, TB, TF)</span>
+
+<span class="sd">    :param params: Tuple of length four specifying (nuB, nuF, TB, TF).</span>
+
+<span class="sd">        - nuB: Ratio of bottleneck population size to ancient pop size.</span>
+<span class="sd">        - nuF: Ratio of contemporary to ancient pop size.</span>
+<span class="sd">        - TB: Length of bottleneck (in units of 2*Na generations).</span>
+<span class="sd">        - TF: Time since bottleneck recovery (in units of 2*Na generations).</span>
+
+<span class="sd">    :param ns: Number of samples in resulting Spectrum.</span>
+<span class="sd">    :param pop_ids: Optional list of length one specifying the population ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must have length 1&quot;</span><span class="p">)</span>
+    <span class="n">nuB</span><span class="p">,</span> <span class="n">nuF</span><span class="p">,</span> <span class="n">TB</span><span class="p">,</span> <span class="n">TF</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">sts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nuB</span><span class="p">],</span> <span class="n">TB</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nuF</span><span class="p">],</span> <span class="n">TF</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Triallele frequency spectrum &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demography and genetic diversity" href="../modules/diversity.html" />
+    <link rel="prev" title="Two-locus frequency spectrum" href="two_locus.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Triallele frequency spectrum</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Triallele.TriSpectrum"><code class="docutils literal notranslate"><span class="pre">TriSpectrum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.S"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.S()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.fold_ancestral"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.fold_ancestral()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.fold_major"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.fold_major()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.from_file"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.integrate"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.integrate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.log"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.mask_fixed"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.mask_fixed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.mask_infeasible"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.mask_infeasible()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.pi"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.pi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.project"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.project()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.to_file"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.to_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.Triallele.TriSpectrum.unfold"><code class="docutils literal notranslate"><span class="pre">TriSpectrum.unfold()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Triallele frequency spectrum</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/extensions/triallele.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="triallele-frequency-spectrum">
+<h1>Triallele frequency spectrum<a class="headerlink" href="#triallele-frequency-spectrum" title="Link to this heading"></a></h1>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moments.Triallele.</span></span><span class="sig-name descname"><span class="pre">TriSpectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finite_genome=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_infeasible=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_fixed=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_folded_major=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_folding_major=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_folded_ancestral=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_folding_ancestral=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value=nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_mask=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum" title="Link to this definition"></a></dt>
+<dd><p>Represents a triallelic frequency spectrum.</p>
+<p>The triallelic spectrum is represented as a square numpy masked array in which
+the (i, j)-th element stores the count or density of loci in which there are i
+copies of the first derived allele and j copies of the second derived allele.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>array</em>) – The frequency spectrum data of size (n+1)-by-(n+1) where n is
+the sample size.</p></li>
+<li><p><strong>mask</strong> (<em>array</em>) – An optional array of the same size as data. ‘True’ entries in
+this array are masked in the TriSpectrum. These represent missing data
+categories, or invalid entries in the array</p></li>
+<li><p><strong>mask_infeasible</strong> (<em>bool</em>) – If True, mask all bins for frequencies that cannot
+occur, e.g. i + j &gt; n. Defaults to True.</p></li>
+<li><p><strong>mask_fixed</strong> (<em>bool</em>) – If True, mask the fixed bins. Defaults to True.</p></li>
+<li><p><strong>data_folded_major</strong> (<em>bool</em>) – If True, it is assumed that the input data is folded 
+for the major and minor derived alleles.</p></li>
+<li><p><strong>data_folded_ancestral</strong> (<em>bool</em>) – If True, it is assumed that the input data is
+folded to account for uncertainty in the ancestral state. Note
+that if True, data_folded_major must also be True.</p></li>
+<li><p><strong>check_folding_major</strong> (<em>bool</em>) – If True and data_folded_ancestral=True, the data
+and mask will be checked to ensure they are consistent.</p></li>
+<li><p><strong>check_folding_ancestral</strong> (<em>bool</em>) – If True and data_folded_ancestral=True, the
+data and mask will be checked to ensure they are consistent.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.S">
+<span class="sig-name descname"><span class="pre">S</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.S"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.S" title="Link to this definition"></a></dt>
+<dd><p>Number of sites in the unmasked spectrum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.fold_ancestral">
+<span class="sig-name descname"><span class="pre">fold_ancestral</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.fold_ancestral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.fold_ancestral" title="Link to this definition"></a></dt>
+<dd><p>Fold the spectrum based on the ancestral state</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.fold_major">
+<span class="sig-name descname"><span class="pre">fold_major</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.fold_major"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.fold_major" title="Link to this definition"></a></dt>
+<dd><p>Fold the spectrum based on the major allele(s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.from_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_infeasible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_comments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.from_file" title="Link to this definition"></a></dt>
+<dd><p>Read frequency spectrum from file.</p>
+<p>See to_file method for details on the file format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – String with file name to read from or an open file object.</p></li>
+<li><p><strong>mask_infeasible</strong> (<em>bool</em>) – If True, mask the infeasible entries in the
+triallelic spectrum.</p></li>
+<li><p><strong>return_comments</strong> (<em>bool</em>) – If true, the return value is (fs, comments), where
+comments is a list of strings containing the comments from the file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.integrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.integrate" title="Link to this definition"></a></dt>
+<dd><p>Method to simulate the triallelic fs forward in time.
+This integration scheme takes advantage of scipy’s sparse methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> – The population effective size as positive value or callable function.</p></li>
+<li><p><strong>tf</strong> (<em>float</em>) – The integration time in genetics units.</p></li>
+<li><p><strong>dt_fac</strong> (<em>float</em>) – time step for integration</p></li>
+<li><p><strong>gammas</strong> (<em>list</em>) – Population size scaled selection coefficients
+[sAA, sA0, sBB, sB0, sAB]. Here, 0 represents that ancestral allele, so we
+can implement dominance by picking the relationship between, e.g., sAA, sA0,
+sAB, and sA0.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population size scale mutation parameter, assuming equal
+mutation rates to both derived alleles.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.log" title="Link to this definition"></a></dt>
+<dd><p>Return the natural logarithm of the entries of the frequency spectrum.</p>
+<p>Only necessary because numpy.ma.log now fails to propagate extra
+attributes after numpy 1.10.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.mask_fixed">
+<span class="sig-name descname"><span class="pre">mask_fixed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.mask_fixed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.mask_fixed" title="Link to this definition"></a></dt>
+<dd><p>Mask entries that are not triallelic.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.mask_infeasible">
+<span class="sig-name descname"><span class="pre">mask_infeasible</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.mask_infeasible"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.mask_infeasible" title="Link to this definition"></a></dt>
+<dd><p>Mask any infeasible entries.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.pi">
+<span class="sig-name descname"><span class="pre">pi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.pi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.pi" title="Link to this definition"></a></dt>
+<dd><p>Estimated expected number of pairwise differences between two samples
+from the population at loci that are triallelic</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.project">
+<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finite_genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.project" title="Link to this definition"></a></dt>
+<dd><p>Project to smaller sample size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ns</strong> (<em>int</em>) – Sample size for new spectrum.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foldmaskinfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.to_file" title="Link to this definition"></a></dt>
+<dd><p>Write frequency spectrum to file.</p>
+<p>The file format is:</p>
+<ul class="simple">
+<li><p># Any number of comment lines beginning with a ‘#’</p></li>
+<li><p>A single line containing the sample size.
+On the <em>same line</em>, the string ‘folded_major’ or ‘unfolded_major’ 
+denoting the folding status of the array.
+And on the <em>same line</em>, the string ‘folded_ancestral’ or ‘unfolded_ancestral’ 
+denoting the folding status of the array.</p></li>
+<li><p>A single line giving the array elements. The order of elements is 
+e.g.: fs[0, 0] fs[0, 1] fs[0, 2] … fs[1, 0] fs[1, 1] …</p></li>
+<li><p>A single line giving the elements of the mask in the same order as
+the data line. ‘1’ indicates masked, ‘0’ indicates unmasked.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – String with file name to write to or an open file object.</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – Precision with which to write out entries of the SFS.
+(They  are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</p></li>
+<li><p><strong>comment_lines</strong> (<em>list</em>) – List of strings to be used as comment lines in
+the header of the output file.</p></li>
+<li><p><strong>foldmaskinfo</strong> (<em>bool</em>) – If False, folding and mask and population label
+information will not be saved.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.Triallele.TriSpectrum.unfold">
+<span class="sig-name descname"><span class="pre">unfold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Triallele/TriSpectrum_mod.html#TriSpectrum.unfold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Triallele.TriSpectrum.unfold" title="Link to this definition"></a></dt>
+<dd><p>Completely unfold the spectrum.</p>
+<p>Returns a new TriSpectrum.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="two_locus.html" class="btn btn-neutral float-left" title="Two-locus frequency spectrum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../modules/diversity.html" class="btn btn-neutral float-right" title="Demography and genetic diversity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.Demographics2D &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.Demographics2D</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.Demographics2D</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">moments.LD.LDstats_mod</span> <span class="kn">import</span> <span class="n">LDstats</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Numerics</span>
+
+
+<div class="viewcode-block" id="snm">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Demographics2D.snm">[docs]</a>
+<span class="k">def</span> <span class="nf">snm</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Equilibrium neutral model. Neutral steady state followed by split in</span>
+<span class="sd">    the immediate past.</span>
+
+<span class="sd">    :param params: Unused.</span>
+<span class="sd">    :param rho: Population-scaled recombination rate (4Nr),</span>
+<span class="sd">        given as scalar or list of rhos.</span>
+<span class="sd">    :type rho: float or list of floats, optional</span>
+<span class="sd">    :param theta: Population-scaled mutation rate (4Nu). Defaults to 0.001.</span>
+<span class="sd">    :type theta: float</span>
+<span class="sd">    :param pop_ids: List of population IDs of length 2.</span>
+<span class="sd">    :type pop_ids: lits of str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">steady_state</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">Y</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="n">pop_ids</span>
+    <span class="k">return</span> <span class="n">Y</span></div>
+
+
+
+<div class="viewcode-block" id="split_mig">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Demographics2D.split_mig">[docs]</a>
+<span class="k">def</span> <span class="nf">split_mig</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split into two populations of specifed size, which then have their own</span>
+<span class="sd">    relative constant sizes and symmetric migration between populations.</span>
+
+<span class="sd">    - nu1: Size of population 1 after split.</span>
+<span class="sd">    - nu2: Size of population 2 after split.</span>
+<span class="sd">    - T: Time in the past of split (in units of 2*Na generations)</span>
+<span class="sd">    - m: Migration rate between populations (2*Na*m)</span>
+
+<span class="sd">    :param params: The input parameters: (nu1, nu2, T, m)</span>
+<span class="sd">    :param rho: Population-scaled recombination rate (4Nr),</span>
+<span class="sd">        given as scalar or list of rhos.</span>
+<span class="sd">    :type rho: float or list of floats, optional</span>
+<span class="sd">    :param theta: Population-scaled mutation rate (4Nu). Defaults to 0.001.</span>
+<span class="sd">    :type theta: float</span>
+<span class="sd">    :param pop_ids: List of population IDs of length 1.</span>
+<span class="sd">    :type pop_ids: lits of str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nu1</span><span class="p">,</span> <span class="n">nu2</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">params</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">snm</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">Y</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nu1</span><span class="p">,</span> <span class="n">nu2</span><span class="p">],</span> <span class="n">T</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">],</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+    <span class="n">Y</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="n">pop_ids</span>
+    <span class="k">return</span> <span class="n">Y</span></div>
+
+
+
+<div class="viewcode-block" id="island_model">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Demographics2D.island_model">[docs]</a>
+<span class="k">def</span> <span class="nf">island_model</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split into two populations of specifed size, which then have their own</span>
+<span class="sd">    relative constant sizes and symmetric migration between populations.</span>
+
+<span class="sd">    - nu1: Relative size of population 1 after split.</span>
+<span class="sd">    - nu2: Relative size of population 2 after split.</span>
+<span class="sd">    - m12: Migration rate, from 2 to 1 forward in time (in units 2*Ne*m)</span>
+<span class="sd">    - m21: Migration rate, from 1 to 2 forward in time (in units 2*Ne*m)</span>
+
+<span class="sd">    :param params: The input parameters: (nu1, nu2, m12, m21)</span>
+<span class="sd">    :param rho: Population-scaled recombination rate (4Nr),</span>
+<span class="sd">        given as scalar or list of rhos.</span>
+<span class="sd">    :type rho: float or list of floats, optional</span>
+<span class="sd">    :param theta: Population-scaled mutation rate (4Nu). Defaults to 0.001.</span>
+<span class="sd">    :type theta: float</span>
+<span class="sd">    :param pop_ids: List of population IDs of length 1.</span>
+<span class="sd">    :type pop_ids: lits of str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nu1</span><span class="p">,</span> <span class="n">nu2</span><span class="p">,</span> <span class="n">m12</span><span class="p">,</span> <span class="n">m21</span> <span class="o">=</span> <span class="n">params</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">steady_state</span><span class="p">([</span><span class="n">nu1</span><span class="p">,</span> <span class="n">nu2</span><span class="p">],</span> <span class="n">m</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">m12</span><span class="p">],</span> <span class="p">[</span><span class="n">m21</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Y</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
