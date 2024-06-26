@@ -95,6 +95,7 @@ def integrate(
         D = moments.TwoLocus.Numerics.drift_reversible(n)
         if gamma != 0:
             S = gamma * moments.TwoLocus.Numerics.selection_reversible_additive(n)
+            compute_jk1 = True
 
     if compute_jk1:
         J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)

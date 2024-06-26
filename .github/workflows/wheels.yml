@@ -27,7 +27,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-            submodules: true
             fetch-depth: 0
 
       - name: Set up Python 3.12
@@ -61,6 +60,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.17.0
@@ -82,6 +83,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.17.0
@@ -104,16 +107,20 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout
         uses: actions/checkout@v4
+      
       - name: Download sdist
         uses: actions/download-artifact@v4.1.4
         with:
           name: sdist
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      
       - name: Install sdist into venv
         run: |
           python -m venv sdist_venv
@@ -141,13 +148,16 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Download sdist
-        uses: actions/download-artifact@v4.1.4
+        uses: actions/download-artifact@v4
         with:
           name: linux-wheels
+      
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      
       - name: install into venv
         run: |
           python -m venv venv
@@ -169,13 +179,16 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Download sdist
-        uses: actions/download-artifact@v4.1.4
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os }}-wheels
+      
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      
       - name: install into venv
         run: |
           python -m venv venv
@@ -198,12 +211,15 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Download all
         uses: actions/download-artifact@v4.1.4
+      
       - name: Move to dist
         run: |
           mkdir dist
           cp */*.{whl,gz} dist/.
+      
       - name: Publish distribution to PRODUCTION PyPI
         if: github.event_name == 'release'
         uses: pypa/gh-action-pypi-publish@release/v1
