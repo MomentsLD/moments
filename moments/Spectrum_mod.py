@@ -18,17 +18,6 @@ import itertools
 import warnings
 import demes
 
-# Account for difference in scipy installations.
-try:
-    from scipy.misc import comb
-except ImportError:
-    try:
-        from scipy.special import comb
-    except:
-        from scipy import comb
-from scipy.integrate import trapz
-from scipy.special import betainc
-
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
@@ -1080,6 +1069,218 @@ class Spectrum(np.ma.masked_array):
         C = np.sqrt((c1 / a1) * S + c2 / (a1 ** 2 + a2) * S * (S - 1))
 
         return (pihat - theta) / C
+
+    def f2(self, X, Y):
+        """
+        Returns :math:`f_2(X, Y) = (pX-pY)^2`, where :math:`p` are observed
+        allele frequencies in populations X and Y.
+
+        X, and Y can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: One of the populations, as index or population ID.
+        :param Y: The other population, as index or population ID.
+        :return: Patterson's f2 statistics.
+        """
+        if type(X) is int and type(Y) is int:
+            for _ in [X, Y]:
+                if _ < 0 or _ >= self.Npop:
+                    raise ValueError(
+                        f"Population index {_} out of bounds for SFS "
+                        f"with {self.Npop} populations"
+                    )
+            idx0 = X
+            idx1 = Y
+        elif type(X) is str and type(Y) is str:
+            if self.pop_ids is None:
+                raise ValueError("Populations given a strings, but pop_ids is None")
+            for _ in [X, Y]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} is not in pop_ids")
+            idx0 = self.pop_ids.index(X)
+            idx1 = self.pop_ids.index(Y)
+        else:
+            raise ValueError(
+                "Populations X and Y must both be population indexes or IDs"
+            )
+
+        if idx0 == idx1:
+            return 0
+
+        to_marginalize = [i for i in range(self.Npop) if i not in [idx0, idx1]]
+        fs = self.marginalize(to_marginalize)
+
+        # symmetric statistic, so idx0 vs idx1 doesn't matter
+        n0 = fs.sample_sizes[0]
+        n1 = fs.sample_sizes[1]
+        i0 = np.arange(n0 + 1)[:, np.newaxis]
+        i1 = np.arange(n1 + 1)[np.newaxis, :]
+
+        # To account for sampling bias
+        fac = (
+            i0 * (i0 - 1) / n0 / (n0 - 1)
+            - 2 * i0 * i1 / n0 / n1
+            + i1 * (i1 - 1) / n1 / (n1 - 1)
+        )
+        return np.sum(fac * fs)
+
+    def f3(self, X, Y, Z):
+        """
+        Returns :math:`f_3(X; Y, Z) = (X-Y)(X-Z)`. A significantly negative
+        :math:`f_3` suggests that population X is the result of admixture
+        between ancient populations related to Y and Z. A positive value
+        suggests that X is an outgroup to Y and Z.
+
+        X, Y, and Z can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: The "test" population, as index or population ID.
+        :param Y: The first reference population, as index or population ID.
+        :param Z: The second reference population, as index or population ID.
+        :returns: Patterson's f3 statistic.
+        """
+        if type(X) is int and type(Y) is int and type(Z) is int:
+            for _ in [X, Y, Z]:
+                if _ < 0 or _ >= self.Npop:
+                    raise ValueError(
+                        f"Population index {_} out of bounds for SFS "
+                        f"with {self.Npop} populations"
+                    )
+            idx0 = X
+            idx1 = Y
+            idx2 = Z
+        elif type(X) is str and type(Y) is str and type(Z) is str:
+            if self.pop_ids is None:
+                raise ValueError("Populations given a strings, but pop_ids is None")
+            for _ in [X, Y, Z]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} is not in pop_ids")
+            idx0 = self.pop_ids.index(X)
+            idx1 = self.pop_ids.index(Y)
+            idx2 = self.pop_ids.index(Z)
+        else:
+            raise ValueError(
+                "Populations X, Y and Z must each be population indexes or IDs"
+            )
+
+        if idx0 == idx1 or idx0 == idx2:
+            return 0
+
+        if idx1 == idx2:
+            return self.f2(idx0, idx1)
+
+        # reorder as needed so X is first population index
+        fs = copy.deepcopy(self)
+        if idx0 > idx1 or idx0 > idx2:
+            fs = fs.swap_axes(0, idx0)
+            if idx1 == 0:
+                idx1 = idx0
+            if idx2 == 0:
+                idx2 = idx0
+            idx0 = 0
+
+        to_marginalize = [i for i in range(self.Npop) if i not in [idx0, idx1, idx2]]
+        fs = fs.marginalize(to_marginalize)
+
+        n0, n1, n2 = fs.sample_sizes
+        i0 = np.arange(n0 + 1)[:, np.newaxis, np.newaxis]
+        i1 = np.arange(n1 + 1)[np.newaxis, :, np.newaxis]
+        i2 = np.arange(n2 + 1)[np.newaxis, np.newaxis, :]
+
+        # To account for sampling bias
+        fac = (
+            i0 * (i0 - 1) / n0 / (n0 - 1)
+            - i0 * i1 / n0 / n1
+            - i0 * i2 / n0 / n2
+            + i1 * i2 / n1 / n2
+        )
+        return np.sum(fac * fs)
+
+    def f4(self, X, Y, Z, W):
+        """
+        Returns :math:`f_4(X, Y; Z, W) = (X-Y)(Z-W)`.
+
+        X, Y, Z and W can be specified as population ID strings, or as indexes
+        (but these cannot be mixed).
+
+        :param X: A population index or ID.
+        :param Y: A population index or ID.
+        :param Z: A population index or ID.
+        :param W: A population index or ID.
+        :returns: Patterson's f4 statistic (pX-pY)*(pZ-pW).
+        """
+        if type(X) is int and type(Y) is int and type(Z) is int and type(W) is int:
+            for _ in [X, Y, Z, W]:
+                if _ < 0 or _ >= self.Npop:
+                    raise ValueError(
+                        f"Population index {_} out of bounds for SFS "
+                        f"with {self.Npop} populations"
+                    )
+            idx0 = X
+            idx1 = Y
+            idx2 = Z
+            idx3 = W
+        elif type(X) is str and type(Y) is str and type(Z) is str and type(W) is str:
+            if self.pop_ids is None:
+                raise ValueError("Populations given a strings, but pop_ids is None")
+            for _ in [X, Y, Z, W]:
+                if _ not in self.pop_ids:
+                    raise ValueError(f"Population {_} is not in pop_ids")
+            idx0 = self.pop_ids.index(X)
+            idx1 = self.pop_ids.index(Y)
+            idx2 = self.pop_ids.index(Z)
+            idx3 = self.pop_ids.index(W)
+        else:
+            raise ValueError(
+                "Populations X, Y and Z must each be population indexes or IDs"
+            )
+
+        if X == Y or Z == W:
+            return 0
+        elif X == Z and Y == W:
+            return self.f2(X, Z)
+        elif X == W and Y == Z:
+            return -self.f2(X, Z)
+        elif X == Z:
+            return self.f3(X, Y, W)
+        elif X == W:
+            return -self.f3(X, Y, Z)
+        elif Y == Z:
+            return -self.f3(Y, X, W)
+        elif Y == W:
+            return self.f3(Y, X, Z)
+        else:
+            assert len(set([X, Y, Z, W])) == 4
+
+        # marginalize down to four populations
+        to_marginalize = [
+            i for i in range(self.Npop) if i not in [idx0, idx1, idx2, idx3]
+        ]
+        fs = self.marginalize(to_marginalize)
+
+        # reorder as needed so that X, Y, Z, W are in order
+        sort_indexes = np.argsort([idx0, idx1, idx2, idx3])
+        for i in range(3):
+            if sort_indexes[i] != i:
+                assert sort_indexes[i] > i
+                to_swap = np.argwhere(sort_indexes == i)[0][0]
+                fs = fs.swap_axes(i, to_swap)
+                sort_indexes[to_swap] = sort_indexes[i]
+                sort_indexes[i] = i
+
+        n0, n1, n2, n3 = fs.sample_sizes
+        i0 = np.arange(n0 + 1)[:, np.newaxis, np.newaxis, np.newaxis]
+        i1 = np.arange(n1 + 1)[np.newaxis, :, np.newaxis, np.newaxis]
+        i2 = np.arange(n2 + 1)[np.newaxis, np.newaxis, :, np.newaxis]
+        i3 = np.arange(n3 + 1)[np.newaxis, np.newaxis, np.newaxis, :]
+        # To account for sampling bias
+        fac = (
+            i0 * i2 / n0 / n2
+            - i0 * i3 / n0 / n3
+            - i1 * i2 / n1 / n2
+            + i1 * i3 / n1 / n3
+        )
+        return np.sum(fac * fs)
 
     # Functions for resampling or generating "data" from an SFS
 

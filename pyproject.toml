@@ -21,9 +21,9 @@ write_to = "moments/_version.py"
 name = "moments-popgen"
 authors = [
     {name = "Aaron Ragsdale", email = "apgragsdale@wisc.edu"},
-    {name = "Julien Jouganous"},
     {name = "Simon Gravel", email = "simon.gravel@mcgill.ca"},
-    {name = "Ryan Gutenkunst"}
+    {name = "Julien Jouganous"},
+    {name = "Ryan Gutenkunst"},
 ]
 license = {text = "MIT"}
 requires-python = ">=3.8, <3.13"
