@@ -1323,7 +1323,11 @@ def means_from_region_data(all_data, stats, norm_idx=0):
 
 
 def get_bootstrap_sets(
-    all_data, num_bootstraps=None, normalization=0, remove_norm_stats=True
+    all_data,
+    num_bootstraps=None,
+    normalization=0,
+    remove_norm_stats=True,
+    remove_Dz=False,
 ):
     """
     From a dictionary of all the regional data, resample with replacement
@@ -1338,6 +1342,8 @@ def get_bootstrap_sets(
         None, it computes the same number as the nubmer of regions in ``all_data``.
     :param int normalization: The index of the population to normalize by. Defaults
         to 0.
+    :param bool remove_norm_stats: If we should remove the stat used for normalization.
+    :param bool remove_Dz: If we should remove Dz statistics.
     """
     regions = list(all_data.keys())
     reg = regions[0]
@@ -1355,16 +1361,26 @@ def get_bootstrap_sets(
         for i, c in enumerate(choices):
             temp_data[i] = all_data[c]
         boot_means = means_from_region_data(temp_data, stats, normalization)
+
+        delete_ld = []
+        delete_h = []
         if remove_norm_stats:
-            for ii in range(len(boot_means)):
-                if ii < len(boot_means) - 1:
-                    delete_idx = stats[0].index(
-                        "pi2_{0}_{0}_{0}_{0}".format(normalization)
-                    )
-                else:
-                    delete_idx = stats[1].index("H_{0}_{0}".format(normalization))
-                boot_means[ii] = np.delete(boot_means[ii], delete_idx)
+            delete_ld.append(
+                stats[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
+            )
+            delete_h.append(stats[1].index("H_{0}_{0}".format(normalization)))
+        if remove_Dz:
+            for i, stat in enumerate(stats[0]):
+                if stat.split("_")[0] == "Dz":
+                    delete_ld.append(i)
+        if len(delete_ld) > 0:
+            for ii in range(len(boot_means) - 1):
+                boot_means[ii] = np.delete(boot_means[ii], delete_ld)
+        if len(delete_h) > 0:
+            boot_means[-1] = np.delete(boot_means[-1], delete_h)
+
         all_boot.append(boot_means)
+
     return all_boot
 
 
