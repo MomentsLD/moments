@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.Triallele.TriSpectrum_mod &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.Triallele.TriSpectrum_mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.Triallele.TriSpectrum_mod</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains triallele spectrum object</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;TriSpectrum_mod&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span><span class="o">,</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">moments.Triallele.Numerics</span>
+<span class="kn">import</span> <span class="nn">moments.Triallele.Integration</span>
+
+
+<div class="viewcode-block" id="TriSpectrum">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum">[docs]</a>
+<span class="k">class</span> <span class="nc">TriSpectrum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a triallelic frequency spectrum.</span>
+<span class="sd">    </span>
+<span class="sd">    The triallelic spectrum is represented as a square numpy masked array in which</span>
+<span class="sd">    the (i, j)-th element stores the count or density of loci in which there are i</span>
+<span class="sd">    copies of the first derived allele and j copies of the second derived allele.</span>
+
+<span class="sd">    :param array data: The frequency spectrum data of size (n+1)-by-(n+1) where n is</span>
+<span class="sd">        the sample size.</span>
+<span class="sd">    :param array mask: An optional array of the same size as data. &#39;True&#39; entries in</span>
+<span class="sd">        this array are masked in the TriSpectrum. These represent missing data</span>
+<span class="sd">        categories, or invalid entries in the array</span>
+<span class="sd">    :param bool mask_infeasible: If True, mask all bins for frequencies that cannot</span>
+<span class="sd">        occur, e.g. i + j &gt; n. Defaults to True.</span>
+<span class="sd">    :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.</span>
+<span class="sd">    :param bool data_folded_major: If True, it is assumed that the input data is folded </span>
+<span class="sd">        for the major and minor derived alleles.</span>
+<span class="sd">    :param bool data_folded_ancestral: If True, it is assumed that the input data is</span>
+<span class="sd">        folded to account for uncertainty in the ancestral state. Note</span>
+<span class="sd">        that if True, data_folded_major must also be True.</span>
+<span class="sd">    :param bool check_folding_major: If True and data_folded_ancestral=True, the data</span>
+<span class="sd">        and mask will be checked to ensure they are consistent.</span>
+<span class="sd">    :param bool check_folding_ancestral: If True and data_folded_ancestral=True, the</span>
+<span class="sd">        data and mask will be checked to ensure they are consistent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span>
+        <span class="n">subtype</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span><span class="p">,</span>
+        <span class="n">finite_genome</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mask_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">data_folded_major</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">check_folding_major</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">data_folded_ancestral</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">check_folding_ancestral</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fill_value</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+        <span class="n">keep_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">shrink</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">finite_genome</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">mask_fixed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># print(&#39;If we simulate under the finite genome model, we do not mask fixed sites&#39;)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">make_mask_none</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">subarr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">keep_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">shrink</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">subarr</span> <span class="o">=</span> <span class="n">subarr</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">subtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;folded_major&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">data_folded_major</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">data_folded_major</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_major</span><span class="p">:</span>
+                <span class="n">subarr</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_major</span>
+            <span class="k">elif</span> <span class="n">data_folded_major</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_major</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Data does not have same major/minor folding status as &quot;</span>
+                    <span class="s2">&quot;was called for in Spectrum constructor.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_folded_major</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="n">data_folded_major</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;folded_ancestral&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">data_folded_ancestral</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">data_folded_ancestral</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_ancestral</span>
+            <span class="p">):</span>
+                <span class="n">subarr</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_ancestral</span>
+            <span class="k">elif</span> <span class="n">data_folded_ancestral</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded_ancestral</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Data does not have same ancestral folding status as &quot;</span>
+                    <span class="s2">&quot;was called for in Spectrum constructor.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_folded_ancestral</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="n">data_folded_ancestral</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">mask_infeasible</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">mask_infeasible</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">mask_fixed</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">mask_fixed</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subarr</span>
+
+    <span class="k">def</span> <span class="nf">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;folded_major&quot;</span><span class="p">,</span> <span class="s2">&quot;unspecified&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;folded_ancestral&quot;</span><span class="p">,</span> <span class="s2">&quot;unspecified&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;folded_major&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">folded_major</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;folded_ancestral&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">folded_ancestral</span>
+
+    <span class="c1"># masked_array has priority 15.</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;TriSpectrum(</span><span class="si">%s</span><span class="s2">, folded_major=</span><span class="si">%s</span><span class="s2">, folded_ancestral=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="TriSpectrum.mask_infeasible">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.mask_infeasible">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask_infeasible</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mask any infeasible entries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="n">ii</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.mask_fixed">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.mask_fixed">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mask entries that are not triallelic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.unfold">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.unfold">[docs]</a>
+    <span class="k">def</span> <span class="nf">unfold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Completely unfold the spectrum.</span>
+
+<span class="sd">        Returns a new TriSpectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input Spectrum is not folded.&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">unfolded</span> <span class="o">=</span> <span class="n">TriSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unfolded</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_sample_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">sample_size</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_sample_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sample_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sample_size</span><span class="p">()]</span>
+
+    <span class="n">sample_sizes</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_sample_sizes</span><span class="p">)</span>
+
+    <span class="c1"># Make from_file a static method, so we can use it without an instance.</span>
+<div class="viewcode-block" id="TriSpectrum.from_file">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.from_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_comments</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read frequency spectrum from file.</span>
+
+<span class="sd">        See to_file method for details on the file format.</span>
+
+<span class="sd">        :param str fid: String with file name to read from or an open file object.</span>
+<span class="sd">        :param bool mask_infeasible: If True, mask the infeasible entries in the</span>
+<span class="sd">            triallelic spectrum.</span>
+<span class="sd">        :param bool return_comments: If true, the return value is (fs, comments), where</span>
+<span class="sd">            comments is a list of strings containing the comments from the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Try to read from fid. If we can&#39;t, assume it&#39;s something that we can</span>
+        <span class="c1"># use to open a file.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="c1"># Strip out the comments</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="c1"># Read the shape of the data</span>
+        <span class="n">shape</span><span class="p">,</span> <span class="n">folded_major</span><span class="p">,</span> <span class="n">folded_ancestral</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">count</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># fromfile returns a 1-d array. Reshape it to the proper form.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">maskline</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">maskline</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">folded_major</span> <span class="o">==</span> <span class="s2">&quot;folded_major&quot;</span><span class="p">:</span>
+            <span class="n">folded_major</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">folded_major</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">folded_ancestral</span> <span class="o">==</span> <span class="s2">&quot;folded_ancestral&quot;</span><span class="p">:</span>
+            <span class="n">folded_ancestral</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">folded_ancestral</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># If we opened a new file, clean it up.</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">TriSpectrum</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">mask</span><span class="p">,</span>
+            <span class="n">mask_infeasible</span><span class="p">,</span>
+            <span class="n">data_folded_ancestral</span><span class="o">=</span><span class="n">folded_ancestral</span><span class="p">,</span>
+            <span class="n">data_folded_major</span><span class="o">=</span><span class="n">folded_major</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_comments</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">comments</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.to_file">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.to_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">comment_lines</span><span class="o">=</span><span class="p">[],</span> <span class="n">foldmaskinfo</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write frequency spectrum to file.</span>
+
+<span class="sd">        The file format is:</span>
+<span class="sd">        </span>
+<span class="sd">        - # Any number of comment lines beginning with a &#39;#&#39;</span>
+<span class="sd">        - A single line containing the sample size.</span>
+<span class="sd">          On the *same line*, the string &#39;folded_major&#39; or &#39;unfolded_major&#39; </span>
+<span class="sd">          denoting the folding status of the array.</span>
+<span class="sd">          And on the *same line*, the string &#39;folded_ancestral&#39; or &#39;unfolded_ancestral&#39; </span>
+<span class="sd">          denoting the folding status of the array.</span>
+<span class="sd">        - A single line giving the array elements. The order of elements is </span>
+<span class="sd">          e.g.: fs[0, 0] fs[0, 1] fs[0, 2] ... fs[1, 0] fs[1, 1] ...</span>
+<span class="sd">        - A single line giving the elements of the mask in the same order as</span>
+<span class="sd">          the data line. &#39;1&#39; indicates masked, &#39;0&#39; indicates unmasked.</span>
+
+<span class="sd">        :param str fid: String with file name to write to or an open file object.</span>
+<span class="sd">        :param int precision: Precision with which to write out entries of the SFS.</span>
+<span class="sd">            (They  are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</span>
+<span class="sd">        :param list comment_lines: List of strings to be used as comment lines in</span>
+<span class="sd">            the header of the output file.</span>
+<span class="sd">        :param bool foldmaskinfo: If False, folding and mask and population label</span>
+<span class="sd">            information will not be saved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Open the file object.</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Write comments</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">comment_lines</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# &quot;</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write out the shape of the fs</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">foldmaskinfo</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;unfolded_major &quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;folded_major &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;unfolded_ancestral &quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;folded_ancestral &quot;</span><span class="p">)</span>
+
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write the data to the file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">.</span><span class="si">%i</span><span class="s2">g&quot;</span> <span class="o">%</span> <span class="n">precision</span><span class="p">)</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">foldmaskinfo</span><span class="p">:</span>
+            <span class="c1"># Write the mask to the file</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Close file</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.fold_major">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.fold_major">[docs]</a>
+    <span class="k">def</span> <span class="nf">fold_major</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fold the spectrum based on the major allele(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input Spectrum is already folded.&quot;</span><span class="p">)</span>
+        <span class="n">folded</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">folded</span><span class="p">)):</span>
+            <span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">folded</span><span class="p">)):</span>
+            <span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">folded</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">folded</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span>
+        <span class="k">return</span> <span class="n">folded</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.log">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.log">[docs]</a>
+    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the natural logarithm of the entries of the frequency spectrum.</span>
+
+<span class="sd">        Only necessary because numpy.ma.log now fails to propagate extra</span>
+<span class="sd">        attributes after numpy 1.10.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logfs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">logfs</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span>
+        <span class="n">logfs</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span>
+        <span class="k">return</span> <span class="n">logfs</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.fold_ancestral">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.fold_ancestral">[docs]</a>
+    <span class="k">def</span> <span class="nf">fold_ancestral</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fold the spectrum based on the ancestral state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input Spectrum is already folded.&quot;</span><span class="p">)</span>
+        <span class="n">folded</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="bp">self</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">folded</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span><span class="p">):</span>
+                <span class="n">kk</span> <span class="o">=</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">elif</span> <span class="n">ii</span> <span class="o">&lt;=</span> <span class="n">kk</span> <span class="ow">and</span> <span class="n">jj</span> <span class="o">&lt;=</span> <span class="n">kk</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;=</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">jj</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="n">kk</span> <span class="ow">and</span> <span class="n">jj</span> <span class="o">&lt;=</span> <span class="n">kk</span><span class="p">:</span>
+                    <span class="n">folded</span><span class="p">[</span><span class="n">kk</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">ii</span> <span class="o">&lt;=</span> <span class="n">kk</span> <span class="ow">and</span> <span class="n">jj</span> <span class="o">&gt;</span> <span class="n">kk</span><span class="p">:</span>
+                    <span class="n">folded</span><span class="p">[</span><span class="n">kk</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># ii &gt; kk and jj &gt; kk</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;=</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span>
+        <span class="c1"># mask if not a valid entry for ancestrally folded spectrum</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span><span class="p">):</span>
+                <span class="n">kk</span> <span class="o">=</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">kk</span> <span class="o">&gt;=</span> <span class="n">ii</span> <span class="o">&gt;=</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">folded</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">folded</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">folded</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.S">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.S">[docs]</a>
+    <span class="k">def</span> <span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of sites in the unmasked spectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.project">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.project">[docs]</a>
+    <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">finite_genome</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project to smaller sample size.</span>
+
+<span class="sd">        :param int ns: Sample size for new spectrum.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">### Take from numerics and put here - projection cache might stay in Numerics</span>
+        <span class="k">if</span> <span class="n">finite_genome</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># projection doesn&#39;t reach edges</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Triallele</span><span class="o">.</span><span class="n">Numerics</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">TriSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">mask_fixed</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">output</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># all entries are projected, total sum of spectrum is maintained</span>
+            <span class="c1">#            output = moments.Triallele.Numerics.project_fg(self, ns)</span>
+            <span class="c1">#            if self.mask_infeasible == True:</span>
+            <span class="c1">#                output.mask_infeasible()</span>
+            <span class="c1">#            return output</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;finite_genome is not yet implemented&quot;</span>
+            <span class="p">)</span>  <span class="c1"># still to implement</span></div>
+
+
+<div class="viewcode-block" id="TriSpectrum.pi">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.pi">[docs]</a>
+    <span class="k">def</span> <span class="nf">pi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimated expected number of pairwise differences between two samples</span>
+<span class="sd">        from the population at loci that are triallelic</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not yet implemented&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Ensures that when arithmetic is done with TriSpectrum objects,</span>
+    <span class="c1"># attributes are preserved. For details, see similar code in</span>
+    <span class="c1"># moments.Spectrum_mod</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;__add__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__radd__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__sub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rsub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__mul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rmul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__div__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rdiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__truediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rtruediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__floordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rfloordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rpow__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__pow__&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def %(method)s(self, other):</span>
+<span class="sd">    self._check_other_folding(other)</span>
+<span class="sd">    if isinstance(other, numpy.ma.masked_array):</span>
+<span class="sd">        newdata = self.data.%(method)s (other.data)</span>
+<span class="sd">        newmask = numpy.ma.mask_or(self.mask, other.mask)</span>
+<span class="sd">    else:</span>
+<span class="sd">        newdata = self.data.%(method)s (other)</span>
+<span class="sd">        newmask = self.mask</span>
+<span class="sd">    outfs = self.__class__.__new__(self.__class__, newdata, newmask, </span>
+<span class="sd">                                   mask_infeasible=False, </span>
+<span class="sd">                                   data_folded_major=self.folded_major,</span>
+<span class="sd">                                   data_folded_ancestral=self.folded_ancestral)</span>
+<span class="sd">    return outfs</span>
+<span class="sd">&quot;&quot;&quot;</span>
+            <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Methods that modify the Spectrum in-place.</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;__iadd__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__isub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__imul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__idiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__itruediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__ifloordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__ipow__&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def %(method)s(self, other):</span>
+<span class="sd">    self._check_other_folding(other)</span>
+<span class="sd">    if isinstance(other, numpy.ma.masked_array):</span>
+<span class="sd">        self.data.%(method)s (other.data)</span>
+<span class="sd">        self.mask = numpy.ma.mask_or(self.mask, other.mask)</span>
+<span class="sd">    else:</span>
+<span class="sd">        self.data.%(method)s (other)</span>
+<span class="sd">    return self</span>
+<span class="sd">&quot;&quot;&quot;</span>
+            <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_other_folding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure other Spectrum has same .folded status</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">folded_major</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_major</span>
+            <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">folded_ancestral</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded_ancestral</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot operate with a folded Spectrum and an &quot;</span> <span class="s2">&quot;unfolded one.&quot;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="TriSpectrum.integrate">
+<a class="viewcode-back" href="../../../extensions/triallele.html#moments.Triallele.TriSpectrum.integrate">[docs]</a>
+    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">gammas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to simulate the triallelic fs forward in time.</span>
+<span class="sd">        This integration scheme takes advantage of scipy&#39;s sparse methods.</span>
+<span class="sd">        </span>
+<span class="sd">        :param nu: The population effective size as positive value or callable function.</span>
+<span class="sd">        :param float tf: The integration time in genetics units.</span>
+<span class="sd">        :param float dt_fac: time step for integration</span>
+<span class="sd">        :param list gammas: Population size scaled selection coefficients</span>
+<span class="sd">            [sAA, sA0, sBB, sB0, sAB]. Here, 0 represents that ancestral allele, so we</span>
+<span class="sd">            can implement dominance by picking the relationship between, e.g., sAA, sA0,</span>
+<span class="sd">            sAB, and sA0.</span>
+<span class="sd">        :param float theta: Population size scale mutation parameter, assuming equal</span>
+<span class="sd">            mutation rates to both derived alleles.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">gammas</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gammas</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Triallele</span><span class="o">.</span><span class="n">Integration</span><span class="o">.</span><span class="n">integrate_cn</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">gammas</span><span class="o">=</span><span class="n">gammas</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Allow TriSpectrum objects to be pickled.</span>
+<span class="c1"># See http://effbot.org/librarybook/copy-reg.htm</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">copy_reg</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">copyreg</span>
+
+
+<span class="k">def</span> <span class="nf">TriSpectrum_pickler</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+    <span class="c1"># Collect all the info necessary to save the state of a TriSpectrum</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">TriSpectrum_unpickler</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">folded_major</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">folded_ancestral</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">TriSpectrum_unpickler</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">folded_major</span><span class="p">,</span> <span class="n">folded_ancestral</span><span class="p">):</span>
+    <span class="c1"># Use that info to recreate the TriSpectrum</span>
+    <span class="k">return</span> <span class="n">TriSpectrum</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">mask</span><span class="p">,</span>
+        <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">data_folded_major</span><span class="o">=</span><span class="n">folded_major</span><span class="p">,</span>
+        <span class="n">data_folded_ancestral</span><span class="o">=</span><span class="n">folded_ancestral</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">TriSpectrum</span><span class="p">,</span> <span class="n">TriSpectrum_pickler</span><span class="p">,</span> <span class="n">TriSpectrum_unpickler</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">copyreg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">TriSpectrum</span><span class="p">,</span> <span class="n">TriSpectrum_pickler</span><span class="p">,</span> <span class="n">TriSpectrum_unpickler</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two-locus frequency spectrum &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Triallele frequency spectrum" href="triallele.html" />
+    <link rel="prev" title="Specifying models with demes" href="demes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Two-locus frequency spectrum</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum"><code class="docutils literal notranslate"><span class="pre">TLSpectrum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.D"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.D2"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.D2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.Dz"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.Dz()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.S"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.S()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.ancestral_misid"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.ancestral_misid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.fold"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.fold()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.from_file"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.integrate"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.integrate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.left"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.left()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.mask_fixed"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.mask_fixed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.mask_infeasible"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.mask_infeasible()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.pi2"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.pi2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.project"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.project()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.right"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.right()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.to_file"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.to_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.TwoLocus.TLSpectrum.unfold"><code class="docutils literal notranslate"><span class="pre">TLSpectrum.unfold()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.bottlegrowth"><code class="docutils literal notranslate"><span class="pre">bottlegrowth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.equilibrium"><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.growth"><code class="docutils literal notranslate"><span class="pre">growth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.set_cache_path"><code class="docutils literal notranslate"><span class="pre">set_cache_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.three_epoch"><code class="docutils literal notranslate"><span class="pre">three_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.TwoLocus.Demographics.two_epoch"><code class="docutils literal notranslate"><span class="pre">two_epoch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Two-locus frequency spectrum</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/extensions/two_locus.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="two-locus-frequency-spectrum">
+<h1>Two-locus frequency spectrum<a class="headerlink" href="#two-locus-frequency-spectrum" title="Link to this heading"></a></h1>
+<p>See <a class="reference internal" href="../modules/two_locus_selection.html#two-locus-usage"><span class="std std-ref">Selection at two loci</span></a> for introduction and examples to the Two-Locus extension.</p>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">TLSpectrum</span></code> class handles all manipulations of the two-locus frequency spectrum:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.</span></span><span class="sig-name descname"><span class="pre">TLSpectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_infeasible=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_fixed=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_folded=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_folding=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value=nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_mask=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum" title="Link to this definition"></a></dt>
+<dd><p>Represents a two locus frequency spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>array</em>) – The frequency spectrum data, which has shape
+(n+1)-by-(n+1)-by-(n+1) where n is the sample size.</p></li>
+<li><p><strong>mask</strong> (<em>array</em>) – An optional array of the same size as data. ‘True’ entries
+in this array are masked in the TLSpectrum.</p></li>
+<li><p><strong>mask_infeasible</strong> (<em>bool</em>) – If True, mask all bins for frequencies that cannot
+occur, e.g. i + j &gt; n. Defaults to True.</p></li>
+<li><p><strong>mask_fixed</strong> (<em>bool</em>) – If True, mask the fixed bins. Defaults to True.</p></li>
+<li><p><strong>data_folded</strong> (<em>bool</em>) – If True, it is assumed that the input data is folded
+for the major and minor derived alleles</p></li>
+<li><p><strong>check_folding</strong> (<em>bool</em>) – If True and data_folded=True, the data and
+mask will be checked to ensure they are consistent.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.D">
+<span class="sig-name descname"><span class="pre">D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.D" title="Link to this definition"></a></dt>
+<dd><p>Return the expectation of <span class="math notranslate nohighlight">\(D\)</span> from the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proj</strong> – If True, use the unbiased estimator from downsampling. If False,
+use naive maximum likelihood estimates for frequency.</p></li>
+<li><p><strong>nA</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the left locus.</p></li>
+<li><p><strong>nB</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the right locus.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.D2">
+<span class="sig-name descname"><span class="pre">D2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.D2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.D2" title="Link to this definition"></a></dt>
+<dd><p>Return the expectation of <span class="math notranslate nohighlight">\(D^2\)</span> from the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proj</strong> – If True, use the unbiased estimator from downsampling. If False,
+use naive maximum likelihood estimates for frequency.</p></li>
+<li><p><strong>nA</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the left locus.</p></li>
+<li><p><strong>nB</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the right locus.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.Dz">
+<span class="sig-name descname"><span class="pre">Dz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.Dz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.Dz" title="Link to this definition"></a></dt>
+<dd><p>Compute the expectation of <span class="math notranslate nohighlight">\(Dz = D(1-2p)(1-2q)\)</span> from the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proj</strong> – If True, use the unbiased estimator from downsampling. If False,
+use naive maximum likelihood estimates for frequency.</p></li>
+<li><p><strong>nA</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the left locus.</p></li>
+<li><p><strong>nB</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the right locus.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.S">
+<span class="sig-name descname"><span class="pre">S</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.S"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.S" title="Link to this definition"></a></dt>
+<dd><p>Return the sum of probabilities over all variable two-locus entries
+in the spectrum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.ancestral_misid">
+<span class="sig-name descname"><span class="pre">ancestral_misid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.ancestral_misid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.ancestral_misid" title="Link to this definition"></a></dt>
+<dd><p>Return a new SFS with a given ancestral misidentification, p.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> – The rate of ancestral state misidentification.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.fold">
+<span class="sig-name descname"><span class="pre">fold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.fold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.fold" title="Link to this definition"></a></dt>
+<dd><p>Fold the two-locus spectrum by minor allele frequencies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.from_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_infeasible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_comments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.from_file" title="Link to this definition"></a></dt>
+<dd><p>Read frequency spectrum from file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – String with file name to read from or an open file object.</p></li>
+<li><p><strong>mask_infeasible</strong> (<em>bool</em>) – If True, mask the infeasible entries in the
+two locus spectrum.</p></li>
+<li><p><strong>return_comments</strong> (<em>bool</em>) – If true, the return value is (fs, comments), where
+comments is a list of strings containing the comments from the file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params_general</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finite_genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternate_fg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustered_mutations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.integrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.integrate" title="Link to this definition"></a></dt>
+<dd><p>Simulate the two-locus haplotype frequency spectrum forward in time.
+This integration scheme takes advantage of scipy’s sparse methods.</p>
+<p>When using the reversible mutation model (with <cite>finite_genome</cite> = True),
+we are limited to selection at only one locus (the left locus), and
+selection is additive. When using the default ISM, additive selection
+is allowed at both loci, and we use <cite>sel_params</cite>, which specifies [sAB,
+sA, and sB] in that order.  Note that while this selection model is
+additive within loci, it allows for epistasis between loci if sAB != sA
++ sB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> – Population effective size as positive value or callable function.</p></li>
+<li><p><strong>tf</strong> (<em>float</em>) – The integration time in genetics units.</p></li>
+<li><p><strong>dt_fac</strong> (<em>float</em>) – The time step for integration.</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – The population-size scaled recombination rate 4*Ne*r.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em>) – The population-size scaled selection coefficient 2*Ne*s.</p></li>
+<li><p><strong>sel_params</strong> (<em>list</em>) – A list of selection parameters. See docstrings in
+Numerics. Selection parameters will be deprecated when we clean up the
+numerics and integration.</p></li>
+<li><p><strong>sel_params_general</strong> (<em>list</em>) – To be filled. ## TODO!!</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population size scale mutation parameter.</p></li>
+<li><p><strong>finite_genome</strong> (<em>bool</em>) – Defaults to False, in which case we use the
+infinite sites model. Otherwise, we use a reversible mutation model, and
+must specify <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p></li>
+<li><p><strong>u</strong> (<em>float</em>) – The mutation rate at the left locus in the finite genome model.</p></li>
+<li><p><strong>v</strong> (<em>float</em>) – The mutation rate at the right locus in the finite genome
+model.</p></li>
+<li><p><strong>alternate_fg</strong> (<em>bool</em>) – If True, use the alternative finite genome model.
+This parameter will be deprecated when we clean up the numerics and
+integration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.left">
+<span class="sig-name descname"><span class="pre">left</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.left"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.left" title="Link to this definition"></a></dt>
+<dd><p>The marginal allele frequency spectrum at the left locus.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.mask_fixed">
+<span class="sig-name descname"><span class="pre">mask_fixed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.mask_fixed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.mask_fixed" title="Link to this definition"></a></dt>
+<dd><p>Mask all infeasible entries, as well as any where both sites are not
+segregating.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.mask_infeasible">
+<span class="sig-name descname"><span class="pre">mask_infeasible</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.mask_infeasible"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.mask_infeasible" title="Link to this definition"></a></dt>
+<dd><p>Mask any infeasible entries.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.pi2">
+<span class="sig-name descname"><span class="pre">pi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.pi2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.pi2" title="Link to this definition"></a></dt>
+<dd><p>Return the expectation of <span class="math notranslate nohighlight">\(\pi_2 = p(1-p)q(1-q)\)</span> from the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proj</strong> – If True, use the unbiased estimator from downsampling. If False,
+use naive maximum likelihood estimates for frequency.</p></li>
+<li><p><strong>nA</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the left locus.</p></li>
+<li><p><strong>nB</strong> – If None, the average is computed over all frequencies. If given,
+condition on the given allele count for the right locus.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.project">
+<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finite_genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.project" title="Link to this definition"></a></dt>
+<dd><p>Project to smaller sample size.</p>
+<p>param int ns: Sample size for new spectrum.
+param bool finite_genome: If we also track proportions in fixed bins.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.right">
+<span class="sig-name descname"><span class="pre">right</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.right" title="Link to this definition"></a></dt>
+<dd><p>The marginal AFS at the right locus.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foldmaskinfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.to_file" title="Link to this definition"></a></dt>
+<dd><p>Write frequency spectrum to file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – String with file name to write to or an open file object.</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – Precision with which to write out entries of the SFS.
+(They  are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</p></li>
+<li><p><strong>comment_lines</strong> (<em>list</em>) – List of strings to be used as comment lines in
+the header of the output file.</p></li>
+<li><p><strong>foldmaskinfo</strong> (<em>bool</em>) – If False, folding and mask and population label
+information will not be saved.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.TwoLocus.TLSpectrum.unfold">
+<span class="sig-name descname"><span class="pre">unfold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/TLSpectrum_mod.html#TLSpectrum.unfold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.TLSpectrum.unfold" title="Link to this definition"></a></dt>
+<dd><p>Remove folding from the spectrum.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>The <code class="docutils literal notranslate"><span class="pre">Demographics</span></code> module contains some standard demographic models. This is a good
+place to look for some inspiration to create your own two-locus models as well.</p>
+<dl class="py function" id="module-moments.TwoLocus.Demographics">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.bottlegrowth">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">bottlegrowth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#bottlegrowth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.bottlegrowth" title="Link to this definition"></a></dt>
+<dd><p>A bottleneck followed by exponential growth. The population changes size to nuB
+T generations ago, and then has exponential size change to final size nuF. Time is
+in units of 2Ne generations, and sizes are relative to the ancestral Ne.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Given as [nuB, nuF, T].</p></li>
+<li><p><strong>ns</strong> – The sample size.</p></li>
+<li><p><strong>rho</strong> – The population size scaled selection coefficient, 4*Ne*r.</p></li>
+<li><p><strong>theta</strong> – The mutation rate at each locus, typically left as 1.</p></li>
+<li><p><strong>gamma</strong> – Only used for additive selection at the A/a locus.</p></li>
+<li><p><strong>sel_params</strong> – Additive selection coefficients for haplotypes AB, Ab, and aB, so
+that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+epistasis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.equilibrium">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">equilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params_general</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#equilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.equilibrium" title="Link to this definition"></a></dt>
+<dd><p>Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum
+does not exist, create the equilibrium spectrum and cache in the cache path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ns</strong> – The sample size.</p></li>
+<li><p><strong>rho</strong> – The population size scaled selection coefficient, 4*Ne*r.</p></li>
+<li><p><strong>theta</strong> – The mutation rate at each locus, typically left as 1.</p></li>
+<li><p><strong>gamma</strong> – Only used for additive selection at the A/a locus.</p></li>
+<li><p><strong>sel_params</strong> – Additive selection coefficients for haplotypes AB, Ab, and aB, so
+that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+epistasis.</p></li>
+<li><p><strong>sel_params_general</strong> – General selection parameters for diploids. In the order
+(s_AB_AB, s_AB_Ab, s_AB_aB, s_AB_ab, s_Ab_Ab, s_Ab_aB, s_Ab_ab, s_aB_aB, s_aB_ab)</p></li>
+<li><p><strong>cache</strong> – If True, save the frequency spectrum in the cache for future use. If
+False, don’t save the spectrum.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.growth">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">growth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#growth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.growth" title="Link to this definition"></a></dt>
+<dd><p>An expnential growth model, that begins growth at time T ago, in units of 2Ne
+generations. The final size is given by nu, which is the relative size to the
+ancestral Ne.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Given as [nu, T].</p></li>
+<li><p><strong>ns</strong> – The sample size.</p></li>
+<li><p><strong>rho</strong> – The population size scaled selection coefficient, 4*Ne*r.</p></li>
+<li><p><strong>theta</strong> – The mutation rate at each locus, typically left as 1.</p></li>
+<li><p><strong>gamma</strong> – Only used for additive selection at the A/a locus.</p></li>
+<li><p><strong>sel_params</strong> – Additive selection coefficients for haplotypes AB, Ab, and aB, so
+that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+epistasis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.set_cache_path">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">set_cache_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'~/.moments/TwoLocus_cache'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#set_cache_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.set_cache_path" title="Link to this definition"></a></dt>
+<dd><p>Set directory in which demographic equilibrium phi spectra will be cached.</p>
+<p>The collection of cached spectra can get large, so it may be helpful to
+store them outside the user’s home directory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.three_epoch">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">three_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#three_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.three_epoch" title="Link to this definition"></a></dt>
+<dd><p>A three-epoch model, with relative size changes nu1 that lasts for time T1, followed
+by a relative size change to nu2 that last for time T2. Times are in units of 2Ne
+generations, and sizes are relative to the ancestral Ne.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Given as [nu1, nu2, T1, T2].</p></li>
+<li><p><strong>ns</strong> – The sample size.</p></li>
+<li><p><strong>rho</strong> – The population size scaled selection coefficient, 4*Ne*r.</p></li>
+<li><p><strong>theta</strong> – The mutation rate at each locus, typically left as 1.</p></li>
+<li><p><strong>gamma</strong> – Only used for additive selection at the A/a locus.</p></li>
+<li><p><strong>sel_params</strong> – Additive selection coefficients for haplotypes AB, Ab, and aB, so
+that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+epistasis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.TwoLocus.Demographics.two_epoch">
+<span class="sig-prename descclassname"><span class="pre">moments.TwoLocus.Demographics.</span></span><span class="sig-name descname"><span class="pre">two_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/TwoLocus/Demographics.html#two_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.TwoLocus.Demographics.two_epoch" title="Link to this definition"></a></dt>
+<dd><p>A two-epoch model, with relative size change nu, time T in the past. T is given
+in units of 2Ne generations. Note that a relative size of 1 implies no size change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Given as [nu, T].</p></li>
+<li><p><strong>ns</strong> – The sample size.</p></li>
+<li><p><strong>rho</strong> – The population size scaled selection coefficient, 4*Ne*r.</p></li>
+<li><p><strong>theta</strong> – The mutation rate at each locus, typically left as 1.</p></li>
+<li><p><strong>gamma</strong> – Only used for additive selection at the A/a locus.</p></li>
+<li><p><strong>sel_params</strong> – Additive selection coefficients for haplotypes AB, Ab, and aB, so
+that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
+epistasis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="demes.html" class="btn btn-neutral float-left" title="Specifying models with demes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="triallele.html" class="btn btn-neutral float-right" title="Triallele frequency spectrum" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

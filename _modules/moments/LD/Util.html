@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.Util &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.Util</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.Util</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Heterozygosity and LD stat names</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="het_names">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.het_names">[docs]</a>
+<span class="k">def</span> <span class="nf">het_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the heterozygosity statistic representation names.</span>
+
+<span class="sd">    :param int num_pops: Number of populations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Hs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+            <span class="n">Hs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;H_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Hs</span></div>
+
+
+
+<div class="viewcode-block" id="ld_names">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.ld_names">[docs]</a>
+<span class="k">def</span> <span class="nf">ld_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the LD statistic representation names.</span>
+
+<span class="sd">    :param int num_pops: Number of populations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Ys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+            <span class="n">Ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;DD_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">jj</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+                <span class="n">Ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Dz_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">_</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">ll</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">kk</span> <span class="o">==</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">ll</span> <span class="ow">and</span> <span class="n">jj</span> <span class="o">!=</span> <span class="n">ii</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">kk</span> <span class="ow">and</span> <span class="n">ll</span> <span class="o">&lt;</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">Ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;pi2_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">_</span><span class="si">{2}</span><span class="s2">_</span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">,</span> <span class="n">ll</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Ys</span></div>
+
+
+
+<div class="viewcode-block" id="moment_names">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.moment_names">[docs]</a>
+<span class="k">def</span> <span class="nf">moment_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a tuple of length two with LD and heterozygosity moment names.</span>
+
+<span class="sd">    :param int num_pops: Number of populations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hn</span> <span class="o">=</span> <span class="n">het_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">)</span>
+    <span class="n">yn</span> <span class="o">=</span> <span class="n">ld_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">yn</span><span class="p">,</span> <span class="n">hn</span><span class="p">)</span></div>
+
+
+
+<span class="c1">##</span>
+<span class="c1">## We need to map moments for split and rearrangement functions</span>
+<span class="c1">##</span>
+<span class="n">mom_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="map_moment">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.map_moment">[docs]</a>
+<span class="k">def</span> <span class="nf">map_moment</span><span class="p">(</span><span class="n">mom</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    There are repeated moments with equal expectations, so we collapse them into</span>
+<span class="sd">    the same moment.</span>
+
+<span class="sd">    :param str mom: The moment to map to its &quot;canonical&quot; name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;DD&quot;</span><span class="p">:</span>
+            <span class="n">pops</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]])</span>
+            <span class="n">mom_out</span> <span class="o">=</span> <span class="s2">&quot;DD_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops</span><span class="p">])</span>
+            <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">mom_out</span>
+        <span class="k">elif</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Dz&quot;</span><span class="p">:</span>
+            <span class="n">popD</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">popsz</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]])</span>
+            <span class="n">mom_out</span> <span class="o">=</span> <span class="s2">&quot;Dz_&quot;</span> <span class="o">+</span> <span class="n">popD</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsz</span><span class="p">])</span>
+            <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">mom_out</span>
+        <span class="k">elif</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;pi2&quot;</span><span class="p">:</span>
+            <span class="n">popsp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]])</span>
+            <span class="n">popsq</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">3</span><span class="p">:]])</span>
+            <span class="c1">## pi2_2_2_1_1 -&gt; pi2_1_1_2_2</span>
+            <span class="c1">## pi2_1_2_1_1 -&gt; pi2_1_1_1_2,</span>
+            <span class="c1">## pi2_2_2_1_3 -&gt; pi2_1_3_2_2</span>
+            <span class="k">if</span> <span class="n">popsp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">popsq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>  <span class="c1"># switch them</span>
+                <span class="n">mom_out</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;pi2_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsq</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsp</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">popsp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">popsq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">popsp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">popsq</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>  <span class="c1"># switch them</span>
+                <span class="n">mom_out</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;pi2_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsq</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsp</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mom_out</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;pi2_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsp</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">popsq</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">mom_out</span>
+        <span class="k">elif</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span>
+            <span class="n">pops</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]])</span>
+            <span class="n">mom_out</span> <span class="o">=</span> <span class="s2">&quot;H_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops</span><span class="p">])</span>
+            <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">mom_out</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mom_out</span> <span class="o">=</span> <span class="n">mom</span>
+        <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">mom_out</span>
+        <span class="k">return</span> <span class="n">mom_map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="perturb_params">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.perturb_params">[docs]</a>
+<span class="k">def</span> <span class="nf">perturb_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a perturbed set of parameters. Each element of params is randomly</span>
+<span class="sd">    perturbed by the given factor of 2 up or down.</span>
+
+<span class="sd">    :param list params: A list of input parameters.</span>
+<span class="sd">    :param float fold: Number of factors of 2 to perturb by.</span>
+<span class="sd">    :param list lower_bound: If not None, the resulting parameter set is adjusted</span>
+<span class="sd">        to have all value greater than lower_bound. Must have equal length to</span>
+<span class="sd">        ``params``.</span>
+<span class="sd">    :param list upper_bound: If not None, the resulting parameter set is adjusted</span>
+<span class="sd">        to have all value less than upper_bound. Must have equal length to</span>
+<span class="sd">        ``params``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pnew</span> <span class="o">=</span> <span class="n">params</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">fold</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lower_bound</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">pnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">pnew</span><span class="p">,</span> <span class="mf">1.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">upper_bound</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">pnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">pnew</span><span class="p">,</span> <span class="mf">0.99</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pnew</span></div>
+
+
+
+<div class="viewcode-block" id="rescale_params">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Util.rescale_params">[docs]</a>
+<span class="k">def</span> <span class="nf">rescale_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gens</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">uncerts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rescale parameters to physical units, so that times are in generations or years,</span>
+<span class="sd">    sizes in effective instead of relative sizes, and migration probabilities in</span>
+<span class="sd">    per-generation units.</span>
+
+<span class="sd">    For generation times of events to be correctly rescaled, times in the</span>
+<span class="sd">    parameters list must be specified so that earlier epochs are earlier in the</span>
+<span class="sd">    list, because we return rescaled cumulative times. All time parameters must</span>
+<span class="sd">    refer to consecutive epochs. Epochs need not start at contemporary time, and</span>
+<span class="sd">    we can specify the time offset using `time_offset`.</span>
+
+<span class="sd">    If uncertainties are not given (`uncerts = None`), the return value is an</span>
+<span class="sd">    array of rescaled parameters. If uncertainties are given, the return value</span>
+<span class="sd">    has length two: the first entry is an array of rescaled parameters, and the</span>
+<span class="sd">    second entry is an array of rescaled uncertainties.</span>
+
+<span class="sd">    :param list params: List of parameters.</span>
+<span class="sd">    :param list types: List of parameter types. Times are given by &quot;T&quot;, sizes by &quot;nu&quot;,</span>
+<span class="sd">        effective size by &quot;Ne&quot;, migration rates by &quot;m&quot;, and fractions by &quot;x&quot; or &quot;f&quot;.</span>
+<span class="sd">    :param float Ne: The effective population size, typically as the last entry in</span>
+<span class="sd">        ``params``.</span>
+<span class="sd">    :param float gens: The generation time.</span>
+<span class="sd">    :param list uncerts: List of uncertainties, same length as ``params``.</span>
+<span class="sd">    :param time_offset: The amount of time added to each rescaled time point. This</span>
+<span class="sd">        lets us have consecutive epochs that stop short of time 0 (final sampling</span>
+<span class="sd">        time).</span>
+<span class="sd">    :type time_offset: int or float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;Ne&quot;</span> <span class="ow">in</span> <span class="n">types</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Ne must be passed as a keywork argument or &quot;</span>
+            <span class="s2">&quot;specified in types, but not both.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;Ne&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">types</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ne must be given or must exist in the types list&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">types</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;Ne&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ne can only be defined once in the parameters list&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Ne</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Ne&quot;</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;types and params must have same length&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">uncerts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">uncerts</span><span class="p">)</span>
+
+    <span class="c1"># rescale the params</span>
+    <span class="c1"># go backwards to add times in reverse</span>
+    <span class="n">elapsed_t</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">rescaled_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;T&quot;</span><span class="p">:</span>
+            <span class="n">elapsed_t</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">gens</span>
+            <span class="n">rescaled_params</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">elapsed_t</span> <span class="o">+</span> <span class="n">time_offset</span>
+        <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+            <span class="n">rescaled_params</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Ne</span>
+        <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;nu&quot;</span><span class="p">:</span>
+            <span class="n">rescaled_params</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">Ne</span>
+        <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">]:</span>
+            <span class="n">rescaled_params</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Ne&quot;</span><span class="p">:</span>
+            <span class="n">rescaled_params</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ne</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized parameter type&quot;</span><span class="p">,</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">uncerts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rescaled_params</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">## if uncerts are given</span>
+        <span class="c1"># rescale the uncerts</span>
+        <span class="n">rescaled_uncerts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">uncerts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;T&quot;</span><span class="p">:</span>
+                <span class="n">rescaled_uncerts</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">gens</span>
+            <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+                <span class="n">rescaled_uncerts</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Ne</span>
+            <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;nu&quot;</span><span class="p">:</span>
+                <span class="n">rescaled_uncerts</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">Ne</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rescaled_uncerts</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="n">rescaled_params</span><span class="p">,</span> <span class="n">rescaled_uncerts</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

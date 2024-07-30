@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-population LD statistics &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Parsing LD statistics" href="parsing.html" />
+    <link rel="prev" title="SFS Inference" href="../sfs/inference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Multi-population LD statistics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#linkage-disequilibrium">Linkage disequilibrium</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ld-decay-curves">LD decay curves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-populations">Multiple populations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#archaic-admixture">Archaic admixture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#demographic-events">Demographic events</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extinction-marginalization">Extinction/marginalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#population-splits">Population splits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admixture-and-mergers">Admixture and mergers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulse-migration">Pulse migration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#integration">Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Multi-population LD statistics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/ld/ld.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <blockquote>
+<div></div></blockquote>
+<div class="jupyter_cell docutils container" id="sec-ld">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="multi-population-ld-statistics">
+<h1>Multi-population LD statistics<a class="headerlink" href="#multi-population-ld-statistics" title="Link to this heading"></a></h1>
+<p>Using moment equations for the two-locus haplotype distribution, <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code>
+lets us compute a large family of linkage disequilibrium statistics in models
+with arbitrary mutation and recombination rates and flexible demographic
+history with any number of populations. The statistics are stored in
+a different way that the SFS, but much of the API for implementing demographic
+events and integration is largely consistent between the SFS and LD methods.</p>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> in your research, please cite:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#ragsdale2019" id="id1"><span>[Ragsdale2019]</span></a>: Ragsdale, A. P. &amp; Gravel, S. (2019).
+Models of archaic admixture and recent history
+from two-locus statistics. <em>PLoS Genetics</em>, 15(6), e1008204.</p></li>
+<li><p><a class="reference internal" href="#ragsdale2020" id="id2"><span>[Ragsdale2020]</span></a>: Ragsdale, A. P. &amp; Gravel, S. (2020).
+Unbiased estimation of linkage disequilibrium
+from unphased data. <em>Mol Biol Evol</em>, 37(3), 923-932.</p></li>
+</ul>
+<section id="linkage-disequilibrium">
+<h2>Linkage disequilibrium<a class="headerlink" href="#linkage-disequilibrium" title="Link to this heading"></a></h2>
+<p>The LD statistics that <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> computes are low-order summaries of
+expected LD between pairs of loci. In particular, we compute
+<span class="math notranslate nohighlight">\(\mathbb{E}[D^2]\)</span>, the expectation of the numerator of the familiar
+<span class="math notranslate nohighlight">\(r^2\)</span> measure of LD. From this system of equations, we also compute
+<span class="math notranslate nohighlight">\(\mathbb{E}[Dz] = \mathbb{E}[D(1-2p)(1-2q)]\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> and
+<span class="math notranslate nohighlight">\(q\)</span> are the allele frequencies at the left and right loci, respectively;
+and we also compute <span class="math notranslate nohighlight">\(\pi_2=\mathbb{E}[p(1-p)q(1-q)]\)</span>, a measure of the
+“joint heterozygosity” of the two loci <a class="reference internal" href="#hill1968" id="id3"><span>[Hill1968]</span></a>.</p>
+<p>These statistics are stored in a list of arrays, where each list element
+corresponds to a given recombination rate, <span class="math notranslate nohighlight">\(\rho = 4N_er\)</span>, where <cite>r</cite> is
+the recombination probability separating loci. The length of the list is the
+length of the number of recombination rates given, plus one, as the last entry
+stores the single-locus expected heterozygosity:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments</span><span class="o">,</span> <span class="nn">moments.LD</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="c1"># the mutation rate 4*Ne*u</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span> <span class="c1"># recombination rates 4*Ne*r between loci</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span> <span class="c1"># steady-state expectations</span>
+<span class="n">y</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>LDstats([[1.38888889e-07 1.11111111e-07 3.05555556e-07]
+ [8.59375000e-08 6.25000000e-08 2.81250000e-07]
+ [2.01612903e-08 8.06451613e-09 2.54032258e-07]], [0.001], num_pops=1, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Here, we can see the decay of LD with increasing recombination rate, and also
+that the heterozygosity equals the scaled mutation rate at steady-state, as
+expected. On any LD object, we can get the list of statistics present by
+calling:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>([&#39;DD_0_0&#39;, &#39;Dz_0_0_0&#39;, &#39;pi2_0_0_0_0&#39;], [&#39;H_0_0&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<p>The underscores index the populations for that statistic, so <code class="docutils literal notranslate"><span class="pre">DD_0_0</span></code>
+represents <span class="math notranslate nohighlight">\(\mathbb{E}[D_0 D_0] = \mathbb{E}[D_0^2]\)</span>, <code class="docutils literal notranslate"><span class="pre">Dz_0_0_0</span></code>
+represents <span class="math notranslate nohighlight">\(\mathbb{E}[D_0(1-2p_0)(1-2q_0)]\)</span>, and <code class="docutils literal notranslate"><span class="pre">pi2_0_0_0_0</span></code>
+represents <span class="math notranslate nohighlight">\(\mathbb{E}[p_0(1-p_0)q_0(1-q_0)]\)</span>. Here, there is only the
+one population (indexed by zero), but it should be clear how the indexing
+extends to additional populations.</p>
+<p>One of the great strengths of <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> is that while it only computes
+low-order moments of the full two-locus haplotype distribution, it allows us to
+expand the basis of statistics to include many populations. For example, one of
+the example demographic models for two populations is
+<code class="docutils literal notranslate"><span class="pre">Demographics2D.split_mig</span></code>, in which a single population splits into two
+descendant populations, each with their own relative constant sizes and
+connected by symmetric migration.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">split_mig</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">rho</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="c1"># here, the parameters of split_mig are (T, nu0, nu1, m_sym)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+<span class="n">y</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>([&#39;DD_0_0&#39;, &#39;DD_0_1&#39;, &#39;DD_1_1&#39;, &#39;Dz_0_0_0&#39;, &#39;Dz_0_0_1&#39;, &#39;Dz_0_1_1&#39;, &#39;Dz_1_0_0&#39;, &#39;Dz_1_0_1&#39;, &#39;Dz_1_1_1&#39;, &#39;pi2_0_0_0_0&#39;, &#39;pi2_0_0_0_1&#39;, &#39;pi2_0_0_1_1&#39;, &#39;pi2_0_1_0_1&#39;, &#39;pi2_0_1_1_1&#39;, &#39;pi2_1_1_1_1&#39;], [&#39;H_0_0&#39;, &#39;H_0_1&#39;, &#39;H_1_1&#39;])
+</pre></div>
+</div>
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>LDstats([[8.56755939e-08 5.27614200e-08 8.04316545e-08 7.02690405e-08
+  2.47526973e-08 5.40259243e-08 1.30708680e-07 4.83617230e-08
+  5.90151877e-08 2.29179130e-07 2.86535856e-07 2.68376752e-07
+  3.74355052e-07 3.52942478e-07 3.37909162e-07]], [0.00088908 0.00116239 0.00110805], num_pops=2, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Notice that already with just two populations we pick up many additional statistics:
+not just <span class="math notranslate nohighlight">\(\mathbb{E}[D_0^2]\)</span> and <span class="math notranslate nohighlight">\(\mathbb{E}[D_1^2]\)</span>, but also the cross
+population covariance of <span class="math notranslate nohighlight">\(D\)</span>: <span class="math notranslate nohighlight">\(\mathbb{E}[D_0 D_1]\)</span>, as well as all possible
+combinations of <span class="math notranslate nohighlight">\(D\)</span>, <span class="math notranslate nohighlight">\(p\)</span>, and <span class="math notranslate nohighlight">\(q\)</span> for the <code class="docutils literal notranslate"><span class="pre">Dz</span></code> and <code class="docutils literal notranslate"><span class="pre">pi2</span></code> moments.
+This is what makes such LD computation an efficient and powerful approach for inference:
+it is very fast to compute, it can be extended to many populations, and it gives us
+a large set informative statistics to compare to data and
+<a class="reference internal" href="inference.html#sec-ld-inference"><span class="std std-ref">run inference</span></a>.</p>
+<section id="ld-decay-curves">
+<h3>LD decay curves<a class="headerlink" href="#ld-decay-curves" title="Link to this heading"></a></h3>
+<p>We are most often interested in examining how LD depends on recombination distances
+separating pairs of loci, given some underlying demography. Allele frequency
+correlations due to linkage are expected to break down faster with larger
+recombination distances, so that statistics such as <span class="math notranslate nohighlight">\(D^2\)</span> decrease toward zero
+with increasing distances between SNPs.</p>
+<p>In the literature, we typically see the decay of
+<span class="math notranslate nohighlight">\(r^2 = \mathbb{E}\left[\frac{D^2}{\pi_2}\right]\)</span> or
+<span class="math notranslate nohighlight">\(\sigma_d^2 = \frac{\mathbb{E}[D^2]}{\mathbb{E}[\pi_2]}\)</span> reported. These are
+related quantities, but there is a difference between the ratio of averages and
+the average of ratio. While solving for <span class="math notranslate nohighlight">\(r^2\)</span> is very difficult, our <code class="docutils literal notranslate"><span class="pre">moments</span></code>
+framework immediately provides the expectations for <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and other
+statistics of the same form (such as what we could call
+<span class="math notranslate nohighlight">\(\sigma_{Dz} = \frac{\mathbb{E}[Dz]}{\mathbb{E}[\pi_2]}\)</span>).</p>
+<p>Here, we’ll use <code class="docutils literal notranslate"><span class="pre">demes</span></code> to define a few simple models (which we’ll illustrate with
+<code class="docutils literal notranslate"><span class="pre">demesdraw</span></code>), and explore how the decay of <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and <span class="math notranslate nohighlight">\(\sigma_{Dz}\)</span>
+are affected by single-population demographic events. (Check out how to
+<a class="reference external" href="sec_demes">use Demes with moments</a>.)</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">demes</span><span class="o">,</span> <span class="nn">demesdraw</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">b1</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">()</span>
+<span class="n">b1</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">5000</span><span class="p">)])</span>
+<span class="n">demog_constant</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">b2</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">()</span>
+<span class="n">b2</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="p">[</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">400</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">demog_bottleneck</span> <span class="o">=</span> <span class="n">b2</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">b3</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">()</span>
+<span class="n">b3</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">600</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">end_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+<span class="p">)</span>
+<span class="n">demog_growth</span> <span class="o">=</span> <span class="n">b3</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">size_history</span><span class="p">(</span><span class="n">demog_constant</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">invert_x</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">size_history</span><span class="p">(</span><span class="n">demog_bottleneck</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">invert_x</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">size_history</span><span class="p">(</span><span class="n">demog_growth</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax3</span><span class="p">,</span> <span class="n">invert_x</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Constant size&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Bottleck and recovery&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Recent exponential growth&quot;</span><span class="p">);</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ld_4_0.png" src="../_images/ld_4_0.png" />
+</div>
+</div>
+<p>For each of these models, we’ll compute LD statistics over a range of recombination
+rates, and then plot the decay curves.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># set up recombination rates</span>
+<span class="n">rhos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span>
+
+<span class="c1"># compute statistics and normalize to get sigma-d^2 and sigma-Dz</span>
+<span class="n">y_constant</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span><span class="n">demog_constant</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span><span class="p">)</span>
+<span class="n">sigma_constant</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y_constant</span><span class="p">)</span>
+
+<span class="n">y_bottleneck</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span><span class="n">demog_bottleneck</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span><span class="p">)</span>
+<span class="n">sigma_bottleneck</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y_bottleneck</span><span class="p">)</span>
+
+<span class="n">y_growth</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span><span class="n">demog_growth</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span><span class="p">)</span>
+<span class="n">sigma_growth</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y_growth</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_constant</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Constant&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_bottleneck</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Bottleneck&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_growth</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Exp. growth&quot;</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_constant</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Constant&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_bottleneck</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Bottleneck&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_growth</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Exp. growth&quot;</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\rho$&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\rho$&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_d^2$&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{Dz}</span><span class="s2">$&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ld_5_0.png" src="../_images/ld_5_0.png" />
+</div>
+</div>
+</section>
+<section id="multiple-populations">
+<h3>Multiple populations<a class="headerlink" href="#multiple-populations" title="Link to this heading"></a></h3>
+<p>The statistic <span class="math notranslate nohighlight">\(\mathbb{E}[D_i D_j]\)</span>, where <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> index
+two populations, is the covariance of LD between those populations. If these two
+population split from a common ancestral population, just after their split the
+covariance is equal to <span class="math notranslate nohighlight">\(\mathbb{E}[D^2]\)</span> in the ancestral population. It
+then decays over time, to zero if there is no migration between them and to some
+positive value when they are connected by ongoing migration.</p>
+<p>Here, we consider a simple split with isolation model and compute that covariance
+at different times in their history.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">()</span>
+<span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ancestral&quot;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">)])</span>
+<span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;deme1&quot;</span><span class="p">,</span>
+    <span class="n">ancestors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ancestral&quot;</span><span class="p">],</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">end_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">)]</span>
+<span class="p">)</span>
+<span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;deme2&quot;</span><span class="p">,</span>
+    <span class="n">ancestors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ancestral&quot;</span><span class="p">],</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">end_size</span><span class="o">=</span><span class="mi">3000</span><span class="p">)]</span>
+<span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="c1"># get LD stats between deme1 and deme2 and times in the past, using ancient samples</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">999</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">get_covD</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">rhos</span><span class="p">):</span>
+    <span class="n">covD</span> <span class="o">=</span> <span class="p">{</span><span class="n">rho</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">rhos</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span>
+            <span class="n">g</span><span class="p">,</span>
+            <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme1&quot;</span><span class="p">,</span> <span class="s2">&quot;deme2&quot;</span><span class="p">],</span>
+            <span class="n">sample_times</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">],</span>
+            <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">rhos</span><span class="p">:</span>
+            <span class="n">covD</span><span class="p">[</span><span class="n">rho</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="n">rhos</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">rho</span><span class="p">)][</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;DD_0_1&quot;</span><span class="p">)]</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">covD</span>
+
+<span class="n">covD</span> <span class="o">=</span> <span class="n">get_covD</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">rhos</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">tubes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">rhos</span><span class="p">:</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">covD</span><span class="p">[</span><span class="n">rho</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\rho=</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time ago (gens)&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_{D_{1, 2}}$&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ld_6_0.png" src="../_images/ld_6_0.png" />
+</div>
+</div>
+<p>We can see that without migration, covariance of LD across populations is expected
+to decay over time. If instead the two populations are connected by ongoing migration,
+LD will continue to have positive covariance, even long after their split from the
+ancestral population.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">add_migration</span><span class="p">(</span><span class="n">demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme1&quot;</span><span class="p">,</span> <span class="s2">&quot;deme2&quot;</span><span class="p">],</span> <span class="n">rate</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">covD</span> <span class="o">=</span> <span class="n">get_covD</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">rhos</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">tubes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">rhos</span><span class="p">:</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">covD</span><span class="p">[</span><span class="n">rho</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\rho=</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time ago (gens)&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_{D_{1, 2}}$&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ld_7_0.png" src="../_images/ld_7_0.png" />
+</div>
+</div>
+</section>
+<section id="archaic-admixture">
+<h3>Archaic admixture<a class="headerlink" href="#archaic-admixture" title="Link to this heading"></a></h3>
+<p>Finally, as shown in <a class="reference internal" href="#ragsdale2019" id="id4"><span>[Ragsdale2019]</span></a>, the <span class="math notranslate nohighlight">\(\sigma_{Dz}\)</span> statistic is
+particularly sensitive to archaic admixture. Unlike <span class="math notranslate nohighlight">\(\mathbb{E}[D^2]\)</span>,
+it is strongly elevated above single-ancestry expectations even with
+relatively small proportions of admixture from a deeply diverged source. Here,
+we have a very simple model of population that branches off from the focal
+population in the deep past and then provides 2% ancestry through admixture
+much more recently.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">admixture_model</span><span class="p">(</span><span class="n">t_pulse</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="mf">0.02</span><span class="p">):</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">()</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)])</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;B&quot;</span><span class="p">,</span>
+        <span class="n">ancestors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span>
+        <span class="n">start_time</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+        <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="n">t_pulse</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">add_pulse</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">proportions</span><span class="o">=</span><span class="p">[</span><span class="n">prop</span><span class="p">],</span> <span class="n">time</span><span class="o">=</span><span class="n">t_pulse</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">rhos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">tubes</span><span class="p">(</span><span class="n">admixture_model</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+
+<span class="c1"># without admixture</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">admixture_model</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span><span class="p">)</span>
+<span class="n">sigma_d2</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_d2</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;k--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;No admixture&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_d2</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;k--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># varying admixture time</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">]:</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">admixture_model</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rhos</span><span class="p">)</span>
+    <span class="n">sigma_d2</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_d2</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;$T_</span><span class="si">{pulse}</span><span class="s2">=$&quot;</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">sigma_d2</span><span class="o">.</span><span class="n">LD</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\rho$&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\rho$&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_d^2$&quot;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{Dz}</span><span class="s2">$&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ld_8_0.png" src="../_images/ld_8_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="demographic-events">
+<h2>Demographic events<a class="headerlink" href="#demographic-events" title="Link to this heading"></a></h2>
+<p>As seen above, we can use either <code class="docutils literal notranslate"><span class="pre">demes</span></code> or the API to compute LD statistics
+under some demography. While <code class="docutils literal notranslate"><span class="pre">demes</span></code> is a very useful tool for building and
+visualizing demographic models, we sometimes want to use the built in functions
+to apply demographic events and integrate the LD stats object directly.
+Mirroring the <code class="docutils literal notranslate"><span class="pre">moments</span></code> API for manipulating SFS, we apply demographic events
+to LD objects using demographic functions that return a <em>new</em> LDstats object:</p>
+<section id="extinction-marginalization">
+<h3>Extinction/marginalization<a class="headerlink" href="#extinction-marginalization" title="Link to this heading"></a></h3>
+<p>If a population goes extinct, or if we just want to stop tracking statistics involving
+that population, we can use <code class="docutils literal notranslate"><span class="pre">y.marginalize(idx)</span></code> to remove a given population or
+set of populations from the LD stats. Here, <code class="docutils literal notranslate"><span class="pre">idx</span></code> can be either an integer index or
+a list of integer indexes. <code class="docutils literal notranslate"><span class="pre">y.marginalize()</span></code> returns a new LD stats object with the
+specified populations removed and the population IDs preserved for the remaining
+populations (if given in the input LD stats).</p>
+</section>
+<section id="population-splits">
+<h3>Population splits<a class="headerlink" href="#population-splits" title="Link to this heading"></a></h3>
+<p>To split one population, we use <code class="docutils literal notranslate"><span class="pre">y.split(i,</span> <span class="pre">new_ids=[&quot;child1&quot;,</span> <span class="pre">&quot;child2&quot;])</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">i</span></code> is the integer index of the population to split, and the optional argument
+<code class="docutils literal notranslate"><span class="pre">new_ids</span></code> lets us set the split population IDs. Note that if the input LD stats do
+not have population IDs defined (i.e <code class="docutils literal notranslate"><span class="pre">y.pop_ids</span> <span class="pre">==</span> <span class="pre">None</span></code>), we cannot specify new
+IDs.</p>
+</section>
+<section id="admixture-and-mergers">
+<h3>Admixture and mergers<a class="headerlink" href="#admixture-and-mergers" title="Link to this heading"></a></h3>
+<p>Admixture and merge events take two populations and combine them with given fractions
+of ancestry from each. The new admixed/merged population is placed at the end of the
+array of population indexes, and the only difference been <code class="docutils literal notranslate"><span class="pre">y.admix()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">y.merge()</span></code> is that the <code class="docutils literal notranslate"><span class="pre">merge</span></code> function then removes the parental populations
+(i.e. the parents are marginalized after admixture).</p>
+<p>For both functions, usage is <code class="docutils literal notranslate"><span class="pre">y.admix(idx0,</span> <span class="pre">idx1,</span> <span class="pre">f,</span> <span class="pre">new_id=&quot;xxx&quot;)</span></code>. We specify
+the indexes of the two parental populations (<code class="docutils literal notranslate"><span class="pre">idx0</span></code> and <code class="docutils literal notranslate"><span class="pre">idx1</span></code>) and the proportion
+<code class="docutils literal notranslate"><span class="pre">f</span></code> contributed by the first specified population <code class="docutils literal notranslate"><span class="pre">idx0</span></code> (population <code class="docutils literal notranslate"><span class="pre">idx1</span></code>
+contributes 1-<code class="docutils literal notranslate"><span class="pre">f).</span> <span class="pre">We</span> <span class="pre">can</span> <span class="pre">also</span> <span class="pre">provide</span> <span class="pre">the</span> <span class="pre">ID</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">admixed</span> <span class="pre">population</span> <span class="pre">using</span>
+<span class="pre">``new_id</span></code>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">(</span><span class="n">pop_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>[&#39;A&#39;, &#39;B&#39;]
+[&#39;A&#39;, &#39;B&#39;, &#39;C&#39;]
+[&#39;A&#39;, &#39;D&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="pulse-migration">
+<h3>Pulse migration<a class="headerlink" href="#pulse-migration" title="Link to this heading"></a></h3>
+<p>Finally, we can apply discrete (or pulse) mass migration events with a given
+proportion from one population to another. Here, we again specify 1) the index
+of the source population, 2) the index of the target/destination population, and
+3) the proportion of ancestry contributed:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">pulse_migrate</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span> <span class="c1"># population IDs are unchanged.</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>[&#39;A&#39;, &#39;D&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="integration">
+<h2>Integration<a class="headerlink" href="#integration" title="Link to this heading"></a></h2>
+<p>Integrating the LD stats also mirrors the SFS integration function, with some changes
+to keyword arguments. At a minimum, we need to specify the relative sizes or size
+function <code class="docutils literal notranslate"><span class="pre">nu</span></code> and the integration time <code class="docutils literal notranslate"><span class="pre">T</span></code>. When simulating LD stats for one or
+more recombination rates, we also pass <code class="docutils literal notranslate"><span class="pre">rho</span></code> as a single rate or a list of rates,
+as needed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For multiple populations, we can also specify a migration matrix of size
+<span class="math notranslate nohighlight">\(n \times n\)</span>, where <span class="math notranslate nohighlight">\(n\)</span> is the number of populations that the LD stats
+represents. Like the SFS integration, we can also specify any populations that are
+frozen by passing a list of length <span class="math notranslate nohighlight">\(n\)</span> with <code class="docutils literal notranslate"><span class="pre">True</span></code> for frozen populations and
+<code class="docutils literal notranslate"><span class="pre">False</span></code> for populations to integrate.</p>
+<p>Unlike SFS integration, LD integration also lets us specify selfing rates within each
+population, where <code class="docutils literal notranslate"><span class="pre">selfing</span></code> is a list of length <span class="math notranslate nohighlight">\(n\)</span> that specifies the selfing
+rate within each deme, which must be between 0 and 1.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="hill1968" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Hill1968</a><span class="fn-bracket">]</span></span>
+<p>Hill, W. G., and Alan Robertson. “Linkage disequilibrium in finite populations.” <em>Theoretical and applied genetics</em> 38.6 (1968): 226-231.</p>
+</div>
+<div class="citation" id="ragsdale2019" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Ragsdale2019<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Ragsdale, Aaron P., and Simon Gravel. “Models of archaic admixture and recent history from two-locus statistics.” <em>PLoS genetics</em> 15.6 (2019): e1008204.</p>
+</div>
+<div class="citation" id="ragsdale2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Ragsdale2020</a><span class="fn-bracket">]</span></span>
+<p>Ragsdale, Aaron P., and Simon Gravel. “Unbiased estimation of linkage disequilibrium from unphased data.” <em>Molecular Biology and Evolution</em> 37.3 (2020): 923-932.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../sfs/inference.html" class="btn btn-neutral float-left" title="SFS Inference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parsing.html" class="btn btn-neutral float-right" title="Parsing LD statistics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

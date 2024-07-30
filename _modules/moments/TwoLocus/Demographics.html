@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.TwoLocus.Demographics &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.TwoLocus.Demographics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.TwoLocus.Demographics</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">moments.TwoLocus.Integration</span>
+<span class="kn">import</span> <span class="nn">moments.TwoLocus</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Demographic models for two locus model (all single population)</span>
+<span class="sd">Two-epoch</span>
+<span class="sd">Three-epoch</span>
+<span class="sd">Growth</span>
+<span class="sd">Bottlegrowth</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Cache equilibrium spectra in ~/.moments/TwoLocus_cache by default</span>
+<div class="viewcode-block" id="set_cache_path">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.set_cache_path">[docs]</a>
+<span class="k">def</span> <span class="nf">set_cache_path</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;~/.moments/TwoLocus_cache&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set directory in which demographic equilibrium phi spectra will be cached.</span>
+
+<span class="sd">    The collection of cached spectra can get large, so it may be helpful to</span>
+<span class="sd">    store them outside the user&#39;s home directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">cache_path</span>
+    <span class="n">cache_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cache_path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span></div>
+
+
+
+<span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">set_cache_path</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_make_floats</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pass list of params, return floats of those params (for caching)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="equilibrium">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.equilibrium">[docs]</a>
+<span class="k">def</span> <span class="nf">equilibrium</span><span class="p">(</span>
+    <span class="n">ns</span><span class="p">,</span>
+    <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sel_params_general</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum</span>
+<span class="sd">    does not exist, create the equilibrium spectrum and cache in the cache path.</span>
+
+<span class="sd">    :param ns: The sample size.</span>
+<span class="sd">    :param rho: The population size scaled selection coefficient, 4*Ne*r.</span>
+<span class="sd">    :param theta: The mutation rate at each locus, typically left as 1.</span>
+<span class="sd">    :param gamma: Only used for additive selection at the A/a locus.</span>
+<span class="sd">    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so</span>
+<span class="sd">        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no</span>
+<span class="sd">        epistasis.</span>
+<span class="sd">    :param sel_params_general: General selection parameters for diploids. In the order</span>
+<span class="sd">        (s_AB_AB, s_AB_Ab, s_AB_aB, s_AB_ab, s_Ab_Ab, s_Ab_aB, s_Ab_ab, s_aB_aB, s_aB_ab)</span>
+<span class="sd">    :param cache: If True, save the frequency spectrum in the cache for future use. If</span>
+<span class="sd">        False, don&#39;t save the spectrum.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no rho value set. Simulating with rho = 0.&quot;</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sel_params</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">sel_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sel_params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gamma</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting selection parameters to (2 * gamma, gamma, gamma)&quot;</span><span class="p">)</span>
+        <span class="n">sel_params</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">sel_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">s</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sel_params</span><span class="p">]):</span>
+        <span class="n">sel_params</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sel_params</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">eq_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;tlfs.ns_</span><span class="si">{</span><span class="n">ns</span><span class="si">}</span><span class="s2">.rho_</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">.theta_</span><span class="si">{</span><span class="n">theta</span><span class="si">}</span><span class="s2">.fs&quot;</span>
+            <span class="n">eq_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="n">eq_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">eq_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;tlfs.ns_</span><span class="si">{</span><span class="n">ns</span><span class="si">}</span><span class="s2">.rho_</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">.theta_</span><span class="si">{</span><span class="n">theta</span><span class="si">}</span><span class="s2">.sel_</span><span class="si">{</span><span class="n">sel_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sel_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sel_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">.fs&quot;</span>
+            <span class="n">eq_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="n">eq_name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">F</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">TLSpectrum</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">eq_name</span><span class="p">)</span>
+            <span class="n">recompute</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">recompute</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="n">recompute</span><span class="p">:</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Integration</span><span class="o">.</span><span class="n">steady_state</span><span class="p">(</span>
+            <span class="n">ns</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+            <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">,</span>
+            <span class="n">sel_params_general</span><span class="o">=</span><span class="n">sel_params_general</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cache</span><span class="p">:</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">eq_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span></div>
+
+
+
+<div class="viewcode-block" id="two_epoch">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.two_epoch">[docs]</a>
+<span class="k">def</span> <span class="nf">two_epoch</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A two-epoch model, with relative size change nu, time T in the past. T is given</span>
+<span class="sd">    in units of 2Ne generations. Note that a relative size of 1 implies no size change.</span>
+
+<span class="sd">    :param params: Given as [nu, T].</span>
+<span class="sd">    :param ns: The sample size.</span>
+<span class="sd">    :param rho: The population size scaled selection coefficient, 4*Ne*r.</span>
+<span class="sd">    :param theta: The mutation rate at each locus, typically left as 1.</span>
+<span class="sd">    :param gamma: Only used for additive selection at the A/a locus.</span>
+<span class="sd">    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so</span>
+<span class="sd">        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no</span>
+<span class="sd">        epistasis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nu</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no rho value set. Simulating with rho = 0.&quot;</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sel_params</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">sel_params</span><span class="p">)</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span></div>
+
+
+
+<div class="viewcode-block" id="three_epoch">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.three_epoch">[docs]</a>
+<span class="k">def</span> <span class="nf">three_epoch</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A three-epoch model, with relative size changes nu1 that lasts for time T1, followed</span>
+<span class="sd">    by a relative size change to nu2 that last for time T2. Times are in units of 2Ne</span>
+<span class="sd">    generations, and sizes are relative to the ancestral Ne.</span>
+
+<span class="sd">    :param params: Given as [nu1, nu2, T1, T2].</span>
+<span class="sd">    :param ns: The sample size.</span>
+<span class="sd">    :param rho: The population size scaled selection coefficient, 4*Ne*r.</span>
+<span class="sd">    :param theta: The mutation rate at each locus, typically left as 1.</span>
+<span class="sd">    :param gamma: Only used for additive selection at the A/a locus.</span>
+<span class="sd">    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so</span>
+<span class="sd">        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no</span>
+<span class="sd">        epistasis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nu1</span><span class="p">,</span> <span class="n">nu2</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no rho value set. Simulating with rho = 0.&quot;</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sel_params</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">sel_params</span><span class="p">)</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu1</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu2</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span></div>
+
+
+
+<div class="viewcode-block" id="growth">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.growth">[docs]</a>
+<span class="k">def</span> <span class="nf">growth</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An expnential growth model, that begins growth at time T ago, in units of 2Ne</span>
+<span class="sd">    generations. The final size is given by nu, which is the relative size to the</span>
+<span class="sd">    ancestral Ne.</span>
+
+<span class="sd">    :param params: Given as [nu, T].</span>
+<span class="sd">    :param ns: The sample size.</span>
+<span class="sd">    :param rho: The population size scaled selection coefficient, 4*Ne*r.</span>
+<span class="sd">    :param theta: The mutation rate at each locus, typically left as 1.</span>
+<span class="sd">    :param gamma: Only used for additive selection at the A/a locus.</span>
+<span class="sd">    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so</span>
+<span class="sd">        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no</span>
+<span class="sd">        epistasis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nu</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no rho value set. Simulating with rho = 0.&quot;</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sel_params</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">sel_params</span><span class="p">)</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">T</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span></div>
+
+
+
+<div class="viewcode-block" id="bottlegrowth">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Demographics.bottlegrowth">[docs]</a>
+<span class="k">def</span> <span class="nf">bottlegrowth</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A bottleneck followed by exponential growth. The population changes size to nuB</span>
+<span class="sd">    T generations ago, and then has exponential size change to final size nuF. Time is</span>
+<span class="sd">    in units of 2Ne generations, and sizes are relative to the ancestral Ne.</span>
+
+<span class="sd">    :param params: Given as [nuB, nuF, T].</span>
+<span class="sd">    :param ns: The sample size.</span>
+<span class="sd">    :param rho: The population size scaled selection coefficient, 4*Ne*r.</span>
+<span class="sd">    :param theta: The mutation rate at each locus, typically left as 1.</span>
+<span class="sd">    :param gamma: Only used for additive selection at the A/a locus.</span>
+<span class="sd">    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so</span>
+<span class="sd">        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no</span>
+<span class="sd">        epistasis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nuB</span><span class="p">,</span> <span class="n">nuF</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no rho value set. Simulating with rho = 0.&quot;</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sel_params</span> <span class="o">=</span> <span class="n">_make_floats</span><span class="p">(</span><span class="n">sel_params</span><span class="p">)</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">nuB</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nuF</span> <span class="o">/</span> <span class="n">nuB</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">T</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

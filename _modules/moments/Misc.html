@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.Misc &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.Misc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.Misc</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Miscellaneous utility functions. Including ms simulation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">bisect</span><span class="o">,</span> <span class="nn">collections</span><span class="o">,</span> <span class="nn">operator</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Numerics</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Spectrum_mod</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="c1"># Nucleotide order assumed in Q matrices.</span>
+<span class="n">code</span> <span class="o">=</span> <span class="s2">&quot;CGTA&quot;</span>
+
+<span class="c1">#: Storage for times at which each stream was flushed.</span>
+<span class="n">__times_last_flushed</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span> <span class="nf">delayed_flush</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Flush a stream, ensuring that it is only flushed every &#39;delay&#39; *minutes*.</span>
+<span class="sd">    Note that upon the first call to this method, the stream is not flushed.</span>
+
+<span class="sd">    stream: The stream to flush. For this to work with simple &#39;print&#39;</span>
+<span class="sd">            statements, the stream should be sys.stdout.</span>
+<span class="sd">    delay: Minimum time *in minutes* between flushes.</span>
+
+<span class="sd">    This function is useful to prevent I/O overload on the cluster.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__times_last_flushed</span>
+
+    <span class="n">curr_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="c1"># If this is the first time this method has been called with this stream,</span>
+    <span class="c1"># we need to fill in the times_last_flushed dict. setdefault will do this</span>
+    <span class="c1"># without overwriting any entry that may be there already.</span>
+    <span class="k">if</span> <span class="n">stream</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">__times_last_flushed</span><span class="p">:</span>
+        <span class="n">__times_last_flushed</span><span class="p">[</span><span class="n">stream</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_time</span>
+    <span class="n">last_flushed</span> <span class="o">=</span> <span class="n">__times_last_flushed</span><span class="p">[</span><span class="n">stream</span><span class="p">]</span>
+
+    <span class="c1"># Note that time.time() returns values in seconds, hence the factor of 60.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">curr_time</span> <span class="o">-</span> <span class="n">last_flushed</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">delay</span> <span class="o">*</span> <span class="mi">60</span><span class="p">:</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">__times_last_flushed</span><span class="p">[</span><span class="n">stream</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_time</span>
+
+
+<span class="k">def</span> <span class="nf">ensure_1arg_func</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that var is actually a one-argument function.</span>
+
+<span class="sd">    This is primarily used to convert arguments that are constants into</span>
+<span class="sd">    trivial functions of time for use in integrations where parameters are</span>
+<span class="sd">    allowed to change over time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+        <span class="c1"># If a constant was passed in, use lambda to make it a nice</span>
+        <span class="c1">#  simple function.</span>
+        <span class="n">var_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">var</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">var_f</span> <span class="o">=</span> <span class="n">var</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">var_f</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument is not a constant or a function.&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">var_f</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument is not a constant or a one-argument &quot;</span> <span class="s2">&quot;function.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">var_f</span>
+
+
+<span class="k">def</span> <span class="nf">ms_command</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">recomb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rsites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seeds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate ms command for simulation from core.</span>
+
+<span class="sd">    theta: Assumed theta</span>
+<span class="sd">    ns: Sample sizes</span>
+<span class="sd">    core: Core of ms command that specifies demography.</span>
+<span class="sd">    iter: Iterations to run ms</span>
+<span class="sd">    recomb: Assumed recombination rate</span>
+<span class="sd">    rsites: Sites for recombination. If None, default is 10*theta.</span>
+<span class="sd">    seeds: Seeds for random number generator. If None, ms default is used.</span>
+<span class="sd">           Otherwise, three integers should be passed. Example: (132, 435, 123)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ms_command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;ms </span><span class="si">%(total_chrom)i</span><span class="s2"> </span><span class="si">%(iter)i</span><span class="s2"> -t </span><span class="si">%(theta)f</span><span class="s2"> -I </span><span class="si">%(numpops)i</span><span class="s2"> &quot;</span>
+            <span class="s2">&quot;</span><span class="si">%(sample_sizes)s</span><span class="s2"> </span><span class="si">%(core)s</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ms_command</span> <span class="o">=</span> <span class="s2">&quot;ms </span><span class="si">%(total_chrom)i</span><span class="s2"> </span><span class="si">%(iter)i</span><span class="s2"> -t </span><span class="si">%(theta)f</span><span class="s2">  </span><span class="si">%(core)s</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">recomb</span><span class="p">:</span>
+        <span class="n">ms_command</span> <span class="o">=</span> <span class="n">ms_command</span> <span class="o">+</span> <span class="s2">&quot; -r </span><span class="si">%(recomb)f</span><span class="s2"> </span><span class="si">%(rsites)i</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rsites</span><span class="p">:</span>
+            <span class="n">rsites</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="mi">10</span>
+    <span class="n">sub_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;total_chrom&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ns</span><span class="p">),</span>
+        <span class="s2">&quot;iter&quot;</span><span class="p">:</span> <span class="nb">iter</span><span class="p">,</span>
+        <span class="s2">&quot;theta&quot;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
+        <span class="s2">&quot;numpops&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">ns</span><span class="p">),</span>
+        <span class="s2">&quot;sample_sizes&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ns</span><span class="p">)),</span>
+        <span class="s2">&quot;core&quot;</span><span class="p">:</span> <span class="n">core</span><span class="p">,</span>
+        <span class="s2">&quot;recomb&quot;</span><span class="p">:</span> <span class="n">recomb</span><span class="p">,</span>
+        <span class="s2">&quot;rsites&quot;</span><span class="p">:</span> <span class="n">rsites</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">ms_command</span> <span class="o">=</span> <span class="n">ms_command</span> <span class="o">%</span> <span class="n">sub_dict</span>
+
+    <span class="k">if</span> <span class="n">seeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seed_command</span> <span class="o">=</span> <span class="s2">&quot; -seeds </span><span class="si">%i</span><span class="s2"> </span><span class="si">%i</span><span class="s2"> </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">seeds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">seeds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">seeds</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">ms_command</span> <span class="o">=</span> <span class="n">ms_command</span> <span class="o">+</span> <span class="n">seed_command</span>
+
+    <span class="k">return</span> <span class="n">ms_command</span>
+
+
+<div class="viewcode-block" id="perturb_params">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Misc.perturb_params">[docs]</a>
+<span class="k">def</span> <span class="nf">perturb_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a perturbed set of parameters. Each element of params is randomly</span>
+<span class="sd">    perturbed `fold` factors of 2 up or down.</span>
+
+<span class="sd">    :param fold: Number of factors of 2 to perturb by, defaults to 1.</span>
+<span class="sd">    :type fold: float, optional</span>
+<span class="sd">    :param lower_bound: If not None, the resulting parameter set is adjusted</span>
+<span class="sd">        to have all value greater than lower_bound.</span>
+<span class="sd">    :type lower_bound: list of floats, optional</span>
+<span class="sd">    :param upper_bound: If not None, the resulting parameter set is adjusted</span>
+<span class="sd">        to have all value less than upper_bound.</span>
+<span class="sd">    :type upper_bound: list of floats, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pnew</span> <span class="o">=</span> <span class="n">params</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">fold</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lower_bound</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">pnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">pnew</span><span class="p">,</span> <span class="mf">1.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">upper_bound</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">pnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">pnew</span><span class="p">,</span> <span class="mf">0.99</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pnew</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">make_fux_table</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">tri_freq</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make file of 1-fux for use in ancestral misidentification correction.</span>
+
+<span class="sd">    fid: Filename to output to.</span>
+<span class="sd">    ts: Expected number of substitutions per site between ingroup and outgroup.</span>
+<span class="sd">    Q: Trinucleotide transition rate matrix. This should be a 64x64 matrix, in</span>
+<span class="sd">       which entries are ordered using the code CGTA -&gt; 0,1,2,3. For example,</span>
+<span class="sd">       ACT -&gt; 3*16+0*4+2*1=50. The transition rate from ACT to AGT is then</span>
+<span class="sd">       entry 50,54.</span>
+<span class="sd">    tri_freq: Dictionary in which each entry maps a trinucleotide to its</span>
+<span class="sd">              ancestral frequency. e.g. {&#39;AAA&#39;: 0.01, &#39;AAC&#39;:0.012...}</span>
+<span class="sd">              Note that should be the frequency in the entire region scanned</span>
+<span class="sd">              for variation, not just sites where there are SNPs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure that the *columns* of Q sum to zero.</span>
+    <span class="c1"># That is the correct condition when Q_{i,j} is the rate from i to j.</span>
+    <span class="c1"># This indicates a typo in Hernandez, Williamson, and Bustamante.</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[:,</span> <span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">Q</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span>
+        <span class="n">Q</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">s</span>
+
+    <span class="n">eQhalf</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matfuncs</span><span class="o">.</span><span class="n">expm</span><span class="p">(</span><span class="n">Q</span> <span class="o">*</span> <span class="n">ts</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+    <span class="n">outlines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">first_ii</span><span class="p">,</span> <span class="n">first</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x_ii</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">third_ii</span><span class="p">,</span> <span class="n">third</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+                <span class="c1"># This the index into Q and eQ</span>
+                <span class="n">xind</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="n">first_ii</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">x_ii</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">third_ii</span>
+                <span class="k">for</span> <span class="n">u_ii</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+                    <span class="c1"># This the index into Q and eQ</span>
+                    <span class="n">uind</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="n">first_ii</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">u_ii</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">third_ii</span>
+
+                    <span class="c1">## Note that the Q terms factor out in our final</span>
+                    <span class="c1">## calculation, because for both PMuUu and PMuUx the final</span>
+                    <span class="c1">## factor in Eqn 2 is P(S={u,x}|M=u).</span>
+                    <span class="c1"># Qux = Q[uind,xind]</span>
+                    <span class="c1"># denomu = Q[uind].sum() - Q[uind,uind]</span>
+
+                    <span class="n">PMuUu</span><span class="p">,</span> <span class="n">PMuUx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+                    <span class="c1"># Equation 2 in HWB. We have to generalize slightly to</span>
+                    <span class="c1"># calculate PMuUx. In calculate PMuUx, we&#39;re summing over</span>
+                    <span class="c1"># alpha the probability that the MRCA was alpha, and it</span>
+                    <span class="c1"># substituted to x on the outgroup branch, and it</span>
+                    <span class="c1"># substituted to u on the ingroup branch, and it mutated to</span>
+                    <span class="c1"># x in the ingroup (conditional on it having mutated in the</span>
+                    <span class="c1"># ingroup). Note that the mutation to x condition cancels</span>
+                    <span class="c1"># in fux, so we don&#39;t bother to calculate it.</span>
+                    <span class="k">for</span> <span class="n">aa</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+                        <span class="n">aind</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="n">first_ii</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">aa</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">third_ii</span>
+
+                        <span class="n">pia</span> <span class="o">=</span> <span class="n">tri_freq</span><span class="p">[</span><span class="n">first</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">+</span> <span class="n">third</span><span class="p">]</span>
+                        <span class="n">Pau</span> <span class="o">=</span> <span class="n">eQhalf</span><span class="p">[</span><span class="n">aind</span><span class="p">,</span> <span class="n">uind</span><span class="p">]</span>
+                        <span class="n">Pax</span> <span class="o">=</span> <span class="n">eQhalf</span><span class="p">[</span><span class="n">aind</span><span class="p">,</span> <span class="n">xind</span><span class="p">]</span>
+
+                        <span class="n">PMuUu</span> <span class="o">+=</span> <span class="n">pia</span> <span class="o">*</span> <span class="n">Pau</span> <span class="o">*</span> <span class="n">Pau</span>
+                        <span class="n">PMuUx</span> <span class="o">+=</span> <span class="n">pia</span> <span class="o">*</span> <span class="n">Pau</span> <span class="o">*</span> <span class="n">Pax</span>
+
+                    <span class="c1"># This is 1-fux. For a given SNP with actual ancestral state</span>
+                    <span class="c1"># u and derived allele x, this is 1 minus the probability</span>
+                    <span class="c1"># that the outgroup will have u.</span>
+                    <span class="c1"># Eqn 3 in HWB.</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PMuUu</span> <span class="o">/</span> <span class="p">(</span><span class="n">PMuUu</span> <span class="o">+</span> <span class="n">PMuUx</span><span class="p">)</span>
+                    <span class="c1"># These aren&#39;t SNPs, so we can arbitrarily set them to 0</span>
+                    <span class="k">if</span> <span class="n">u</span> <span class="o">==</span> <span class="n">x</span><span class="p">:</span>
+                        <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span>
+
+                    <span class="n">outlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%c%c%c</span><span class="s2"> </span><span class="si">%c</span><span class="s2"> </span><span class="si">%.6f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">third</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
+
+    <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outlines</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">zero_diag</span><span class="p">(</span><span class="n">Q</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Copy of Q altered such that diagonal entries are all 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Q_nodiag</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">Q_nodiag</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">Q_nodiag</span>
+
+
+<span class="k">def</span> <span class="nf">tri_freq_dict_to_array</span><span class="p">(</span><span class="n">tri_freq_dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert dictionary of trinucleotide frequencies to array in correct order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tripi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">left</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">center</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">kk</span><span class="p">,</span> <span class="n">right</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">ii</span> <span class="o">*</span> <span class="mi">16</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">kk</span>
+                <span class="n">tripi</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">tri_freq_dict</span><span class="p">[</span><span class="n">left</span> <span class="o">+</span> <span class="n">center</span> <span class="o">+</span> <span class="n">right</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">tripi</span>
+
+
+<span class="k">def</span> <span class="nf">total_instantaneous_rate</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">pi</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Total instantaneous substitution rate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Qzero</span> <span class="o">=</span> <span class="n">zero_diag</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">Qzero</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">make_data_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a file containing genomic sequence information in the format described</span>
+<span class="sd">    by the wiki, and store the information in a properly formatted dictionary.</span>
+
+<span class="sd">    filename: Name of file to work with.</span>
+
+<span class="sd">    The file can be zipped (extension .zip) or gzipped (extension .gz). If</span>
+<span class="sd">    zipped, there must be only a single file in the zip archive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">gzip</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">zipfile</span>
+
+        <span class="n">archive</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">namelist</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">namelist</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Must be only a single data file in zip &quot;</span> <span class="s2">&quot;archive: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span>
+            <span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">namelist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># Skip to the header</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="k">break</span>
+
+    <span class="n">allele2_index</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Allele2&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Pull out our pop ids</span>
+    <span class="n">pops</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">:</span><span class="n">allele2_index</span><span class="p">]</span>
+
+    <span class="c1"># The empty data dictionary</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Now walk down the file</span>
+    <span class="k">for</span> <span class="n">SNP_ii</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="c1"># Split the into fields by whitespace</span>
+        <span class="n">spl</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="n">data_this_snp</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># We convert to upper case to avoid any issues with mixed case between</span>
+        <span class="c1"># SNPs.</span>
+        <span class="n">data_this_snp</span><span class="p">[</span><span class="s2">&quot;context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">data_this_snp</span><span class="p">[</span><span class="s2">&quot;outgroup_context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">data_this_snp</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spl</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">data_this_snp</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spl</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">spl</span><span class="p">[</span><span class="n">allele2_index</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="n">calls_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pops</span><span class="p">):</span>
+            <span class="n">calls_dict</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">spl</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">ii</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">spl</span><span class="p">[</span><span class="n">allele2_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+        <span class="n">data_this_snp</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calls_dict</span>
+
+        <span class="c1"># We name our SNPs using the final columns</span>
+        <span class="n">snp_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">spl</span><span class="p">[</span><span class="n">allele2_index</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">spl</span><span class="p">[</span><span class="n">allele2_index</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">snp_key</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">snp_key</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;SNP&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">SNP_ii</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">snp_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_this_snp</span>
+
+    <span class="k">return</span> <span class="n">data_dict</span>
+
+
+<div class="viewcode-block" id="count_data_dict">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Misc.count_data_dict">[docs]</a>
+<span class="k">def</span> <span class="nf">count_data_dict</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">pop_ids</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summarize data in data_dict by mapping SNP configurations to counts.</span>
+
+<span class="sd">    Returns a dictionary with keys (successful_calls, derived_calls,</span>
+<span class="sd">    polarized) mapping to counts of SNPs. Here successful_calls is a tuple</span>
+<span class="sd">    with the number of good calls per population, derived_calls is a tuple</span>
+<span class="sd">    of derived calls per pop, and polarized indicates whether that SNP was</span>
+<span class="sd">    polarized using an ancestral state.</span>
+
+<span class="sd">    :param data_dict: data_dict formatted as in Misc.make_data_dict</span>
+<span class="sd">    :type data_dict: data dictionary</span>
+<span class="sd">    :param pop_ids: IDs of populations to collect data for</span>
+<span class="sd">    :type pop_ids: list of strings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">count_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">snp_key</span><span class="p">,</span> <span class="n">snp_info</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Skip SNPs that aren&#39;t biallelic.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">allele1</span><span class="p">,</span> <span class="n">allele2</span> <span class="o">=</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;outgroup_allele&quot;</span> <span class="ow">in</span> <span class="n">snp_info</span>
+            <span class="ow">and</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;-&quot;</span>
+            <span class="ow">and</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span>
+            <span class="n">this_snp_polarized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="n">allele1</span>
+            <span class="n">this_snp_polarized</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Extract the allele calls for each population.</span>
+        <span class="n">allele1_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">][</span><span class="n">pop</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">pop_ids</span><span class="p">]</span>
+        <span class="n">allele2_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">][</span><span class="n">pop</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">pop_ids</span><span class="p">]</span>
+        <span class="c1"># How many chromosomes did we call successfully in each population?</span>
+        <span class="n">successful_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="k">for</span> <span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">allele1_calls</span><span class="p">,</span> <span class="n">allele2_calls</span><span class="p">)]</span>
+
+        <span class="c1"># Which allele is derived (different from outgroup)?</span>
+        <span class="k">if</span> <span class="n">allele1</span> <span class="o">==</span> <span class="n">outgroup_allele</span><span class="p">:</span>
+            <span class="n">derived_calls</span> <span class="o">=</span> <span class="n">allele2_calls</span>
+        <span class="k">elif</span> <span class="n">allele2</span> <span class="o">==</span> <span class="n">outgroup_allele</span><span class="p">:</span>
+            <span class="n">derived_calls</span> <span class="o">=</span> <span class="n">allele1_calls</span>
+
+        <span class="c1"># Update count_dict</span>
+        <span class="n">count_dict</span><span class="p">[</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">successful_calls</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">derived_calls</span><span class="p">),</span> <span class="n">this_snp_polarized</span>
+        <span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">count_dict</span></div>
+
+
+
+<div class="viewcode-block" id="make_data_dict_vcf">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Misc.make_data_dict_vcf">[docs]</a>
+<span class="k">def</span> <span class="nf">make_data_dict_vcf</span><span class="p">(</span>
+    <span class="n">vcf_filename</span><span class="p">,</span>
+    <span class="n">popinfo_filename</span><span class="p">,</span>
+    <span class="nb">filter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">flanking_info</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">skip_multiallelic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a VCF file containing genomic sequence information, along with a file</span>
+<span class="sd">    identifying the population of each sample, and store the information in</span>
+<span class="sd">    a properly formatted dictionary.</span>
+
+<span class="sd">    Each file may be zipped (.zip) or gzipped (.gz). If a file is zipped,</span>
+<span class="sd">    it must be the only file in the archive, and the two files cannot be zipped</span>
+<span class="sd">    together. Both files must be present for the function to work.</span>
+
+<span class="sd">    :param vcf_filename: Name of VCF file to work with. The function currently works</span>
+<span class="sd">        for biallelic SNPs only, so if REF or ALT is anything other</span>
+<span class="sd">        than a single base pair (A, C, T, or G), the allele will be</span>
+<span class="sd">        skipped. Additionally, genotype information must be present</span>
+<span class="sd">        in the FORMAT field GT, and genotype info must be known for</span>
+<span class="sd">        every sample, else the SNP will be skipped. If the ancestral</span>
+<span class="sd">        allele is known it should be specified in INFO field &#39;AA&#39;.</span>
+<span class="sd">        Otherwise, it will be set to &#39;-&#39;.</span>
+<span class="sd">    :type vcf_filename: str</span>
+<span class="sd">    :param popinfo_filename: Name of file containing the population assignments for</span>
+<span class="sd">        each sample in the VCF. If a sample in the VCF file does</span>
+<span class="sd">        not have a corresponding entry in this file, it will be</span>
+<span class="sd">        skipped. See _get_popinfo for information on how this</span>
+<span class="sd">        file must be formatted.</span>
+<span class="sd">    :type popinfo_filename: str</span>
+<span class="sd">    :param filter: If set to True, alleles will be skipped if they have not passed</span>
+<span class="sd">        all filters (i.e. either &#39;PASS&#39; or &#39;.&#39; must be present in FILTER column.</span>
+<span class="sd">    :type filter: bool, optional</span>
+<span class="sd">    :param flanking_info: Flanking information for the reference and/or ancestral</span>
+<span class="sd">        allele can be provided as field(s) in the INFO column. To</span>
+<span class="sd">        add this information to the dict, flanking_info should</span>
+<span class="sd">        specify the names of the fields that contain this info as a</span>
+<span class="sd">        list (e.g. [&#39;RFL&#39;, &#39;AFL&#39;].) If context info is given for</span>
+<span class="sd">        only one allele, set the other item in the list to None,</span>
+<span class="sd">        (e.g. [&#39;RFL&#39;, None]). Information can be provided as a 3</span>
+<span class="sd">        base-pair sequence or 2 base-pair sequence, where the first</span>
+<span class="sd">        base-pair is the one immediately preceding the SNP, and the</span>
+<span class="sd">        last base-pair is the one immediately following the SNP.</span>
+<span class="sd">    :type flanking_info: list of strings, optional</span>
+<span class="sd">    :param skip_multiallelic: If True, only keep biallelic sites, and skip sites that</span>
+<span class="sd">        have more than one ALT allele.</span>
+<span class="sd">    :type skip_multiallelic: bool, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_multiallelic</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;We can only keep biallelic sites, and multiallelic tallying is not &quot;</span>
+            <span class="s2">&quot;currently supported. Set skip_multiallelic to True.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Read population information from file based on extension</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">gzip</span>
+
+        <span class="n">popinfo_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">zipfile</span>
+
+        <span class="n">archive</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)</span>
+        <span class="n">namelist</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">namelist</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Must be only a single popinfo file in zip &quot;</span>
+                <span class="s2">&quot;archive: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">popinfo_file</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">namelist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">popinfo_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">popinfo_filename</span><span class="p">)</span>
+    <span class="c1"># pop_dict has key, value pairs of &quot;SAMPLE_NAME&quot; : &quot;POP_NAME&quot;</span>
+    <span class="n">popinfo_dict</span> <span class="o">=</span> <span class="n">_get_popinfo</span><span class="p">(</span><span class="n">popinfo_file</span><span class="p">)</span>
+    <span class="n">popinfo_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># Open VCF file</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">gzip</span>
+
+        <span class="n">vcf_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">zipfile</span>
+
+        <span class="n">archive</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)</span>
+        <span class="n">namelist</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">namelist</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Must be only a single vcf file in zip &quot;</span>
+                <span class="s2">&quot;archive: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">vcf_file</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">namelist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vcf_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">)</span>
+
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">vcf_file</span><span class="p">:</span>
+        <span class="c1"># decoding lines for Python 3 - probably a better way to handle this</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c1"># Skip metainformation</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;##&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="c1"># Read header</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="n">header_cols</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="c1"># Ensure there is at least one sample</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">header_cols</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No samples in VCF file&quot;</span><span class="p">)</span>
+            <span class="c1"># Use popinfo_dict to get the order of populations present in VCF</span>
+            <span class="n">poplist</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">popinfo_dict</span><span class="p">[</span><span class="n">sample</span><span class="p">]</span> <span class="k">if</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">popinfo_dict</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">header_cols</span><span class="p">[</span><span class="mi">9</span><span class="p">:]</span>
+            <span class="p">]</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Read SNP data</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">snp_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># (CHROM, POS)</span>
+        <span class="n">snp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Skip SNP if filter is set to True and it fails a filter test</span>
+        <span class="k">if</span> <span class="nb">filter</span> <span class="ow">and</span> <span class="n">cols</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;PASS&quot;</span> <span class="ow">and</span> <span class="n">cols</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Add reference and alternate allele info to dict</span>
+        <span class="n">ref</span><span class="p">,</span> <span class="n">alt</span> <span class="o">=</span> <span class="p">(</span><span class="n">allele</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">allele</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">alt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">]:</span>
+            <span class="c1"># Skip line if site is not an SNP</span>
+            <span class="k">continue</span>
+        <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
+        <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">ref</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span>
+
+        <span class="c1"># Add ancestral allele information if available</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AA&quot;</span><span class="p">):</span>
+                <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">outgroup_allele</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">]:</span>
+                    <span class="c1"># Skip if ancestral not single base A, C, G, or T</span>
+                    <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+        <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outgroup_allele</span>
+        <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;outgroup_context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">outgroup_allele</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span>
+
+        <span class="c1"># Add flanking info if it is present</span>
+        <span class="n">rflank</span><span class="p">,</span> <span class="n">aflank</span> <span class="o">=</span> <span class="n">flanking_info</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rflank</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">rflank</span><span class="p">):</span>
+                <span class="n">flank</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">rflank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">flank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">prevb</span><span class="p">,</span> <span class="n">nextb</span> <span class="o">=</span> <span class="n">flank</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flank</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">prevb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">]:</span>
+                    <span class="n">prevb</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+                <span class="k">if</span> <span class="n">nextb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">]:</span>
+                    <span class="n">nextb</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+                <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevb</span> <span class="o">+</span> <span class="n">ref</span> <span class="o">+</span> <span class="n">nextb</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">aflank</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">aflank</span><span class="p">):</span>
+                <span class="n">flank</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">aflank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">flank</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">prevb</span><span class="p">,</span> <span class="n">nextb</span> <span class="o">=</span> <span class="n">flank</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flank</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">prevb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">]:</span>
+                    <span class="n">prevb</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+                <span class="k">if</span> <span class="n">nextb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">]:</span>
+                    <span class="n">nextb</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+                <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;outgroup_context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevb</span> <span class="o">+</span> <span class="n">outgroup_allele</span> <span class="o">+</span> <span class="n">nextb</span>
+
+        <span class="c1"># Add reference and alternate allele calls for each population</span>
+        <span class="n">calls_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">gtindex</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;GT&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pop</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">poplist</span><span class="p">,</span> <span class="n">cols</span><span class="p">[</span><span class="mi">9</span><span class="p">:]):</span>
+            <span class="k">if</span> <span class="n">pop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">gt</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="n">gtindex</span><span class="p">]</span>
+            <span class="n">g1</span><span class="p">,</span> <span class="n">g2</span> <span class="o">=</span> <span class="n">gt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">pop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calls_dict</span><span class="p">:</span>
+                <span class="n">calls_dict</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">refcalls</span><span class="p">,</span> <span class="n">altcalls</span> <span class="o">=</span> <span class="n">calls_dict</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span>
+            <span class="n">refcalls</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g1</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">g2</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+            <span class="n">altcalls</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g1</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">g2</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span>
+            <span class="n">calls_dict</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">refcalls</span><span class="p">,</span> <span class="n">altcalls</span><span class="p">)</span>
+        <span class="n">snp_dict</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calls_dict</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">snp_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">snp_dict</span>
+
+    <span class="n">vcf_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">data_dict</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_get_popinfo</span><span class="p">(</span><span class="n">popinfo_file</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function for make_data_dict_vcf. Takes an open file that contains</span>
+<span class="sd">    information on the population designations of each sample within a VCF file,</span>
+<span class="sd">    and returns a dictionary containing {&quot;SAMPLE_NAME&quot; : &quot;POP_NAME&quot;} pairs.</span>
+
+<span class="sd">    The file should be formatted as a table, with columns delimited by</span>
+<span class="sd">    whitespace, and rows delimited by new lines. Lines beginning with &#39;#&#39; are</span>
+<span class="sd">    considered comments and will be ignored. Each sample must appear on its own</span>
+<span class="sd">    line. If no header information is provided, the first column will be assumed</span>
+<span class="sd">    to be the SAMPLE_NAME column, while the second column will be assumed to be</span>
+<span class="sd">    the POP_NAME column. If a header is present, it must be the first</span>
+<span class="sd">    non-comment line of the file. The column positions of the words &quot;SAMPLE&quot; and</span>
+<span class="sd">    &quot;POP&quot; (ignoring case) in this header will be used to determine proper</span>
+<span class="sd">    positions of the SAMPLE_NAME and POP_NAME columns in the table.</span>
+
+<span class="sd">    popinfo_file : An open text file of the format described above.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">popinfo_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sample_col</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">pop_col</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># check for header info</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">popinfo_file</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="s2">&quot;sample&quot;</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">sample_col</span> <span class="o">=</span> <span class="n">cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;pop&quot;</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pop_col</span> <span class="o">=</span> <span class="n">cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;pop&quot;</span><span class="p">)</span>
+        <span class="k">break</span>
+
+    <span class="c1"># read in population information for each sample</span>
+    <span class="n">popinfo_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">popinfo_file</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">sample_col</span><span class="p">]</span>
+        <span class="n">pop</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">pop_col</span><span class="p">]</span>
+        <span class="c1"># avoid adding header to dict</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;sample&quot;</span> <span class="ow">or</span> <span class="n">pop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;pop&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">header</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">continue</span>
+        <span class="n">popinfo_dict</span><span class="p">[</span><span class="n">sample</span><span class="p">]</span> <span class="o">=</span> <span class="n">pop</span>
+
+    <span class="k">return</span> <span class="n">popinfo_dict</span>
+
+
+<div class="viewcode-block" id="bootstrap">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Misc.bootstrap">[docs]</a>
+<span class="k">def</span> <span class="nf">bootstrap</span><span class="p">(</span>
+    <span class="n">data_dict</span><span class="p">,</span>
+    <span class="n">pop_ids</span><span class="p">,</span>
+    <span class="n">projections</span><span class="p">,</span>
+    <span class="n">mask_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">polarized</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">bed_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">num_boots</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">save_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use a non-parametric bootstrap on SNP information contained in a dictionary</span>
+<span class="sd">    to generate new data sets. The new data is created by sampling with</span>
+<span class="sd">    replacement from independent units of the original data. These units can</span>
+<span class="sd">    simply be chromosomes, or they can be regions specified in a BED file.</span>
+
+<span class="sd">    This function either returns a list of all the newly created SFS, or writes</span>
+<span class="sd">    them to disk in a specified directory.</span>
+
+<span class="sd">    See :func:`moments.Spectrum.from_data_dict` for more details about the options for</span>
+<span class="sd">    creating spectra.</span>
+
+<span class="sd">    :param data_dict: Dictionary containing properly formatted SNP information (i.e.</span>
+<span class="sd">        created using one of the make_data_dict methods).</span>
+<span class="sd">    :type data_dict: dict of SNP information</span>
+<span class="sd">    :param pop_ids: List of population IDs.</span>
+<span class="sd">    :type pop_ids: list of strings</span>
+<span class="sd">    :param projections: Projection sizes for the given population IDs.</span>
+<span class="sd">    :type projections: list of ints</span>
+<span class="sd">    :param mask_corners: If True, mask the invariant bins of the SFS.</span>
+<span class="sd">    :type mask_corners: bool, optional</span>
+<span class="sd">    :param polarized: If True, we assume we know the ancestral allele. If False,</span>
+<span class="sd">        return folded spectra.</span>
+<span class="sd">    :type polarized: bool, optional</span>
+<span class="sd">    :param bed_filename: If None, chromosomes will be used as the units for</span>
+<span class="sd">        resampling. Otherwise, this should be the filename of a BED</span>
+<span class="sd">        file specifying the regions to be used as resampling units.</span>
+<span class="sd">        Chromosome names must be consistent between the BED file and</span>
+<span class="sd">        the data dictionary, or bootstrap will not work. For example,</span>
+<span class="sd">        if an entry in the data dict has ID X_Y, then the value in</span>
+<span class="sd">        in the chromosome field of the BED file must also be X (not</span>
+<span class="sd">        chrX, chromosomeX, etc.).</span>
+<span class="sd">        If the name field is provided in the BED file, then any</span>
+<span class="sd">        regions with the same name will be considered to be part of</span>
+<span class="sd">        the same unit. This may be useful for sampling as one unit a</span>
+<span class="sd">        gene that is located across non-continuous regions.</span>
+<span class="sd">    :type bed_filename: string as path to bed file</span>
+<span class="sd">    :param num_boots: Number of resampled SFS to generate.</span>
+<span class="sd">    :type num_boots: int, optional</span>
+<span class="sd">    :param save_dir: If None, the SFS are returned as a list. Otherwise this should be</span>
+<span class="sd">        a string specifying the name of a new directory under which all</span>
+<span class="sd">        of the new SFS should be saved.</span>
+<span class="sd">    :type save_dir: str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Read in information from BED file if present and store by chromosome</span>
+    <span class="k">if</span> <span class="n">bed_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bed_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">bed_filename</span><span class="p">)</span>
+        <span class="n">bed_info_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">linenum</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bed_file</span><span class="p">):</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="c1"># Read in mandatory fields</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+            <span class="c1"># Read label info if present, else assign unique label by line number</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">linenum</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="c1"># Add information to the appropriate chromosome</span>
+            <span class="k">if</span> <span class="n">chrom</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bed_info_dict</span><span class="p">:</span>
+                <span class="n">bed_info_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">bed_info_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+        <span class="n">bed_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># Sort entries by start position, for easier location of proper region</span>
+        <span class="n">start_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">bed_info</span> <span class="ow">in</span> <span class="n">bed_info_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">bed_info</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">start_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">bed_info</span><span class="p">]</span>
+        <span class="c1"># Dictionary will map region labels to the SNPs contained in that region</span>
+        <span class="n">region_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Iterate through data_dict and add SNPs to proper region</span>
+        <span class="k">for</span> <span class="n">snp_key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">snp_key</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="c1"># Quickly locate proper region in sorted list</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">start_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">],</span> <span class="n">pos</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">loc</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">bed_info_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">loc</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">pos</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">bed_info_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">loc</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">region_dict</span><span class="p">:</span>
+                    <span class="n">region_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">region_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snp_key</span><span class="p">)</span>
+    <span class="c1"># Separate by chromosome if no BED file provided</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">region_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">snp_key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">snp_key</span>
+            <span class="k">if</span> <span class="n">chrom</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">region_dict</span><span class="p">:</span>
+                <span class="n">region_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">region_dict</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snp_key</span><span class="p">)</span>
+
+    <span class="c1"># Each entry of list represents single region, with a tuple</span>
+    <span class="c1"># containing the IDs of all SNPs in the region.</span>
+    <span class="n">sample_regions</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">region_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">num_regions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_regions</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">save_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_sfs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+    <span class="c1"># Repeatedly resample regions to create new data sets</span>
+    <span class="k">for</span> <span class="n">bootnum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_boots</span><span class="p">):</span>
+        <span class="c1"># Set up new SFS</span>
+        <span class="n">npops</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span>
+        <span class="n">new_sfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">projections</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Make random selection of regions (with replacement)</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_regions</span><span class="p">,</span> <span class="n">num_regions</span><span class="p">)</span>
+        <span class="c1"># For each selected region, add its SNP info to SFS</span>
+        <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">snp_key</span> <span class="ow">in</span> <span class="n">sample_regions</span><span class="p">[</span><span class="n">choice</span><span class="p">]:</span>
+                <span class="n">snp_info</span> <span class="o">=</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">snp_key</span><span class="p">]</span>
+                <span class="c1"># Skip SNPs that aren&#39;t biallelic.</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">allele1</span><span class="p">,</span> <span class="n">allele2</span> <span class="o">=</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">polarized</span><span class="p">:</span>
+                    <span class="c1"># If not polarizing, derived allele is arbitrary</span>
+                    <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="n">allele1</span>
+                <span class="k">elif</span> <span class="p">(</span>
+                    <span class="s2">&quot;outgroup_allele&quot;</span> <span class="ow">in</span> <span class="n">snp_info</span>
+                    <span class="ow">and</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;-&quot;</span>
+                    <span class="ow">and</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;segregating&quot;</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="c1"># Otherwise check that it is a useful outgroup</span>
+                    <span class="n">outgroup_allele</span> <span class="o">=</span> <span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;outgroup_allele&quot;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># If polarized and without good outgroup, skip SNP</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Extract allele calls for each population.</span>
+                <span class="n">allele1_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">][</span><span class="n">pop</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">pop_ids</span><span class="p">]</span>
+                <span class="n">allele2_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">snp_info</span><span class="p">[</span><span class="s2">&quot;calls&quot;</span><span class="p">][</span><span class="n">pop</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">pop_ids</span><span class="p">]</span>
+                <span class="n">successful_calls</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="k">for</span> <span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">allele1_calls</span><span class="p">,</span> <span class="n">allele2_calls</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="n">derived_calls</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">allele2_calls</span> <span class="k">if</span> <span class="n">allele1</span> <span class="o">==</span> <span class="n">outgroup_allele</span> <span class="k">else</span> <span class="n">allele1_calls</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Slicing allows handling of arbitray population numbers</span>
+                <span class="n">slices</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">npops</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npops</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npops</span><span class="p">):</span>
+                    <span class="n">slices</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+                <span class="c1"># Do projections for this SNP</span>
+                <span class="n">pop_contribs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">call_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">projections</span><span class="p">,</span> <span class="n">successful_calls</span><span class="p">,</span> <span class="n">derived_calls</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">pop_index</span><span class="p">,</span> <span class="p">(</span><span class="n">p_to</span><span class="p">,</span> <span class="n">p_from</span><span class="p">,</span> <span class="n">hits</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">call_iter</span><span class="p">):</span>
+                    <span class="n">contrib</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">_cached_projection</span><span class="p">(</span><span class="n">p_to</span><span class="p">,</span> <span class="n">p_from</span><span class="p">,</span> <span class="n">hits</span><span class="p">)[</span>
+                        <span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">[</span><span class="n">pop_index</span><span class="p">])</span>
+                    <span class="p">]</span>
+                    <span class="n">pop_contribs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contrib</span><span class="p">)</span>
+                <span class="n">new_sfs</span> <span class="o">+=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">pop_contribs</span><span class="p">)</span>
+
+        <span class="n">new_sfs</span> <span class="o">=</span> <span class="n">Spectrum_mod</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span>
+            <span class="n">new_sfs</span><span class="p">,</span> <span class="n">mask_corners</span><span class="o">=</span><span class="n">mask_corners</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">polarized</span><span class="p">:</span>
+            <span class="n">new_sfs</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">save_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_sfs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_sfs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/SFS_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">bootnum</span><span class="p">)</span>
+            <span class="n">new_sfs</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_sfs_list</span> <span class="k">if</span> <span class="n">save_dir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">flip_ancestral_misid</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">p_misid</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">p_misid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">p_misid</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;probability of misidentification must be between zero and one.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">fs_misid</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">p_misid</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs_misid</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.Inference &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.Inference</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.Inference</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Comparison and optimization of model spectra to data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;Inference&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">logical_and</span><span class="p">,</span> <span class="n">logical_not</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Misc</span><span class="p">,</span> <span class="n">Numerics</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
+<span class="c1">#: Stores thetas</span>
+<span class="n">_theta_store</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1">#: Counts calls to object_func</span>
+<span class="n">_counter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1">#: Returned when object_func is passed out-of-bounds params or gets a NaN ll.</span>
+<span class="n">_out_of_bounds_val</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e8</span>
+
+
+<span class="k">def</span> <span class="nf">_object_func</span><span class="p">(</span>
+    <span class="n">params</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+    <span class="n">store_thetas</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Objective function for optimization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_counter</span>
+    <span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Deal with fixed parameters</span>
+    <span class="n">params_up</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="c1"># Check our parameter bounds</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span> <span class="o">/</span> <span class="n">ll_scale</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&gt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span> <span class="o">/</span> <span class="n">ll_scale</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sample_sizes</span>
+    <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">params_up</span><span class="p">,</span> <span class="n">ns</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">func_args</span><span class="p">)</span>
+
+    <span class="n">func_kwargs</span> <span class="o">=</span> <span class="n">func_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">sfs</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="o">*</span><span class="n">all_args</span><span class="p">,</span> <span class="o">**</span><span class="n">func_kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">multinom</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll_multinom</span><span class="p">(</span><span class="n">sfs</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll</span><span class="p">(</span><span class="n">sfs</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">store_thetas</span><span class="p">:</span>
+        <span class="k">global</span> <span class="n">_theta_store</span>
+        <span class="n">_theta_store</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)]</span> <span class="o">=</span> <span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">sfs</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Bad result</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_out_of_bounds_val</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_counter</span> <span class="o">%</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="s2">&quot;array([</span><span class="si">%s</span><span class="s2">])&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%- 12g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params_up</span><span class="p">]))</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%-8i</span><span class="s2">, </span><span class="si">%-12g</span><span class="s2">, </span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_counter</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">flush_delay</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="n">result</span> <span class="o">/</span> <span class="n">ll_scale</span>
+
+
+<span class="k">def</span> <span class="nf">_object_func_log</span><span class="p">(</span><span class="n">log_params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Objective function for optimization in log(params).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_object_func</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_params</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="optimize_log">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimize_log">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">gtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize log(params) to fit model to data using the BFGS method. This optimization</span>
+<span class="sd">    method works well when we start reasonably close to the optimum.</span>
+
+<span class="sd">    Because this works in log(params), it cannot explore values of params &lt; 0.</span>
+<span class="sd">    However, it should perform well when parameters range over different orders</span>
+<span class="sd">    of magnitude.</span>
+
+<span class="sd">    :param p0: Initial parameters.</span>
+<span class="sd">    :param data: Data SFS.</span>
+<span class="sd">    :param model_func: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">        ``model_func(params, (n1,n2...))``.</span>
+<span class="sd">    :param lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0.</span>
+<span class="sd">    :param upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0.</span>
+<span class="sd">    :param verbose: If &gt; 0, print optimization status every ``verbose`` steps.</span>
+<span class="sd">    :param output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">        standard out.</span>
+<span class="sd">    :param flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">        minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    :param epsilon: Step-size to use for finite-difference derivatives.</span>
+<span class="sd">    :param gtol: Convergence criterion for optimization. For more info,</span>
+<span class="sd">        see help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    :param multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">        data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">        no scaling.</span>
+<span class="sd">    :param maxiter: Maximum iterations to run for.</span>
+<span class="sd">    :param full_output: If True, return full outputs as in described in</span>
+<span class="sd">        help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    :param func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">        model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">        optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">        for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">        points to use in evaluation.</span>
+<span class="sd">        Using func_args.</span>
+<span class="sd">        For example, you could define your model function as</span>
+<span class="sd">        ``def func((p1,p2), ns, f1, f2): ...``.</span>
+<span class="sd">        If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you</span>
+<span class="sd">        would pass func_args = [0.1,0.2] (and ignore the fixed_params</span>
+<span class="sd">        argument).</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    :param fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">        particular values. For example, if the model parameters</span>
+<span class="sd">        are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">        ll hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">        T and m. Note that the bounds lists must include all</span>
+<span class="sd">        parameters. Optimization will fail if the fixed values</span>
+<span class="sd">        lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">        in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">        For example, suppose your model function is</span>
+<span class="sd">        ``def func((p1,f1,p2,f2), ns): ...``</span>
+<span class="sd">        If you wanted to fix f1=0.1 and f2=0.2 in the optimization,</span>
+<span class="sd">        you would pass fixed_params = [None,0.1,None,0.2] (and ignore</span>
+<span class="sd">        the func_args argument).</span>
+<span class="sd">    :param ll_scale: The bfgs algorithm may fail if your initial log-likelihood is</span>
+<span class="sd">        too large. (This appears to be a flaw in the scipy</span>
+<span class="sd">        implementation.) To overcome this, pass ll_scale &gt; 1, which will</span>
+<span class="sd">        simply reduce the magnitude of the log-likelihood. Once in a</span>
+<span class="sd">        region of reasonable likelihood, you&#39;ll probably want to</span>
+<span class="sd">        re-optimize with ll_scale=1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">ll_scale</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_bfgs</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">gtol</span><span class="o">=</span><span class="n">gtol</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">gopt</span><span class="p">,</span> <span class="n">Bopt</span><span class="p">,</span> <span class="n">func_calls</span><span class="p">,</span> <span class="n">grad_calls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">gopt</span><span class="p">,</span> <span class="n">Bopt</span><span class="p">,</span> <span class="n">func_calls</span><span class="p">,</span> <span class="n">grad_calls</span><span class="p">,</span> <span class="n">warnflag</span></div>
+
+
+
+<div class="viewcode-block" id="optimize_log_lbfgsb">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimize_log_lbfgsb">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_lbfgsb</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">pgtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize log(params) to fit model to data using the L-BFGS-B method.</span>
+
+<span class="sd">    This optimization method works well when we start reasonably close to the</span>
+<span class="sd">    optimum. It is best at burrowing down a single minimum. This method is</span>
+<span class="sd">    better than optimize_log if the optimum lies at one or more of the</span>
+<span class="sd">    parameter bounds. However, if your optimum is not on the bounds, this</span>
+<span class="sd">    method may be much slower.</span>
+
+<span class="sd">    Because this works in log(params), it cannot explore values of params &lt; 0.</span>
+<span class="sd">    It should also perform better when parameters range over scales.</span>
+
+<span class="sd">    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge</span>
+<span class="sd">    Nocedal. The algorithm is described in:</span>
+
+<span class="sd">    - R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound</span>
+<span class="sd">      Constrained Optimization, (1995), SIAM Journal on Scientific and</span>
+<span class="sd">      Statistical Computing , 16, 5, pp. 1190-1208.</span>
+<span class="sd">    - C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,</span>
+<span class="sd">      FORTRAN routines for large scale bound constrained optimization (1997),</span>
+<span class="sd">      ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.</span>
+
+<span class="sd">    :param p0: Initial parameters.</span>
+<span class="sd">    :param data: Spectrum with data.</span>
+<span class="sd">    :param model_function: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">        (params, (n1,n2...))</span>
+<span class="sd">    :param lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param verbose: If &gt; 0, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    :param output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">        standard out.</span>
+<span class="sd">    :param flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">        minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    :param epsilon: Step-size to use for finite-difference derivatives.</span>
+<span class="sd">    :param pgtol: Convergence criterion for optimization. For more info,</span>
+<span class="sd">        see help(scipy.optimize.fmin_l_bfgs_b)</span>
+<span class="sd">    :param multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">        data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">        no scaling.</span>
+<span class="sd">    :param maxiter: Maximum algorithm iterations to run.</span>
+<span class="sd">    :param full_output: If True, return full outputs as in described in</span>
+<span class="sd">        help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    :param func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">        model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">        optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">        for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">        points to use in evaluation.</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    :param fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">        particular values. For example, if the model parameters</span>
+<span class="sd">        are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">        will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">        T and m. Note that the bounds lists must include all</span>
+<span class="sd">        parameters. Optimization will fail if the fixed values</span>
+<span class="sd">        lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">        in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">    :param ll_scale: The bfgs algorithm may fail if your initial log-likelihood is</span>
+<span class="sd">        too large. (This appears to be a flaw in the scipy</span>
+<span class="sd">        implementation.) To overcome this, pass ll_scale &gt; 1, which will</span>
+<span class="sd">        simply reduce the magnitude of the log-likelihood. Once in a</span>
+<span class="sd">        region of reasonable likelihood, you&#39;ll probably want to</span>
+<span class="sd">        re-optimize with ll_scale=1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">ll_scale</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Make bounds list. For this method it needs to be in terms of log params.</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">lb</span><span class="p">)</span> <span class="k">if</span> <span class="n">lb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">lb</span> <span class="ow">in</span> <span class="n">lower_bound</span><span class="p">]</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ub</span><span class="p">)</span> <span class="k">if</span> <span class="n">ub</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">ub</span> <span class="ow">in</span> <span class="n">upper_bound</span><span class="p">]</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">))</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_l_bfgs_b</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">iprint</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">pgtol</span><span class="o">=</span><span class="n">pgtol</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">approx_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">info_dict</span> <span class="o">=</span> <span class="n">outputs</span>
+
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">info_dict</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">minus_ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The negative of the log-likelihood of the data given the model sfs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ll">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.ll">[docs]</a>
+<span class="k">def</span> <span class="nf">ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The log-likelihood of the data given the model sfs.</span>
+
+<span class="sd">    Evaluate the log-likelihood of the data given the model. This is based on</span>
+<span class="sd">    Poisson statistics, where the probability of observing k entries in a cell</span>
+<span class="sd">    given that the mean number is given by the model is</span>
+<span class="sd">    :math:`P(k) = exp(-model) * model^k / k!`.</span>
+
+<span class="sd">    Note: If either the model or the data is a masked array, the return ll will</span>
+<span class="sd">    ignore any elements that are masked in *either* the model or the data.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ll_arr</span> <span class="o">=</span> <span class="n">ll_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_arr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">ll_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">missing_model_cutoff</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Poisson log-likelihood of each entry in the data given the model sfs.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    :param missing_model_cutoff: Due to numerical issues, there may be entries in the</span>
+<span class="sd">        FS that cannot be stable calculated. If these entries</span>
+<span class="sd">        involve a fraction of the data larger than</span>
+<span class="sd">        missing_model_cutoff, a warning is printed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+
+    <span class="c1"># Using numpy.ma.log here ensures that any negative or nan entries in model</span>
+    <span class="c1"># yield masked entries in result. We can then check for correctness of</span>
+    <span class="c1"># calculation by simply comparing masks.</span>
+    <span class="c1"># Note: Using .data attributes directly saves a little computation time. We</span>
+    <span class="c1"># use model and data as a whole at least once, to ensure masking is done</span>
+    <span class="c1"># properly.</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">log</span><span class="p">()</span> <span class="o">-</span> <span class="n">gammaln</span><span class="p">(</span><span class="n">data</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">mask</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">not_data_mask</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">data_sum</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">logical_and</span><span class="p">(</span><span class="n">model</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">not_data_mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">missing_model_cutoff</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Model is &lt; 0 where data is not masked.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Number of affected entries is </span><span class="si">%i</span><span class="s2">. Sum of data in those &quot;</span>
+            <span class="s2">&quot;entries is </span><span class="si">%g</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="c1"># If the data is 0, it&#39;s okay for the model to be 0. In that case the ll</span>
+    <span class="c1"># contribution is 0, which is fine.</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">logical_and</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">logical_and</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">not_data_mask</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">data_sum</span> <span class="o">&gt;</span> <span class="n">missing_model_cutoff</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Model is 0 where data is neither masked nor 0.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Number of affected entries is </span><span class="si">%i</span><span class="s2">. Sum of data in those &quot;</span>
+            <span class="s2">&quot;entries is </span><span class="si">%g</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">not_data_mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">data_sum</span> <span class="o">&gt;</span> <span class="n">missing_model_cutoff</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">data_sum</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Model is masked in some entries where data is not.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Number of affected entries is </span><span class="si">%i</span><span class="s2">. Sum of data in those &quot;</span>
+            <span class="s2">&quot;entries is </span><span class="si">%g</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="n">not_data_mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">data_sum</span> <span class="o">&gt;</span> <span class="n">missing_model_cutoff</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Model is nan in some entries where data is not masked.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Number of affected entries is </span><span class="si">%i</span><span class="s2">. Sum of data in those &quot;</span>
+            <span class="s2">&quot;entries is </span><span class="si">%g</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="n">missing</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">ll_multinom_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mutlinomial log-likelihood of each entry in the data given the model.</span>
+
+<span class="sd">    Scales the model sfs to have the optimal theta for comparison with the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">theta_opt</span> <span class="o">=</span> <span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_per_bin</span><span class="p">(</span><span class="n">theta_opt</span> <span class="o">*</span> <span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ll_multinom">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.ll_multinom">[docs]</a>
+<span class="k">def</span> <span class="nf">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Log-likelihood of the data given the model, with optimal rescaling.</span>
+
+<span class="sd">    Evaluate the log-likelihood of the data given the model. This is based on</span>
+<span class="sd">    Poisson statistics, where the probability of observing k entries in a cell</span>
+<span class="sd">    given that the mean number is given by the model is</span>
+<span class="sd">    :math:`P(k) = exp(-model) * model^k / k!`.</span>
+
+<span class="sd">    model is optimally scaled to maximize ll before calculation.</span>
+
+<span class="sd">    Note: If either the model or the data is a masked array, the return ll will</span>
+<span class="sd">    ignore any elements that are masked in *either* the model or the data.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ll_arr</span> <span class="o">=</span> <span class="n">ll_multinom_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_arr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">minus_ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The negative of the log-likelihood of the data given the model sfs.</span>
+
+<span class="sd">    Return a double that is -(log-likelihood)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="linear_Poisson_residual">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.linear_Poisson_residual">[docs]</a>
+<span class="k">def</span> <span class="nf">linear_Poisson_residual</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the Poisson residuals, (model - data)/sqrt(model), of model and data.</span>
+
+<span class="sd">    mask sets the level in model below which the returned residual array is</span>
+<span class="sd">    masked. The default of 0 excludes values where the residuals are not</span>
+<span class="sd">    defined.</span>
+
+<span class="sd">    In the limit that the mean of the Poisson distribution is large, these</span>
+<span class="sd">    residuals are normally distributed. (If the mean is small, the Anscombe</span>
+<span class="sd">    residuals are better.)</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    :param mask: Optional mask, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+
+    <span class="n">resid</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span> <span class="o">-</span> <span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tomask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">model</span> <span class="o">&lt;=</span> <span class="n">mask</span><span class="p">,</span> <span class="n">data</span> <span class="o">&lt;=</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="n">resid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">tomask</span><span class="p">,</span> <span class="n">resid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resid</span></div>
+
+
+
+<div class="viewcode-block" id="Anscombe_Poisson_residual">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.Anscombe_Poisson_residual">[docs]</a>
+<span class="k">def</span> <span class="nf">Anscombe_Poisson_residual</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the Anscombe Poisson residuals between model and data.</span>
+
+<span class="sd">    mask sets the level in model below which the returned residual array is</span>
+<span class="sd">    masked. This excludes very small values where the residuals are not normal.</span>
+<span class="sd">    1e-2 seems to be a good default for the NIEHS human data. (model = 1e-2,</span>
+<span class="sd">    data = 0, yields a residual of ~1.5.)</span>
+
+<span class="sd">    Residuals defined in this manner are more normally distributed than the</span>
+<span class="sd">    linear residuals when the mean is small. See this reference below for</span>
+<span class="sd">    justification: Pierce DA and Schafer DW, &quot;Residuals in generalized linear</span>
+<span class="sd">    models&quot; Journal of the American Statistical Association, 81(396)977-986</span>
+<span class="sd">    (1986).</span>
+
+<span class="sd">    Note that I tried implementing the &quot;adjusted deviance&quot; residuals, but they</span>
+<span class="sd">    always looked very biased for the cases where the data was 0.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    :param mask: Optional mask, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+    <span class="c1"># Because my data have often been projected downward or averaged over many</span>
+    <span class="c1"># iterations, it appears better to apply the same transformation to the data</span>
+    <span class="c1"># and the model.</span>
+    <span class="c1"># For some reason data**(-1./3) results in entries in data that are zero</span>
+    <span class="c1"># becoming masked. Not just the result, but the data array itself. We use</span>
+    <span class="c1"># the power call to get around that.</span>
+    <span class="c1"># This seems to be a common problem, that we want to use numpy.ma functions</span>
+    <span class="c1"># on masked arrays, because otherwise the mask on the input itself can be</span>
+    <span class="c1"># changed. Subtle and annoying. If we need to create our own functions, we</span>
+    <span class="c1"># can use numpy.ma.core._MaskedUnaryOperation.</span>
+    <span class="n">datatrans</span> <span class="o">=</span> <span class="n">data</span> <span class="o">**</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">9</span>
+    <span class="n">modeltrans</span> <span class="o">=</span> <span class="n">model</span> <span class="o">**</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">9</span>
+    <span class="n">resid</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">datatrans</span> <span class="o">-</span> <span class="n">modeltrans</span><span class="p">)</span> <span class="o">/</span> <span class="n">model</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tomask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">model</span> <span class="o">&lt;=</span> <span class="n">mask</span><span class="p">,</span> <span class="n">data</span> <span class="o">&lt;=</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="n">tomask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">tomask</span><span class="p">,</span> <span class="n">data</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">resid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">tomask</span><span class="p">,</span> <span class="n">resid</span><span class="p">)</span>
+    <span class="c1"># It makes more sense to me to have a minus sign here... So when the</span>
+    <span class="c1"># model is high, the residual is positive. This is opposite of the</span>
+    <span class="c1"># Pierce and Schafner convention.</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">resid</span></div>
+
+
+
+<div class="viewcode-block" id="optimally_scaled_sfs">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimally_scaled_sfs">[docs]</a>
+<span class="k">def</span> <span class="nf">optimally_scaled_sfs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimially scale model sfs to data sfs.</span>
+
+<span class="sd">    Returns a new scaled model sfs.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="n">model</span></div>
+
+
+
+<div class="viewcode-block" id="optimal_sfs_scaling">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimal_sfs_scaling">[docs]</a>
+<span class="k">def</span> <span class="nf">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimal multiplicative scaling factor between model and data.</span>
+
+<span class="sd">    This scaling is based on only those entries that are masked in neither</span>
+<span class="sd">    model nor data.</span>
+
+<span class="sd">    :param model: The model Spectrum object.</span>
+<span class="sd">    :param data: The data Spectrum object, with same size as ``model``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+
+    <span class="n">model</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">intersect_masks</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="optimize_log_fmin">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimize_log_fmin">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxfun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize log(params) to fit model to data using Nelder-Mead.</span>
+<span class="sd">    This optimization method may work better than BFGS when far from a</span>
+<span class="sd">    minimum. It is much slower, but more robust, because it doesn&#39;t use</span>
+<span class="sd">    gradient information.</span>
+
+<span class="sd">    Because this works in log(params), it cannot explore values of params &lt; 0.</span>
+<span class="sd">    It should also perform better when parameters range over large scales.</span>
+
+<span class="sd">    :param p0: Initial parameters.</span>
+<span class="sd">    :param data: Spectrum with data.</span>
+<span class="sd">    :param model_function: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">        (params, (n1,n2...))</span>
+<span class="sd">    :param lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param verbose: If True, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    :param output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">        standard out.</span>
+<span class="sd">    :param flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">        minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    :param multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">        data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">        no scaling.</span>
+<span class="sd">    :param maxiter: Maximum number of iterations to run optimization.</span>
+<span class="sd">    :param maxfun: Maximum number of objective function calls to perform.</span>
+<span class="sd">    :param full_output: If True, return full outputs as in described in</span>
+<span class="sd">        help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    :param func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">        model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">        optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">        for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">        points to use in evaluation.</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    :param fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">        particular values. For example, if the model parameters</span>
+<span class="sd">        are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">        will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">        T and m. Note that the bounds lists must include all</span>
+<span class="sd">        parameters. Optimization will fail if the fixed values</span>
+<span class="sd">        lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">        in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">maxfun</span><span class="o">=</span><span class="n">maxfun</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">optimize_powell</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+    <span class="n">ftol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxfunc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">retall</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize parameters using Powell&#39;s conjugate direction method.</span>
+
+<span class="sd">    This method works without calculating any derivatives, and optimizes along</span>
+<span class="sd">    one direction at a time. May be useful as an initial search for an approximate</span>
+<span class="sd">    solution, followed by further optimization using a gradient optimizer.</span>
+
+<span class="sd">    p0: Initial parameters.</span>
+<span class="sd">    data: Spectrum with data.</span>
+<span class="sd">    model_func: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">                (params, (n1,n2...)).</span>
+<span class="sd">    lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0.</span>
+<span class="sd">    upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0.</span>
+<span class="sd">    verbose: If &gt; 0, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">                 minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    xtol: Error tolerance for line search.</span>
+<span class="sd">    ftol: Relative error acceptable for convergence.</span>
+<span class="sd">    multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">              data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">              no scaling.</span>
+<span class="sd">    maxiter: Maximum iterations to run for.</span>
+<span class="sd">    maxfunc: Maximum number of function evalutions.</span>
+<span class="sd">    full_output: If True, return full outputs as in described in</span>
+<span class="sd">                 help(scipy.optimize.fmin_powell).</span>
+<span class="sd">    func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">               model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">               optimize, and its second argument is an array of sample sizes</span>
+<span class="sd">               for the sfs.</span>
+<span class="sd">               For example, you could define your model function as</span>
+<span class="sd">               def func((p1,p2), ns, f1, f2):</span>
+<span class="sd">                   ....</span>
+<span class="sd">               If you wanted to fix f1=0.1 and f2=0.2 in the optimization, you</span>
+<span class="sd">               would pass func_args = [0.1,0.2].</span>
+<span class="sd">    func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">                  particular values. For example, if the model parameters</span>
+<span class="sd">                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">                  will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">                  T and m. Note that the bounds lists must include all</span>
+<span class="sd">                  parameters. Optimization will fail if the fixed values</span>
+<span class="sd">                  lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">                  in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">                  For example, suppose your model function is</span>
+<span class="sd">                  def func((p1,f1,p2,f2), ns):</span>
+<span class="sd">                      ....</span>
+<span class="sd">                  If you wanted to fix f1=0.1 and f2=0.2 in the optimization,</span>
+<span class="sd">                  you would pass fixed_params = [None,0.1,None,0.2].</span>
+<span class="sd">    ll_scale: The algorithm may fail if your initial log-likelihood is</span>
+<span class="sd">              too large. To overcome this, pass ll_scale &gt; 1, which will</span>
+<span class="sd">              simply reduce the magnitude of the log-likelihood. Once in a</span>
+<span class="sd">              region of reasonable likelihood, you&#39;ll probably want to</span>
+<span class="sd">              re-optimize with ll_scale=1.</span>
+<span class="sd">    output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">                 standard out.</span>
+<span class="sd">    retall: If True, return a list of solutions at each iteration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">ll_scale</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_powell</span><span class="p">(</span>
+        <span class="n">_object_func</span><span class="p">,</span>
+        <span class="n">p0</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">xtol</span><span class="o">=</span><span class="n">xtol</span><span class="p">,</span>
+        <span class="n">ftol</span><span class="o">=</span><span class="n">ftol</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">maxfun</span><span class="o">=</span><span class="n">maxfunc</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">retall</span><span class="o">=</span><span class="n">retall</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">retall</span><span class="p">:</span>
+        <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span><span class="p">,</span> <span class="n">allvecs</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">xopt</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">elif</span> <span class="n">retall</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span><span class="p">,</span> <span class="n">allvecs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span>
+
+
+<div class="viewcode-block" id="optimize_log_powell">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.Inference.optimize_log_powell">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_powell</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize log(params) to fit model to data using Powell&#39;s conjugate direction method.</span>
+
+<span class="sd">    This method works without calculating any derivatives, and optimizes along</span>
+<span class="sd">    one direction at a time. May be useful as an initial search for an approximate</span>
+<span class="sd">    solution, followed by further optimization using a gradient optimizer.</span>
+
+<span class="sd">    Because this works in log(params), it cannot explore values of params &lt; 0.</span>
+
+<span class="sd">    :param p0: Initial parameters.</span>
+<span class="sd">    :param data: Spectrum with data.</span>
+<span class="sd">    :param model_function: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">        (params, (n1,n2...))</span>
+<span class="sd">    :param lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">        length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">        a bound of None.</span>
+<span class="sd">    :param verbose: If True, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">        output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">        standard out.</span>
+<span class="sd">    :param flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">        minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">        multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">        data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">        no scaling.</span>
+<span class="sd">    :param maxiter: Maximum iterations to run for.</span>
+<span class="sd">    :param full_output: If True, return full outputs as in described in</span>
+<span class="sd">        help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    :param func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">        model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">        optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">        for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">        points to use in evaluation.</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    :param fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">        particular values. For example, if the model parameters</span>
+<span class="sd">        are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">        will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">        T and m. Note that the bounds lists must include all</span>
+<span class="sd">        parameters. Optimization will fail if the fixed values</span>
+<span class="sd">        lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">        in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">        (See help(moments.Inference.optimize_log for examples of func_args and</span>
+<span class="sd">        fixed_params usage.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_powell</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">gtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize params to fit model to data using the BFGS method.</span>
+
+<span class="sd">    This optimization method works well when we start reasonably close to the</span>
+<span class="sd">    optimum. It is best at burrowing down a single minimum.</span>
+
+<span class="sd">    p0: Initial parameters.</span>
+<span class="sd">    data: Spectrum with data.</span>
+<span class="sd">    model_function: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">                    (params, (n1,n2...))</span>
+<span class="sd">    lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0.</span>
+<span class="sd">    upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0.</span>
+<span class="sd">    verbose: If &gt; 0, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">                 standard out.</span>
+<span class="sd">    flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">                 minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    epsilon: Step-size to use for finite-difference derivatives.</span>
+<span class="sd">    gtol: Convergence criterion for optimization. For more info,</span>
+<span class="sd">          see help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">              data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">              no scaling.</span>
+<span class="sd">    maxiter: Maximum iterations to run for.</span>
+<span class="sd">    full_output: If True, return full outputs as in described in</span>
+<span class="sd">                 help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">               model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">               optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">               for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">               points to use in evaluation.</span>
+<span class="sd">    func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">                  particular values. For example, if the model parameters</span>
+<span class="sd">                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">                  will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">                  T and m. Note that the bounds lists must include all</span>
+<span class="sd">                  parameters. Optimization will fail if the fixed values</span>
+<span class="sd">                  lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">                  in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">    (See help(moments.Inference.optimize_log for examples of func_args and</span>
+<span class="sd">     fixed_params usage.)</span>
+<span class="sd">    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is</span>
+<span class="sd">              too large. (This appears to be a flaw in the scipy</span>
+<span class="sd">              implementation.) To overcome this, pass ll_scale &gt; 1, which will</span>
+<span class="sd">              simply reduce the magnitude of the log-likelihood. Once in a</span>
+<span class="sd">              region of reasonable likelihood, you&#39;ll probably want to</span>
+<span class="sd">              re-optimize with ll_scale=1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">ll_scale</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_bfgs</span><span class="p">(</span>
+        <span class="n">_object_func</span><span class="p">,</span>
+        <span class="n">p0</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">gtol</span><span class="o">=</span><span class="n">gtol</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">gopt</span><span class="p">,</span> <span class="n">Bopt</span><span class="p">,</span> <span class="n">func_calls</span><span class="p">,</span> <span class="n">grad_calls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">xopt</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">gopt</span><span class="p">,</span> <span class="n">Bopt</span><span class="p">,</span> <span class="n">func_calls</span><span class="p">,</span> <span class="n">grad_calls</span><span class="p">,</span> <span class="n">warnflag</span>
+
+
+<span class="k">def</span> <span class="nf">optimize_lbfgsb</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">pgtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ll_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize params to fit model to data using the L-BFGS-B method.</span>
+
+<span class="sd">    Note: this optimization method can explore negative values. You must therefore</span>
+<span class="sd">    specify lower bounds for values that cannot take negative numbers (such</span>
+<span class="sd">    as event times, population sizes, and migration rates).</span>
+
+<span class="sd">    This optimization method works well when we start reasonably close to the</span>
+<span class="sd">    optimum. It is best at burrowing down a single minimum. This method is</span>
+<span class="sd">    better than optimize_log if the optimum lies at one or more of the</span>
+<span class="sd">    parameter bounds. However, if your optimum is not on the bounds, this</span>
+<span class="sd">    method may be much slower.</span>
+
+<span class="sd">    p0: Initial parameters.</span>
+<span class="sd">    data: Spectrum with data.</span>
+<span class="sd">    model_function: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">                    (params, (n1,n2...))</span>
+<span class="sd">    lower_bound: Lower bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">                 a bound of None.</span>
+<span class="sd">    upper_bound: Upper bound on parameter values. If not None, must be of same</span>
+<span class="sd">                 length as p0. A parameter can be declared unbound by assigning</span>
+<span class="sd">                 a bound of None.</span>
+<span class="sd">    verbose: If &gt; 0, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">                 standard out.</span>
+<span class="sd">    flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">                 minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    epsilon: Step-size to use for finite-difference derivatives.</span>
+<span class="sd">    pgtol: Convergence criterion for optimization. For more info,</span>
+<span class="sd">          see help(scipy.optimize.fmin_l_bfgs_b)</span>
+<span class="sd">    multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">              data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">              no scaling.</span>
+<span class="sd">    maxiter: Maximum algorithm iterations evaluations to run.</span>
+<span class="sd">    full_output: If True, return full outputs as in described in</span>
+<span class="sd">                 help(scipy.optimize.fmin_bfgs)</span>
+<span class="sd">    func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">               model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">               optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">               for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">               points to use in evaluation.</span>
+<span class="sd">    func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">                  particular values. For example, if the model parameters</span>
+<span class="sd">                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">                  will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">                  T and m. Note that the bounds lists must include all</span>
+<span class="sd">                  parameters. Optimization will fail if the fixed values</span>
+<span class="sd">                  lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">                  in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">    (See help(moments.Inference.optimize_log for examples of func_args and</span>
+<span class="sd">     fixed_params usage.)</span>
+<span class="sd">    ll_scale: The bfgs algorithm may fail if your initial log-likelihood is</span>
+<span class="sd">              too large. (This appears to be a flaw in the scipy</span>
+<span class="sd">              implementation.) To overcome this, pass ll_scale &gt; 1, which will</span>
+<span class="sd">              simply reduce the magnitude of the log-likelihood. Once in a</span>
+<span class="sd">              region of reasonable likelihood, you&#39;ll probably want to</span>
+<span class="sd">              re-optimize with ll_scale=1.</span>
+
+<span class="sd">    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge</span>
+<span class="sd">    Nocedal. The algorithm is described in:</span>
+<span class="sd">      * R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound</span>
+<span class="sd">        Constrained Optimization, (1995), SIAM Journal on Scientific and</span>
+<span class="sd">        Statistical Computing , 16, 5, pp. 1190-1208.</span>
+<span class="sd">      * C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,</span>
+<span class="sd">        FORTRAN routines for large scale bound constrained optimization (1997),</span>
+<span class="sd">        ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">ll_scale</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Make bounds list. For this method it needs to be in terms of log params.</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">))</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_l_bfgs_b</span><span class="p">(</span>
+        <span class="n">_object_func</span><span class="p">,</span>
+        <span class="n">p0</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">iprint</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">pgtol</span><span class="o">=</span><span class="n">pgtol</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">approx_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">info_dict</span> <span class="o">=</span> <span class="n">outputs</span>
+
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">xopt</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">info_dict</span>
+
+
+<span class="k">def</span> <span class="nf">_project_params_down</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Eliminate fixed parameters from pin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;fixed_params list must have same length as input &quot;</span> <span class="s2">&quot;parameter array.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="p">(</span><span class="n">curr_val</span><span class="p">,</span> <span class="n">fixed_val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">fixed_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_val</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pout</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_project_params_up</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fold fixed parameters into pin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">pin</span><span class="p">):</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="p">[</span><span class="n">pin</span><span class="p">]</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">))</span>
+    <span class="n">orig_ii</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">out_ii</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">pin</span><span class="p">[</span><span class="n">orig_ii</span><span class="p">]</span>
+            <span class="n">orig_ii</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_params</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pout</span>
+
+
+<span class="n">index_exp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">index_exp</span>
+
+
+<span class="k">def</span> <span class="nf">optimize_grid</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">grid</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize params to fit model to data using brute force search over a grid.</span>
+
+<span class="sd">    data: Spectrum with data.</span>
+<span class="sd">    model_func: Function to evaluate model spectrum. Should take arguments</span>
+<span class="sd">                (params, (n1,n2...))</span>
+<span class="sd">    grid: Grid of parameter values over which to evaluate likelihood. See</span>
+<span class="sd">          below for specification instructions.</span>
+<span class="sd">    verbose: If &gt; 0, print optimization status every &lt;verbose&gt; steps.</span>
+<span class="sd">    output_file: Stream verbose output into this filename. If None, stream to</span>
+<span class="sd">                 standard out.</span>
+<span class="sd">    flush_delay: Standard output will be flushed once every &lt;flush_delay&gt;</span>
+<span class="sd">                 minutes. This is useful to avoid overloading I/O on clusters.</span>
+<span class="sd">    multinom: If True, do a multinomial fit where model is optimially scaled to</span>
+<span class="sd">              data at each step. If False, assume theta is a parameter and do</span>
+<span class="sd">              no scaling.</span>
+<span class="sd">    full_output: If True, return popt, llopt, grid, llout, thetas. Here popt is</span>
+<span class="sd">                 the best parameter set found and llopt is the corresponding</span>
+<span class="sd">                 (composite) log-likelihood. grid is the array of parameter</span>
+<span class="sd">                 values tried, llout is the corresponding log-likelihoods, and</span>
+<span class="sd">                 thetas is the corresponding thetas. Note that the grid includes</span>
+<span class="sd">                 only the parameters optimized over, and that the order of</span>
+<span class="sd">                 indices is such that grid[:,0,2] would be a set of parameters</span>
+<span class="sd">                 if two parameters were optimized over. (Note the : in the</span>
+<span class="sd">                 first index.)</span>
+<span class="sd">    func_args: Additional arguments to model_func. It is assumed that</span>
+<span class="sd">               model_func&#39;s first argument is an array of parameters to</span>
+<span class="sd">               optimize, that its second argument is an array of sample sizes</span>
+<span class="sd">               for the sfs, and that its last argument is the list of grid</span>
+<span class="sd">               points to use in evaluation.</span>
+<span class="sd">    func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    fixed_params: If not None, should be a list used to fix model parameters at</span>
+<span class="sd">                  particular values. For example, if the model parameters</span>
+<span class="sd">                  are (nu1,nu2,T,m), then fixed_params = [0.5,None,None,2]</span>
+<span class="sd">                  will hold nu1=0.5 and m=2. The optimizer will only change</span>
+<span class="sd">                  T and m. Note that the bounds lists must include all</span>
+<span class="sd">                  parameters. Optimization will fail if the fixed values</span>
+<span class="sd">                  lie outside their bounds. A full-length p0 should be passed</span>
+<span class="sd">                  in; values corresponding to fixed parameters are ignored.</span>
+<span class="sd">    (See help(moments.Inference.optimize_log for examples of func_args and</span>
+<span class="sd">     fixed_params usage.)</span>
+
+<span class="sd">    Search grids are specified using a moments.Inference.index_exp object (which</span>
+<span class="sd">    is an alias for numpy.index_exp). The grid is specified by passing a range</span>
+<span class="sd">    of values for each parameter. For example, index_exp[0:1.1:0.3,</span>
+<span class="sd">    0.7:0.9:11j] will search over parameter 1 with values 0,0.3,0.6,0.9 and</span>
+<span class="sd">    over parameter 2 with 11 points between 0.7 and 0.9 (inclusive). (Notice</span>
+<span class="sd">    the 11j in the second parameter range specification.) Note that the grid</span>
+<span class="sd">    list should include only parameters that are optimized over, not fixed</span>
+<span class="sd">    parameter values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">global</span> <span class="n">_theta_store</span>
+        <span class="n">_theta_store</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">brute</span><span class="p">(</span>
+        <span class="n">_object_func</span><span class="p">,</span> <span class="n">ranges</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="n">full_output</span><span class="p">,</span> <span class="n">finish</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">fout</span> <span class="o">=</span> <span class="n">outputs</span>
+        <span class="c1"># Thetas are stored as a dictionary, because we can&#39;t guarantee</span>
+        <span class="c1"># iteration order in brute(). So we have to iterate back over them</span>
+        <span class="c1"># to produce the proper order to return.</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">fout</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">indices</span><span class="p">,</span> <span class="n">temp</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">fout</span><span class="p">):</span>
+            <span class="c1"># This is awkward, because we need to access grid[:,indices]</span>
+            <span class="n">grid_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
+            <span class="n">thetas</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">_theta_store</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="n">grid_indices</span><span class="p">])]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xopt</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">xopt</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">thetas</span>
+
+
+<span class="k">def</span> <span class="nf">add_misid_param</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">misid_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">misid</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">misid</span><span class="p">)</span> <span class="o">*</span> <span class="n">fs</span> <span class="o">+</span> <span class="n">misid</span> <span class="o">*</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">reverse_array</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">misid_func</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

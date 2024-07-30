@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parsing LD statistics &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Inferring demography with LD" href="inference.html" />
+    <link rel="prev" title="Multi-population LD statistics" href="ld.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsing LD statistics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#binned-ld-decay">Binned LD decay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-from-a-vcf">Parsing from a VCF</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-a-recombination-map">Using a recombination map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populations-and-pop-file">Populations and pop-file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#masking-and-using-bed-files">Masking and using bed files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-a-subset-of-statistics">Computing a subset of statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phased-vs-unphased-data">Phased vs unphased data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-averages-and-covariances-over-regions">Computing averages and covariances over regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrapping-over-multiple-regions">Bootstrapping over multiple regions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ld-statistics-in-genotype-blocks">LD statistics in genotype blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Parsing LD statistics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/ld/parsing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <blockquote>
+<div></div></blockquote>
+<div class="jupyter_cell docutils container" id="sec-ld-parsing">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="parsing-ld-statistics">
+<h1>Parsing LD statistics<a class="headerlink" href="#parsing-ld-statistics" title="Link to this heading"></a></h1>
+<p>As described in the <a class="reference external" href="sec_ld">multi-population LD section</a>, we are interested
+in <span class="math notranslate nohighlight">\(\sigma_d^2\)</span>-type statistics, which is the ratio of expectations of
+<span class="math notranslate nohighlight">\(D^2\)</span> and <span class="math notranslate nohighlight">\(\pi_2 = p(1-p)q(1-q)\)</span>. Again, <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(q\)</span>
+are the allele frequencies at the left and right loci.</p>
+<p>To estimate these statistics from data, we take the average of each LD statistic
+over all pairs of observed (biallelic) SNPs at a given recombination distance,
+and then divide by the observed <span class="math notranslate nohighlight">\(\pi_2\)</span> in one of the populations (the
+“normalizing” population). As described below, we also use a block bootstrapping
+approach to estimate variances and covariances of observed statistics at each
+recombination distance, which is used in
+<a class="reference external" href="sec_ld_inference">inference and computing confidence intervals</a>.</p>
+<section id="binned-ld-decay">
+<h2>Binned LD decay<a class="headerlink" href="#binned-ld-decay" title="Link to this heading"></a></h2>
+<p>To estimate LD decay curves from the data, we bin all pairs of observed SNPs by
+recombination distance. While we can bin by physical distance (bps) separating
+SNPs, genetic maps are non-uniform and physical distance does not perfectly
+correlate with genetic distance at small scales. If we have a recombination map
+available, it is preferable to compute and compare statistics using that map.</p>
+<p>Recombination rate bins are defined by bin edges, which is a list or array with
+length equal to the number of desired bins plus one. Bin edges should be
+monotonically increasing, and are thus adjacent without gaps between bins. Thus,
+bins are defined as semi-open intervals:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments.LD</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">bin_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bins:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">b_l</span><span class="p">,</span> <span class="n">b_r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">b_l</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">b_r</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Bins:
+[0.0, 1e-06)
+[1e-06, 1e-05)
+[1e-05, 0.0001)
+</pre></div>
+</div>
+</div>
+</div>
+<p>There are a few considerations to keep in mind. In practice, very short distances
+can be problematic, because “non-standard” evolutionary processes can distort
+allele frequency correlations for tightly linked loci. For example, our evolutionary
+model does not include multi-nucleotide mutations <a class="reference internal" href="#harris2014" id="id1"><span>[Harris2014]</span></a> or gene conversion
+<a class="reference internal" href="#ardlie2001" id="id2"><span>[Ardlie2001]</span></a>, both of which operate at short distances.</p>
+<p>Thus, when working with real data we recommend omitting bins of very short
+recombination distances. In practice, we typically drop bins with length less
+than <span class="math notranslate nohighlight">\(r=5\times 10^{-6}\)</span>, which corresponds to roughly a few hundred bp on
+average in humans.</p>
+</section>
+<section id="parsing-from-a-vcf">
+<h2>Parsing from a VCF<a class="headerlink" href="#parsing-from-a-vcf" title="Link to this heading"></a></h2>
+<p>The primary function of the <code class="docutils literal notranslate"><span class="pre">Parsing</span></code> module is computing LD statistics from an
+input VCF. There are a number of options available, but the primary inputs are
+the path to the VCF file and the bins of distances separating loci. Typically, we
+work in recombination distance, in which case a recombination map is also required.
+If we do not have a recombination map available, we can bin by base pair distances
+instead.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.compute_ld_statistics</span></code> returns a dictionary with
+the bins, returned statistics, populations, and <cite>sums</cite> of each statistic over the
+provided bins. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">r_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">ld_stats</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span>
+    <span class="n">vcf_path</span><span class="p">,</span> <span class="n">r_bins</span><span class="o">=</span><span class="n">r_bins</span><span class="p">,</span> <span class="n">rec_map_file</span><span class="o">=</span><span class="n">map_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="using-a-recombination-map">
+<h3>Using a recombination map<a class="headerlink" href="#using-a-recombination-map" title="Link to this heading"></a></h3>
+<p>The input recombination map is specified as a text file, with the first column giving
+positions along the chromosome and additional column(s) defining the cumulative map(s),
+typically in units of cM. The header line is “Pos Map1 Map2 (etc)”, and we can use
+any map in the file by specifying the <code class="docutils literal notranslate"><span class="pre">map_name</span></code>. If no map name is given, or the
+specified map name does not match a genetic map in the header, we use the map in the
+first column.</p>
+<p>Typically, maps are given in units of centi-Morgans, and the default behavior is to
+assume cM units. If the map is given in units of Morgans, we need to set <code class="docutils literal notranslate"><span class="pre">cM=False</span></code>.</p>
+</section>
+<section id="populations-and-pop-file">
+<h3>Populations and pop-file<a class="headerlink" href="#populations-and-pop-file" title="Link to this heading"></a></h3>
+<p>We often have data from more than one population, so we need to be able to specify
+which samples in the VCF correspond to which populations. This is handled by passing
+a file that assigns each sample to a population. For example, the population file is
+written as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span>  <span class="n">pop</span>
+<span class="n">sid_0</span>   <span class="n">pop_A</span>
+<span class="n">sid_1</span>   <span class="n">pop_B</span>
+<span class="n">sid_2</span>   <span class="n">pop_A</span>
+<span class="n">sid_3</span>   <span class="n">pop_A</span>
+<span class="n">sid_4</span>   <span class="n">pop_B</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Then to include the population information in the function, we also pass a list
+of the populations to compute statistics for. Samples from omitted populations
+are dropped from the data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pops</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pop_A&quot;</span><span class="p">,</span> <span class="s2">&quot;pop_B&quot;</span><span class="p">]</span>
+<span class="n">ld_stats</span> <span class="o">=</span> <span class="n">ld_stats</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span>
+    <span class="n">vcf_path</span><span class="p">,</span>
+    <span class="n">r_bins</span><span class="o">=</span><span class="n">r_bins</span><span class="p">,</span>
+    <span class="n">rec_map_file</span><span class="o">=</span><span class="n">map_path</span><span class="p">,</span>
+    <span class="n">pop_file</span><span class="o">=</span><span class="n">pop_file_path</span><span class="p">,</span>
+    <span class="n">pops</span><span class="o">=</span><span class="n">pops</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="masking-and-using-bed-files">
+<h3>Masking and using bed files<a class="headerlink" href="#masking-and-using-bed-files" title="Link to this heading"></a></h3>
+<p>If there are multiple chromosomes or contigs included in the VCF, we specify
+which chromosome to compute statistics for by setting the <code class="docutils literal notranslate"><span class="pre">chromosome</span></code> flag.
+We can also subset a chromosome by including a bed file, which will filter out
+all SNPs that fall outside the region intervals given in the bed file. Bed files
+have the format <code class="docutils literal notranslate"><span class="pre">{chrom}\t{left_pos}\t{right_pos}</span></code>, which defines a semi-open
+interval. The path to the bed file is provided with the <code class="docutils literal notranslate"><span class="pre">bed_file</span></code> argument.</p>
+</section>
+<section id="computing-a-subset-of-statistics">
+<h3>Computing a subset of statistics<a class="headerlink" href="#computing-a-subset-of-statistics" title="Link to this heading"></a></h3>
+<p>Sometimes we may wish to only compute a subset of possible LD statistics. By
+default, the parsing function computes all statistics possible for the number
+of populations provided. Instead, we can specify the <code class="docutils literal notranslate"><span class="pre">stats_to_compute</span></code>, which
+is a list (of length 2) of lists. The first list are the LD statistics to return,
+and the second list has the heterozygosity statistics to return. Statistic names
+follow the convention in <code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>, and should
+be formatted accordingly.</p>
+</section>
+<section id="phased-vs-unphased-data">
+<h3>Phased vs unphased data<a class="headerlink" href="#phased-vs-unphased-data" title="Link to this heading"></a></h3>
+<p>We can compute LD statistics from either phased or unphased data. The default
+behavior is to assume that phasing is unknown, and <code class="docutils literal notranslate"><span class="pre">use_genotypes</span></code> is
+<code class="docutils literal notranslate"><span class="pre">True</span></code> by default. If we want to compute LD using phased data, we set
+<code class="docutils literal notranslate"><span class="pre">use_genotypes=False</span></code>, and parsing uses phased haplotypes instead. In
+general, phasing errors can bias LD statistics, sometimes significantly, and
+using genotypes instead of haplotypes only slightly increases uncertainty in
+most cases. Therefore, we usually recommend leaving <code class="docutils literal notranslate"><span class="pre">use_genotypes=True</span></code>.</p>
+</section>
+</section>
+<section id="computing-averages-and-covariances-over-regions">
+<h2>Computing averages and covariances over regions<a class="headerlink" href="#computing-averages-and-covariances-over-regions" title="Link to this heading"></a></h2>
+<p>From <code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.compute_ld_statistics()</span></code>, we get LD statistic sums
+from the regions in a VCF, perhaps constrained by a bed file. Our strategy is
+to divide our data into some large number of roughly equally sized chunks, for
+example 500 regions across all 22 autosomes in human data. We then compute LD
+statistics independently for each region (it helps to parallelize that step,
+using a compute cluster). From those outputs, we can then compute average
+statistics genome-wide, as well as covariances of statistics within each bin.
+Those covariances are needed to be able to compute likelihoods and run
+optimization.</p>
+<p>The outputs of <code class="docutils literal notranslate"><span class="pre">compute_ld_statistics</span></code> are compiled in a dictionary, where
+the keys are unique region identifiers, and items the outputs of that function.
+For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">region_stats</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span><span class="n">VCF</span><span class="p">,</span> <span class="n">bed_file</span><span class="o">=</span><span class="s2">&quot;region_0.bed&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span><span class="n">VCF</span><span class="p">,</span> <span class="n">bed_file</span><span class="o">=</span><span class="s2">&quot;region_1.bed&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span><span class="n">VCF</span><span class="p">,</span> <span class="n">bed_file</span><span class="o">=</span><span class="s2">&quot;region_2.bed&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Mean and variance-covariance matrices are computed by calling
+<code class="docutils literal notranslate"><span class="pre">bootstrap_data</span></code>, passing the region statistics dictionary, and optionally
+the index of the population to normalize <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> statistics by. By
+default, the normalizing population is the first (index 0).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mv</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">bootstrap_data</span><span class="p">(</span><span class="n">region_stats</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">mv</span></code> contains the bins, statistics, and populations, as well as lists of mean
+statistics and variance-covariance matrices. This data can then be directly
+compared to model expectations and used in inference.</p>
+</section>
+<section id="example">
+<span id="sec-ld-parsing-example"></span><h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>Using <a class="reference external" href="https://tskit.dev/msprime/docs/latest/intro.html">msprime</a>
+<a class="reference internal" href="#kelleher2016" id="id3"><span>[Kelleher2016]</span></a>, we’ll simulate some data under an isolation-with-migration
+(IM) model and then compute LD and heterozygosity statistics using the
+<code class="docutils literal notranslate"><span class="pre">LD.Parsing</span></code> methods. First, the simulation will use the
+<code class="docutils literal notranslate"><span class="pre">demes</span></code>-<code class="docutils literal notranslate"><span class="pre">msprime</span></code> interface, which are then written as a VCF.</p>
+<p>The YAML-file specifying the model is</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A simple isolation-with-migration model</span>
+<span class="nt">time_units</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generations</span>
+<span class="nt">demes</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anc</span>
+<span class="w">  </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="nv">10000</span><span class="p p-Indicator">,</span><span class="nt"> end_time</span><span class="p">:</span><span class="w"> </span><span class="nv">1500</span><span class="p p-Indicator">}]</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deme0</span>
+<span class="w">  </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">anc</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="nv">2000</span><span class="p p-Indicator">}]</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deme1</span>
+<span class="w">  </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">anc</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="nv">20000</span><span class="p p-Indicator">}]</span>
+<span class="nt">migrations</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">deme0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deme1</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-4</span>
+</pre></div>
+</div>
+<p>And we use msprime to simulate 1Mb of data, using a constant recombination
+and mutation rate.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">msprime</span>
+<span class="kn">import</span> <span class="nn">demes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># set up simulation parameters</span>
+<span class="n">L</span> <span class="o">=</span> <span class="mf">1e6</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="mf">1.5e-8</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data/im-parsing-example.yaml&quot;</span><span class="p">)</span>
+<span class="n">demog</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">Demography</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+<span class="n">trees</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">sim_ancestry</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">&quot;deme0&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">},</span>
+    <span class="n">demography</span><span class="o">=</span><span class="n">demog</span><span class="p">,</span>
+    <span class="n">sequence_length</span><span class="o">=</span><span class="n">L</span><span class="p">,</span>
+    <span class="n">recombination_rate</span><span class="o">=</span><span class="n">r</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">321</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">trees</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">sim_mutations</span><span class="p">(</span><span class="n">trees</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data/im-parsing-example.vcf&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">trees</span><span class="o">.</span><span class="n">write_vcf</span><span class="p">(</span><span class="n">fout</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This simulation had 10 diploid individuals per population, and
+<code class="docutils literal notranslate"><span class="pre">msprime</span></code>/<code class="docutils literal notranslate"><span class="pre">tskit</span></code> writes their IDs as <code class="docutils literal notranslate"><span class="pre">tsk_0</span></code>, <code class="docutils literal notranslate"><span class="pre">tsk_1</span></code>, etc:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">##fileformat=VCFv4.2</span>
+<span class="c1">##source=tskit 0.3.5</span>
+<span class="c1">##FILTER=&lt;ID=PASS,Description=&quot;All filters passed&quot;&gt;</span>
+<span class="c1">##contig=&lt;ID=1,length=1000000&gt;</span>
+<span class="c1">##FORMAT=&lt;ID=GT,Number=1,Type=String,Description=&quot;Genotype&quot;&gt;</span>
+<span class="c1">#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	tsk_0	tsk_1	tsk_2	tsk_3	tsk_4	tsk_5	tsk_6	tsk_7	tsk_8	tsk_9	tsk_10	tsk_11	tsk_12	tsk_13	tsk_14	tsk_15	tsk_16	tsk_17	tsk_18	tsk_19</span>
+<span class="mi">1</span>	<span class="mi">221</span>	<span class="o">.</span>	<span class="n">A</span>	<span class="n">T</span>	<span class="o">.</span>	<span class="n">PASS</span>	<span class="o">.</span>	<span class="n">GT</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>
+<span class="mi">1</span>	<span class="mi">966</span>	<span class="o">.</span>	<span class="n">A</span>	<span class="n">C</span>	<span class="o">.</span>	<span class="n">PASS</span>	<span class="o">.</span>	<span class="n">GT</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>
+<span class="mi">1</span>	<span class="mi">1082</span>	<span class="o">.</span>	<span class="n">G</span>	<span class="n">A</span>	<span class="o">.</span>	<span class="n">PASS</span>	<span class="o">.</span>	<span class="n">GT</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>
+<span class="mi">1</span>	<span class="mi">1133</span>	<span class="o">.</span>	<span class="n">G</span>	<span class="n">T</span>	<span class="o">.</span>	<span class="n">PASS</span>	<span class="o">.</span>	<span class="n">GT</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">1</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">1</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>	<span class="mi">0</span><span class="o">|</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>To parse this data, we need the file that maps samples to populations and
+the recombination map file (the total map length is found by
+<span class="math notranslate nohighlight">\(1 \times 10^{6} \text{ bp} \times 1.5 \times 10^{-8} \text{ M/bp} \times 100 \text{ cM/M}\)</span>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span>  <span class="n">pop</span>
+<span class="n">tsk_0</span>   <span class="n">deme0</span>
+<span class="n">tsk_1</span>   <span class="n">deme0</span>
+<span class="n">tsk_2</span>   <span class="n">deme0</span>
+<span class="n">tsk_3</span>   <span class="n">deme0</span>
+<span class="n">tsk_4</span>   <span class="n">deme0</span>
+<span class="n">tsk_5</span>   <span class="n">deme0</span>
+<span class="n">tsk_6</span>   <span class="n">deme0</span>
+<span class="n">tsk_7</span>   <span class="n">deme0</span>
+<span class="n">tsk_8</span>   <span class="n">deme0</span>
+<span class="n">tsk_9</span>   <span class="n">deme0</span>
+<span class="n">tsk_10</span>  <span class="n">deme1</span>
+<span class="n">tsk_11</span>  <span class="n">deme1</span>
+<span class="n">tsk_12</span>  <span class="n">deme1</span>
+<span class="n">tsk_13</span>  <span class="n">deme1</span>
+<span class="n">tsk_14</span>  <span class="n">deme1</span>
+<span class="n">tsk_15</span>  <span class="n">deme1</span>
+<span class="n">tsk_16</span>  <span class="n">deme1</span>
+<span class="n">tsk_17</span>  <span class="n">deme1</span>
+<span class="n">tsk_18</span>  <span class="n">deme1</span>
+<span class="n">tsk_19</span>  <span class="n">deme1</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Pos</span> <span class="n">Map</span><span class="p">(</span><span class="n">cM</span><span class="p">)</span>
+<span class="mi">0</span>   <span class="mi">0</span>
+<span class="mi">1000000</span> <span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>With all this, we can now compute LD based on recombination distance bins:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">r_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">2e-6</span><span class="p">,</span> <span class="mf">5e-6</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">2e-5</span><span class="p">,</span> <span class="mf">5e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">2e-4</span><span class="p">,</span> <span class="mf">5e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">vcf_file</span> <span class="o">=</span> <span class="s2">&quot;data/im-parsing-example.vcf&quot;</span>
+<span class="n">map_file</span> <span class="o">=</span> <span class="s2">&quot;data/im-parsing-example.map.txt&quot;</span>
+<span class="n">pop_file</span> <span class="o">=</span> <span class="s2">&quot;data/im-parsing-example.samples.pops.txt&quot;</span>
+<span class="n">pops</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;deme0&quot;</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">]</span>
+<span class="n">ld_stats</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_ld_statistics</span><span class="p">(</span>
+    <span class="n">vcf_file</span><span class="p">,</span>
+    <span class="n">rec_map_file</span><span class="o">=</span><span class="n">map_file</span><span class="p">,</span>
+    <span class="n">pop_file</span><span class="o">=</span><span class="n">pop_file</span><span class="p">,</span>
+    <span class="n">pops</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme0&quot;</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">],</span>
+    <span class="n">r_bins</span><span class="o">=</span><span class="n">r_bins</span><span class="p">,</span>
+    <span class="n">report</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The output, <code class="docutils literal notranslate"><span class="pre">ld_stats</span></code>, is a dictionary with the keys <code class="docutils literal notranslate"><span class="pre">bins</span></code>, <code class="docutils literal notranslate"><span class="pre">stats</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pops</span></code>, and <code class="docutils literal notranslate"><span class="pre">sums</span></code>. To get the average statistics over multiple regions
+(here, we only have a single region that we simulated), we use
+<code class="docutils literal notranslate"><span class="pre">means_from_region_data</span></code>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">means</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">means_from_region_data</span><span class="p">(</span>
+    <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">ld_stats</span><span class="p">},</span> <span class="n">ld_stats</span><span class="p">[</span><span class="s2">&quot;stats&quot;</span><span class="p">],</span> <span class="n">norm_idx</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>This provides <span class="math notranslate nohighlight">\(\sigma_d^2\)</span>-type statistics relative to <cite>pi_2</cite> in
+<code class="docutils literal notranslate"><span class="pre">deme0</span></code>, and relative heterozygosities (also relative to <code class="docutils literal notranslate"><span class="pre">deme0</span></code>).
+These statistics were computed from only a single relatively small region,
+so they will be quite noisy. But we can still compare to expectations under
+the input IM demographic model.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">demes</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data/im-parsing-example.yaml&quot;</span><span class="p">)</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span>
+    <span class="n">g</span><span class="p">,</span>
+    <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme0&quot;</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">],</span>
+    <span class="n">rho</span><span class="o">=</span><span class="mi">4</span> <span class="o">*</span> <span class="n">g</span><span class="p">[</span><span class="s2">&quot;anc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">epochs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start_size</span> <span class="o">*</span> <span class="n">r_bins</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># stats are computed at the bin edges - average to get midpoint estimates</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">LDstats</span><span class="p">(</span>
+    <span class="p">[(</span><span class="n">y_l</span> <span class="o">+</span> <span class="n">y_r</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">y_l</span><span class="p">,</span> <span class="n">y_r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">+</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+    <span class="n">num_pops</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span>
+    <span class="n">pop_ids</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># plot LD decay curves for some statistics</span>
+<span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_ld_curves_comp</span><span class="p">(</span>
+    <span class="n">y</span><span class="p">,</span>
+    <span class="n">means</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">[],</span>
+    <span class="n">rs</span><span class="o">=</span><span class="n">r_bins</span><span class="p">,</span>
+    <span class="n">stats_to_plot</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;DD_0_0&quot;</span><span class="p">,</span> <span class="s2">&quot;DD_0_1&quot;</span><span class="p">,</span> <span class="s2">&quot;DD_1_1&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;Dz_0_0_0&quot;</span><span class="p">,</span> <span class="s2">&quot;Dz_0_1_1&quot;</span><span class="p">,</span> <span class="s2">&quot;Dz_1_1_1&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;pi2_0_0_1_1&quot;</span><span class="p">,</span> <span class="s2">&quot;pi2_0_1_0_1&quot;</span><span class="p">,</span> <span class="s2">&quot;pi2_1_1_1_1&quot;</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">[[</span><span class="sa">r</span><span class="s2">&quot;$D_0^2$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$D_0 D_1$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$D_1^2$&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$Dz_{0,0,0}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$Dz_{0,1,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$Dz_{1,1,1}$&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\pi_{2;0,0,1,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi_{2;0,1,0,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi_{2;1,1,1,1}$&quot;</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="n">plot_vcs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fig_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/parsing_4_0.png" src="../_images/parsing_4_0.png" />
+</div>
+</div>
+<section id="bootstrapping-over-multiple-regions">
+<h3>Bootstrapping over multiple regions<a class="headerlink" href="#bootstrapping-over-multiple-regions" title="Link to this heading"></a></h3>
+<p>Normally, we’ll want more data than from a single 1Mb region to compute
+averages and variances of statistics. Using the same approach as the above
+example, <code class="docutils literal notranslate"><span class="pre">ld_stats</span></code> for 100 replicates we computed (see example in the
+<code class="docutils literal notranslate"><span class="pre">moments</span></code> repository <a class="reference external" href="https://github.com/MomentsLD/moments/tree/main/examples/LD">here</a>). From
+this, each replicate set of statistics were placed in a dictionary, as
+<code class="docutils literal notranslate"><span class="pre">rep_stats</span> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">ld_stats_0,</span> <span class="pre">1:</span> <span class="pre">ld_stats_1,</span> <span class="pre">...,</span> <span class="pre">99:</span> <span class="pre">ld_stats_99}</span></code>. This
+dictionary can then be used to compute means and covariances of statistics.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mv</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">bootstrap_data</span><span class="p">(</span><span class="n">ld_stats</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>By simulating more data, the LD decay curves are much less noisy, and by
+simulating multiple replicates, we also compute the variance-covariance
+matrices for each bin and can include standard errors in the plots.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot LD decay curves for some statistics</span>
+<span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_ld_curves_comp</span><span class="p">(</span>
+    <span class="n">y</span><span class="p">,</span>
+    <span class="n">mv</span><span class="p">[</span><span class="s2">&quot;means&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">mv</span><span class="p">[</span><span class="s2">&quot;varcovs&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">rs</span><span class="o">=</span><span class="n">r_bins</span><span class="p">,</span>
+    <span class="n">stats_to_plot</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;DD_0_0&quot;</span><span class="p">,</span> <span class="s2">&quot;DD_0_1&quot;</span><span class="p">,</span> <span class="s2">&quot;DD_1_1&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;Dz_0_0_0&quot;</span><span class="p">,</span> <span class="s2">&quot;Dz_0_1_1&quot;</span><span class="p">,</span> <span class="s2">&quot;Dz_1_1_1&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;pi2_0_0_1_1&quot;</span><span class="p">,</span> <span class="s2">&quot;pi2_0_1_0_1&quot;</span><span class="p">,</span> <span class="s2">&quot;pi2_1_1_1_1&quot;</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">[[</span><span class="sa">r</span><span class="s2">&quot;$D_0^2$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$D_0 D_1$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$D_1^2$&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$Dz_{0,0,0}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$Dz_{0,1,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$Dz_{1,1,1}$&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\pi_{2;0,0,1,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi_{2;0,1,0,1}$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi_{2;1,1,1,1}$&quot;</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="n">plot_vcs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">fig_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/parsing_6_0.png" src="../_images/parsing_6_0.png" />
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The means-covariances data is required for inference using LD statistics.
+In <a class="reference internal" href="inference.html#sec-ld-inference"><span class="std std-ref">Inferring demography with LD</span></a>, we’ll use the
+same <code class="docutils literal notranslate"><span class="pre">mv</span></code> data dictionary to refit the IM model as an example.</p>
+</div>
+</section>
+</section>
+<section id="ld-statistics-in-genotype-blocks">
+<h2>LD statistics in genotype blocks<a class="headerlink" href="#ld-statistics-in-genotype-blocks" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing</span></code> also includes some functions for computing LD from
+genotype (or haplotype) blocks. Genotype blocks are arrays of shape
+<span class="math notranslate nohighlight">\(L\times n\)</span>, where <em>L</em> is the number of loci and <em>n</em> is the sample size.
+We assume a single population, and so we compute <span class="math notranslate nohighlight">\(D^2\)</span>, <span class="math notranslate nohighlight">\(Dz\)</span>,
+<span class="math notranslate nohighlight">\(\pi_2\)</span>, and <span class="math notranslate nohighlight">\(D\)</span>, either pairwise or averaged over all pairwise
+comparisons.</p>
+<p>If we have a genotype matrix containing <em>n</em> diploid samples, genotypes are
+coded as 0, 1, and 2, and we set <code class="docutils literal notranslate"><span class="pre">genotypes=True</span></code>. If we have a haplotype
+matrix with data from <em>n</em> haploid copies, genotypes are coded as 0 and 1 only,
+and we set <code class="docutils literal notranslate"><span class="pre">genotypes=False</span></code>.</p>
+<p>For example, given a single genotype matrix, we compute all pairwise statistics
+and average statistics as shown below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">L</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># all pairwise comparisons:</span>
+<span class="n">D2_pw</span><span class="p">,</span> <span class="n">Dz_pw</span><span class="p">,</span> <span class="n">pi2_pw</span><span class="p">,</span> <span class="n">D_pw</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_pairwise_stats</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+
+<span class="c1"># averages:</span>
+<span class="n">D2_ave</span><span class="p">,</span> <span class="n">Dz_ave</span><span class="p">,</span> <span class="n">pi2_ave</span><span class="p">,</span> <span class="n">D_ave</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_average_stats</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similarly, we can compute the pairwise or average statistics between two
+genotype matrices. The matrices can have differing number of loci, but they
+must have the same number of samples, as the genotype matrices are assumed to
+come from different regions within the same samples.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L2</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">G2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">L2</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">L2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># all pairwise comparisons:</span>
+<span class="n">D2_pw</span><span class="p">,</span> <span class="n">Dz_pw</span><span class="p">,</span> <span class="n">pi2_pw</span><span class="p">,</span> <span class="n">D_pw</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_pairwise_stats_between</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">G2</span><span class="p">)</span>
+
+<span class="c1"># averages:</span>
+<span class="n">D2_ave</span><span class="p">,</span> <span class="n">Dz_ave</span><span class="p">,</span> <span class="n">pi2_ave</span><span class="p">,</span> <span class="n">D_ave</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_average_stats_between</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">G2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Computing LD in genotype blocks uses C-extensions that are not built by
+default, so are only available if these are built when compiling the
+C-extensions. In order to use these methods, we need to build these
+extensions using the <code class="docutils literal notranslate"><span class="pre">--ld_extensions</span></code> flag, as <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span>
+<span class="pre">build_ext</span> <span class="pre">--ld_extensions</span> <span class="pre">-i</span></code>.</p>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="ardlie2001" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Ardlie2001</a><span class="fn-bracket">]</span></span>
+<p>Ardlie, Kristin, et al. “Lower-than-expected linkage disequilibrium between
+tightly linked markers in humans suggests a role for gene conversion.”
+<em>The American Journal of Human Genetics</em> 69.3 (2001): 582-589.</p>
+</div>
+<div class="citation" id="harris2014" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Harris2014</a><span class="fn-bracket">]</span></span>
+<p>Harris, Kelley, and Rasmus Nielsen. “Error-prone polymerase activity causes
+multinucleotide mutations in humans.” <em>Genome research</em> 24.9 (2014): 1445-1454.</p>
+</div>
+<div class="citation" id="kelleher2016" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Kelleher2016</a><span class="fn-bracket">]</span></span>
+<p>Kelleher, Jerome, Alison M. Etheridge, and Gilean McVean. “Efficient
+coalescent simulation and genealogical analysis for large sample sizes.”
+<em>PLoS computational biology</em> 12.5 (2016): e1004842.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ld.html" class="btn btn-neutral float-left" title="Multi-population LD statistics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="inference.html" class="btn btn-neutral float-right" title="Inferring demography with LD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

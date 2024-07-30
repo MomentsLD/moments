@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Specifying models with demes &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Two-locus frequency spectrum" href="two_locus.html" />
+    <link rel="prev" title="Inferring demography with LD" href="../ld/inference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-demes">What is <code class="docutils literal notranslate"><span class="pre">demes</span></code>?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulating-the-sfs-and-ld-using-a-demes-model">Simulating the SFS and LD using a <code class="docutils literal notranslate"><span class="pre">demes</span></code> model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ancient-samples">Ancient samples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#alternative-samples-specification">Alternative samples specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linkage-disequilibrium">Linkage disequilibrium</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mutation-rates-selection-and-scaling-of-the-sfs">Mutation rates, selection, and scaling of the SFS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mutation-rates-and-sequence-length">Mutation rates and sequence length</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selection-and-dominance">Selection and dominance</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-demes-to-infer-demography">Using <code class="docutils literal notranslate"><span class="pre">Demes</span></code> to infer demography</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-options-file">The options file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-inference-function">The inference function</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#single-population-inference-example">Single-population inference example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-the-results">Plotting the results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-confidence-intervals">Computing confidence intervals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#two-population-inference-and-uncertainty-example">Two-population inference and uncertainty example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/extensions/demes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="specifying-models-with-demes">
+<h1>Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code><a class="headerlink" href="#specifying-models-with-demes" title="Link to this heading"></a></h1>
+<p><strong>New</strong> in version 1.1, <code class="docutils literal notranslate"><span class="pre">moments</span></code> can compute the SFS and LD statistics
+directly from a <code class="docutils literal notranslate"><span class="pre">demes</span></code>-formatted demographic model. To learn about how to
+describe a demographic model using <code class="docutils literal notranslate"><span class="pre">demes</span></code>, head to the <a class="reference external" href="https://github.com/popsim-consortium/demes-python">demes repository</a> or <a class="reference external" href="https://popsim-consortium.github.io/demes-docs/main/index.html">documentation</a> to learn
+about specifying multi-population demographic models using <code class="docutils literal notranslate"><span class="pre">demes</span></code>.</p>
+<section id="what-is-demes">
+<h2>What is <code class="docutils literal notranslate"><span class="pre">demes</span></code>?<a class="headerlink" href="#what-is-demes" title="Link to this heading"></a></h2>
+<p>Demographic models specify the historical size changes, migrations, splits and
+mergers of related populations. Specifying demographic models using <code class="docutils literal notranslate"><span class="pre">moments</span></code>
+or practically any other simulation engine can become very complicated and
+error prone, especially when we want to model more than one population (e.g.
+<a class="reference internal" href="../ld/ld.html#ragsdale2020" id="id1"><span>[Ragsdale2020]</span></a>). Even worse, every individual software has its own language and
+methods for specifying a demographic model, so a user has to reimplement the
+same model across multiple software, which nobody enjoys. To resolve these
+issues of reproducibility, replication, and susceptibility to errors, <code class="docutils literal notranslate"><span class="pre">demes</span></code>
+provides a human-readable specification of complex demography that is designed
+to make it easier to implement and share models and to be able to use that
+demography with multiple simulation engines.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Demes</span></code> models are written in YAML, and they are then automatically parsed to
+create an internal representation of the demography that is readable by
+<code class="docutils literal notranslate"><span class="pre">moments</span></code>. <code class="docutils literal notranslate"><span class="pre">moments</span></code> can then iterate through the epochs and demographic
+events in that model and compute the SFS or LD.</p>
+</section>
+<section id="simulating-the-sfs-and-ld-using-a-demes-model">
+<h2>Simulating the SFS and LD using a <code class="docutils literal notranslate"><span class="pre">demes</span></code> model<a class="headerlink" href="#simulating-the-sfs-and-ld-using-a-demes-model" title="Link to this heading"></a></h2>
+<p>Computing expectations for the SFS or LD using a <code class="docutils literal notranslate"><span class="pre">demes</span></code> model is designed to
+be as simple as possible. In fact, there is no need for the user to specify any
+demographic events or integrate the SFS or LD objects. <code class="docutils literal notranslate"><span class="pre">moments</span></code> does all of
+that for you.</p>
+<p>It’s easiest to see the functionality through example. In the tests directory,
+there is a YAML description of the <a class="reference internal" href="#gutenkunst2009" id="id2"><span>[Gutenkunst2009]</span></a> Out-of-African model:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The Gutenkunst et al. (2009) three-population model of human history.</span>
+<span class="nt">doi</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://doi.org/10.1371/journal.pgen.1000695</span>
+<span class="nt">time_units</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">years</span>
+<span class="nt">generation_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span>
+<span class="nt">demes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ancestral</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Equilibrium/root population</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">220e3</span>
+<span class="w">      </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7300</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AMH</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Anatomically modern humans</span>
+<span class="w">    </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ancestral</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">140e3</span>
+<span class="w">      </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12300</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OOA</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bottleneck out-of-Africa population</span>
+<span class="w">    </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">AMH</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21.2e3</span>
+<span class="w">      </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2100</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YRI</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Yoruba in Ibadan, Nigeria</span>
+<span class="w">    </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">AMH</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12300</span>
+<span class="w">      </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CEU</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Utah Residents (CEPH) with Northern and Western European Ancestry</span>
+<span class="w">    </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">OOA</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">      </span><span class="nt">end_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">29725</span>
+<span class="w">      </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CHB</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Han Chinese in Beijing, China</span>
+<span class="w">    </span><span class="nt">ancestors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">OOA</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">510</span>
+<span class="w">      </span><span class="nt">end_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">54090</span>
+<span class="w">      </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">migrations</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">YRI</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">OOA</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25e-5</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">YRI</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CEU</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3e-5</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">YRI</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CHB</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.9e-5</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">CEU</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CHB</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9.6e-5</span>
+</pre></div>
+</div>
+<p>This model describes all the populations (demes), their sizes and times of
+existence, their relationships to other demes (ancestors and descendents), and
+migration between them. To simulate using this model, we just need to specify
+the populations that we want to sample lineages from, the sample size in each
+population, and (optionally) the time of sampling. If sampling times are not
+given we assume we sample at present time. Ancient samples can be specified by
+setting sampling times greater than 0.</p>
+<p>Let’s simulate 10 samples from each YRI, CEU, and CHB:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">ooa_model</span> <span class="o">=</span> <span class="s2">&quot;../tests/test_files/gutenkunst_ooa.yaml&quot;</span>
+
+<span class="c1"># we can visualize the model using demesdraw</span>
+<span class="kn">import</span> <span class="nn">demes</span><span class="o">,</span> <span class="nn">demesdraw</span><span class="o">,</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ooa_model</span><span class="p">)</span>
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">tubes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">log_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_lines_per_migration</span><span class="o">=</span><span class="mi">3</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/demes_1_0.png" src="../_images/demes_1_0.png" />
+</div>
+</div>
+<p>Let’s simulate 10 samples from each YRI, CEU, and CHB:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;YRI&quot;</span><span class="p">,</span> <span class="s2">&quot;CEU&quot;</span><span class="p">,</span> <span class="s2">&quot;CHB&quot;</span><span class="p">]</span>
+<span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+    <span class="n">ooa_model</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span> <span class="n">sample_sizes</span><span class="o">=</span><span class="n">sample_sizes</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;populations:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sample sizes:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FST:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fs</span><span class="o">.</span><span class="n">Fst</span><span class="p">(</span><span class="n">pairwise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>populations: [&#39;YRI&#39;, &#39;CEU&#39;, &#39;CHB&#39;]
+sample sizes: [10 10 10]
+FST:
+  YRI, CEU: 0.189
+  YRI, CHB: 0.205
+  CEU, CHB: 0.147
+</pre></div>
+</div>
+</div>
+</div>
+<p>It’s that simple. We can also simulate data for a subset of the populations,
+while still accounting for migration with other non-sampled populations:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;YRI&quot;</span><span class="p">]</span>
+<span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">40</span><span class="p">]</span>
+
+<span class="n">fs_yri</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+     <span class="n">ooa_model</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span> <span class="n">sample_sizes</span><span class="o">=</span><span class="n">sample_sizes</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;populations:&quot;</span><span class="p">,</span> <span class="n">fs_yri</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sample sizes:&quot;</span><span class="p">,</span> <span class="n">fs_yri</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tajima&#39;s D =&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs_yri</span><span class="o">.</span><span class="n">Tajima_D</span><span class="p">()</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>populations: [&#39;YRI&#39;]
+sample sizes: [40]
+Tajima&#39;s D = -0.338
+</pre></div>
+</div>
+</div>
+</div>
+<section id="ancient-samples">
+<h3>Ancient samples<a class="headerlink" href="#ancient-samples" title="Link to this heading"></a></h3>
+<p>Or sample a combination of ancient and modern samples from a population:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CEU&quot;</span><span class="p">,</span> <span class="s2">&quot;CEU&quot;</span><span class="p">]</span>
+<span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+<span class="c1"># sample size of 10 from present and 10 from 20,000 years ago</span>
+<span class="n">sample_times</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20000</span><span class="p">]</span>
+
+<span class="n">fs_ancient</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+     <span class="n">ooa_model</span><span class="p">,</span>
+     <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span>
+     <span class="n">sample_sizes</span><span class="o">=</span><span class="n">sample_sizes</span><span class="p">,</span>
+     <span class="n">sample_times</span><span class="o">=</span><span class="n">sample_times</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;populations:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sample sizes:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FST(current, ancient) =&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs</span><span class="o">.</span><span class="n">Fst</span><span class="p">()</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>populations: [&#39;CEU&#39;, &#39;CEU_sampled_20000_0&#39;]
+sample sizes: [10 10]
+FST(current, ancient) = 0.0912
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note the population IDs, which are appended with “_sampled_{at_time}” where
+“at_time” is the generation or year (depending on the time unit of the model),
+as a float with an underscore replacing the decimal (here, 20000.0 years ago).</p>
+</section>
+<section id="alternative-samples-specification">
+<h3>Alternative samples specification<a class="headerlink" href="#alternative-samples-specification" title="Link to this heading"></a></h3>
+<p>By specifying sampled demes, sample sizes, and sample times, we have a lot
+of flexibility over the sampling scheme. Samples can more simply be specified
+as a dictionary, with one key per sampled population and values specifying
+sample sizes. This dictionary is passed to the <code class="docutils literal notranslate"><span class="pre">from_demes</span></code> function using
+the <code class="docutils literal notranslate"><span class="pre">samples</span></code> keyword, and it cannot be used in conjunction with sample times.
+As such, samples are taken at the end time (most recent time) of each population.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samples</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;YRI&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;CEU&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;CHB&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;OOA&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span><span class="n">ooa_model</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, samples from YRI, CEU, and CHB are taken from time zero, and the OOA
+sample is taken from just before its split into the CEU and CHB branches.</p>
+</section>
+<section id="linkage-disequilibrium">
+<h3>Linkage disequilibrium<a class="headerlink" href="#linkage-disequilibrium" title="Link to this heading"></a></h3>
+<p>We can similarly compute <a class="reference internal" href="../ld/ld.html#sec-ld"><span class="std std-ref">LD statistics</span></a>. Here, we compute the
+set of multi-population Hill-Robertson statistics for the three contemporary
+populations (YRI, CEU, and CHB), for three different recombination rates,
+<span class="math notranslate nohighlight">\(\rho=4Nr=0, 1, 2\)</span>. Here, the default <code class="docutils literal notranslate"><span class="pre">theta</span></code> (<span class="math notranslate nohighlight">\(\theta=4N_eu\)</span>) is
+<span class="math notranslate nohighlight">\(10^{-3}\)</span>. This very roughly corresponds to human-like scaled mutation
+rates. Using <code class="docutils literal notranslate"><span class="pre">moments.LD.LDstats.from_demes(...)</span></code>, we can specify the
+mutation rate, as shown below.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments.LD</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ooa_model</span><span class="p">)</span>
+
+<span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;YRI&quot;</span><span class="p">,</span> <span class="s2">&quot;CEU&quot;</span><span class="p">,</span> <span class="s2">&quot;CHB&quot;</span><span class="p">]</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.0008</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">LDstats</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sampled populations:&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="n">sigmaD2</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;E[sigma_D^2] in YRI:&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sigmaD2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">))])</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>sampled populations: [&#39;YRI&#39;, &#39;CEU&#39;, &#39;CHB&#39;]
+E[sigma_D^2] in YRI: 0.365, 0.222, 0.158
+</pre></div>
+</div>
+</div>
+</div>
+<p>The function <code class="docutils literal notranslate"><span class="pre">from_demes(...)</span></code> in the above code block is a wrapper for
+a more flexible function to compute LD statistics from a Demes model:
+<code class="docutils literal notranslate"><span class="pre">moments.Demes.LD(...)</span></code>. In this function, we can either specify scaled or
+unscaled recombination and mutation rates. If we provide unscaled,
+recombination probabilities <code class="docutils literal notranslate"><span class="pre">r</span></code>, then scaled recombination rates
+<code class="docutils literal notranslate"><span class="pre">rho=4*Ne*r</span></code> are determined by taking the root deme’s initial population size
+for <code class="docutils literal notranslate"><span class="pre">Ne</span></code>. This provides a “naturally” scaled model.</p>
+<p>Similarly, a per-base mutation rate <code class="docutils literal notranslate"><span class="pre">u</span></code> can be provided instead of <code class="docutils literal notranslate"><span class="pre">theta</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is determined directly from the demographic model to properly scale
+mutation rates. Using the OOA model again, the following code block
+demonstrates this usage.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;YRI&quot;</span><span class="p">,</span> <span class="s2">&quot;CEU&quot;</span><span class="p">,</span> <span class="s2">&quot;CHB&quot;</span><span class="p">]</span>
+<span class="n">Ne</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">demes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">epochs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start_size</span>
+<span class="n">r</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Ne</span><span class="p">,</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Ne</span><span class="p">]</span>
+<span class="n">u</span> <span class="o">=</span> <span class="mf">0.0008</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Ne</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ne in model:&quot;</span><span class="p">,</span> <span class="n">Ne</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sampled populations:&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="n">sigmaD2</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;E[sigma_D^2] in YRI:&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sigmaD2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">))])</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Ne in model: 7300
+sampled populations: [&#39;YRI&#39;, &#39;CEU&#39;, &#39;CHB&#39;]
+E[sigma_D^2] in YRI: 0.365, 0.222, 0.158
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="mutation-rates-selection-and-scaling-of-the-sfs">
+<h2>Mutation rates, selection, and scaling of the SFS<a class="headerlink" href="#mutation-rates-selection-and-scaling-of-the-sfs" title="Link to this heading"></a></h2>
+<p>The function <code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_demes(model,</span> <span class="pre">samples=samples)</span></code> is likely
+“good enough” for most applications. It provides basic usage with selection
+(see “Selection and dominance” section below), and allows for <code class="docutils literal notranslate"><span class="pre">theta</span></code> to be
+set, which defaults to 1. More fine-scale control of mutation (and selection)
+parameters is provided in <code class="docutils literal notranslate"><span class="pre">moments.Demes.SFS(...)</span></code>. This is because <code class="docutils literal notranslate"><span class="pre">theta</span></code>
+(and <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, the scaled selection coefficient) are scaled by <code class="docutils literal notranslate"><span class="pre">Ne</span></code>, but
+<code class="docutils literal notranslate"><span class="pre">demes</span></code> models are already given in physical units, meaning, drift-effective
+population sizes are provided for each deme. We can therefore determine
+a reference <code class="docutils literal notranslate"><span class="pre">Ne</span></code> directly from the demographic model. This reference <code class="docutils literal notranslate"><span class="pre">Ne</span></code>
+is taken to be the initial size of the root, or ancestral, deme.</p>
+<section id="mutation-rates-and-sequence-length">
+<h3>Mutation rates and sequence length<a class="headerlink" href="#mutation-rates-and-sequence-length" title="Link to this heading"></a></h3>
+<p>Since <code class="docutils literal notranslate"><span class="pre">Ne</span></code> can be determined from the demographic model, we may provide the
+per-base mutation rate <code class="docutils literal notranslate"><span class="pre">u</span></code> instead of <code class="docutils literal notranslate"><span class="pre">theta</span></code> (in humans, <code class="docutils literal notranslate"><span class="pre">u</span></code> is
+estimated to be between <code class="docutils literal notranslate"><span class="pre">1e-8</span></code> and <code class="docutils literal notranslate"><span class="pre">1.5e-8</span></code>). Then the output SFS is
+naturally scaled by the per-base pair scaled mutation rate given by the model.
+Below, we demonstrate this scaling using a steady state demographic model.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Ne</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">u</span> <span class="o">=</span> <span class="mf">1.5e-8</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;theta:&quot;</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">u</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">Builder</span><span class="p">(</span><span class="n">time_units</span><span class="o">=</span><span class="s2">&quot;generations&quot;</span><span class="p">)</span>
+<span class="n">b</span><span class="o">.</span><span class="n">add_deme</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">start_size</span><span class="o">=</span><span class="n">Ne</span><span class="p">)])</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+<span class="n">fs_demes</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">SFS</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SFS:&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">fs_demes</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">()</span>
+
+<span class="c1"># some statistics</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pi:&quot;</span><span class="p">,</span> <span class="n">fs_demes</span><span class="o">.</span><span class="n">pi</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;theta_W:&quot;</span><span class="p">,</span> <span class="n">fs_demes</span><span class="o">.</span><span class="n">Watterson_theta</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>theta: 0.0006
+SFS: Spectrum([-- 0.0006 0.0003 0.00019999999999999998 0.00015 0.00011999999999999999
+ 9.999999999999999e-05 8.57142857142857e-05 --], folded=False, pop_ids=[&#39;A&#39;])
+
+pi: 0.0006
+theta_W: 0.0006
+</pre></div>
+</div>
+</div>
+</div>
+<p>If we do not provide the mutation rate, the output SFS is scaled by <code class="docutils literal notranslate"><span class="pre">4*Ne</span></code>.
+Thus, without a mutation rate passed to the <code class="docutils literal notranslate"><span class="pre">moments.Demes.SFS()</span></code> function,
+we would need to multiply the output SFS by the mutation rate <code class="docutils literal notranslate"><span class="pre">u</span></code> to recover
+a properly scaled SFS.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_demes</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">SFS</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SFS:&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">fs_demes</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">()</span>
+
+<span class="c1"># some statistics</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pi:&quot;</span><span class="p">,</span> <span class="n">u</span> <span class="o">*</span> <span class="n">fs_demes</span><span class="o">.</span><span class="n">pi</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>SFS: Spectrum([-- 40000.0 20000.0 13333.333333333332 10000.0 8000.0 6666.666666666666
+ 5714.285714285714 --], folded=False, pop_ids=[&#39;A&#39;])
+
+pi: 0.0006
+</pre></div>
+</div>
+</div>
+</div>
+<p>If we want to simulate or compare to data from a large length of sequenced
+genome, we can also specify the length <code class="docutils literal notranslate"><span class="pre">L</span></code>. This length defaults to 1, i.e.,
+a single base pair. Note that setting some value for <code class="docutils literal notranslate"><span class="pre">L</span></code> is equivalent to
+specifying the mutation rate as <code class="docutils literal notranslate"><span class="pre">u*L</span></code> and not passing a value to <code class="docutils literal notranslate"><span class="pre">L</span></code> in
+as a function argument.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If we simulate under the reversible mutation model, by setting
+<code class="docutils literal notranslate"><span class="pre">reversible=True</span></code>, the sequence length <code class="docutils literal notranslate"><span class="pre">L</span></code> must be 1 (its default
+value). Then a single mutation rate <code class="docutils literal notranslate"><span class="pre">u</span></code> can be provided, assuming
+equal forward and backward mutation rates, or <code class="docutils literal notranslate"><span class="pre">u</span></code> can be given as
+a list of length two. Mutation rates cannot be too large in the
+reversible mutation model (<span class="math notranslate nohighlight">\(u&lt;1/4N_e\)</span>).</p>
+</div>
+</section>
+<section id="selection-and-dominance">
+<h3>Selection and dominance<a class="headerlink" href="#selection-and-dominance" title="Link to this heading"></a></h3>
+<p>Moments can compute the SFS under selection and dominance. The <code class="docutils literal notranslate"><span class="pre">demes</span></code> model
+format currently lets us specify a single selection and dominance coefficient
+for each population in the model, or we can set different selection parameters
+in each populations.</p>
+<p>The most simple scenario is to specify a single selection and dominance
+parameter that applied to all populations in the demographic model. We can use
+either the class function <code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_demes()</span></code>, or the more
+flexible function <code class="docutils literal notranslate"><span class="pre">moments.Demes.SFS()</span></code> (which
+<code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_demes()</span></code> is a wrapper of). Both functions accept
+<code class="docutils literal notranslate"><span class="pre">gamma</span></code> (<span class="math notranslate nohighlight">\(\gamma=2N_es\)</span>) and/or <code class="docutils literal notranslate"><span class="pre">h</span></code> as input parameters, and
+<code class="docutils literal notranslate"><span class="pre">moments.Demes.SFS()</span></code> allows “raw” selection coefficients <code class="docutils literal notranslate"><span class="pre">s</span></code> to be input
+instead. These can be passed as scalar values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sampled_demes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;YRI&quot;</span><span class="p">]</span>
+<span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">40</span><span class="p">]</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="n">fs_yri_sel</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+     <span class="n">ooa_model</span><span class="p">,</span>
+     <span class="n">sampled_demes</span><span class="o">=</span><span class="n">sampled_demes</span><span class="p">,</span>
+     <span class="n">sample_sizes</span><span class="o">=</span><span class="n">sample_sizes</span><span class="p">,</span>
+     <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+     <span class="n">h</span><span class="o">=</span><span class="n">h</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Let’s compare the neutral and selected spectra:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># compare to neutral SFS for YRI</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">fs_yri</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mfc</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Neutral&quot;</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">fs_yri_sel</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Selected, $</span><span class="se">\\</span><span class="s2">gamma=</span><span class="si">{</span><span class="n">gamma</span><span class="si">}</span><span class="s2">$, $h=</span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Density&quot;</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Derived allele count&quot;</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/demes_10_0.png" src="../_images/demes_10_0.png" />
+</div>
+</div>
+<p>We can gain more fine-grained control over variable selection and dominance in
+different populations by specifying <code class="docutils literal notranslate"><span class="pre">gamma</span></code> and <code class="docutils literal notranslate"><span class="pre">h</span></code> as dictionaries mapping
+population names to the coefficients. There can be as many different
+coefficient values as there are different demes in the demographic model.
+However, if a population is missing from the dictionary, it is assigned the
+default selection or dominance coefficient. In most cases the default values
+are <span class="math notranslate nohighlight">\(\gamma = 0\)</span> and <span class="math notranslate nohighlight">\(h=1/2\)</span>, but these can be changed by
+specifying a <code class="docutils literal notranslate"><span class="pre">_default</span></code> value in the selection and dominance dictionaries.</p>
+<p>For example:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data/im-parsing-example.yaml&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+<span class="n">gamma</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;anc&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;deme0&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;anc&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;deme0&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">}</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+    <span class="n">g</span><span class="p">,</span>
+    <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme0&quot;</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">],</span>
+    <span class="n">sample_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="n">h</span>
+<span class="p">)</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_single_2d_sfs</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>description: A simple isolation-with-migration model
+time_units: generations
+generation_time: 1
+demes:
+- name: anc
+  epochs:
+  - {end_time: 1500, start_size: 10000}
+- name: deme0
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 2000}
+- name: deme1
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 20000}
+migrations:
+- demes: [deme0, deme1]
+  rate: 0.0001
+
+</pre></div>
+</div>
+<img alt="../_images/demes_11_1.png" src="../_images/demes_11_1.png" />
+</div>
+</div>
+<p>In the case that a demographic model has many populations but only a small
+subset have differing selection or dominance strengths, we can assign a default
+value different from <span class="math notranslate nohighlight">\(s=0\)</span> or <span class="math notranslate nohighlight">\(h=1/2\)</span>. This is done by including
+a <cite>_default</cite> key in the dictionary (note the leading underscore, to minimize
+the chance that the default key conflicts with a named population in the
+demographic model). Taking the example above:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;_default&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;_default&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">}</span>
+
+<span class="n">fs_defaults</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span>
+    <span class="n">g</span><span class="p">,</span>
+    <span class="n">sampled_demes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;deme0&quot;</span><span class="p">,</span> <span class="s2">&quot;deme1&quot;</span><span class="p">],</span>
+    <span class="n">sample_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="n">h</span>
+<span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">fs_defaults</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">moments.Demes.SFS()</span></code>, the <code class="docutils literal notranslate"><span class="pre">s</span></code> can be provided in the same way as
+<code class="docutils literal notranslate"><span class="pre">gamma</span></code>. Internally, the <code class="docutils literal notranslate"><span class="pre">SFS()</span></code> function determines the appropriate <code class="docutils literal notranslate"><span class="pre">Ne</span></code>
+value from the demographic model, so that selection is appropriately scaled
+relative to drift in your simulation.</p>
+</section>
+</section>
+<section id="using-demes-to-infer-demography">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">Demes</span></code> to infer demography<a class="headerlink" href="#using-demes-to-infer-demography" title="Link to this heading"></a></h2>
+<p>Above, we showed how to use <code class="docutils literal notranslate"><span class="pre">moments</span></code> and <code class="docutils literal notranslate"><span class="pre">demes</span></code>-based demographic models
+to compute expectations for <em>static</em> demographic models. That is, given a fixed
+demography we can compute expectations for the SFS or LD. We often want to
+optimize the parameters of a given demographic model to fit observations from
+data. The general idea is that we specify a parameterized model, compute the
+expected SFS under that model and its likelihood given the data, and then
+update the model parameters to improve the fit. <code class="docutils literal notranslate"><span class="pre">Moments</span></code> uses <code class="docutils literal notranslate"><span class="pre">scipy</span></code>’s
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.html">optimization functions</a> to perform
+optimization.</p>
+<p>To run the inference, we need three items: 1) the data (SFS) to be fit, 2)
+a parameterized demographic model, and 3) a way to tell the optimization
+function which parameters to fit and any constraints on those parameters. We’ll
+assume you already have a data SFS with stored <code class="docutils literal notranslate"><span class="pre">pop_ids</span></code>. For example, the
+data could be a 3-dimensional SFS for the three sampled populations in the
+Out-of-Africa demographic model above, so that <code class="docutils literal notranslate"><span class="pre">data.pop_ids</span> <span class="pre">=</span> <span class="pre">[&quot;YRI&quot;,</span> <span class="pre">&quot;CEU&quot;,</span>
+<span class="pre">&quot;CHB&quot;]</span></code>.</p>
+<p>The second item is the <code class="docutils literal notranslate"><span class="pre">demes</span></code>-formatted demographic model, such as the model
+written above. In this model, the parameter values are the demographic event
+times, population sizes, and migration rates, and the YAML file specifies all
+fixed parameters and initial guesses for the parameters to be fit.</p>
+<p>The third item is a separate YAML-formatted file that tells the optimization
+function the variable parameters that should be fit and any bounds and/or
+inequality constraints on the parameter values.</p>
+<section id="the-options-file">
+<h3>The options file<a class="headerlink" href="#the-options-file" title="Link to this heading"></a></h3>
+<p>All parameters to be fit must be included under <code class="docutils literal notranslate"><span class="pre">parameters</span></code> in the option
+file. Any parameter that is not included here is assumed to be a fixed
+parameter, and it will remain the value given in the Demes graph. <code class="docutils literal notranslate"><span class="pre">moments</span></code>
+will read this YAML file into a dictionary using a YAML parser, so it needs to
+be valid and properly formatted YAML code.</p>
+<p>The only required field in the “options” YAML is <code class="docutils literal notranslate"><span class="pre">parameters</span></code>. For each
+parameter to be fit, we must name that parameter, which can be any unique
+string, and we need to specify which values in the Demes graph correspond to
+that value (optionally, we can include a parameter description for our own
+sake). For example, to fit the bottleneck size in the Out-of-Africa model, our
+options file would look like:</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">N_B</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bottleneck size for Eurasian populations</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">OOA</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="w">  </span><span class="nt">lower_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">upper_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span>
+</pre></div>
+</div>
+<p>This specifies that the start size of the first (and only) epoch of the OOA
+deme in the Demes graph should be fit. We have also specified that the fit for
+this parameter should be bounded between 100 and 100,000.</p>
+<p>The same parameter can affect multiple values in the Demes graph. For example,
+the size of the African population in the Out-of-Africa model is applied to
+both the AMH and the YRI demes. This simply requires adding additional keys in
+the <code class="docutils literal notranslate"><span class="pre">values</span></code> entry:</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">N_A</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Expansion size</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">values</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">AMH</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="w">        </span><span class="nt">YRI</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="w">  </span><span class="nt">lower_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">upper_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span>
+</pre></div>
+</div>
+<p>Migration rates can be specified to be fit as well. Note that the index of the
+migration is given, pointing to the migrations in the order they are specified
+in the demes file.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">m_Af_Eu</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Symmetric migration rate between Afr and Eur populations</span>
+<span class="w">  </span><span class="nt">upper_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">migrations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rate</span>
+</pre></div>
+</div>
+<p>Note here that we have specified the upper bound to be <code class="docutils literal notranslate"><span class="pre">1e-3</span></code> (the units of
+the migration rate are parental migrant probabilities, typical in population
+genetics models). For any parameter, we can set the lower bound and upper bound
+as shown here. If they are not given, the lower bound defaults to 0 and the
+upper bound defaults to infinity.</p>
+<p>Finally, we can also specify constraints on parameters. For example, if some
+event necessarily occurs before another, we should add that relationship to the
+list of constraints.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TA</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time before present of ancestral expansion</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ancestral</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TB</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time of YRI-OOA split</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">AMH</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TF</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time of CEU-CHB split</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">OOA</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="nt">constraints</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">TA</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">TB</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">constraint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">greater_than</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">TB</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">TF</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">constraint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">greater_than</span>
+</pre></div>
+</div>
+<p>This specifies each of the event timings in the OOA model to be fit, and the
+constraints say that <code class="docutils literal notranslate"><span class="pre">TA</span></code> must be greater than <code class="docutils literal notranslate"><span class="pre">TB</span></code>, and <code class="docutils literal notranslate"><span class="pre">TB</span></code> must be
+greater than <code class="docutils literal notranslate"><span class="pre">TF</span></code>.</p>
+</section>
+<section id="the-inference-function">
+<h3>The inference function<a class="headerlink" href="#the-inference-function" title="Link to this heading"></a></h3>
+<p>To run optimization using the Demes modeul, we call
+<code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.optimize</span></code>. The first three required inputs to
+<code class="docutils literal notranslate"><span class="pre">optimize</span></code> are the Demes input graph, the parameter options, and the data, in
+that order.</p>
+<p>Additional options can be passed to the optimization function using keyword
+arguments in the <code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.optimize</span></code> function. These include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">maxiter</span></code>: Maximum number of iterations to run optimization. Defaults to
+1,000.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">perturb</span></code>: Defaults to 0 (no perturbation of initial parameters). If
+greater than zero, it perturbs the initial parameters by up to
+<code class="docutils literal notranslate"><span class="pre">perturb</span></code>-fold. So if <code class="docutils literal notranslate"><span class="pre">perturb</span></code> is 1, initial parameters are randomly
+chosen from <span class="math notranslate nohighlight">\([1/2\times p_0, 2\times p_0]\)</span>. Larger values result in
+stronger perturbation of initial guesses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code>: Defaults to 0. If greater than zero, it prints an update to the
+specified <code class="docutils literal notranslate"><span class="pre">output_stream</span></code> (which defaults to <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code>) every
+<code class="docutils literal notranslate"><span class="pre">verbose</span></code> iterations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uL</span></code>: Defaults to None. If given, this is the product of the per-base
+mutation rate and the length of the callable genome used to compile the data
+SFS. If we don’t give this scaled mutation rate, we optimize with theta as
+a free parameter. Otherwise, we optimize with theta given by <span class="math notranslate nohighlight">\(\theta=4
+\times N_e \times uL\)</span>, and <span class="math notranslate nohighlight">\(N_e\)</span> is taken to be the size of the
+root/ancestral deme (for which the size can be a either be a fixed parameter
+or a parameter to be fit!).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: Defaults to True. If True, optimize the log of the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">method</span></code>: The optimization method to use, currently with the options “fmin”
+(Nelder-Mead), “powell”, or “lbfgsb”. Defaults to “fmin”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fit_ancestral_misid</span></code>: Defaults to False, and cannot be used with a folded
+SFS. For an unfolded SFS, the ancestral state may be misidentified, resulting
+in a distortion of the SFS. We can account for that distortion by fitting
+a parameter that accounts for some fraction of mis-labeled ancestral states.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">misid_guess</span></code>: Used with <code class="docutils literal notranslate"><span class="pre">fit_ancestral_misid</span></code>, as the initial ancestral
+misidentification parameter guess. Defaults to 0.02.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_stream</span></code>: Defaults to sys.stdout.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: Defaults to None, in which case the result is printed to the
+<code class="docutils literal notranslate"><span class="pre">output_stream</span></code>. If given, write the optimized Demes graph in YAML format
+to the given path/filename.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: Defaults to False. If True, we overwrite any file with the
+path/filename given by <code class="docutils literal notranslate"><span class="pre">output</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="single-population-inference-example">
+<h2>Single-population inference example<a class="headerlink" href="#single-population-inference-example" title="Link to this heading"></a></h2>
+<p>To demonstrate, we’ll fit a simple single-population demographic model to the
+synonymous variant SFS in the Mende (MSL) from the Thousand Genomes data. The
+data for this population is stored in the docs/data directory. We previous
+parsed all coding variation and used a mutation model to estimate
+<span class="math notranslate nohighlight">\(u\times L\)</span>.</p>
+<p>We can either fold the frequency spectrum, which is useful when we do not know
+the ancestral states of mutations. Alternatively, we can fit with the unfolded
+spectrum, and if we suspect that some proportion of SNPs have their ancestral
+state misidentified, we can additionally fit a parameter that corrects for this
+uncertainty. We’ll take the second approach here, and fit the unfolded
+spectrum.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="n">all_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;./data/msl_data.bp&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">all_data</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">][</span><span class="s2">&quot;syn&quot;</span><span class="p">]</span>
+<span class="n">data</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MSL&quot;</span><span class="p">]</span>
+<span class="n">uL</span> <span class="o">=</span> <span class="n">all_data</span><span class="p">[</span><span class="s2">&quot;rates&quot;</span><span class="p">][</span><span class="s2">&quot;syn&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scaled mutation rate (u_syn * L):&quot;</span><span class="p">,</span> <span class="n">uL</span><span class="p">)</span>
+
+<span class="c1"># project down to a smaller sample size, for illustration purposes</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">project</span><span class="p">([</span><span class="mi">30</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>scaled mutation rate (u_syn * L): 0.14419746897690008
+</pre></div>
+</div>
+</div>
+</div>
+<p>We’ll fit a demographic model that includes an ancient expansion and a more
+recent exponential growth. This initial model is stored in the docs/data
+directory as well.</p>
+<p>The YAML specification of this model is</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A single-population model to be fit to the MSL data. Initial guesses</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">are given as parameters in the model.</span>
+<span class="nt">time_units</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">years</span>
+<span class="nt">generation_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">29</span>
+<span class="nt">demes</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MSL</span>
+<span class="w">  </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">350000</span>
+<span class="w">    </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20000</span>
+<span class="w">    </span><span class="nt">start_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25000</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">end_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60000</span>
+</pre></div>
+</div>
+<p>And we can specify that we want to fit the times of the size changes, and all
+population sizes. (Note that if we did not have an estimate for the mutation
+rate, we would not fit the ancestral size.)</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">T1</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time before present of ancestral expansion</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">MSL</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">T2</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time before present of start of exponential growth.</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">MSL</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ne</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Effective (ancestral/root) size</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">MSL</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NA</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ancestral expansion size</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">MSL</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NF</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Final population size</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">MSL</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_size</span>
+<span class="nt">constraints</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">T1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">T2</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">constraint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">greater_than</span>
+</pre></div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">deme_graph</span> <span class="o">=</span> <span class="s2">&quot;./data/msl_initial_model.yaml&quot;</span>
+<span class="n">options</span> <span class="o">=</span> <span class="s2">&quot;./data/msl_options.yaml&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>And now we can run the inference:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;./data/msl_best_fit_model.yaml&quot;</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
+    <span class="n">deme_graph</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">uL</span><span class="o">=</span><span class="n">uL</span><span class="p">,</span>
+    <span class="n">fit_ancestral_misid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">misid_guess</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;lbfgsb&quot;</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">,</span> <span class="n">LL</span> <span class="o">=</span> <span class="n">ret</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">LL</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Best fit parameters&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Log-likelihood: -126.08823318113923
+Best fit parameters
+T1	4.38e+05
+T2	2.2e+04
+Ne	1.09e+04
+NA	2.5e+04
+NF	6.6e+04
+p_misid	0.026
+</pre></div>
+</div>
+</div>
+</div>
+<p>Printed above are the best fit parameters for this model, including the
+ancestral misidentification rate for synonymous variants in the Mende sample.
+Parameters in this fit are scaled by our estimate of the total mutation rate of
+synonymous variants (<code class="docutils literal notranslate"><span class="pre">uL</span></code>), which allows us to infer the ancestral
+<span class="math notranslate nohighlight">\(N_e\)</span>. Below, we plot the results and then compute confidence intervals
+for this fit.</p>
+</section>
+<section id="plotting-the-results">
+<h2>Plotting the results<a class="headerlink" href="#plotting-the-results" title="Link to this heading"></a></h2>
+<p>We can see how well our best fit model fits the data, using <code class="docutils literal notranslate"><span class="pre">moments</span></code>
+plotting features:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;MSL&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">})</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Misc</span><span class="o">.</span><span class="n">flip_ancestral_misid</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_multinom</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/demes_16_0.png" src="../_images/demes_16_0.png" />
+</div>
+</div>
+<p>And we can illustrate the best fit model using
+<a class="reference external" href="https://github.com/grahamgower/demesdraw">demesdraw</a>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">demes</span><span class="o">,</span> <span class="nn">demesdraw</span>
+<span class="n">opt_model</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="n">demesdraw</span><span class="o">.</span><span class="n">size_history</span><span class="p">(</span><span class="n">opt_model</span><span class="p">,</span> <span class="n">invert_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_time</span><span class="o">=</span><span class="kc">True</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/demes_17_0.png" src="../_images/demes_17_0.png" />
+</div>
+</div>
+</section>
+<section id="computing-confidence-intervals">
+<h2>Computing confidence intervals<a class="headerlink" href="#computing-confidence-intervals" title="Link to this heading"></a></h2>
+<p>Using the output YAML from <code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.optimize()</span></code>, we compute
+confidence intervals using <code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.uncerts()</span></code>. This function
+takes the output Demes graph from the optimization, the same parameter options
+file, and the same data used in inference. These need to be consistent between
+the optimization and uncertainty computation. If we specified the mutation rate
+or inferred an ancestral misidentification parameter, those must also be provided.</p>
+<p>The additional options to <code class="docutils literal notranslate"><span class="pre">uncerts()</span></code> are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bootstraps</span></code>: Defaults to None, in which case we use the FIM approach.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uL</span></code>: The scaled mutation rate, if used in the optimization. (See above for
+details.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: Defaults to False. If True, we assume a log-normal distribution of
+parameters. Returned values are then the standard deviations of the <em>logs</em> of
+the parameter values, which can be interpreted as relative parameter
+uncertainties.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eps</span></code>: The relative step size to use when numerically computing derivatives
+to estimate the curvature of the likelihood function at the inferred best-fit
+parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">method</span></code>: Defaults to “FIM”, which uses the Fisher information matrix. We
+can also use the Godambe information matrix, which uses bootstrap replicates
+to account for non-independence between linked SNPs. This uses methods
+developed by Alec Coffman in Ryan Gutenkunst’s group, described in
+<a class="reference internal" href="../sfs/inference.html#coffman2016" id="id3"><span>[Coffman2016]</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fit_ancestral_misid</span></code>: If the ancestral misid was fit, this should be set
+to True.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">misid_fit</span></code>: The fit misidentification parameter, if it was fit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_stream</span></code>: Defaults to sys.stdout.</p></li>
+</ul>
+<p>In our example using the Mende data above, we’ll use the <code class="docutils literal notranslate"><span class="pre">FIM</span></code> method compute
+confidence intervals:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">std_err</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">uncerts</span><span class="p">(</span>
+    <span class="n">output</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">uL</span><span class="o">=</span><span class="n">uL</span><span class="p">,</span>
+    <span class="n">fit_ancestral_misid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">misid_fit</span><span class="o">=</span><span class="n">opt_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;95% CIs&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param</span><span class="se">\t\t</span><span class="s2">2.5%</span><span class="se">\t\t</span><span class="s2">97.5%&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">,</span> <span class="n">std_err</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">p</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.96</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">e</span><span class="si">:</span><span class="s2">-12g</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">p</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1.96</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">e</span><span class="si">:</span><span class="s2">-13g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>95% CIs
+param		2.5%		97.5%
+T1	         nan	          nan
+T2	       22021	      22036.2
+Ne	         nan	          nan
+NA	         nan	          nan
+NF	         nan	          nan
+p_misid	   0.0232663	    0.0286874
+</pre></div>
+</div>
+</div>
+</div>
+<p>To compute standard errors that account for non-independence between SNPs, we
+would use <code class="docutils literal notranslate"><span class="pre">method=&quot;GIM&quot;</span></code> and include a list of bootstrap replicate spectra
+that we pass to <code class="docutils literal notranslate"><span class="pre">bootstraps</span></code>.</p>
+</section>
+<section id="two-population-inference-and-uncertainty-example">
+<h2>Two-population inference and uncertainty example<a class="headerlink" href="#two-population-inference-and-uncertainty-example" title="Link to this heading"></a></h2>
+<p>Here, we’ll simulate a demographic model using <code class="docutils literal notranslate"><span class="pre">msprime</span></code>. In this example,
+we’ll simulate many regions of varying length and mutation rates, from which we
+compute <code class="docutils literal notranslate"><span class="pre">uL</span></code> and estimate confidences using the <code class="docutils literal notranslate"><span class="pre">GIM</span></code> method, which
+requires bootstrapped datasets of the SFS and associated scaled mutation rates.</p>
+<p>First, we’ll simulate data under this two-population model:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./data/two-deme-example.yaml&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>time_units: generations
+generation_time: 1
+demes:
+- name: anc
+  epochs:
+  - {end_time: 2000, start_size: 8500}
+- name: A
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 700, end_size: 11000}
+- name: B
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 17500}
+migrations:
+- demes: [A, B]
+  rate: 0.0015
+
+</pre></div>
+</div>
+</div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">msprime</span>
+
+<span class="n">demog</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">Demography</span><span class="o">.</span><span class="n">from_demes</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+<span class="n">num_regions</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="c1"># Lengths between 75 and 125 kb</span>
+<span class="n">Ls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">75000</span><span class="p">,</span> <span class="mi">125000</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="c1"># Mutation rates between 1e-8 and 2e-8</span>
+<span class="n">us</span> <span class="o">=</span> <span class="mf">1e-8</span> <span class="o">+</span> <span class="mf">1e-8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+
+<span class="c1"># Total mutation rate</span>
+<span class="n">uL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">us</span> <span class="o">*</span> <span class="n">Ls</span><span class="p">)</span>
+
+<span class="c1"># Simulate and store allele frequency data (summed and by region)</span>
+<span class="n">ns</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span>
+<span class="n">region_data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="n">data</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
+<span class="c1"># sample_sets are required to get the SFS from the tree sequences</span>
+<span class="n">sample_sets</span> <span class="o">=</span> <span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">us</span><span class="p">,</span> <span class="n">Ls</span><span class="p">)):</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">sim_ancestry</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="n">ns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">},</span>
+        <span class="n">demography</span><span class="o">=</span><span class="n">demog</span><span class="p">,</span>
+        <span class="n">recombination_rate</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span>
+        <span class="n">sequence_length</span><span class="o">=</span><span class="n">L</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">msprime</span><span class="o">.</span><span class="n">sim_mutations</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+    <span class="n">SFS</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">allele_frequency_spectrum</span><span class="p">(</span>
+        <span class="n">sample_sets</span><span class="o">=</span><span class="n">sample_sets</span><span class="p">,</span> <span class="n">span_normalise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">polarised</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">region_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;uL&quot;</span><span class="p">:</span> <span class="n">u</span> <span class="o">*</span> <span class="n">L</span><span class="p">,</span> <span class="s2">&quot;SFS&quot;</span><span class="p">:</span> <span class="n">SFS</span><span class="p">}</span>
+    <span class="n">data</span> <span class="o">+=</span> <span class="n">SFS</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulated data. FST =&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Simulated data. FST = 0.03488586466502664
+</pre></div>
+</div>
+</div>
+</div>
+<p>With this simulated data, we can now re-infer the model, using the following
+options:</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">parameters</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">T</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ancestral split time</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">anc</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_time</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ne</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ancestral effective population size</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">anc</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NA0</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Initial population size of A</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">A</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NA</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Final population size of A</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">A</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">end_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NB</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">B population size</span><span class="w">  </span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">demes</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">B</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">epochs</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">start_size</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">migration rate between A and B</span>
+<span class="w">  </span><span class="nt">values</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">migrations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rate</span>
+<span class="w">  </span><span class="nt">upper_bound</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deme_graph</span> <span class="o">=</span> <span class="s2">&quot;./data/two-deme-example.yaml&quot;</span>
+<span class="n">options</span> <span class="o">=</span> <span class="s2">&quot;./data/two-deme-example-options.yaml&quot;</span>
+<span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;./data/two-deme-example-best-fit.yaml&quot;</span>
+
+<span class="n">ret</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
+    <span class="n">deme_graph</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">uL</span><span class="o">=</span><span class="n">uL</span><span class="p">,</span>
+    <span class="n">perturb</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Printing the results of this inference run:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">,</span> <span class="n">LL</span> <span class="o">=</span> <span class="n">ret</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Log-likelihood:&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">LL</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Best fit parameters&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Log-likelihood: -1296.725088604149
+Best fit parameters
+T	1.52e+03
+Ne	8.61e+03
+NA0	5.74e+02
+NA	2.05e+04
+NB	1.46e+04
+M	0.00115
+</pre></div>
+</div>
+</div>
+</div>
+<p>To compute confidence intervals using the Godambe method, we need generate
+bootstrap replicates of the data (and scaled mutation rate, if specified in the
+optimization).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bootstraps</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">bootstraps_uL</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">region_data</span><span class="p">)):</span>
+    <span class="n">choices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">bootstraps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">region_data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;SFS&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">])))</span>
+    <span class="n">bootstraps_uL</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">region_data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;uL&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Computing the uncertainties using <code class="docutils literal notranslate"><span class="pre">GIM</span></code> requires passing the bootstrapped
+data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">std_err</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">uncerts</span><span class="p">(</span>
+    <span class="n">output</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">bootstraps</span><span class="o">=</span><span class="n">bootstraps</span><span class="p">,</span>
+    <span class="n">uL</span><span class="o">=</span><span class="n">uL</span><span class="p">,</span>
+    <span class="n">bootstraps_uL</span><span class="o">=</span><span class="n">bootstraps_uL</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GIM&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Standard errors:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param</span><span class="se">\t\t</span><span class="s2">opt</span><span class="se">\t\t</span><span class="s2">stderr&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">param_names</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">,</span> <span class="n">std_err</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">-11g</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">-14g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Standard errors:
+param		opt		stderr
+T	     1515.2	       183.786
+Ne	    8607.87	       179.118
+NA0	    573.705	       84.0684
+NA	      20466	        5675.2
+NB	    14610.3	       1994.22
+M	 0.00115135	   0.000150782
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="gutenkunst2009" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Gutenkunst2009</a><span class="fn-bracket">]</span></span>
+<p>Gutenkunst, Ryan N., et al. “Inferring the joint demographic history of
+multiple populations from multidimensional SNP frequency data.”
+<em>PLoS genet</em> 5.10 (2009): e1000695.</p>
+</div>
+<div class="citation" id="ragsdale2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Ragsdale2020</a><span class="fn-bracket">]</span></span>
+<p>Ragsdale, Aaron P., et al. “Lessons learned from bugs in models of human
+history.” <em>The American Journal of Human Genetics</em> 107.4 (2020): 583-588.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../ld/inference.html" class="btn btn-neutral float-left" title="Inferring demography with LD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="two_locus.html" class="btn btn-neutral float-right" title="Two-locus frequency spectrum" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selection at two loci &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API for site frequency spectra" href="../api/api_moments.html" />
+    <link rel="prev" title="Linkage disequilibrium and recombination" href="recombination.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Selection at two loci</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-two-locus-allele-frequency-spectrum">The two-locus allele frequency spectrum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#citing-this-work">Citing this work</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#two-locus-haplotype-distribution-under-neutrality">Two-locus haplotype distribution under neutrality</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-quick-comment-on-computational-efficiency">A quick comment on computational efficiency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#two-neutral-loci">Two neutral loci</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-does-selection-interact-across-multiple-loci">How does selection interact across multiple loci?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#selection-models-at-two-loci">Selection models at two loci</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#additive-selection-no-epistasis">Additive selection, no epistasis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#additive-selection-with-epistasis">Additive selection with epistasis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#simple-dominance-no-epistasis">Simple dominance, no epistasis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#both-dominance-and-epistasis">Both dominance and epistasis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gene-based-dominance">Gene-based dominance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#how-do-different-selection-models-affect-expected-ld-statistics">How do different selection models affect expected LD statistics?</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#additive-selection-with-and-without-epistasis">Additive selection with and without epistasis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dominance">Dominance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">Gene-based dominance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#non-steady-state-demography">Non-steady-state demography</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Selection at two loci</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/two_locus_selection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="selection-at-two-loci">
+<span id="two-locus-usage"></span><h1>Selection at two loci<a class="headerlink" href="#selection-at-two-loci" title="Link to this heading"></a></h1>
+<p>By Aaron Ragsdale, January 2021.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This module has not been completed - I’ve placed to-dos where content is
+incoming. If you find an error here, or find some aspects confusing, please don’t
+hesitate to get in touch or open an issue. Thanks!</p>
+</div>
+<p>Most users of <code class="docutils literal notranslate"><span class="pre">moments</span></code> will be most interested in computing the single-site SFS and
+comparing it to data. However, <code class="docutils literal notranslate"><span class="pre">moments</span></code> can do much more, such as computing expectations
+for LD under complex demography, or triallelic or two-locus frequency spectra. Here, we’ll
+explore what we can do with the two-locus methods available in <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">moments.TwoLocus</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pickle</span><span class="o">,</span> <span class="nn">gzip</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="the-two-locus-allele-frequency-spectrum">
+<h2>The two-locus allele frequency spectrum<a class="headerlink" href="#the-two-locus-allele-frequency-spectrum" title="Link to this heading"></a></h2>
+<p>Similar to the single-site SFS, the two-locus frequency spectrum stores the number (or
+density) of pairs of loci with given two-locus haplotype counts. Suppose the left locus
+permits alleles <cite>A</cite>/<cite>a</cite> and the right locus permits <cite>B</cite>/<cite>b</cite>, so that there are four possible
+haplotypes: (<cite>AB</cite>, <cite>Ab</cite>, <cite>aB</cite>, and <cite>ab</cite>). In a sample size of <cite>n</cite> haploid samples, we
+observe some number of each haplotype, <span class="math notranslate nohighlight">\(n_{AB} + n_{Ab} + n_{aB} + n_{ab} = n\)</span>. The
+two-locus frequency spectrum stores the observed number of pairs of loci with each possible
+sampling configuration, so that <span class="math notranslate nohighlight">\(\Psi_n(i, j, k)\)</span> is the number (or density) of pairs
+of loci with <cite>i</cite> type <cite>AB</cite>, <cite>j</cite> type <cite>Ab</cite>, and <cite>k</cite> type <cite>aB</cite>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code> lets us compute the expectation of <span class="math notranslate nohighlight">\(\Psi_n\)</span> for
+single-population demographic scenarios, allowing for population size changes over time,
+as well as arbitrary recombination distance separating the two loci and selection at
+one or both loci. While <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code> has a reversible mutation model implemented,
+here we’ll focus on the infinite sites model (ISM), under the assumption that
+<span class="math notranslate nohighlight">\(N_e \mu \ll 1\)</span> at both loci.</p>
+<p>Below, we’ll walk through how to compute the sampling distribution
+for two-locus haplotypes for a given sample size, describe its relationship to common
+measures of linkage disequilibrium (LD), and explore how recombination, demography, and
+selection interacts to alter expected patterns of LD. In particular, we’ll focus on
+a few different models of selection, dominance, and epistasic interactions between loci,
+and ask under what conditions those patterns are expected to differ or to be confounded.</p>
+<section id="citing-this-work">
+<h3>Citing this work<a class="headerlink" href="#citing-this-work" title="Link to this heading"></a></h3>
+<p>Demographic inference using a diffusion approximation-based solution for <span class="math notranslate nohighlight">\(\Psi_n\)</span>
+was introduced in <a class="reference internal" href="#ragsdale-gutenkunst" id="id1"><span>[Ragsdale_Gutenkunst]</span></a>. The moments-based method, which is implemented
+here, was described in <a class="reference internal" href="#ragsdale-gravel" id="id2"><span>[Ragsdale_Gravel]</span></a>.</p>
+</section>
+</section>
+<section id="two-locus-haplotype-distribution-under-neutrality">
+<h2>Two-locus haplotype distribution under neutrality<a class="headerlink" href="#two-locus-haplotype-distribution-under-neutrality" title="Link to this heading"></a></h2>
+<section id="a-quick-comment-on-computational-efficiency">
+<h3>A quick comment on computational efficiency<a class="headerlink" href="#a-quick-comment-on-computational-efficiency" title="Link to this heading"></a></h3>
+<p>The frequency spectrum <span class="math notranslate nohighlight">\(\Psi_n\)</span> is displayed as a 3-dimensional array in <cite>moments</cite>,
+and the size grows quite quickly in the sample size <span class="math notranslate nohighlight">\(n\)</span>. (The number of frequency
+bins is <span class="math notranslate nohighlight">\(\frac{1}{6}(n+1)(n+2)(n+3)\)</span>, so it grows as <span class="math notranslate nohighlight">\(n^3\)</span>.) Thus, solving
+for <span class="math notranslate nohighlight">\(\Psi\)</span> gets quite expensive for large sample sizes.</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_2_0.png" src="../_images/two_locus_selection_2_0.png" />
+</div>
+</div>
+<p>Here, we see the time needed to compute the equilibrium frequency spectrum for a given
+sample size. Recombination requires computing a jackknife operator for approximate
+moment closure, which gets expensive for large sample sizes. However, we can
+cache and reuse this jackknife matrix (the default behavior), so that much of the
+computational time is saved from having to recompute that large matrix. However, we see
+that simply computing the steady-state solution still
+gets quite expensive as the sample sizes increase.</p>
+<p>Below, we’ll see that for
+non-zero recombination (as well as selection) our accuracy improves as we increase the
+sample size. For this reason, we’ve pre-computed and cached results throughout this
+page, and the code blocks give examples of how those results were created.</p>
+</section>
+<section id="two-neutral-loci">
+<h3>Two neutral loci<a class="headerlink" href="#two-neutral-loci" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code> solution for the neutral frequency spectrum without recombination
+(<span class="math notranslate nohighlight">\(\rho = 4 N_e r = 0\)</span>) is exact, while <span class="math notranslate nohighlight">\(\rho &gt; 0\)</span> and selection require a
+moment-closure approximation. This approximation grows more accurate for larger <span class="math notranslate nohighlight">\(n\)</span>.</p>
+<p>To get familiar with some common two-locus statistics (either summaries of <span class="math notranslate nohighlight">\(\Psi_n\)</span>
+and <span class="math notranslate nohighlight">\(\Psi\)</span> itself), we can compare to some classical results, such as the expectation
+for <span class="math notranslate nohighlight">\(\sigma_d^2 = \frac{\mathbb{E}[D^2]}{\mathbb{E}[p(1-p)q(1-q)]}\)</span>, where <cite>D</cite> is
+the standard covariance measure of LD, and <cite>p</cite> and <cite>q</cite> are allele frequencies at the
+left and right loci, respectively <a class="reference internal" href="#ohta" id="id3"><span>[Ohta]</span></a>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rho</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">Psi</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Demographics</span><span class="o">.</span><span class="n">equilibrium</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+<span class="n">sigma_d2</span> <span class="o">=</span> <span class="n">Psi</span><span class="o">.</span><span class="n">D2</span><span class="p">()</span> <span class="o">/</span> <span class="n">Psi</span><span class="o">.</span><span class="n">pi2</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;moments.TwoLocus $\sigma_d^2$, $r=0$:&quot;</span><span class="p">,</span> <span class="n">sigma_d2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Ohta and Kimura expectation, $r=0$:&quot;</span><span class="p">,</span> <span class="mi">5</span> <span class="o">/</span> <span class="mi">11</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>moments.TwoLocus $\sigma_d^2$, $r=0$: 0.45454545454545536
+Ohta and Kimura expectation, $r=0$: 0.45454545454545453
+</pre></div>
+</div>
+</div>
+</div>
+<p>And we can plot the LD-decay curve for <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> for a range of recombination
+rates and a few different sample sizes, and compare to <a class="reference internal" href="#ohta" id="id4"><span>[Ohta]</span></a>’s expectation, which is
+<span class="math notranslate nohighlight">\(\sigma_d^2 = \frac{5 + \frac{1}{2}\rho}{11 + \frac{13}{2}\rho + \frac{1}{2}\rho^2}\)</span>:</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_4_0.png" src="../_images/two_locus_selection_4_0.png" />
+</div>
+</div>
+<p>The moments approximation breaks down for recombination rates around <span class="math notranslate nohighlight">\(\rho\approx50\)</span>
+but is very accurate for lower recombination rates, and this accuracy increases with the
+sample size. To be safe, we can assume that numerical error starts to creep
+in around <span class="math notranslate nohighlight">\(rho\approx25\)</span>, which for human parameters, is very roughly 50 or 100kb.
+So we’re limited to looking at LD in relatively shorter regions. For higher recombination
+rates, we can turn to <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code>, which lets us model multiple populations, but
+is restricted to neutral loci and low-order statistics.</p>
+<p>The statistics <span class="math notranslate nohighlight">\(\mathbb{E}[D^2]\)</span> and <span class="math notranslate nohighlight">\(\mathbb{E}[p(1-p)q(1-q)]\)</span> are low-order
+summaries of the full sampling distribution, similar to how heterozygosity or Tajima’s <cite>D</cite>
+are low-order summaries of the single-site SFS. We can visualize some features of the
+full two-locus haplotype frequency distribution instead, following Figure 1 in Hudson’s
+classical paper on the two-locus sampling distribution <a class="reference internal" href="#hudson" id="id5"><span>[Hudson]</span></a>. Here, we’ll look at
+a slice in the 3-dimensional distribution: if we observe <span class="math notranslate nohighlight">\(n_A\)</span> samples carrying <cite>A</cite>
+at the left locus, and <span class="math notranslate nohighlight">\(n_B\)</span> carrying <cite>B</cite> at the right locus, what is the probability
+that we observe <cite>n_{AB}</cite> haplotypes with <cite>A</cite> and <cite>B</cite> coupled in the same sample? This
+marginal distribution will depend on <span class="math notranslate nohighlight">\(\rho\)</span>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">]</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">nA</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">nB</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="c1"># first we&#39;ll get the slice for the given frequencies from the &quot;hnrho&quot; file</span>
+<span class="c1"># from RR Hudson: http://home.uchicago.edu/~rhudson1/source/twolocus.html</span>
+<span class="n">hudson</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;./data/h30rho.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">at_frequencies</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;freq&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">nA</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="n">nB</span><span class="p">:</span>
+                <span class="n">at_frequencies</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">at_frequencies</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">at_frequencies</span><span class="p">:</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">rhos</span><span class="p">:</span>
+                    <span class="n">hudson</span><span class="p">[</span><span class="n">rho</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]])</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">rho</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rhos</span><span class="p">):</span>
+    <span class="c1"># results are cached, having used the following line to create the spectra</span>
+    <span class="c1"># F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho)</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;./data/two-locus/eq.n_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">.rho_</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">.fs.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+    <span class="n">counts</span><span class="p">,</span> <span class="n">pAB</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="n">pAB</span> <span class="o">/=</span> <span class="n">pAB</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">-</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">hudson</span><span class="p">[</span><span class="n">rho</span><span class="p">]</span> <span class="o">/</span> <span class="n">hudson</span><span class="p">[</span><span class="n">rho</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Hudson&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">pAB</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;moments.TwoLocus&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho = </span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Probability&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$n_</span><span class="si">{AB}</span><span class="s2">$&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_5_0.png" src="../_images/two_locus_selection_5_0.png" />
+</div>
+</div>
+<p>For low recombination rates, the marginal distribution of <cite>AB</cite> haplotypes is skewed
+toward the maximum or minimum number of copies, resulting in higher LD, while for larger
+recombination rates, the distribution of <span class="math notranslate nohighlight">\(n_{AB}\)</span> is concentrated around frequencies
+that result in low levels of LD. We can also see that <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code> agrees well
+with Hudson’s results under neutrality and steady state demography.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Below, we’ll be revisiting these same statistics and seeing how various models
+of selection at the two loci, as well as non-steady state demography, distort the
+expected distributions.</p>
+</div>
+</section>
+</section>
+<section id="how-does-selection-interact-across-multiple-loci">
+<h2>How does selection interact across multiple loci?<a class="headerlink" href="#how-does-selection-interact-across-multiple-loci" title="Link to this heading"></a></h2>
+<p>There has been a recent resurgence of interest in learning about the interaction of
+selection at two or more loci (e.g., for studies within the past few years, see
+<a class="reference internal" href="#sohail" id="id6"><span>[Sohail]</span></a>, <a class="reference internal" href="#garcia" id="id7"><span>[Garcia]</span></a>, <a class="reference internal" href="#sandler" id="id8"><span>[Sandler]</span></a>, <a class="reference internal" href="#good" id="id9"><span>[Good]</span></a>). This has largely been driven by the
+relatively recent availability of large-scale sequencing datasets that allow us to
+observe patterns of allele frequencies and LD for negatively selected loci that may
+be segregating at very low frequencies in a population. Some of these studies are
+theory-driven (e.g., <a class="reference internal" href="#good" id="id10"><span>[Good]</span></a>), while others rely on forward Wright-Fisher simulators
+(such as <code class="docutils literal notranslate"><span class="pre">SLiM</span></code> or <code class="docutils literal notranslate"><span class="pre">fwdpy11</span></code>) to compare observed patterns between data and
+simulation.</p>
+<p>These approaches have their limitations: analytical results are largely
+constrained to simple selection scenarios and steady-state demography, while simulation
+studies are computationally expensive and thus often end up limited to still a handful
+of selection and demographic scenarios. Numerical approaches to compute expectations of
+statistics of interest could therefore provide a far more efficient way to compute
+explore parameter regimes and compare model expectations to data in inference frameworks.</p>
+<p>Here, we’ll explore a few selection models, including both dominance and epistatic
+effects, that theory predicts should result in different patterns of LD between two
+selected loci. We first describe the selection models, and then we compare their
+expected patterns of LD.</p>
+<section id="selection-models-at-two-loci">
+<h3>Selection models at two loci<a class="headerlink" href="#selection-models-at-two-loci" title="Link to this heading"></a></h3>
+<p>At a single locus, the effects of selection and dominance are captured by the selection
+coefficient <span class="math notranslate nohighlight">\(s\)</span> and the dominance coefficient <span class="math notranslate nohighlight">\(h\)</span>, so that fitnesses of the
+diploid genotypes are given by</p>
+<table class="docutils align-center" id="id18">
+<caption><span class="caption-number">Table 3 </span><span class="caption-text">Single-locus fitnesses.</span><a class="headerlink" href="#id18" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Genotype</p></td>
+<td><p>Relative fitness</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aa</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>Aa</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2hs\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>AA</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2s\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<p>If <span class="math notranslate nohighlight">\(h = 1/2\)</span>, i.e. selection is <cite>additive</cite>, this model reduces to a haploid
+selection model where genotype <cite>A</cite> has relative fitness <span class="math notranslate nohighlight">\(1 + s\)</span> compared to <cite>a</cite>.</p>
+<section id="additive-selection-no-epistasis">
+<h4>Additive selection, no epistasis<a class="headerlink" href="#additive-selection-no-epistasis" title="Link to this heading"></a></h4>
+<p>Additive selection models for two loci, like in the single-locus case, reduce to
+haploid-based models, where we only need to know the relative fitnesses of the two-locus
+haplotypes <cite>AB</cite>, <cite>Ab</cite>, <cite>aB</cite>, and <cite>ab</cite>. When we say “no epistasis,” we typically mean that
+the relative fitness of an individual carrying both derived alleles (<cite>AB</cite>) is additive
+across loci, so that if <span class="math notranslate nohighlight">\(s_A\)</span> is the selection coefficient at the left (<cite>A/a</cite>)
+locus, and <span class="math notranslate nohighlight">\(s_B\)</span> is the selection coefficient at the right (<cite>B</cite>/<cite>b</cite>) locus, then
+<span class="math notranslate nohighlight">\(s_{AB} = s_A + s_B\)</span>.</p>
+<table class="docutils align-center" id="id19">
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">No epistasis or dominance emits a haploid selection model.</span><a class="headerlink" href="#id19" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Genotype</p></td>
+<td><p>Relative fitness</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>Ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_A\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_B\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_{AB} = 1 + s_A + s_B\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additive-selection-with-epistasis">
+<h4>Additive selection with epistasis<a class="headerlink" href="#additive-selection-with-epistasis" title="Link to this heading"></a></h4>
+<p>Epistasis is typically modeled as a factor <span class="math notranslate nohighlight">\(\epsilon\)</span> that either increases or
+decreases the selection coefficient for the <cite>AB</cite> haplotype, so that
+<span class="math notranslate nohighlight">\(s_{AB} = s_A + s_B + \epsilon\)</span>. If <span class="math notranslate nohighlight">\(|s_{AB}| &gt; |s_A| + |s_A|\)</span>, i.e. the
+fitness effect of the <cite>AB</cite> haplotype is greater than the sum of the effect of the <cite>Ab</cite>
+and <cite>aB</cite> haplotypes, the effect is called <cite>synergistic</cite> epistasis, and if
+<span class="math notranslate nohighlight">\(|s_{AB}| &lt; |s_A| + |s_A|\)</span>, it is refered to as <cite>antagonistic</cite> epistasis.</p>
+<table class="docutils align-center" id="id20">
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">A haploid selection model with epistasis.</span><a class="headerlink" href="#id20" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Genotype</p></td>
+<td><p>Relative fitness</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>Ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_A\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_B\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + s_{AB} = 1 + s_A + s_B + \epsilon\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="simple-dominance-no-epistasis">
+<h4>Simple dominance, no epistasis<a class="headerlink" href="#simple-dominance-no-epistasis" title="Link to this heading"></a></h4>
+<p>Epistasis is the non-additive interaction of selective effects across loci. The
+non-additive effect of selection within a locus is called dominance, when
+<span class="math notranslate nohighlight">\(s_{AA} \not= 2s_{Aa}\)</span>. Without epistasis, so that <span class="math notranslate nohighlight">\(s_{AB}=s_{A}+s_{B}\)</span>,
+and allowing for different selection and dominance coefficients at the two loci,
+the fitness effects for two-locus diploid genotypes takes a simple form analogous
+to the single-locus case with dominance. Here, we define the relative fitnesses of
+two-locus diploid genotypes, which relies on the selection and dominance coefficients
+at the left and right loci:</p>
+<table class="docutils align-center" id="id21">
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">Accounting for dominance requires modeling selection for diploid
+genotypes, instead of the model reducing to selection on haploid genotypes.</span><a class="headerlink" href="#id21" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Genotype</p></td>
+<td><p>Relative fitness</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aabb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>Aabb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h_A s_A\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>AAbb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s_A\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>aaBb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h_B s_B\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>AaBb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h_A s_A + 2 h_B s_B\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AABb</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s_A + 2 h_B s_B\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aaBB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s_B\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AaBB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h_A s_A + 2 s_B\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>AABB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s_A + 2 s_B\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="both-dominance-and-epistasis">
+<h4>Both dominance and epistasis<a class="headerlink" href="#both-dominance-and-epistasis" title="Link to this heading"></a></h4>
+<p>As additional non-additive interactions are introduced, it gets more difficult to
+succinctly define general selection models with few parameters. A general selection
+model that is flexible could simply define a selection coefficient for each two-locus
+diploid genotype, in relation to the double wild-type homozygote (<cite>aabb</cite>). That is, define
+<span class="math notranslate nohighlight">\(s_{Aabb}\)</span> as the selection coefficient for the <cite>Aabb</cite> genotype, <span class="math notranslate nohighlight">\(s_{AaBb}\)</span>
+the selection coefficient for the <cite>AaBb</cite> genotype, and so on.</p>
+</section>
+<section id="gene-based-dominance">
+<h4>Gene-based dominance<a class="headerlink" href="#gene-based-dominance" title="Link to this heading"></a></h4>
+<p>In the above model, fitness is determined by combined hetero-/homozygosity at the two loci,
+but it does not make a distinction between the different ways that double heterozygotes
+(<cite>AaBb</cite>) could arise. Instead, we could imagine a model where diploid individual fitnesses
+depend on the underlying haplotypes, i.e. whether selected mutations at the two loci are
+coupled on the same background or are on different haplotypes.</p>
+<p>For example, consider loss-of-function mutations in coding regions. Such mutations tend
+to be severely damaging. We could think of the situation where diploid individual fitness
+is strongly reduced when both copies carry a loss-of-function mutation, but much less
+reduced if the individual has at least one copy without a mutation. In this scenario,
+the haplotype combination <cite>Ab / aB</cite> will confer more reduced fitness compared to the
+combination <cite>AB / ab</cite>, even though both are double heterozygote genotypes.</p>
+<p>Perhaps the simplest model for gene-based dominance assumes that derived mutations at
+the two loci (<cite>A</cite> and <cite>B</cite>) carry the same fitness cost, and fitness depends on the number
+of haplotype copies within a diploid individual that have at least one such mutation. This
+model requires just two parameters, a single selection coefficient <cite>s</cite> and a single
+dominance coefficient <cite>h</cite>:</p>
+<table class="docutils align-center" id="id22">
+<caption><span class="caption-number">Table 7 </span><span class="caption-text">A simple gene-based dominance model.</span><a class="headerlink" href="#id22" title="Link to this table"></a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Genotype</p></td>
+<td><p>Relative fitness</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>ab / ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>Ab / ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h s\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>aB / ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h s\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AB / ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 h s\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>Ab / Ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>aB / aB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>Ab / aB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AB / Ab</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>AB / aB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>AB / AB</cite></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 + 2 s\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Cite <a class="reference internal" href="#sanjak" id="id11"><span>[Sanjak]</span></a></p>
+</div>
+</section>
+</section>
+<section id="how-do-different-selection-models-affect-expected-ld-statistics">
+<h3>How do different selection models affect expected LD statistics?<a class="headerlink" href="#how-do-different-selection-models-affect-expected-ld-statistics" title="Link to this heading"></a></h3>
+<p>Here, we will examine some relatively simple models in order to gain some intuition about
+how selection, along with recombination and size changes, affect expected patterns of LD,
+such as the decay curve of <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and Hudson-style slices in the two-locus
+sampling distribution. The selection coefficients will be equal at the two loci, so that
+the only selection parameters that change will be the selection models (dominance and
+epistasis).</p>
+<section id="additive-selection-with-and-without-epistasis">
+<h4>Additive selection with and without epistasis<a class="headerlink" href="#additive-selection-with-and-without-epistasis" title="Link to this heading"></a></h4>
+<p>Let’s first see how simple, additive selection distorts expected LD away from neutral
+expectations at steady state. Plotted below are decay curves for both <span class="math notranslate nohighlight">\(\sigma_d^2\)</span>
+and <span class="math notranslate nohighlight">\(\sigma_d^2 = {\mathbb{E}[D]}{\mathbb{E}[p(1-p)q(1-q)]}\)</span>, a common signed LD
+statistic.</p>
+<p>For each parameter pair of selection coefficient <span class="math notranslate nohighlight">\(\gamma = 2 N_e s\)</span> and <span class="math notranslate nohighlight">\(rho\)</span>,
+we use the “helper” function that creates the input selection parameters for the
+<cite>AB</cite>, <cite>Ab</cite>, and <cite>aB</cite> haplotypes, and then simulate the equilibrium two-locus sampling
+distribution:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sel_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">additive_epistasis</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># epsilon=0 means no epistasis, so s_AB = s_A + s_B</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Demographics</span><span class="o">.</span><span class="n">equilibrium</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+<span class="n">sigma_d1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">D</span><span class="p">()</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">pi2</span><span class="p">()</span>
+<span class="n">sigma_d2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">D2</span><span class="p">()</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">pi2</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_6_0.png" src="../_images/two_locus_selection_6_0.png" />
+</div>
+</div>
+<p>Already with this very simple selection model (no epistasis, no dominance, equal selection
+at both loci), we find some interesting behavior. For very strong or very week selection,
+signed-LD remains close to zero, but for intermediate selection, average <span class="math notranslate nohighlight">\(D\)</span> can be
+significantly negative. As fitness effects get stronger, <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> is reduced
+dramatically compare to neutral expectations.</p>
+<div class="admonition-todo admonition" id="id12">
+<p class="admonition-title">Todo</p>
+<p>Plots of frequency conditioned LD.</p>
+</div>
+<p>The “helper” function that we used above converts input <span class="math notranslate nohighlight">\(\gamma\)</span> and <span class="math notranslate nohighlight">\(\epsilon\)</span>
+to the selection parameters that are passed to <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus.Demographics</span></code> functions.
+The additive epistasis model implemented in the helper function
+(<code class="docutils literal notranslate"><span class="pre">moments.TwoLocus.Util.additive_epistasis</span></code>) returns
+<span class="math notranslate nohighlight">\([(1+\epsilon)(\gamma_A + \gamma_B), \gamma_A, \gamma_B]\)</span>, so that if
+<span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>, we have synergistic epistasis, and if <span class="math notranslate nohighlight">\(\epsilon &lt; 0\)</span>, we
+have antagonistic epistasis. Any value of <span class="math notranslate nohighlight">\(\epsilon\)</span> is permitted, and note that if
+<span class="math notranslate nohighlight">\(\epsilon\)</span> is less than <span class="math notranslate nohighlight">\(-1\)</span>, we get reverse-sign epistasis.</p>
+<p>We’ll focus on two selection regions: mutations that are slightly deleterious with
+<span class="math notranslate nohighlight">\(\gamma=1\)</span>, and stronger selection with <span class="math notranslate nohighlight">\(\gamma=20\)</span>. With an effective
+population size of 10,000, note that <span class="math notranslate nohighlight">\(\gamma=20\)</span> corresponds to
+<span class="math notranslate nohighlight">\(s=0.001\)</span> - by no means a lethal mutation, but strong enough to see some interesting
+differences between selection regimes.</p>
+<p>Below we again plot <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and <span class="math notranslate nohighlight">\(\sigma_d^1\)</span> for each set of parameters:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gammas</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">]</span>
+<span class="n">epsilons</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_8_0.png" src="../_images/two_locus_selection_8_0.png" />
+</div>
+</div>
+<p>From this, we can see that synergistic epistasis decreases <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and
+antagonistic epistasis increases it above expectations for <span class="math notranslate nohighlight">\(\epsilon=0\)</span>. For signed
+LD, however, both positive and negative <span class="math notranslate nohighlight">\(\epsilon\)</span> push <span class="math notranslate nohighlight">\(\sigma_d^1\)</span> farther
+away from zero:</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_9_0.png" src="../_images/two_locus_selection_9_0.png" />
+</div>
+</div>
+<p>As expected, negative <span class="math notranslate nohighlight">\(\epsilon\)</span> (i.e. selection against the <cite>AB</cite> haplotype is less
+strong than the sum of selection against <cite>A</cite> and <cite>B</cite>) leads to an excess of coupling
+LD (pairs with more <cite>AB</cite> and <cite>ab</cite> haplotypes) than repulsion LD (pairs with more <cite>Ab</cite>
+and <cite>aB</cite> haplotypes).</p>
+<p>We can see this effect more clearly by looking at a slice in the two-locus sampling
+distribution. Since we’re considering negative selection, we’ll look at entries in the
+sampling distribution with low frequencies at the two loci. For doubletons at both sites:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">]</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">nA</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">nB</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">epsilon</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">rho</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rhos</span><span class="p">):</span>
+    <span class="n">pABs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eps</span> <span class="ow">in</span> <span class="n">epsilon</span><span class="p">:</span>
+        <span class="n">sel_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">additive_epistasis</span><span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+        <span class="c1"># F = moments.TwoLocus.Demographics.equilibrium(</span>
+        <span class="c1">#     n, rho=rho, sel_params=sel_params)</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;./data/two-locus/eq.n_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">.rho_</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">.sel_&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sel_params</span><span class="p">])</span>
+            <span class="o">+</span> <span class="s2">&quot;.fs.gz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+        <span class="n">counts</span><span class="p">,</span> <span class="n">pAB</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="n">pABs</span><span class="p">[</span><span class="n">eps</span><span class="p">]</span> <span class="o">=</span> <span class="n">pAB</span> <span class="o">/</span> <span class="n">pAB</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">-</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;$\rho = </span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">$, $\gamma = </span><span class="si">{</span><span class="n">gammas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$n_</span><span class="si">{AB}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Probability&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_10_0.png" src="../_images/two_locus_selection_10_0.png" />
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">rho</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rhos</span><span class="p">):</span>
+    <span class="n">pABs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eps</span> <span class="ow">in</span> <span class="n">epsilon</span><span class="p">:</span>
+        <span class="n">sel_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">additive_epistasis</span><span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+        <span class="c1"># F = moments.TwoLocus.Demographics.equilibrium(</span>
+        <span class="c1">#     n, rho=rho, sel_params=sel_params)</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;./data/two-locus/eq.n_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">.rho_</span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">.sel_&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sel_params</span><span class="p">])</span>
+            <span class="o">+</span> <span class="s2">&quot;.fs.gz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+        <span class="n">counts</span><span class="p">,</span> <span class="n">pAB</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="n">pABs</span><span class="p">[</span><span class="n">eps</span><span class="p">]</span> <span class="o">=</span> <span class="n">pAB</span> <span class="o">/</span> <span class="n">pAB</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">-</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">counts</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">pABs</span><span class="p">[</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">rf</span><span class="s2">&quot;$\epsilon=</span><span class="si">{</span><span class="n">epsilon</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;$\rho = </span><span class="si">{</span><span class="n">rho</span><span class="si">}</span><span class="s2">$, $\gamma = </span><span class="si">{</span><span class="n">gammas</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$n_</span><span class="si">{AB}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Probability&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_11_0.png" src="../_images/two_locus_selection_11_0.png" />
+</div>
+</div>
+<p>And while very few mutations will reach high frequency, we can also look at the case with
+<span class="math notranslate nohighlight">\(n_A=15\)</span> and <span class="math notranslate nohighlight">\(n_B=12\)</span> in a sample size of 30. Here, because selection
+and recombination require the jackknife approximation which works better with larger
+sample sizes, we solved for the equilibrium distribution using size <span class="math notranslate nohighlight">\(n=60\)</span> and then
+projected to size 30.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">n_proj</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">nA</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">nB</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">F</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Demographics</span><span class="o">.</span><span class="n">equilibrium</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+<span class="c1"># by default, we usually cache projection steps, but set cache=False here to</span>
+<span class="c1"># save on memory usage</span>
+<span class="n">F_proj</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">n_proj</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">counts</span><span class="p">,</span> <span class="n">pAB</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">pAB</span><span class="p">(</span><span class="n">F_proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+<span class="n">pAB</span> <span class="o">/=</span> <span class="n">pAB</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_12_0.png" src="../_images/two_locus_selection_12_0.png" />
+</div>
+</div>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_13_0.png" src="../_images/two_locus_selection_13_0.png" />
+</div>
+</div>
+</section>
+<section id="dominance">
+<h4>Dominance<a class="headerlink" href="#dominance" title="Link to this heading"></a></h4>
+<p>We again assume fitness effects are the same at both loci, and now explore how dominance
+affects LD. We’ll start by looking at the “simple” dominance model without epistasis, so
+that fitness effects are additive across loci. When simulating with dominance, the selection
+model no longer collapses to a haploid model, but instead we need to specify the selection
+coefficients for each possible diploid haplotype pair <cite>AB/AB</cite>, <cite>AB/Ab</cite>, etc. We’ll use
+another helper function to generate those selection coefficients and pass them to the
+<code class="docutils literal notranslate"><span class="pre">sel_params_general</span></code> keyword argument.</p>
+<p>For example, to simulate the equilibrium distribution with selection coefficient -5 and
+dominance coefficient 0.1 under the simple dominance model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">sel_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">simple_dominance</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">TwoLocus</span><span class="o">.</span><span class="n">Demographics</span><span class="o">.</span><span class="n">equilibrium</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sel_params_general</span><span class="o">=</span><span class="n">sel_params</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s look at how <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> and <span class="math notranslate nohighlight">\(\sigma_d^1\)</span> are affected by dominance.</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_14_0.png" src="../_images/two_locus_selection_14_0.png" />
+<img alt="../_images/two_locus_selection_14_1.png" src="../_images/two_locus_selection_14_1.png" />
+</div>
+</div>
+<p>Squared LD (<span class="math notranslate nohighlight">\(\sigma_d^2\)</span>) is increased for recessive variants, while pairs of
+dominant mutations reduce it below expectations for additive variants.</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/two_locus_selection_15_0.png" src="../_images/two_locus_selection_15_0.png" />
+<img alt="../_images/two_locus_selection_15_1.png" src="../_images/two_locus_selection_15_1.png" />
+</div>
+</div>
+<p>Similarly, recessive mutations lead to larger average negative signed LD. However, this
+pattern also depends on the underlying selection coefficient, with LD decay curves that
+can vary qualitatively for different selection coefficients and recombination rates
+between loci, even when dominance is equivalent.</p>
+<div class="admonition-todo admonition" id="id13">
+<p class="admonition-title">Todo</p>
+<p>Relate to associative overdominance work, e.g. Charlesworth, and Hill-Robertson
+interference.</p>
+</div>
+</section>
+<section id="id14">
+<h4>Gene-based dominance<a class="headerlink" href="#id14" title="Link to this heading"></a></h4>
+<div class="admonition-todo admonition" id="id15">
+<p class="admonition-title">Todo</p>
+<p>All the comparisons, show LD curves and expectations for signed LD, depending
+on the selection model, maybe explore how population size changes distort these
+expectations.</p>
+</div>
+</section>
+<section id="non-steady-state-demography">
+<h4>Non-steady-state demography<a class="headerlink" href="#non-steady-state-demography" title="Link to this heading"></a></h4>
+<p><span class="math notranslate nohighlight">\(\mathcal{K}\)</span></p>
+<div class="admonition-todo admonition" id="id16">
+<p class="admonition-title">Todo</p>
+<p>Are any of these statistics quite sensitive to bottlenecks or expansions?</p>
+</div>
+<div class="admonition-todo admonition" id="id17">
+<p class="admonition-title">Todo</p>
+<p>Discussion on what we can expect to learn from signed LD-based inferences. Are
+the various selection models and demography hopelessly confounded?</p>
+</div>
+</section>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="garcia" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">Garcia</a><span class="fn-bracket">]</span></span>
+<p>Garcia, Jesse A., and Kirk E. Lohmueller. “Negative linkage disequilibrium between
+amino acid changing variants reveals interference among deleterious mutations in the
+human genome.” <em>bioRxiv</em> (2020).</p>
+</div>
+<div class="citation" id="good" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Good<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id9">1</a>,<a role="doc-backlink" href="#id10">2</a>)</span>
+<p>Good, Benjamin H. “Linkage disequilibrium between rare mutations.”
+<em>Genetics</em> (2022).</p>
+</div>
+<div class="citation" id="hudson" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">Hudson</a><span class="fn-bracket">]</span></span>
+<p>Hudson, Richard R. “Two-locus sampling distributions and their application.”
+<em>Genetics</em> 159.4 (2001): 1805-1817.</p>
+</div>
+<div class="citation" id="ohta" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Ohta<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Ohta, Tomoko, and Motoo Kimura. “Linkage disequilibrium between two segregating
+nucleotide sites under the steady flux of mutations in a finite population.”
+<em>Genetics</em> 68.4 (1971): 571.</p>
+</div>
+<div class="citation" id="ragsdale-gutenkunst" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Ragsdale_Gutenkunst</a><span class="fn-bracket">]</span></span>
+<p>Ragsdale, Aaron P. and Ryan N. Gutenkunst. “Inferring demographic history using
+two-locus statistics.” <em>Genetics</em> 206.2 (2017): 1037-1048.</p>
+</div>
+<div class="citation" id="ragsdale-gravel" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Ragsdale_Gravel</a><span class="fn-bracket">]</span></span>
+<p>Ragsdale, Aaron P. and Simon Gravel. “Models of archaic admixture and recent history
+from two-locus statistics.” <em>PLoS Genetics</em> 15.8 (2019): e1008204.</p>
+</div>
+<div class="citation" id="sandler" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">Sandler</a><span class="fn-bracket">]</span></span>
+<p>Sandler, George, Stephen I. Wright, and Aneil F. Agrawal. “Using patterns of signed
+linkage disequilibria to test for epistasis in flies and plants.” <em>bioRxiv</em> (2020).</p>
+</div>
+<div class="citation" id="sanjak" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">Sanjak</a><span class="fn-bracket">]</span></span>
+<p>Sanjak, Jaleal S., Anthony D. Long, and Kevin R. Thornton. “A model of compound
+heterozygous, loss-of-function alleles is broadly consistent with observations
+from complex-disease GWAS datasets.” PLoS genetics 13.1 (2017): e1006573.</p>
+</div>
+<div class="citation" id="sohail" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">Sohail</a><span class="fn-bracket">]</span></span>
+<p>Sohail, Mashaal, et al. “Negative selection in humans and fruit flies involves
+synergistic epistasis.” <em>Science</em> 356.6337 (2017): 539-542.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="recombination.html" class="btn btn-neutral float-left" title="Linkage disequilibrium and recombination" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/api_moments.html" class="btn btn-neutral float-right" title="API for site frequency spectra" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.Inference &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.Inference</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.Inference</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">moments.LD</span> <span class="kn">import</span> <span class="n">Numerics</span>
+<span class="kn">from</span> <span class="nn">moments.LD</span> <span class="kn">import</span> <span class="n">Util</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">moments</span>
+
+<span class="c1"># from moments.Misc import delayed_flush</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Misc</span>
+<span class="kn">from</span> <span class="nn">moments.LD.LDstats_mod</span> <span class="kn">import</span> <span class="n">LDstats</span>
+
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
+<span class="n">_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<div class="viewcode-block" id="sigmaD2">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.sigmaD2">[docs]</a>
+<span class="k">def</span> <span class="nf">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the :math:`\\sigma_D^2` statistics normalizing by the heterozygosities</span>
+<span class="sd">    in a given population.</span>
+
+<span class="sd">    :param y: The input data.</span>
+<span class="sd">    :type y: :class:`LDstats` object</span>
+<span class="sd">    :param normalization: The index of the normalizing population</span>
+<span class="sd">        (normalized by pi2_i_i_i_i and H_i_i), default set to 0.</span>
+<span class="sd">    :type normalization: int, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">normalization</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span> <span class="ow">or</span> <span class="n">normalization</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Normalization index must be for a present population&quot;</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">[:]),</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;pi2_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))]</span>
+    <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;H_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))]</span>
+
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="bin_stats">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.bin_stats">[docs]</a>
+<span class="k">def</span> <span class="nf">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="p">[],</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">spread</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes LD statist for a given model function over bins defined by ``rho``.</span>
+<span class="sd">    Here, ``rho`` gives the bin edges, and we assume no spaces between bins. That</span>
+<span class="sd">    is, if the length of the input recombination rates is :math:`l`, the number of</span>
+<span class="sd">    bins is :math:`l-1`.</span>
+
+<span class="sd">    :param model_func: The model function that takes parameters in the form</span>
+<span class="sd">        ``model_func(params, rho=rho, theta=theta, **kwargs)``.</span>
+<span class="sd">    :param params: The parameters to evaluate the model at.</span>
+<span class="sd">    :type params: list of floats</span>
+<span class="sd">    :param rho: The scaled recombination rate bin edges.</span>
+<span class="sd">    :type rho: list of floats</span>
+<span class="sd">    :param theta: The mutation rate</span>
+<span class="sd">    :type theta: float, optional</span>
+<span class="sd">    :param spread: A list of length rho-1 (number of bins), where each entry is an</span>
+<span class="sd">        array of length rho+1 (number of bins plus amount outside bin range to each</span>
+<span class="sd">        side). Each array must sum to one.</span>
+<span class="sd">    :type spread: list of arrays</span>
+<span class="sd">    :param kwargs: Extra keyword arguments to pass to ``model_func``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;number of recombination rates (bin edges) must be greater than one&quot;</span>
+        <span class="p">)</span>
+    <span class="n">rho_mids</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rho</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rho</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">y_edges</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">y_mids</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho_mids</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mf">1.0</span> <span class="o">/</span> <span class="mi">6</span> <span class="o">*</span> <span class="p">(</span><span class="n">y_edges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_edges</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y_mids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rho_mids</span><span class="p">))</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">spread</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_edges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">y_edges</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">y_edges</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spread</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;spread must be length of bins&quot;</span><span class="p">)</span>
+        <span class="n">y_spread</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">distr</span> <span class="ow">in</span> <span class="n">spread</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">distr</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;spread distr is not the correct length (len(bins) + 2)&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distr</span><span class="p">),</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;spread distributions must sum to one&quot;</span><span class="p">)</span>
+            <span class="n">y_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">distr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">y_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">distr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">distr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">y_edges</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="n">y_spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_edges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">y_spread</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">y_edges</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">y_edges</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="remove_normalized_lds">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.remove_normalized_lds">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_normalized_lds</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns LD statistics with the normalizing statistic removed.</span>
+
+<span class="sd">    :param y: An LDstats object that has been normalized to get</span>
+<span class="sd">        :math:`\\sigma_D^2`-formatted statistics.</span>
+<span class="sd">    :type y: :class:`LDstats` object</span>
+<span class="sd">    :param normalization: The index of the normalizing population.</span>
+<span class="sd">    :type normalization: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">to_delete_ld</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;pi2_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))</span>
+    <span class="n">to_delete_h</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;H_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unexpected number of LD stats in data&quot;</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">to_delete_ld</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unexpected number of H stats in data&quot;</span><span class="p">)</span>
+    <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">to_delete_h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+
+<div class="viewcode-block" id="remove_normalized_data">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.remove_normalized_data">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_normalized_data</span><span class="p">(</span>
+    <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns data means and covariance matrices with the normalizing</span>
+<span class="sd">    statistics removed.</span>
+
+<span class="sd">    :param means: List of means normalized statistics, where each entry is the</span>
+<span class="sd">        full set of statistics for a given recombination distance.</span>
+<span class="sd">    :type means: list of arrays</span>
+<span class="sd">    :param varcovs: List of the corresponding variance covariance matrices.</span>
+<span class="sd">    :type varcovs: list of arrays</span>
+<span class="sd">    :param normalization: The index of the normalizing population.</span>
+<span class="sd">    :type normalization: int</span>
+<span class="sd">    :param num_pops: The number of populations in the data set.</span>
+<span class="sd">    :type num_pops: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">varcovs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Different lengths of means and covariances&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">statistics</span><span class="p">)</span>
+    <span class="n">to_delete_ld</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;pi2_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))</span>
+    <span class="n">to_delete_h</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;H_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization</span><span class="p">))</span>
+    <span class="n">ms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vcs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="ow">or</span> <span class="n">varcovs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="ow">or</span> <span class="n">varcovs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Data and statistics mismatch. Some statistics are missing &quot;</span>
+                <span class="s2">&quot;or the incorrect number of populations was given.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">to_delete_ld</span><span class="p">))</span>
+        <span class="n">vcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">varcovs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">to_delete_ld</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">to_delete_ld</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">ms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">to_delete_h</span><span class="p">))</span>
+    <span class="c1"># Single population data will have 1-D array for H</span>
+    <span class="k">if</span> <span class="n">varcovs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">vcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">varcovs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">to_delete_h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">to_delete_h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">varcovs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">to_delete_h</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">to_delete_ld</span><span class="p">)</span>
+        <span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">to_delete_h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">,</span> <span class="n">stats</span></div>
+
+
+
+<div class="viewcode-block" id="remove_nonpresent_statistics">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.remove_nonpresent_statistics">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_nonpresent_statistics</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="p">[[],</span> <span class="p">[]]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes data not found in the given set of statistics.</span>
+
+<span class="sd">    :param y: LD statistics.</span>
+<span class="sd">    :type y: :class:`LDstats` object.</span>
+<span class="sd">    :param statistics: A list of lists for two and one locus statistics to keep.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">to_delete</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">j</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">statistics</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+                <span class="n">to_delete</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">to_delete</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">to_delete</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_multivariate_normal_pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">Sigma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">**</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+        <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Sigma</span><span class="p">)),</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_ll</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">Sigma_inv</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    x = data</span>
+<span class="sd">    mu = model function output</span>
+<span class="sd">    Sigma_inv = inverse of the variance-covariance matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">Sigma_inv</span><span class="p">),</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span>
+        <span class="c1"># - len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma))</span>
+
+
+<span class="n">_varcov_inv_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="ll_over_bins">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.ll_over_bins">[docs]</a>
+<span class="k">def</span> <span class="nf">ll_over_bins</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">mus</span><span class="p">,</span> <span class="n">Sigmas</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the composite log-likelihood over LD and heterozygosity statistics, given</span>
+<span class="sd">    data and expectations. Inputs must be in the same order, and we assume each bin</span>
+<span class="sd">    is independent, so we sum _ll(x, mu, Sigma) over each bin.</span>
+
+<span class="sd">    :param xs: A list of data arrays.</span>
+<span class="sd">    :param mus: A list of model function output arrays, same length as ``xs``.</span>
+<span class="sd">    :param Sigmas: A list of var-cov matrices, same length as ``xs``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="n">xs</span><span class="p">,</span> <span class="n">mus</span><span class="p">,</span> <span class="n">Sigmas</span><span class="p">])</span>
+    <span class="n">the_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">==</span> <span class="n">the_len</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">it</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Lists of data, means, and varcov matrices must be the same length&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ll_vals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)):</span>
+        <span class="c1"># get var-cov inverse from cache dictionary, or compute it</span>
+        <span class="n">recompute</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">_varcov_inv_cache</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
+            <span class="n">_varcov_inv_cache</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">Sigma_inv</span> <span class="o">=</span> <span class="n">_varcov_inv_cache</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;inv&quot;</span><span class="p">]</span>
+            <span class="n">recompute</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">recompute</span><span class="p">:</span>
+            <span class="n">_varcov_inv_cache</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">_varcov_inv_cache</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">Sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">Sigma_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Sigma_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+            <span class="n">_varcov_inv_cache</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;inv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sigma_inv</span>
+        <span class="c1"># append log-likelihood for this bin</span>
+        <span class="n">ll_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_ll</span><span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">mus</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">Sigma_inv</span><span class="p">))</span>
+    <span class="c1"># sum over bins to get composite log-likelihood</span>
+    <span class="n">ll_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ll_vals</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_val</span></div>
+
+
+
+<span class="n">_out_of_bounds_val</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e12</span>
+
+
+<span class="k">def</span> <span class="nf">_object_func</span><span class="p">(</span>
+    <span class="n">params</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">means</span><span class="p">,</span>
+    <span class="n">varcovs</span><span class="p">,</span>
+    <span class="n">fs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">rs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_afs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">Leff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">spread</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">global</span> <span class="n">_counter</span>
+    <span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Deal with fixed parameters</span>
+    <span class="n">params_up</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="c1"># Check our parameter bounds</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&gt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span>
+
+    <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">params_up</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">func_args</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Ne</span> <span class="o">=</span> <span class="n">params_up</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">u</span>
+            <span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">pass_Ne</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">all_args</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">all_args</span><span class="p">[</span><span class="mi">0</span><span class="p">][:]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">u</span>
+            <span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rhos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">]</span>
+
+    <span class="c1">## first get ll of afs</span>
+    <span class="k">if</span> <span class="n">use_afs</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Leff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">all_args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">Leff</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">all_args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fs</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">multinom</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">ll_afs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ll_afs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
+
+    <span class="c1">## next get ll for LD stats</span>
+    <span class="n">func_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;theta&quot;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="n">rhos</span><span class="p">,</span> <span class="s2">&quot;spread&quot;</span><span class="p">:</span> <span class="n">spread</span><span class="p">}</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">all_args</span><span class="p">,</span> <span class="o">**</span><span class="n">func_kwargs</span><span class="p">)</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">sigmaD2</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">remove_normalized_lds</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">remove_nonpresent_statistics</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="n">statistics</span><span class="p">)</span>
+    <span class="n">simp_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">het_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">use_afs</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">simp_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">het_stats</span><span class="p">)</span>
+
+    <span class="c1">## resulting ll from afs (if used) plus ll from rho bins</span>
+    <span class="k">if</span> <span class="n">use_afs</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll_afs</span> <span class="o">+</span> <span class="n">ll_over_bins</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">simp_stats</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll_over_bins</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">simp_stats</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">)</span>
+
+    <span class="c1"># Bad result</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;got bad results...&quot;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_out_of_bounds_val</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_counter</span> <span class="o">%</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="s2">&quot;array([</span><span class="si">%s</span><span class="s2">])&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%- 12g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params_up</span><span class="p">]))</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%-8i</span><span class="s2">, </span><span class="si">%-12g</span><span class="s2">, </span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_counter</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">flush_delay</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_object_func_log</span><span class="p">(</span><span class="n">log_params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_object_func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_params</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="optimize_log_fmin">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.optimize_log_fmin">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">rs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">u</span><span class="o">=</span><span class="mf">2e-8</span><span class="p">,</span>
+    <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_afs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">Leff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">spread</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxfun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize (using the log of) the parameters using a downhill simplex</span>
+<span class="sd">    algorithm. Initial parameters ``p0``, the data ``[means, varcovs]``,</span>
+<span class="sd">    the demographic ``model_func``, and ``rs`` to specify recombination</span>
+<span class="sd">    bin edges are required. ``Ne`` must either be specified as a keyword</span>
+<span class="sd">    argument or is included as the *last* parameter in ``p0``.</span>
+
+<span class="sd">    :param p0: The initial guess for demographic parameters,</span>
+<span class="sd">        demography parameters plus (optionally) Ne.</span>
+<span class="sd">    :type p0: list</span>
+<span class="sd">    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum</span>
+<span class="sd">        fs is optional, and used only if use_afs=True.</span>
+
+<span class="sd">        - Means: The list of mean statistics within each bin</span>
+<span class="sd">          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are</span>
+<span class="sd">          not using the AFS, which is typical, the heterozygosity statistics</span>
+<span class="sd">          come last.</span>
+<span class="sd">        - varcovs: The list of varcov matrices matching the data in ``means``.</span>
+
+<span class="sd">    :type data: list</span>
+<span class="sd">    :param model_func: The demographic model to compute statistics</span>
+<span class="sd">        for a given rho. If we are using AFS, it&#39;s a list of the two models</span>
+<span class="sd">        [LD func, AFS func]. If we&#39;re using LD stats alone, we pass a single LD</span>
+<span class="sd">        model  as a list: [LD func].</span>
+<span class="sd">    :type model_func: list</span>
+<span class="sd">    :param rs: The list of raw recombination rates defining bin edges.</span>
+<span class="sd">    :type rs: list</span>
+<span class="sd">    :param theta: The population scaled per base mutation rate</span>
+<span class="sd">        (4*Ne*mu, not 4*Ne*mu*L).</span>
+<span class="sd">    :type theta: float, optional</span>
+<span class="sd">    :param u: The raw per base mutation rate.</span>
+<span class="sd">        Cannot be used with ``theta``.</span>
+<span class="sd">    :type u: float, optional</span>
+<span class="sd">    :param Ne: The fixed effective population size to scale</span>
+<span class="sd">        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter</span>
+<span class="sd">        in ``p0``.</span>
+<span class="sd">    :type Ne: float, optional</span>
+<span class="sd">    :param lower_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        lower bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type lower_bound: list, optional</span>
+<span class="sd">    :param upper_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        upper bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type upper_bound: list, optional</span>
+<span class="sd">    :param verbose: If an integer greater than 0, prints updates</span>
+<span class="sd">        of the optimization procedure at intervals given by that spacing.</span>
+<span class="sd">    :type verbose: int, optional</span>
+<span class="sd">    :param func_args: Additional arguments to be passed</span>
+<span class="sd">        to ``model_func``.</span>
+<span class="sd">    :type func_args: list, optional</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to be</span>
+<span class="sd">        passed to ``model_func``.</span>
+<span class="sd">    :type func_kwargs: dict, optional</span>
+<span class="sd">    :param fixed_params: Defaults to ``None``. To fix some</span>
+<span class="sd">        parameters, this should be a list of equal length as ``p0``, with</span>
+<span class="sd">        ``None`` for parameters to be fit and fixed values at corresponding</span>
+<span class="sd">        indexes.</span>
+<span class="sd">    :type fixed_params: list, optional</span>
+<span class="sd">    :param use_afs: Defaults to ``False``. We can pass a model</span>
+<span class="sd">        to compute the frequency spectrum and use</span>
+<span class="sd">        that instead of heterozygosity statistics for single-locus data.</span>
+<span class="sd">    :type use_afs: bool, optional</span>
+<span class="sd">    :param Leff: The effective length of genome from which</span>
+<span class="sd">        the fs was generated (only used if fitting to afs).</span>
+<span class="sd">    :type Leff: float, optional</span>
+<span class="sd">    :param multinom: Only used if we are fitting the AFS.</span>
+<span class="sd">        If ``True``, the likelihood is computed for an optimally rescaled FS.</span>
+<span class="sd">        If ``False``, the likelihood is computed for a fixed scaling of the FS</span>
+<span class="sd">        found by theta=4*Ne*u and Leff</span>
+<span class="sd">    :type multinom: bool, optional</span>
+<span class="sd">    :param ns: The sample size, which is only needed</span>
+<span class="sd">        if we are using the frequency spectrum, as the sample size does not</span>
+<span class="sd">        affect mean LD statistics.</span>
+<span class="sd">    :type ns: list of ints, optional</span>
+<span class="sd">    :param statistics: Defaults to ``None``, which assumes that</span>
+<span class="sd">        all statistics are present and in the conventional default order. If</span>
+<span class="sd">        the data is missing some statistics, we must specify which statistics</span>
+<span class="sd">        are present using the subset of statistic names given by</span>
+<span class="sd">        ``moments.LD.Util.moment_names(num_pops)``.</span>
+<span class="sd">    :type statistics: list, optional</span>
+<span class="sd">    :param pass_Ne: Defaults to ``False``. If ``True``, the</span>
+<span class="sd">        demographic model includes ``Ne`` as a parameter (in the final position</span>
+<span class="sd">        of input parameters).</span>
+<span class="sd">    :type pass_Ne: bool, optional</span>
+<span class="sd">    :param maxiter: Defaults to None. Maximum number of iterations to perform.</span>
+<span class="sd">    :type maxiter: int</span>
+<span class="sd">    :param maxfun: Defaults to None. Maximum number of function evaluations to make.</span>
+<span class="sd">    :type maxfun: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">means</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">use_afs</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;if use_afs=True, need to pass frequency spectrum, &quot;</span>
+                <span class="s2">&quot;as data=[means,varcovs,fs]&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to set ns if we are fitting frequency spectrum&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">rs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to pass rs as bin edges&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get num_pops</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">num_pops</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span>
+
+    <span class="c1"># remove normalized statisticsd</span>
+    <span class="n">ms</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+    <span class="n">vcs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">varcovs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># if statistics is not None, assume we already filtered out the data</span>
+        <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span> <span class="o">=</span> <span class="n">remove_normalized_data</span><span class="p">(</span>
+            <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span>
+        <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">ms</span><span class="p">,</span>
+        <span class="n">vcs</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">rs</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">,</span>
+        <span class="n">u</span><span class="p">,</span>
+        <span class="n">Ne</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">normalization</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">use_afs</span><span class="p">,</span>
+        <span class="n">Leff</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">ns</span><span class="p">,</span>
+        <span class="n">statistics</span><span class="p">,</span>
+        <span class="n">pass_Ne</span><span class="p">,</span>
+        <span class="n">spread</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">maxfun</span><span class="o">=</span><span class="n">maxfun</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span></div>
+
+
+
+<div class="viewcode-block" id="optimize_log_powell">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.optimize_log_powell">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_powell</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">rs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">u</span><span class="o">=</span><span class="mf">2e-8</span><span class="p">,</span>
+    <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_afs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">Leff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">spread</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxfun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize (using the log of) the parameters using the modified Powell&#39;s</span>
+<span class="sd">    method, which optimizes slices of parameter space sequentially. Initial</span>
+<span class="sd">    parameters ``p0``, the data ``[means, varcovs]``,</span>
+<span class="sd">    the demographic ``model_func``, and ``rs`` to specify recombination</span>
+<span class="sd">    bin edges are required. ``Ne`` must either be specified as a keyword</span>
+<span class="sd">    argument or is included as the *last* parameter in ``p0``.</span>
+
+<span class="sd">    :param p0: The initial guess for demographic parameters,</span>
+<span class="sd">        demography parameters plus (optionally) Ne.</span>
+<span class="sd">    :type p0: list</span>
+<span class="sd">    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum</span>
+<span class="sd">        fs is optional, and used only if use_afs=True.</span>
+
+<span class="sd">        - Means: The list of mean statistics within each bin</span>
+<span class="sd">          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are</span>
+<span class="sd">          not using the AFS, which is typical, the heterozygosity statistics</span>
+<span class="sd">          come last.</span>
+<span class="sd">        - varcovs: The list of varcov matrices matching the data in ``means``.</span>
+
+<span class="sd">    :type data: list</span>
+<span class="sd">    :param model_func: The demographic model to compute statistics</span>
+<span class="sd">        for a given rho. If we are using AFS, it&#39;s a list of the two models</span>
+<span class="sd">        [LD func, AFS func]. If we&#39;re using LD stats alone, we pass a single LD</span>
+<span class="sd">        model  as a list: [LD func].</span>
+<span class="sd">    :type model_func: list</span>
+<span class="sd">    :param rs: The list of raw recombination rates defining bin edges.</span>
+<span class="sd">    :type rs: list</span>
+<span class="sd">    :param theta: The population scaled per base mutation rate</span>
+<span class="sd">        (4*Ne*mu, not 4*Ne*mu*L).</span>
+<span class="sd">    :type theta: float, optional</span>
+<span class="sd">    :param u: The raw per base mutation rate.</span>
+<span class="sd">        Cannot be used with ``theta``.</span>
+<span class="sd">    :type u: float, optional</span>
+<span class="sd">    :param Ne: The fixed effective population size to scale</span>
+<span class="sd">        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter</span>
+<span class="sd">        in ``p0``.</span>
+<span class="sd">    :type Ne: float, optional</span>
+<span class="sd">    :param lower_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        lower bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type lower_bound: list, optional</span>
+<span class="sd">    :param upper_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        upper bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type upper_bound: list, optional</span>
+<span class="sd">    :param verbose: If an integer greater than 0, prints updates</span>
+<span class="sd">        of the optimization procedure at intervals given by that spacing.</span>
+<span class="sd">    :type verbose: int, optional</span>
+<span class="sd">    :param func_args: Additional arguments to be passed</span>
+<span class="sd">        to ``model_func``.</span>
+<span class="sd">    :type func_args: list, optional</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to be</span>
+<span class="sd">        passed to ``model_func``.</span>
+<span class="sd">    :type func_kwargs: dict, optional</span>
+<span class="sd">    :param fixed_params: Defaults to ``None``. To fix some</span>
+<span class="sd">        parameters, this should be a list of equal length as ``p0``, with</span>
+<span class="sd">        ``None`` for parameters to be fit and fixed values at corresponding</span>
+<span class="sd">        indexes.</span>
+<span class="sd">    :type fixed_params: list, optional</span>
+<span class="sd">    :param use_afs: Defaults to ``False``. We can pass a model</span>
+<span class="sd">        to compute the frequency spectrum and use</span>
+<span class="sd">        that instead of heterozygosity statistics for single-locus data.</span>
+<span class="sd">    :type use_afs: bool, optional</span>
+<span class="sd">    :param Leff: The effective length of genome from which</span>
+<span class="sd">        the fs was generated (only used if fitting to afs).</span>
+<span class="sd">    :type Leff: float, optional</span>
+<span class="sd">    :param multinom: Only used if we are fitting the AFS.</span>
+<span class="sd">        If ``True``, the likelihood is computed for an optimally rescaled FS.</span>
+<span class="sd">        If ``False``, the likelihood is computed for a fixed scaling of the FS</span>
+<span class="sd">        found by theta=4*Ne*u and Leff</span>
+<span class="sd">    :type multinom: bool, optional</span>
+<span class="sd">    :param ns: The sample size, which is only needed</span>
+<span class="sd">        if we are using the frequency spectrum, as the sample size does not</span>
+<span class="sd">        affect mean LD statistics.</span>
+<span class="sd">    :type ns: list of ints, optional</span>
+<span class="sd">    :param statistics: Defaults to ``None``, which assumes that</span>
+<span class="sd">        all statistics are present and in the conventional default order. If</span>
+<span class="sd">        the data is missing some statistics, we must specify which statistics</span>
+<span class="sd">        are present using the subset of statistic names given by</span>
+<span class="sd">        ``moments.LD.Util.moment_names(num_pops)``.</span>
+<span class="sd">    :type statistics: list, optional</span>
+<span class="sd">    :param pass_Ne: Defaults to ``False``. If ``True``, the</span>
+<span class="sd">        demographic model includes ``Ne`` as a parameter (in the final position</span>
+<span class="sd">        of input parameters).</span>
+<span class="sd">    :type pass_Ne: bool, optional</span>
+<span class="sd">    :param maxiter: Defaults to None. Maximum number of iterations to perform.</span>
+<span class="sd">    :type maxiter: int</span>
+<span class="sd">    :param maxfun: Defaults to None. Maximum number of function evaluations to make.</span>
+<span class="sd">    :type maxfun: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">means</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">use_afs</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to set ns if we are fitting frequency spectrum&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">rs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to pass rs as bin edges&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get num_pops</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">num_pops</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span>
+
+    <span class="c1"># remove normalized statistics</span>
+    <span class="n">ms</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+    <span class="n">vcs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">varcovs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># if statistics is not None, assume we already filtered out the data</span>
+        <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span> <span class="o">=</span> <span class="n">remove_normalized_data</span><span class="p">(</span>
+            <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span>
+        <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">ms</span><span class="p">,</span>
+        <span class="n">vcs</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">rs</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">,</span>
+        <span class="n">u</span><span class="p">,</span>
+        <span class="n">Ne</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">normalization</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">use_afs</span><span class="p">,</span>
+        <span class="n">Leff</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">ns</span><span class="p">,</span>
+        <span class="n">statistics</span><span class="p">,</span>
+        <span class="n">pass_Ne</span><span class="p">,</span>
+        <span class="n">spread</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_powell</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">maxfun</span><span class="o">=</span><span class="n">maxfun</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">direc</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span></div>
+
+
+
+<div class="viewcode-block" id="optimize_log_lbfgsb">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Inference.optimize_log_lbfgsb">[docs]</a>
+<span class="k">def</span> <span class="nf">optimize_log_lbfgsb</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">rs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">u</span><span class="o">=</span><span class="mf">2e-8</span><span class="p">,</span>
+    <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_afs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">Leff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">spread</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mi">40000</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">pgtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize (using the log of) the parameters using the modified Powell&#39;s</span>
+<span class="sd">    method, which optimizes slices of parameter space sequentially. Initial</span>
+<span class="sd">    parameters ``p0``, the data ``[means, varcovs]``,</span>
+<span class="sd">    the demographic ``model_func``, and ``rs`` to specify recombination</span>
+<span class="sd">    bin edges are required. ``Ne`` must either be specified as a keyword</span>
+<span class="sd">    argument or is included as the *last* parameter in ``p0``.</span>
+
+<span class="sd">    It is best at burrowing down a single minimum. This method is</span>
+<span class="sd">    better than optimize_log if the optimum lies at one or more of the</span>
+<span class="sd">    parameter bounds. However, if your optimum is not on the bounds, this</span>
+<span class="sd">    method may be much slower.</span>
+
+<span class="sd">    Because this works in log(params), it cannot explore values of params &lt; 0.</span>
+<span class="sd">    It should also perform better when parameters range over scales.</span>
+
+<span class="sd">    The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge</span>
+<span class="sd">    Nocedal. The algorithm is described in:</span>
+
+<span class="sd">    - R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound</span>
+<span class="sd">      Constrained Optimization, (1995), SIAM Journal on Scientific and</span>
+<span class="sd">      Statistical Computing , 16, 5, pp. 1190-1208.</span>
+<span class="sd">    - C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,</span>
+<span class="sd">      FORTRAN routines for large scale bound constrained optimization (1997),</span>
+<span class="sd">      ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.</span>
+
+<span class="sd">    :param p0: The initial guess for demographic parameters,</span>
+<span class="sd">        demography parameters plus (optionally) Ne.</span>
+<span class="sd">    :type p0: list</span>
+<span class="sd">    :param data: The parsed data[means, varcovs, fs]. The frequency spectrum</span>
+<span class="sd">        fs is optional, and used only if use_afs=True.</span>
+
+<span class="sd">        - Means: The list of mean statistics within each bin</span>
+<span class="sd">          (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are</span>
+<span class="sd">          not using the AFS, which is typical, the heterozygosity statistics</span>
+<span class="sd">          come last.</span>
+<span class="sd">        - varcovs: The list of varcov matrices matching the data in ``means``.</span>
+
+<span class="sd">    :type data: list</span>
+<span class="sd">    :param model_func: The demographic model to compute statistics</span>
+<span class="sd">        for a given rho. If we are using AFS, it&#39;s a list of the two models</span>
+<span class="sd">        [LD func, AFS func]. If we&#39;re using LD stats alone, we pass a single LD</span>
+<span class="sd">        model  as a list: [LD func].</span>
+<span class="sd">    :type model_func: list</span>
+<span class="sd">    :param rs: The list of raw recombination rates defining bin edges.</span>
+<span class="sd">    :type rs: list</span>
+<span class="sd">    :param theta: The population scaled per base mutation rate</span>
+<span class="sd">        (4*Ne*mu, not 4*Ne*mu*L).</span>
+<span class="sd">    :type theta: float, optional</span>
+<span class="sd">    :param u: The raw per base mutation rate.</span>
+<span class="sd">        Cannot be used with ``theta``.</span>
+<span class="sd">    :type u: float, optional</span>
+<span class="sd">    :param Ne: The fixed effective population size to scale</span>
+<span class="sd">        u and r. If ``Ne`` is a parameter to fit, it should be the last parameter</span>
+<span class="sd">        in ``p0``.</span>
+<span class="sd">    :type Ne: float, optional</span>
+<span class="sd">    :param lower_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        lower bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type lower_bound: list, optional</span>
+<span class="sd">    :param upper_bound: Defaults to ``None``. Constraints on the</span>
+<span class="sd">        upper bounds during optimization. These are given as lists of the same</span>
+<span class="sd">        length of the parameters.</span>
+<span class="sd">    :type upper_bound: list, optional</span>
+<span class="sd">    :param verbose: If an integer greater than 0, prints updates</span>
+<span class="sd">        of the optimization procedure at intervals given by that spacing.</span>
+<span class="sd">    :type verbose: int, optional</span>
+<span class="sd">    :param func_args: Additional arguments to be passed</span>
+<span class="sd">        to ``model_func``.</span>
+<span class="sd">    :type func_args: list, optional</span>
+<span class="sd">    :param func_kwargs: Additional keyword arguments to be</span>
+<span class="sd">        passed to ``model_func``.</span>
+<span class="sd">    :type func_kwargs: dict, optional</span>
+<span class="sd">    :param fixed_params: Defaults to ``None``. To fix some</span>
+<span class="sd">        parameters, this should be a list of equal length as ``p0``, with</span>
+<span class="sd">        ``None`` for parameters to be fit and fixed values at corresponding</span>
+<span class="sd">        indexes.</span>
+<span class="sd">    :type fixed_params: list, optional</span>
+<span class="sd">    :param use_afs: Defaults to ``False``. We can pass a model</span>
+<span class="sd">        to compute the frequency spectrum and use</span>
+<span class="sd">        that instead of heterozygosity statistics for single-locus data.</span>
+<span class="sd">    :type use_afs: bool, optional</span>
+<span class="sd">    :param Leff: The effective length of genome from which</span>
+<span class="sd">        the fs was generated (only used if fitting to afs).</span>
+<span class="sd">    :type Leff: float, optional</span>
+<span class="sd">    :param multinom: Only used if we are fitting the AFS.</span>
+<span class="sd">        If ``True``, the likelihood is computed for an optimally rescaled FS.</span>
+<span class="sd">        If ``False``, the likelihood is computed for a fixed scaling of the FS</span>
+<span class="sd">        found by theta=4*Ne*u and Leff</span>
+<span class="sd">    :type multinom: bool, optional</span>
+<span class="sd">    :param ns: The sample size, which is only needed</span>
+<span class="sd">        if we are using the frequency spectrum, as the sample size does not</span>
+<span class="sd">        affect mean LD statistics.</span>
+<span class="sd">    :type ns: list of ints, optional</span>
+<span class="sd">    :param statistics: Defaults to ``None``, which assumes that</span>
+<span class="sd">        all statistics are present and in the conventional default order. If</span>
+<span class="sd">        the data is missing some statistics, we must specify which statistics</span>
+<span class="sd">        are present using the subset of statistic names given by</span>
+<span class="sd">        ``moments.LD.Util.moment_names(num_pops)``.</span>
+<span class="sd">    :type statistics: list, optional</span>
+<span class="sd">    :param pass_Ne: Defaults to ``False``. If ``True``, the</span>
+<span class="sd">        demographic model includes ``Ne`` as a parameter (in the final position</span>
+<span class="sd">        of input parameters).</span>
+<span class="sd">    :type pass_Ne: bool, optional</span>
+<span class="sd">    :param maxiter: Defaults to 40,000. Maximum number of iterations to perform.</span>
+<span class="sd">    :type maxiter: int</span>
+<span class="sd">    :param epsilon: Step-size to use for finite-difference derivatives.</span>
+<span class="sd">    :type pgtol: float</span>
+<span class="sd">    :param pgtol: Convergence criterion for optimization. For more info,</span>
+<span class="sd">        see help(scipy.optimize.fmin_l_bfgs_b)</span>
+<span class="sd">    :type pgtol: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">means</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">use_afs</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;if use_afs=True, need to pass frequency spectrum in data=[means,varcovs,fs]&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to set ns if we are fitting frequency spectrum&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">rs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need to pass rs as bin edges&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get num_pops</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">[:])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">num_pops</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span>
+
+    <span class="c1"># remove normalized statistics</span>
+    <span class="n">ms</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+    <span class="n">vcs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">varcovs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># if statistics is not None, assume we already filtered out the data</span>
+        <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span> <span class="o">=</span> <span class="n">remove_normalized_data</span><span class="p">(</span>
+            <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span>
+        <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">ms</span><span class="p">,</span>
+        <span class="n">vcs</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">rs</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">,</span>
+        <span class="n">u</span><span class="p">,</span>
+        <span class="n">Ne</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">normalization</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">use_afs</span><span class="p">,</span>
+        <span class="n">Leff</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">ns</span><span class="p">,</span>
+        <span class="n">statistics</span><span class="p">,</span>
+        <span class="n">pass_Ne</span><span class="p">,</span>
+        <span class="n">spread</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Make bounds list. For this method it needs to be in terms of log params.</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span>
+        <span class="n">lower_bound</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span>
+        <span class="n">upper_bound</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">))</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin_l_bfgs_b</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">iprint</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">pgtol</span><span class="o">=</span><span class="n">pgtol</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">approx_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">info_dict</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_project_params_down</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Eliminate fixed parameters from pin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;fixed_params list must have same length as input &quot;</span> <span class="s2">&quot;parameter array.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="p">(</span><span class="n">curr_val</span><span class="p">,</span> <span class="n">fixed_val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">fixed_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_val</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pout</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_project_params_up</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fold fixed parameters into pin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">pin</span><span class="p">):</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="p">[</span><span class="n">pin</span><span class="p">]</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">))</span>
+    <span class="n">orig_ii</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">out_ii</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">pin</span><span class="p">[</span><span class="n">orig_ii</span><span class="p">]</span>
+            <span class="n">orig_ii</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_params</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pout</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
