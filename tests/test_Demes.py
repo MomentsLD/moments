@@ -2159,3 +2159,55 @@ class TestDemesSelectionCoefficients(unittest.TestCase):
         s2 = {"A": s}
         fs3 = moments.Demes.SFS(g, samples=samples, s=s2)
         self.assertTrue(np.allclose(fs1, fs3))
+
+
+class TestArchaicSamples(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_nonzero_end_time(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1e4)])
+        b.add_deme(
+            "B",
+            ancestors=["A"],
+            start_time=2000,
+            epochs=[dict(start_size=1e3, end_time=500)],
+        )
+        g = b.resolve()
+
+        y = moments.Demes.LD(g, sampled_demes=["A", "B"], u=1e-8, r=1e-4)
+
+        b2 = demes.Builder()
+        b2.add_deme("A", epochs=[dict(start_size=1e4)])
+        b2.add_deme(
+            "B", ancestors=["A"], start_time=2000, epochs=[dict(start_size=1e3)]
+        )
+        g2 = b2.resolve()
+
+        y2 = moments.Demes.LD(
+            g, sampled_demes=["A", "B"], sample_times=[0, 500], u=1e-8, r=1e-4
+        )
+
+        self.assertTrue(np.allclose(y.H(), y2.H()))
+        self.assertTrue(np.allclose(y.LD(), y2.LD()))
+
+    def test_simultaneous_sample_pulse(self):
+        b = demes.Builder()
+        b.add_deme("A", epochs=[dict(start_size=1e4)])
+        b.add_deme(
+            "B",
+            ancestors=["A"],
+            start_time=2000,
+            epochs=[dict(start_size=1e3, end_time=500)],
+        )
+        b.add_pulse(sources=["B"], dest="A", time=500, proportions=[0.05])
+        g = b.resolve()
+
+        y = moments.Demes.LD(g, sampled_demes=["A"])
+
+        y2 = moments.Demes.LD(g, sampled_demes=["A", "B"])

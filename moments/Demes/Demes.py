@@ -607,30 +607,28 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
                 if start_time >= interval[0] and end_time <= interval[1]:
                     demes_present[interval].append(deme_id)
 
-    # Dictionary of demographic events, occurring in the order
-    # branches, splits, pulses, mergers, admixtures.
-    # The order of these events will matter
-    # also noting here that there can be ambiguity about order of events, that will
-    # change the demography... but there should always be a way to write the demography
-    # in an unambiguous manner, using different verbs (e.g., two pulse events at the
-    # same time with same dest can be converted to an admixture event, and split the
-    # dest deme into two demes)
+    # Dictionary of demographic events, occurring in the order:
+    #   branches, pulses, admixtures, mergers, splits.
+    # Importantly, splits and mergers remove the parental populations, so if
+    # there are events like branches or pulses that involve those parental
+    # populations at the same time, they will not be present when we try to
+    # apply those events, resulting in an error.
     demo_events = defaultdict(list)
     for branch in demes_demo_events["branches"]:
         event = ("branch", branch.parent, branch.child)
         demo_events[branch.time].append(event)
-    for split in demes_demo_events["splits"]:
-        event = ("split", split.parent, split.children)
-        demo_events[split.time].append(event)
     for pulse in demes_demo_events["pulses"]:
         event = ("pulse", pulse.sources, pulse.dest, pulse.proportions)
         demo_events[pulse.time].append(event)
-    for merge in demes_demo_events["mergers"]:
-        event = ("merge", merge.parents, merge.proportions, merge.child)
-        demo_events[merge.time].append(event)
     for admix in demes_demo_events["admixtures"]:
         event = ("admix", admix.parents, admix.proportions, admix.child)
         demo_events[admix.time].append(event)
+    for merge in demes_demo_events["mergers"]:
+        event = ("merge", merge.parents, merge.proportions, merge.child)
+        demo_events[merge.time].append(event)
+    for split in demes_demo_events["splits"]:
+        event = ("split", split.parent, split.children)
+        demo_events[split.time].append(event)
 
     # if there are any unsampled demes that end before present and do not have
     # any descendent demes, we need to add marginalization events.
