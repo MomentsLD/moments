@@ -160,8 +160,6 @@ jobs:
       
       - name: install into venv
         run: |
-          echo "wheels in ."
-          ls .
           python -m venv venv
           source venv/bin/activate
           python -m pip install --no-cache-dir --only-binary=moments-popgen --pre --find-links . moments-popgen
