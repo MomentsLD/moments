@@ -218,22 +218,25 @@ def rescale(g, Q=1):
     """
     Rescale a demes model by scaling factor ``Q``. This rescaling is done so
     that compount parameters (e.g., ``Ne*m``) remain constant. In the new
-    model, population sizes are ``Q*Ne``, model times are `'Q*T'`, and
-    migration rates are ``m/Q``.
+    model, population sizes are ``Ne/Q``, model times are `'T/Q'`, and
+    migration rates are ``m*Q``.
 
-    For example, setting ``Q=0.1`` will reduce all population sizes by a factor
+    For example, setting ``Q=10`` will reduce all population sizes by a factor
     of :math:`1/10`, all times will be reduced by that same amount, and
     migration rates will increase by a factor of 10 so that the product
     ``2*Ne*m`` remains constant.
 
     When simulating with mutation and recombination rates, or with selection,
-    those values should also be scaled by :math:`1/Q` to ensure that compound
+    those values should also be scaled by :math:`Q` to ensure that compound
     parameters remain constant.
+
+    Note: As of version 1.2.3, the meaning of ``Q`` has been inverted to
+    match standard convention for this scaling parameter.
 
     :param g: A ``demes`` demographic model.
     :type: :class:`demes.Graph`
     :param Q: The scaling factor. Population sizes and times are scaled by
-        multiplying values by ``Q``. Migration rates are scaled by dividing
+        dividing values by ``Q``. Migration rates are scaled by multiplying
         by ``Q``. Admixture and ancestry proportions are unchanged, though
         the timing of those events are scaled. Generation times and units
         are unchanged.
@@ -245,16 +248,16 @@ def rescale(g, Q=1):
         raise ValueError("Scaling factor Q must be positive and finite")
     d = g.asdict()
     for i, deme in enumerate(d["demes"]):
-        d["demes"][i]["start_time"] *= Q
+        d["demes"][i]["start_time"] /= Q
         for j, epoch in enumerate(d["demes"][i]["epochs"]):
-            d["demes"][i]["epochs"][j]["start_size"] *= Q
-            d["demes"][i]["epochs"][j]["end_size"] *= Q
-            d["demes"][i]["epochs"][j]["end_time"] *= Q
+            d["demes"][i]["epochs"][j]["start_size"] /= Q
+            d["demes"][i]["epochs"][j]["end_size"] /= Q
+            d["demes"][i]["epochs"][j]["end_time"] /= Q
     for i, mig in enumerate(d["migrations"]):
-        d["migrations"][i]["start_time"] *= Q
-        d["migrations"][i]["end_time"] *= Q
-        d["migrations"][i]["rate"] /= Q
+        d["migrations"][i]["start_time"] /= Q
+        d["migrations"][i]["end_time"] /= Q
+        d["migrations"][i]["rate"] *= Q
     for i, pulse in enumerate(d["pulses"]):
-        d["pulses"][i]["time"] *= Q
+        d["pulses"][i]["time"] /= Q
     b = demes.Builder.fromdict(d)
     return b.resolve()
