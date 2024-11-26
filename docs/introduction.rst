@@ -61,6 +61,12 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.2.3
+=====
+
+- Invert meaning of rescaling parameter in ``moments.Demes.DemesUtil.rescale()``
+  to match standard conventions.
+
 1.2.0
 =====
 
