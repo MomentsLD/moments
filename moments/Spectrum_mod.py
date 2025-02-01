@@ -11,7 +11,6 @@ import os
 import sys
 import numpy as np
 from numpy import newaxis as nuax
-import scipy.misc as misc
 import scipy.stats
 import copy
 import itertools

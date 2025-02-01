@@ -15,31 +15,6 @@ solving the diffusion system, removing the need for frequency grids as used in
 computing linkage disequilibrium statistics and running multi-population
 demographic inference using patterns of LD.
 
-If you use `moments` in your research, please cite:
-
-- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint
-  demographic history of multiple populations: beyond the diffusion approximation.
-  Genetics, 206(3), 1549-1567.
-
-If you use `moments.LD` in your research, please cite:
-
-- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history
-  from two-locus statistics. PLoS Genetics, 15(6), e1008204.
-
-- Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
-  from unphased data. Mol Biol Evol, 37(3), 923-932.
-
-If you use `moments.TwoLocus` in your research, please cite:
-
-- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
-  from linkage disequilibrium? BioRxiv, doi: https://doi.org/10.1101/2021.03.25.437004
-
-`moments` is developed in the [Simon
-Gravel](http://simongravel.lab.mcgill.ca/Home.html) and [Aaron
-Ragsdale](https://apragsdale.github.io/) research groups, at McGill University and
-UW-Madison, respectively. For any issues, questions or bug reports, please open
-an [issue on Github](https://github.com/MomentsLD/moments/issues).
-
 ## Getting started
 
 `moments` now supports Python 3, and we no longer guarantee compatibility with
@@ -51,7 +26,9 @@ The simplest way to install `moments` is using `pip`:
 pip install moments-popgen
 ```
 
-`moments` can then be imported using `import moments`.
+`moments` can then be imported using `import moments`. <b>Important note:</b>
+`pip install moments` installs a different package named moments, and our
+pypi package is named `moments-popgen`.
 
 We can install the development branch directly from Github by running
 
@@ -79,6 +56,33 @@ If you use `conda`, `moments` is available via `bioconda`:
 conda config --add channels bioconda
 conda install moments
 ```
+
+## Citing moments
+
+If you use `moments` in your research, please cite:
+
+- Jouganous, J., Long, W., Ragsdale, A. P., & Gravel, S. (2017). Inferring the joint
+  demographic history of multiple populations: beyond the diffusion approximation.
+  Genetics, 206(3), 1549-1567.
+
+If you use `moments.LD` in your research, please cite:
+
+- Ragsdale, A. P. & Gravel, S. (2019). Models of archaic admixture and recent history
+  from two-locus statistics. PLoS Genetics, 15(6), e1008204.
+
+- Ragsdale, A. P. & Gravel, S. (2020). Unbiased estimation of linkage disequilibrium
+  from unphased data. Mol Biol Evol, 37(3), 923-932.
+
+If you use `moments.TwoLocus` in your research, please cite:
+
+- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
+  from linkage disequilibrium? BioRxiv, doi: https://doi.org/10.1101/2021.03.25.437004
+
+`moments` is developed in the [Simon
+Gravel](http://simongravel.lab.mcgill.ca/Home.html) and [Aaron
+Ragsdale](https://apragsdale.github.io/) research groups, at McGill University and
+UW-Madison, respectively. For any issues, questions or bug reports, please open
+an [issue on Github](https://github.com/MomentsLD/moments/issues).
 
 ### Dependencies
 

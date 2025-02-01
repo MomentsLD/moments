@@ -7,15 +7,6 @@ logger = logging.getLogger("Numerics")
 
 import functools, os
 import numpy
-
-# Account for difference in scipy installations.
-try:
-    from scipy.misc import comb
-except ImportError:
-    try:
-        from scipy.special import comb
-    except ImportError:
-        from scipy import comb
 from scipy.special import gammaln
 
 
