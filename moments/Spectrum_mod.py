@@ -1781,7 +1781,7 @@ class Spectrum(np.ma.masked_array):
         Non-diallelic polymorphisms are skipped.
 
         :param pop_ids: list of which populations to make fs for.
-        :param projections: list of sample sizes to project down to for each
+        :param projections: list of haploid sample sizes to project down to for each
             population.
         :param polarized: If True, the data are assumed to be correctly polarized by
             'outgroup_allele'. SNPs in which the 'outgroup_allele'
