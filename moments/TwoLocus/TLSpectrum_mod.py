@@ -86,9 +86,9 @@ class TLSpectrum(np.ma.masked_array):
         np.ma.masked_array.__array_finalize__(self, obj)
         self.folded = getattr(obj, "folded", "unspecified")
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         result = obj.view(type(self))
-        result = np.ma.masked_array.__array_wrap__(self, obj, context=context)
+        result = np.ma.masked_array.__array_wrap__(self, obj, context, return_scalar)
         result.folded = self.folded
         return result
 
