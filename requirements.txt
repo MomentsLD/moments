@@ -1,4 +1,4 @@
-numpy<2.0
+numpy
 cython~=0.29.0
 scipy
 mpmath
