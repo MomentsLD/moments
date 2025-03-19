@@ -159,7 +159,7 @@ class Spectrum(np.ma.masked_array):
                 )
             subarr.pop_ids = pop_ids
 
-        if mask_corners:
+        if mask_corners is True:
             subarr.mask_corners()
 
         return subarr
@@ -209,6 +209,12 @@ class Spectrum(np.ma.masked_array):
         Mask the 'seen in 0 samples' and 'seen in all samples' entries.
         """
         self.mask.flat[0] = self.mask.flat[-1] = True
+
+    def unmask_corners(self):
+        """
+        Unmask the 'seen in 0 samples' and 'seen in all samples' entries.
+        """
+        self.mask.flat[0] = self.mask.flat[-1] = False
 
     def unmask_all(self):
         """
@@ -1404,7 +1410,7 @@ class Spectrum(np.ma.masked_array):
     # Functions for saving and loading frequency spectra.
 
     @staticmethod
-    def from_file(fid, mask_corners=True, return_comments=False):
+    def from_file(fid, mask_corners=None, return_comments=False):
         """
         Read frequency spectrum from file.
 
@@ -1413,7 +1419,8 @@ class Spectrum(np.ma.masked_array):
         :param fid: string with file name to read from or an open file object.
         :type fid: string
         :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-            all samples' entries.
+            all samples' entries. If False, the corners are unmasked. If unspecified
+            (left as None), the mask is unchanged from the saved file.
         :type mask_corners: bool, optional
         :param return_comments: If true, the return value is (fs, comments), where
             comments is a list of strings containing the comments
@@ -1465,13 +1472,17 @@ class Spectrum(np.ma.masked_array):
         else:
             # This case handles the new file format
             mask = np.fromstring(maskline, count=np.prod(shape), sep=" ")
+            if mask_corners is True:
+                mask[0] = mask[-1] = 1
+            elif mask_corners is False:
+                mask[0] = mask[-1] = 0
             mask = mask.reshape(*shape)
 
         # If we opened a new file, clean it up.
         if newfile:
             fid.close()
 
-        fs = Spectrum(data, mask, mask_corners, data_folded=folded, pop_ids=pop_ids)
+        fs = Spectrum(data, mask=mask, data_folded=folded, pop_ids=pop_ids)
 
         if not return_comments:
             return fs
