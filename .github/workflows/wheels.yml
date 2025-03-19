@@ -29,10 +29,10 @@ jobs:
         with:
             fetch-depth: 0
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Build sdist
         shell: bash
@@ -172,7 +172,7 @@ jobs:
     needs: ['macos-wheels']
     strategy:
       matrix:
-        python: ["3.11", "3.12", "3.13"]
+        python: ["3.12", "3.13"]
         os: [macos-14, macos-13]
     steps:
       - name: Cancel Previous Runs
