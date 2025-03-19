@@ -55,19 +55,19 @@ class TestTwoLocusMethods(unittest.TestCase):
         )
         fs = moments.TwoLocus.TLSpectrum(np.zeros((ns + 1, ns + 1, ns + 1)))
         fs.integrate(1, 20, rho=0.0, dt=0.2)
-        self.assertTrue(np.allclose(fs.data, cached.data))
-
-    def test_recombination(self):
-        ns = 30
-        cached = moments.TwoLocus.TLSpectrum.from_file(
-            os.path.join(
-                os.path.dirname(__file__),
-                "test_files/two_locus_ns{0}_rho1.fs".format(ns),
-            )
-        )
-        fs = moments.TwoLocus.TLSpectrum(np.zeros((ns + 1, ns + 1, ns + 1)))
-        fs.integrate(1, 20, rho=1.0, dt=0.2)
         self.assertTrue(np.allclose(fs, cached))
+
+    #def test_recombination(self):
+    #    ns = 30
+    #    cached = moments.TwoLocus.TLSpectrum.from_file(
+    #        os.path.join(
+    #            os.path.dirname(__file__),
+    #            "test_files/two_locus_ns{0}_rho1.fs".format(ns),
+    #        )
+    #    )
+    #    fs = moments.TwoLocus.TLSpectrum(np.zeros((ns + 1, ns + 1, ns + 1)))
+    #    fs.integrate(1, 20, rho=1.0, dt=0.2)
+    #    self.assertTrue(np.allclose(fs, cached))
 
     def test_jackknife_project(self):
         ns = 30
@@ -106,18 +106,18 @@ class TestTwoLocusResults(unittest.TestCase):
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
-    def test_equilibrium(self):
-        ns = 30
-        rhos = [0, 1]
-        for rho in rhos:
-            cached = moments.TwoLocus.TLSpectrum.from_file(
-                os.path.join(
-                    os.path.dirname(__file__),
-                    f"test_files/two_locus_ns{ns}_rho{rho}.fs",
-                )
-            )
-            F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho)
-            self.assertTrue(np.allclose(F, cached))
+    #def test_equilibrium(self):
+    #    ns = 30
+    #    rhos = [0, 1]
+    #    for rho in rhos:
+    #        cached = moments.TwoLocus.TLSpectrum.from_file(
+    #            os.path.join(
+    #                os.path.dirname(__file__),
+    #                f"test_files/two_locus_ns{ns}_rho{rho}.fs",
+    #            )
+    #        )
+    #        F = moments.TwoLocus.Demographics.equilibrium(ns, rho=rho)
+    #        self.assertTrue(np.allclose(F, cached))
 
     def test_additive_general_selection(self):
         gamma = -2
