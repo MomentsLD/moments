@@ -179,9 +179,9 @@ class Spectrum(np.ma.masked_array):
         self.folded = getattr(obj, "folded", "unspecified")
         self.pop_ids = getattr(obj, "pop_ids", None)
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         result = obj.view(type(self))
-        result = np.ma.masked_array.__array_wrap__(self, obj, context=context)
+        result = np.ma.masked_array.__array_wrap__(self, obj, context, return_scalar)
         result.folded = self.folded
         result.pop_ids = self.pop_ids
         return result
