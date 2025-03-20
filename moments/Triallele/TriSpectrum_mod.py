@@ -118,9 +118,9 @@ class TriSpectrum(numpy.ma.masked_array):
         self.folded_major = getattr(obj, "folded_major", "unspecified")
         self.folded_ancestral = getattr(obj, "folded_ancestral", "unspecified")
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         result = obj.view(type(self))
-        result = numpy.ma.masked_array.__array_wrap__(self, obj, context=context)
+        result = numpy.ma.masked_array.__array_wrap__(self, obj, context, return_scalar)
         result.folded_major = self.folded_major
         result.folded_ancestral = self.folded_ancestral
         return result

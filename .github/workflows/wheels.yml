@@ -34,10 +34,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip build
+
       - name: Build sdist
         shell: bash
         run: |
-          python -m pip install --upgrade pip build
           python -m build -s .
 
       - name: Upload sdist
@@ -64,7 +67,7 @@ jobs:
             fetch-depth: 0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.23.0
 
       - name: Upload Wheels
         uses: actions/upload-artifact@v4
@@ -87,7 +90,7 @@ jobs:
             fetch-depth: 0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.23.0
 
       - name: Upload Wheels
         uses: actions/upload-artifact@v4
@@ -101,7 +104,7 @@ jobs:
     needs: ['build_sdist']
     strategy:
       matrix:
-        python: [3.8, 3.9, "3.10", "3.11", "3.12"]
+        python: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -142,7 +145,7 @@ jobs:
     needs: ['manylinux2_28']
     strategy:
       matrix:
-        python: [3.8, 3.9, "3.10", "3.11", "3.12"]
+        python: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -172,7 +175,7 @@ jobs:
     needs: ['macos-wheels']
     strategy:
       matrix:
-        python: ["3.11", "3.12"]
+        python: ["3.12", "3.13"]
         os: [macos-14, macos-13]
     steps:
       - name: Cancel Previous Runs
