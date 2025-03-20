@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 import pylab
 import matplotlib.pyplot as plt
+import copy
 
 
 #: Custom ticks that label only the lowest and highest bins in an FS plot.
@@ -236,12 +237,13 @@ def plot_single_2d_sfs(
         axes = ax
 
     # this fails with entries of zero, so we mask those:
-    sfs.mask[sfs == 0] = True
+    sfs_plot = copy.copy(sfs)
+    sfs_plot.mask[sfs_plot == 0] = True
 
     if vmin is None:
-        vmin = sfs.min()
+        vmin = sfs_plot.min()
     if vmax is None:
-        vmax = sfs.max()
+        vmax = sfs_plot.max()
 
     pylab.cm.hsv.set_under("w")
     if vmax / vmin > 10:
@@ -255,7 +257,7 @@ def plot_single_2d_sfs(
         )
         format = None
     mappable = axes.pcolor(
-        np.ma.masked_where(sfs < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
+        np.ma.masked_where(sfs_plot < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
     )
     cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:
@@ -267,11 +269,11 @@ def plot_single_2d_sfs(
         except AttributeError:
             axes.figure.moments_colorbars = [cb]
 
-    axes.plot([0, sfs.shape[1]], [0, sfs.shape[0]], "-k", lw=0.2)
+    axes.plot([0, sfs_plot.shape[1]], [0, sfs_plot.shape[0]], "-k", lw=0.2)
 
     if pop_ids is None:
-        if sfs.pop_ids is not None:
-            pop_ids = sfs.pop_ids
+        if sfs_plot.pop_ids is not None:
+            pop_ids = sfs_plot.pop_ids
         else:
             pop_ids = ["pop0", "pop1"]
     axes.set_ylabel(pop_ids[0], verticalalignment="top")
@@ -284,8 +286,8 @@ def plot_single_2d_sfs(
     for tick in axes.xaxis.get_ticklines() + axes.yaxis.get_ticklines():
         tick.set_visible(False)
 
-    axes.set_xlim(0, sfs.shape[1])
-    axes.set_ylim(0, sfs.shape[0])
+    axes.set_xlim(0, sfs_plot.shape[1])
+    axes.set_ylim(0, sfs_plot.shape[0])
 
     if ax is None:
         plt.tight_layout()
@@ -466,14 +468,17 @@ def plot_2d_comp_Poisson(
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
     """
-    if data.folded and not model.folded:
-        model = model.fold()
+    data_plot = copy.copy(data)
+    model_plot = copy.copy(data)
+
+    if data_plot.folded and not model_plot.folded:
+        model_plot = model_plot.fold()
 
     # errors if there are zero entries in the data or model, mask them:
-    model.mask[model == 0] = True
-    data.mask[data == 0] = True
+    model_plot.mask[model_plot == 0] = True
+    data_plot.mask[data_plot == 0] = True
 
-    masked_model, masked_data = Numerics.intersect_masks(model, data)
+    masked_model, masked_data = Numerics.intersect_masks(model_plot, data_plot)
 
     if fig_num is None:
         f = pylab.gcf()
@@ -658,14 +663,16 @@ def plot_3d_comp_Poisson(
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
     """
-    if data.folded and not model.folded:
-        model = model.fold()
+    model_plot = copy.copy(model)
+    data_plot = copy.copy(data)
+    if data_plot.folded and not model_plot.folded:
+        model_plot = model_plot.fold()
 
     # errors if there are zero entries in the data or model, mask them:
-    model.mask[model == 0] = True
-    data.mask[data == 0] = True
+    model_plot.mask[model_plot == 0] = True
+    data_plot.mask[data_plot == 0] = True
 
-    masked_model, masked_data = Numerics.intersect_masks(model, data)
+    masked_model, masked_data = Numerics.intersect_masks(model_plot, data_plot)
 
     if fig_num is None:
         f = pylab.gcf()
@@ -1019,14 +1026,16 @@ def plot_4d_comp_Poisson(
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
     """
-    if data.folded and not model.folded:
-        model = model.fold()
+    model_plot = copy.copy(model)
+    data_plot = copy.copy(data)
+    if data_plot.folded and not model_plot.folded:
+        model_plot = model_plot.fold()
 
     # errors if there are zero entries in the data or model, mask them:
-    model.mask[model == 0] = True
-    data.mask[data == 0] = True
+    model_plot.mask[model_plot == 0] = True
+    data_plot.mask[data_plot == 0] = True
 
-    masked_model, masked_data = Numerics.intersect_masks(model, data)
+    masked_model, masked_data = Numerics.intersect_masks(model_plot, data_plot)
 
     if fig_num is None:
         f = pylab.gcf()
