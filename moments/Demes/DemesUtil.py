@@ -217,7 +217,7 @@ def _size_at(t, start_size, end_size, start_time, end_time, size_function):
 def rescale(g, Q=1):
     """
     Rescale a demes model by scaling factor ``Q``. This rescaling is done so
-    that compount parameters (e.g., ``Ne*m``) remain constant. In the new
+    that compound parameters (e.g., ``Ne*m``) remain constant. In the new
     model, population sizes are ``Ne/Q``, model times are `'T/Q'`, and
     migration rates are ``m*Q``.
 
