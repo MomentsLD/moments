@@ -624,7 +624,7 @@ def _get_godambe(
     ns = data.sample_sizes
 
     def func(params, data, uL=None):
-        key = (tuple(params), tuple(ns))
+        key = (tuple(params), tuple(ns), tuple([uL]))
         if key not in _sfs_cache:
             _sfs_cache[key] = func_ex(params, ns, uL=uL)
         fs = _sfs_cache[key]
@@ -647,7 +647,7 @@ def _get_godambe(
     # cU is a column vector
     cU = np.zeros((len(p0), 1))
     if all_boot_uL is None:
-        all_boot_uL = [None for _ in all_boot]
+        all_boot_uL = [uL for _ in all_boot]
     for ii, (boot, uL) in enumerate(zip(all_boot, all_boot_uL)):
         boot = moments.Spectrum(boot)
         if not log:
@@ -702,10 +702,12 @@ def uncerts(
     :param uL: The sequence length-scaled mutation rate. This must be provided if
         it was used in the original optimization.
     :type uL: float
-    :param bootstraps_uL: If uL was used in the original optimization, this must be
+    :param bootstraps_uL: If uL was used in the original optimization, this should be
         provided. It is a list of the same length as the bootstrap replicates
         containing the sequence length-scaled mutation rates for the corresponding
-        bootstrap SFS replicates, matching the index.
+        bootstrap SFS replicates, matching the index. If it it not given, uL is assumed
+        to be equivalent across bootstrap sets, using the value provided in the uL
+        keyword argument.
     :type bootstraps_uL: list
     :param log: Defaults to False. If True, we assume a log-normal distribution of
         parameters. Returned values are then the standard deviations of the *logs*
@@ -802,7 +804,6 @@ def uncerts(
             uL = params[-1]
             demo_params = params[:-1]
         else:
-            uL = None
             demo_params = params[:]
         if fit_ancestral_misid:
             p_misid = demo_params[-1]
