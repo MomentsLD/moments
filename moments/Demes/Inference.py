@@ -782,10 +782,7 @@ def uncerts(
         model = moments.Demes.SFS(
             g, sampled_demes=sampled_demes, sample_sizes=sample_sizes
         )
-        theta_opt = moments.Inference.optimal_sfs_scaling(model, data)
-        root = _get_root(g)
-        Ne = g[root].epochs[0].start_size
-        uL = theta_opt / 4 / Ne
+        uL = moments.Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [uL]
     else:
         multinom = False
@@ -805,6 +802,7 @@ def uncerts(
             uL = params[-1]
             demo_params = params[:-1]
         else:
+            uL = None
             demo_params = params[:]
         if fit_ancestral_misid:
             p_misid = demo_params[-1]
@@ -836,15 +834,11 @@ def uncerts(
                 sample_times.append(end_times[deme])
 
         model = moments.Demes.SFS(
-            g, input_sampled_demes, sample_sizes, sample_times=sample_times
+            g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
         )
 
         if fit_ancestral_misid:
             model = moments.Misc.flip_ancestral_misid(model, p_misid)
-        root = _get_root(g)
-        Ne = g[root].epochs[0].start_size
-        theta = 4 * Ne * uL
-        model *= theta
 
         if (verbose > 0) and (func_calls % verbose == 0):
             # param_str = "array([%s])" % (", ".join(["%- 12g" % v for v in params]))

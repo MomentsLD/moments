@@ -61,6 +61,19 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.4.0
+=====
+- Avoid masking zeros values in SFS when using Plotting functions
+- Fix bug in mask_corners behavior in Spectrum.from_file()
+- Fix bug in confidence interval calculation using Demes-based SFS inference
+- Support python 3.10 through 3.13, require numpy >= 2.0
+
+1.3.1
+=====
+
+1.3.0
+=====
+
 1.2.3
 =====
 
