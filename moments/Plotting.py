@@ -469,7 +469,7 @@ def plot_2d_comp_Poisson(
     :param show: If True, execute pylab.show command to make sure plot displays.
     """
     data_plot = copy.copy(data)
-    model_plot = copy.copy(data)
+    model_plot = copy.copy(model)
 
     if data_plot.folded and not model_plot.folded:
         model_plot = model_plot.fold()
