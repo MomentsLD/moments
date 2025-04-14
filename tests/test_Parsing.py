@@ -57,19 +57,19 @@ class TestFilters(unittest.TestCase):
     def tearDown(self):
         pass
     
-    def test_check_anc():
+    def test_check_anc(self):
         pass
 
-    def test_filter_QUAL():
+    def test_filter_QUAL(self):
         pass
      
-    def test_filter_FILTER():
+    def test_filter_FILTER(self):
         pass
 
-    def test_filter_INFO():
+    def test_filter_INFO(self):
         pass
 
-    def test_filter_sample():
+    def test_filter_sample(self):
         pass
 
 
