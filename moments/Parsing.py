@@ -1,9 +1,10 @@
-# placeholder
 """
 Functions for computing the SFS and related quantities from sequence data. 
 """
 
 from collections import defaultdict
+import copy
+from datetime import datetime
 import gzip
 import numpy as np
 import os
@@ -11,7 +12,11 @@ import sys
 import time
 import warnings
 
-from moments import Spectrum
+from . import Spectrum_mod
+
+
+# raise each unique warning only once
+warnings.simplefilter('once')
 
 
 def parse_vcf(
@@ -21,67 +26,117 @@ def parse_vcf(
     bed_file=None,
     interval=None,
     anc_seq_file=None,
-    allow_low_confidence=True,
-    use_AA=True,
-    folded=False,
+    allow_low_confidence=False,
+    use_AA=False,
     filters=None,
     allow_multiallelic=False,
     sample_sizes=None,
     mask_corners=True,
-    ploidy=2
+    ploidy=2,
+    verbose=1,
+    folded=False
 ):
     """
-    Compute the SFS from genotype data stored in a .vcf file.
+    Parse the SFS from genotype data stored in a VCF file.
 
+    There are several ways to specify ancestral alleles. By default, ``REF``
+    alleles from the VCF are used to polarize sites. When this is done, the
+    SFS should be folded. If `use_AA` is True, then the ``INFO/AA`` VCF field
+    is used to polarize alleles. When this is absent, the site is skipped and
+    a warning is raised. If `anc_seq_file` is given (FASTA format), then 
+    ancestral alleles are read from it. Here also, sites are skipped when they
+    lack a valid ancestral allele. This behavior is modulated by 
+    `allow_low_confidence`. When True, sites assigned ancestral states in
+    lower-case (e.g. 'a') are retained. Otherwise such sites are skipped.
 
+    When `allow_multiallelic` is False and the ancestral allele is not 
+    represented as either the reference or alternate allele at a site, that 
+    site is skipped automatically. 
 
-    When `anc_seq_file` is not given and `use_AA` is False, the reference allele 
-    is taken as the ancestral allele and a warning is raised- the SFS should be
-    folded after the fact or using `folded` in this case.
+    The parameter `filters` allows a number of criteria to be imposed on lines,
+    so that they can be filtered by quality or annotation. `filters` should be
+    a flat dictionary mapping strings to appropriately typed objects- the 
+    following are valid key-value pairs:
+    'QUAL' should map to a single number, imposing a minimum on the ``QUAL``
+        field. 
+    'FILTER' should map to a str or set/tuple/list of strings. ``FILTER``
+        must match the value (or an element thereof, if it is iterable)
+        to be parsed.
+    'FORMAT/FIELD' e.g. 'FORMAT/GQ' should map to a single number, or in
+        applicable cases to a str/set of strings. When a number, specifies a 
+        minimum value for a field. The typing of values is not explictly 
+        checked against the expected type for a field- e.g. if a string is 
+        given for the numeric field 'GQ', no explicit warning is raised- 
+        although an error will be thrown once parsing begins.
+    'SAMPLE/FIELD' e.g. 'SAMPLE/DP' imposes filters at the sample level. 
+        'FIELD' should correspond to an entry in the ``FORMAT`` column of the 
+        VCF. Typing is the same as in 'FORMAT'.
+    In general, when quantities are absent in a given line, the line is not 
+    skipped but a one-time alert message is raised. Missing values ('.') also
+    do not cause lines to be skipped. 
     
-    :param vcf_file: Pathname of the .vcf file to parse. The file may be 
+    :param vcf_file: Pathname of the VCF file to parse. The file may be 
         gzipped/bgzipped or uncompressed.
     :type vcf_file: str
     :param pop_file: Pathname of a whitespace-separated file mapping samples
         to populations with the format SAMPLE POPULATION. Sample names must
         be unique and there should be one of them on each line (default None 
-        combines all samples into a single population). 
-    :type pop_file: str
-    :param bed_file: Pathname of a .bed file defining the regions to parse;
-        useful for applying masks to exclude difficult-to-call or functionally
-        constrained regions (default None). 
-    :type bed_file: str
+        combines all samples into a single population 'ALL'). Samples not 
+        listed here are ignored.
+    :type pop_file: str, optional
+    :param pop_mapping: Optional dictionary (default None) mapping population
+        IDs to lists of VCF sample IDs. Mutually exclusive with `pop_file`.
+    :type pop_mapping: dict, optional
+    :param bed_file: Pathname of a BED file defining the regions within which 
+        to parse; useful for applying masks to exclude difficult-to-call or 
+        functionally constrained regions (default None). 
+    :type bed_file: str, optional
     :param interval: 2-tuple or 2-list specifying the (inclusive, 0-indexed) 
         first and (exclusive, 0-indexed) last positions to parse; defines a
-        genomic window (default None parses the whole .vcf file).
-    :type interval: tuple or list of integers
-    :param anc_seq_file: Pathname of a .fa file containing estimated ancestral 
+        genomic window (default None parses the whole VCF file).
+    :type interval: tuple of integers, optional
+    :param anc_seq_file: Pathname of a FASTA file defining estimated ancestral 
         nucleotide states (default None).
-    :type anc_seq_file: str
-    :param allow_low_confidence: If True, skip sites without high-confidence 
-        ancestral state assignments in a given .fa file, which are denoted by 
-        capitalized nucleotide codes (default True). 
-    :type skip_low_conf: bool
-    :param use_AA: If True, use entries in the .vcf ``INFO/AA`` to polarize
-        the ancestral allele (default True). If this field is missing 
-        altogether, raises an error; if data is missing for a sites, skips the
-        site and raises a warning.
-    :type use_AA: bool
+    :type anc_seq_file: str, optional
+    :param allow_low_confidence: If True (default False) and `anc_seq_file` is
+        given, allows low-confidence ancestral state assignments- represented 
+        by lower-case nucleotide codes- to stand. If False, sites with them
+        are skipped.
+    :type skip_low_conf: bool, optional
+    :param use_AA: If True, use entries in the VCF field ``INFO/AA`` to polarize
+        alleles (default False). 
+    :type use_AA: bool, optional
+    :param filters: A dictionary mapping VCF fields to filter criteria, for
+        imposing quantitative thresholds on measures of genotype quality and 
+        subsetting to qualitative classes of sites. Filtering is discussed
+        above.
+    :type filters: dict, optional
+    :param allow_multiallelic: If True (default False), includes sites with 
+        more than one alternate allele, counting each derived allele separately-
+        otherwise skips these sites. Also allows sites those biallelic sites 
+        where neither alternate nor reference allele matches the assigned
+        ancestral state.
+    :type allow_multiallelic: bool, optional
+    :param sample_sizes: Dictionary mapping populations to sample sizes 
+        (default None). The output SFS will be projected to these sample sizes.
+        If not given, it will default to the sample sizes implied by `ploidy`
+        and the number of individuals in each population.
+    :type sample_sizes: dict, optional
+    :param mask_corners:
+    :type mask_corners: bool, optional
+    :param ploidy: Optional (default 2), defines the maximum derived allele 
+        count in combination with the number of samples.
+    :type plody: int, optional
+    :param verbose: If 0, print only warning messages- if 1, print soft error
+        messages the first time they are triggered- if an integer larger than 1,
+        do the same and print a progress message every `verbose` lines 
+        (default 1)
+    :type verbose: int, optional
     :param folded: If True, return the folded SFS (default False).
-    :type folded: bool
-    :param filters: Dictionary specifying minimum values for one 
-        or more fields QUAL, FILTER, INFO/DP, INFO/GQ etc (default None).
-        TODO WIP
-    :type filters: dict
-    :param allow_multiallelic: If True, tally derived alleles at multiallelic
-        sites.
-    :type allow_multiallelic: bool
-    :param sample_sizes: Dictionary assigning minimum sample sizes for each
-        population- sites with more alleles than specified are projected to
-        given sizes (default None).
-    :type sample_sizes: dict
-
-    :returns: ``moments.Spectrum`` instance holding the parsed SFS.
+    :type folded: bool, optional
+   
+    :returns: The SFS, represented as a ``moments.Spectrum`` instance.
+    :rtype: moments.Spectrum
     """
     data = _tally_vcf(
         vcf_file,
@@ -94,8 +149,7 @@ def parse_vcf(
         use_AA=use_AA,
         filters=filters,
         allow_multiallelic=allow_multiallelic,
-        return_stats=False,
-        print_stats=True,
+        verbose=verbose,
         ploidy=ploidy
     )
     fs = _spectrum_from_tally(
@@ -109,36 +163,40 @@ def parse_vcf(
     return fs
 
 
-warned = defaultdict(bool)
 stats = defaultdict(int)
 
 
 def _clear_stats():
     """
-    Re-initialize `warned` and `stats`.
+    Re-initialize `stats`.
     """
-    global warned, stats
-    warned = defaultdict(bool)
+    global stats
     stats = defaultdict(int)
-
     return
 
 
-def _warn(warn_flag, warn_message):
+def current_time():
     """
-    If warning `warn_flag` has not yet been raised, raise it with warning 
-    message `warn_message`. Also increment `stats['warn_flag']`. 
-
-    :type warn_flag: str
-    :type warn_message: str
-
-    :returns: None
+    Return a string representing the time and date with yy-mm-dd format.
     """
-    if not warned[warn_flag]:
-        warnings.warn(warn_message)
-        warned[warn_flag] = True
-    stats[warn_flag] += 1
+    return '[' + datetime.strftime(datetime.now(), '%y-%m-%d %H:%M:%S') + ']'
 
+
+def print_err(*args, **kwargs):
+    """
+    Print a (soft) error message to stderr.
+    """
+    print(*args, file=sys.stderr, **kwargs)
+    sys.stderr.flush()
+    return
+
+
+def print_out(*args, **kwargs):
+    """
+    Print a status report to stdout.
+    """
+    print(*args, file=sys.stdout, **kwargs)
+    sys.stdout.flush()
     return
 
 
@@ -153,9 +211,9 @@ def _tally_vcf(
     use_AA=False,
     filters=None,
     allow_multiallelic=False,
-    return_stats=False,
-    print_stats=True,
-    ploidy=2
+    ploidy=2,
+    verbose=1,
+    return_stats=False
 ):
     """
     Read a dictionary representation of derived allele counts from a VCF file.
@@ -170,11 +228,10 @@ def _tally_vcf(
     alleles. The default behavior takes the ``REF`` allele specified in the VCF
     file as ancestral- when this is done, the SFS should be folded. If `use_AA`
     is True, the ``INFO/AA`` field in the VCF is used. Sites with absent 
-    ``AA/INFO``, missing data or invalid values are skipped, raising a warning. 
-    If `anc_seq_file` (FASTA format) is provided, ancestral states are read 
-    from the given file. Any sites with undefined ancestral states 
-    (e.g. "N", "-", ".") will be skipped, raising a warning. If 
-    `allow_low_confidence` is False, then sites assigned with lower-case 
+    ``AA/INFO``, missing data or invalid values are skipped. If `anc_seq_file` 
+    (FASTA format) is provided, ancestral states are read from it. Any sites 
+    with undefined ancestral states (e.g. "N", "-", ".") will be skipped.
+    IF `allow_low_confidence` is False, then sites assigned with lower-case 
     nucleotide codes in the FASTA will also be skipped.
 
     :param vcf_file: Pathname of the VCF file from which to read. 
@@ -205,37 +262,32 @@ def _tally_vcf(
         field is absent. 
     :type use_AA: bool, optional
     :param filters: A dictionary specifying filters on VCF lines or samples,
-        with any combination of the following key-value pairs:
-        'QUAL' is the minimum allowed ``QUAL`` score for a line and must be 
-            numeric.
-        'FILTER' may be a string or list of strings; lines with ``FILTER`` 
-            entries not specified will be skipped.
-        'FORMAT/FIELD' may be numeric (specifying a minimum value) or 
-            categorical (a string or list of strings not to filter).
-        'SAMPLE/FIELD' is like 'FORMAT/FIELD' but applies at the sample level.
-        Many ``FORMAT`` and ``SAMPLE`` fields may be given.
-        Raises warnings when targetted fields are missing.
-    :type filters: dict
+        with format described above.
+    :type filters: dict, optional
     :param allow_multiallelic: If True (default False), include sites with more
         than one alternate allele as separate entries in the tally. Also allow
         sites where neither alternate nor reference allele matches the assigned
         ancestral state.
     :type allow_multiallelic: bool, optional
+    :param ploidy: Optional (default 2), defines the maximum derived allele 
+        count in combination with the number of samples.
+    :type plody: int, optional
+    :param verbose: If 0, print only warning messages- if 1, print soft error
+        messages the first time they are triggered- if an integer larger than 1,
+        do the same and print a progress message every `verbose` lines 
+        (default 1)
+    :type verbose: bool, optional
     :param return_stats: If True (default False), return a dictionary of 
         statistics describing the number sites that were filtered out for 
         various reasons along with `tally`.
     :type return_stats: bool, optional
-    :param print_stats: If True (default), print statistics on the number of 
-        sites filtered out for various reasons upon completion.
-    :type print_stats: bool, optional
-    :param ploidy: Optional (default 2), defines the maximum derived allele 
-        count in combination with the number of samples.
-    :type plody: int, optional
      
     :return: Dictionary mapping sample sizes to dictionaries which map derived
         allele counts to the count of their occurences in the VCF file.
     :rtype: dict
     """
+    _clear_stats()
+
     # inspect `filters` 
     filters = _parse_filters(filters)
 
@@ -252,16 +304,18 @@ def _tally_vcf(
     else:
         intervaled = False
 
-    if anc_seq_file is not None and use_AA is not None:
-        raise ValueError('You cannot give both `anc_seq_file` and `use_AA`')
-    elif anc_seq_file:
+    if anc_seq_file is not None and use_AA is True:
+        raise ValueError('You cannot use both `anc_seq_file` and `use_AA`')
+    if anc_seq_file:
         ancestral_sequence = _load_fasta_file(anc_seq_file)
         has_anc_seq = True
-    elif use_AA:
-        has_anc_seq = False
     else:
-        has_anc_seq = False
-        warnings.warn('Polarizing with ``REF`` alleles: SFS should be folded')
+        if use_AA:
+            has_anc_seq = False
+        else:
+            has_anc_seq = False
+            print_out(current_time(),
+                'Polarizing with ``REF`` alleles: output SFS should be folded')
     
     if vcf_file.endswith('.gz'):
         openfunc = gzip.open 
@@ -274,9 +328,9 @@ def _tally_vcf(
     else:
         need_info = False
 
-    _clear_stats()
     tally = defaultdict(lambda: defaultdict(int))
     vcf_chrom = None
+    counter = 0
     
     with openfunc(vcf_file, 'rb') as fin:
         for lineb in fin:
@@ -291,14 +345,13 @@ def _tally_vcf(
                     raise ValueError('VCF has zero samples')
                 if pop_file is not None and pop_mapping is not None:
                     raise ValueError(
-                        'You cannot provide both `pop_mapping` and `pop_file`'
+                        'You cannot use both `pop_mapping` and `pop_file`'
                     )
                 elif pop_file is not None:
                     pop_mapping = _load_pop_file(pop_file)
                 elif pop_mapping is None:
-                    warnings.warn(
-                        'No population specification given: ' 
-                        'placing all samples in population "ALL"'
+                    print_out(current_time(),
+                        'No populations given: placing all samples in "ALL"'
                     )
                     pop_mapping = {'ALL': sample_ids}
                 # form mapping from population IDs to sample indices
@@ -334,14 +387,16 @@ def _tally_vcf(
                     continue
                 # quit the loop if end of interval has been passed
                 if pos0 >= interval[1]:
-                    warnings.warn('Beyond specified interval end: quitting')
+                    print_out(current_time(),
+                        'Reached specified interval end: quitting')
                     break
 
             # check mask
             if masked:
                 # quit the loop if beyond the last unmasked site
                 if pos0 >= len(mask):
-                    warnings.warn('Beyond specified mask end: quitting')
+                    print_out(current_time(),
+                        'Beyond specified mask end: quitting')
                     break
                 elif mask[pos0] == True:
                     stats['mask_failed'] += 1
@@ -357,14 +412,19 @@ def _tally_vcf(
                     skip = True
                     break
             if skip:
-                _warn('non_SNP_skipped', f'Skipping non-SNP at {pos}')
+                if stats['non_SNP_skipped'] == 0 and verbose:
+                    print_err(current_time(),
+                        f'Skipping non-SNP at position {pos}')
+                stats['non_SNP_skipped'] += 1
                 continue
 
             # check whether multiallelic
             if len(alts) > 1:
                 if not allow_multiallelic:
-                    _warn('multiallelic_skipped',
-                          f'Skipping multiallelic site at {pos}')
+                    if stats['multiallelic_skipped'] == 0 and verbose:
+                        print_err(current_time(),
+                            f'Skipping multiallelic site at position {pos}')
+                    stats['multiallelic_skipped'] += 1
                     continue
                 else:
                     stats['multiallelic_sites'] += 1
@@ -381,36 +441,43 @@ def _tally_vcf(
             elif use_AA:
                 # skip site if AA is not present
                 if 'AA' not in info_dict:
-                    _warn('AA_absent', f'``INFO/AA`` is absent at {pos}')
+                    warnings.warn('Absent ``INFO/AA`` field')
+                    if stats['missing_AA_skipped'] == 0 and verbose:
+                        print_err(current_time(), 
+                            f'``INFO/AA`` is absent at position {pos}')
+                    stats['missing_AA_skipped'] += 1
                     continue
-                anc = info_dict["AA"]
+                anc = info_dict['AA']
             else:
                 anc = ref
 
             # check validity of ancestral allele
-            if _check_anc(anc, allow_low_confidence, pos):
+            if _check_anc(anc, allow_low_confidence, pos=pos, verbose=verbose):
                 continue
-            
+
             # skip if `anc` is not REF/ALT and multiallelic sites are forbidden
             if not allow_multiallelic:
                 if anc not in alleles:
-                    _warn('AA_unrepresented',
-                          f'Ancestral allele not represented in ``REF``, ``ALT`` at {pos}')
+                    if stats['anc_unrepresented'] == 0 and verbose:
+                        print_err(current_time(),
+                            'Ancestral allele not represented in ``REF``, '
+                            f'``ALT`` at {pos}')
+                    stats['anc_unrepresented'] += 1
                     continue
 
             # perform line-level filtering
             if 'QUAL' in filters:
                 qual = split_line[5]
-                if _filter_QUAL(qual, filters['QUAL'], pos):
+                if _filter_qual(qual, filters['QUAL'], pos=pos, verbose=verbose):
                     continue
 
             if 'FILTER' in filters:
                 fltr = split_line[6]
-                if _filter_FILTER(fltr, filters['FILTER'], pos):
+                if _filter_filter(fltr, filters['FILTER'], pos=pos, verbose=verbose):
                     continue
 
             if 'INFO' in filters:
-                if _filter_INFO(info_dict, filters['INFO'], pos):
+                if _filter_info(info_dict, filters['INFO'], pos=pos, verbose=verbose):
                     continue
  
             # perform sample-level filtering and count alleles
@@ -426,7 +493,7 @@ def _tally_vcf(
                         dict(zip(split_frmt, s)) for s in split_samples
                     ]
                     for sample in sample_dicts:
-                        if _filter_sample(sample, filters['SAMPLE'], pos):      
+                        if _filter_sample(sample, filters['SAMPLE'], pos=pos, verbose=verbose):      
                             sample['GT'] = '.'
                     GT_str = ''.join(s['GT'] for s in sample_dicts)
                 else:
@@ -441,8 +508,14 @@ def _tally_vcf(
                 num_derived = tuple([pop_counts[pop][i] for pop in pop_idx])
                 tally[num_copies][num_derived] += 1
 
-    if print_stats:
-        print('Statistics')
+            if verbose > 1:
+                if counter % verbose == 0 and counter > 1:
+                    print_out(current_time(),
+                        f'parsed position {pos} in line {counter}')
+            counter += 1
+
+    if verbose and len(stats) > 0:
+        print_out('Statistics')
         for key in stats:
             print(f'{key}:\t{stats[key]}')
 
@@ -453,12 +526,10 @@ def _tally_vcf(
     data = {}
     data['tally'] = tally
     data['pop_ids'] = [pop_id for pop_id in pop_idx]
-    data['sample_sizes'] = tuple(
-        [ploidy * len(pop_idx[pop]) for pop in pop_idx]
-    )
+    data['sample_sizes'] = {pop: ploidy * len(pop_idx[pop]) for pop in pop_idx}
 
     if return_stats:
-        return data, stats
+        return data, copy(stats)
     
     return data
 
@@ -466,88 +537,88 @@ def _tally_vcf(
 def _parse_filters(filters):
     """
     Parse the `filters` passed to `_tally_vcf` and create a nested dictionary
-    for internal use. Raises errors if any fields are not validly specified.
+    for internal use. Valid key-value pairs are described below.
 
-    :param filters: Dictionary mapping VCF fields to minumum values (when value
-        is a number) or required categories (when a str, tuple or list) to 
-        pass the filtering step and be included in the derived allele tally.
+    There are basically two types of filters that can be imposed: numerical
+    and categorical. Numerical filters give minimum values to fields, while
+    categorical filters give a set of strings to which values must belong to 
+    pass the filter.
+    
+    'QUAL' is numeric and maps to a minimum value for the ``QUAL`` field.
+    'FILTER' is categorical.
+    'INFO' and 'SAMPLE' may be numerical or categorical. The constistency of
+        the field and its type is not checked here- e.g. specifying a 
+        categorical filter for ``INFO/DP``, a numeric field, will not raise an
+        error. 
+
+    :param filters: Dictionary of filter variables to apply to a VCF file. 
     :type filters: dict
 
     :returns: Filters dictionary prepared for internal use.
     :rtype: defaultdict
     """
     nested_filters = defaultdict(dict)
-    if filters is not None:
-        for key in filters:
-            value = filters[key]
-            split_key = key.split('/')
-            if len(split_key) == 1:
-                field = split_key[0]
-                if field not in ('QUAL', 'FILTER'):
-                    raise ValueError(f'Invalid field ``{key}``')
-                if field == 'QUAL':
-                    if type(value) not in (int, float, str):
-                        raise TypeError('``QUAL`` must be a number')
-                    if type(value) is str:
-                        if value.isnumeric():
-                            value = float(value)
-                        else:
-                            raise ValueError('``QUAL`` must be a number')
-                    else:
-                        value = float(value)
-                if field == 'FILTER':
-                    if type(value) not in (str, list, tuple):
-                        raise TypeError('``FILTER`` must be categorical')
-                    if type(value) is str:
-                        value = (value,)
-                    else:
-                        value = tuple(value)
-                    for elem in value:
-                        if elem == '.':
-                            raise ValueError('"." cannot be used as a filter')
-                nested_filters[field] = value
-            elif len(split_key) == 2:
-                field, subfield = split_key
-                if field not in ('INFO', 'FORMAT', 'SAMPLE'):
-                    raise ValueError(f'Invalid key ``{key}``')
-                # FORMAT indicates the same thing as SAMPLE
-                if field == 'FORMAT':
-                    field = 'SAMPLE'
-                # numeric fields
-                if type(value) in (int, float):
-                    value = float(value)
-                # categorical fields
-                elif type(value) is str:
-                    if value == '.':
-                        raise ValueError('"." cannot be used as a filter')
-                    value = (value,)
-                elif type(value) in (list, tuple):
-                    for elem in value:
-                        if type(elem) is not str:
-                            raise TypeError(
-                                f'Categorical ``{key}`` must be str'
-                            )
-                        if elem == '.':
-                            raise ValueError('"." cannot be used as a filter')
-                    value = tuple(value)
+
+    if filters is None:
+        return nested_filters
+    
+    for key in filters:
+        value = filters[key]
+        split_key = key.split('/')
+        if len(split_key) == 1:
+            field = split_key[0]
+            if field not in ('QUAL', 'FILTER'):
+                raise ValueError(f'Invalid field ``{key}``')
+            if field == 'QUAL':
+                if type(value) not in (int, float):
+                    raise TypeError('``QUAL`` must be a number')
+                value = float(value)
+            if field == 'FILTER':
+                if type(value) is str:
+                    value = set((value,))
                 else:
-                    raise TypeError(f'Invalid ``{key}`` type')
-                nested_filters[field][subfield] = value
-            else:
+                    value = set(value)
+                for elem in value:
+                    if type(elem) is not str:
+                        raise TypeError('``FILTER`` must be str')
+                    if elem == '.':
+                        raise ValueError('"." cannot be used as a filter')
+            nested_filters[field] = value
+        elif len(split_key) == 2:
+            field, subfield = split_key
+            if field == 'FORMAT':
+                field = 'SAMPLE'
+            if field not in ('INFO', 'SAMPLE'):
                 raise ValueError(f'Invalid key ``{key}``')
+            try:
+                value = float(value)
+            except:
+                if type(value) is str:
+                    value = set((value,))
+                else:
+                    value = set(value)
+                for elem in value:
+                    if type(elem) is not str:
+                        raise TypeError(f'Categorical ``{key}`` must be str')
+                    if elem == '.':
+                        raise ValueError('"." cannot be used as a filter')
+            nested_filters[field][subfield] = value
+        else:
+            raise ValueError(f'Invalid key ``{key}``')
 
     return nested_filters
 
 
-def _check_anc(anc, allow_low_confidence, pos):
+def _check_anc(anc, allow_low_confidence, pos=None, verbose=0):
     """
-    Check whether the str `anc` represents a valid ancestral state. Lines with
+    Check whether the str `anc` encodes a valid ancestral state. Lines with
     invalid states (whether missing, not a valid nucleotide code, etc.) are
     skipped. 
 
     :type anc: str
     :type allow_low_confidence: bool
-    :type pos: int
+    :type pos: int, optional
+    :type verbose: int, optional
 
     :returns: True if the line should be skipped due to `anc` invalidity,
         False otherwise.
@@ -555,34 +626,42 @@ def _check_anc(anc, allow_low_confidence, pos):
     skip = False
     if anc not in ('A', 'T', 'C', 'G'):
         if anc == '.':
-            _warn('AA_missing', f'Ancestral allele is missing at {pos}')
+            warnings.warn('Missing ancestral allele')
+            if stats['AA_missing'] == 0 and verbose:
+                print_err(current_time(),
+                    f'Ancestral allele is missing at position {pos}')
+            stats['AA_missing'] += 1
             skip = True
         elif anc in ('a', 't', 'c', 'g'):
             if allow_low_confidence:
                 anc = anc.capitalize()
                 stats['AA_low_confidence'] += 1
             else:
-                _warn('AA_low_confidence_skipped',
-                      f'Skipping line with low-conf. ancestral allele at {pos}')
+                if stats['AA_low_confidence_skipped'] == 0 and verbose:
+                    print_err(current_time(),
+                      f'Skipping low-conf. ancestral allele at position {pos}')
+                stats['AA_low_confidence_skipped'] += 1
                 skip = True
         else:
-            _warn('AA_invalid', f'Ancestral allele is invalid at {pos}')
+            warnings.warn('Invalid ancestral allele')
+            if stats['AA_invalid'] == 0 and verbose:
+                print_err(current_time(),
+                    f'Ancestral allele is invalid at position {pos}')
+            stats['AA_invalid'] += 1
             skip = True
 
     return skip
 
 
-def _filter_QUAL(qual, threshold, pos):
+def _filter_qual(qual, threshold, pos=None, verbose=0):
     """
-    Called during VCF parsing if ``QUAL`` is being filtered. 
-    
-    Checks whether ``QUAL`` is missing ('.'), then whether it is numeric, then 
-    whether it is greater than a specified minimum. If ``QUAL`` is missing or
-    non-numeric, raises a warning but does not skip the site.
+    Apply a threshold to a ``QUAL`` column entry, printing soft error messages
+    if the entry is missing or invalid.
 
-    :type qual: float
+    :type qual: str
     :type threshold: float
-    :type pos: int
+    :type pos: int, optional
+    :type verbose: int, optional
 
     :returns: True if the site fails the QUAL filter and should be skipped,
         otherwise False.
@@ -590,9 +669,13 @@ def _filter_QUAL(qual, threshold, pos):
     """
     skip = False
     if qual == '.':
-        _warn('QUAL_missing', f'``QUAL`` is missing at {pos}')
+        if stats['QUAL_missing'] == 0 and verbose:
+            print_err(current_time(), f'Missing ``QUAL`` at position {pos}')
+        stats['QUAL_missing'] += 1
     elif not qual.isnumeric():
-        _warn('QUAL_invalid', f'``QUAL`` is invalid at {pos}')
+        if stats['QUAL_invalid'] == 0 and verbose:
+            print_err(current_time(), f'Invalid ``QUAL`` at position {pos}')
+        stats['QUAL_invalid'] += 1
     else:
         if float(qual) < threshold:
             stats['QUAL_failed'] += 1
@@ -601,28 +684,24 @@ def _filter_QUAL(qual, threshold, pos):
     return skip
 
 
-def _filter_FILTER(fltr, passing, pos, warned, stats):
+def _filter_filter(fltr, passing, pos=None, verbose=0):
     """
-    Checks whether the ``FILTER`` entry for a line (`fltr`) is missing, raising
-    a warning if it is- then checks whether it matches an element of `passing`,
-    returning True if it is not and the line should be skipped.
+    Apply a filter to the a ``FILTER`` column entry. 
 
     :type fltr: str
-    :type passing: tuple
-    :type pos: int
-    :type warned: defaultdict(bool)
-    :type stats: defaultdict(int)
+    :type passing: set
+    :type pos: int, optional
+    :type verbose: int, optional
     
-    :returns: True if the site fails the FILTER filter and should be skipped,
-        else False.
+    :returns: True if the site fails the ``FILTER`` filter and should be 
+        skipped, else False.
     :rtype: bool
     """
     skip = False
     if fltr == '.':
-        if not warned[f'FILTER_missing']:
-            warnings.warn(f'``FILTER`` is missing at {pos}')
-            warned[f'FILTER_missing'] = True
-        stats[f'FILTER_missing'] += 1
+        if stats['FILTER_missing'] == 0 and verbose:
+            print_err(current_time(), f'Missing ``FILTER`` at position {pos}')
+        stats['FILTER_missing'] += 1
     else:
         if fltr not in passing:
             stats['FILTER_failed'] += 1
@@ -631,28 +710,34 @@ def _filter_FILTER(fltr, passing, pos, warned, stats):
     return skip
 
 
-def _filter_INFO(info, info_filters, pos):
+def _filter_info(info, info_filters, pos=None, verbose=0):
     """
-    Check whether a line fails any filters on ``INFO``. If relevant fields are
-    missing or completely absent, raises warnings. Filters can be either numeric
-    or categorical. 
+    Apply `info_filters` to a dictionary representation of an ``INFO`` column
+    entry. Increments appropriate statistics and raises warnings when fields 
+    are absent.
     
     :type info: dict
     :type info_filters: dict
-    :type pos: int
+    :type pos: int, optional
+    :type verbose: int, optional
     
-    :returns: True if the site fails at least one INFO filter and should be
+    :returns: True if the site fails at least one ``INFO`` filter and should be
         skipped, False otherwise.
     :rtype: bool
     """
     skip = False
     for field in info_filters:
         if field not in info:
-            _warn(f'INFO/{field}_absent', 
-                  f'``INFO/{field}`` is absent at {pos}')
+            warnings.warn(f"Absent ``INFO/{field}`` field")
+            if stats[f'INFO/{field}_absent'] == 0 and verbose:
+                print_err(current_time(), 
+                    f'Absent ``INFO/{field}`` at position {pos}')
+            stats[f'INFO/{field}_absent'] += 1
         elif info[field] == '.':
-            _warn(f'INFO/{field}_missing',
-                  f'``INFO/{field}`` is missing at {pos}')
+            if stats[f'INFO/{field}_missing'] == 0 and verbose:
+                print_err(current_time(), 
+                    f'Missing ``INFO/{field}`` at position {pos}')
+            stats[f'INFO/{field}_missing'] += 1
         else:
             if type(info_filters[field]) == float:
                 if float(info[field]) < info_filters[field]:
@@ -664,31 +749,37 @@ def _filter_INFO(info, info_filters, pos):
                     stats[f'INFO/{field}_failed'] += 1
                     skip = True
                     break
-
     return skip
 
 
-def _filter_sample(sample, sample_filters, pos, warned, stats):
+def _filter_sample(sample, sample_filters, pos=None, verbose=0):
     """
-        
+    Apply a `sample_filters` to a dictionary representation of a sample. 
+    Returns True if the sample fails one or more filters and False else. Also
+    gathers statistics and raises appopriate warnings when fields are absent.
+
     :type sample: dict
     :type sample_filters: dict
-    :type pos: int
-    :type warned: defaultdict(bool)
-    :type stats: defaultdict(int)
+    :type pos: int, optional
+    :type verbose: int, optional
     
-    :returns: True if the sample fails at least one SAMPLE filter and should be
+    :returns: True if the sample fails at least one filter and should be
         skipped, False otherwise.
     :rtype: bool
     """
     skip = False
     for field in sample_filters:
         if field not in sample:
-            _warn(f'SAMPLE/{field}_absent',
-                  f'``SAMPLE/{field}`` is absent at {pos}')
+            warnings.warn(f"Absent ``SAMPLE/{field}`` field")
+            if stats[f'SAMPLE/{field}_absent'] == 0 and verbose:
+                print_err(current_time(), 
+                    f'Absent ``SAMPLE/{field}`` at position {pos}')
+            stats[f'SAMPLE/{field}_absent'] += 1
         elif sample[field] == '.':
-            _warn(f'SAMPLE/{field}_missing',
-                  f'``SAMPLE/{field}`` is missing at {pos}')
+            if stats[f'SAMPLE/{field}_missing'] == 0 and verbose:
+                print_err(current_time(), 
+                    f'Missing ``SAMPLE/{field}`` at position {pos}')
+            stats[f'SAMPLE/{field}_missing'] += 1
         else:
             if type(sample_filters[field]) == float:
                 if float(sample[field]) < sample_filters[field]:
@@ -700,13 +791,14 @@ def _filter_sample(sample, sample_filters, pos, warned, stats):
                     stats[f'SAMPLE/{field}_failed'] += 1
                     skip = True
                     break
-
     return skip
 
 
 def _build_info_dict(info_str):
     """
-    Build a dictionary representation of the ``INFO`` field. 
+    Build a dictionary representation of the ``INFO`` field. When an item is 
+    not a key=value pair, it is mapped to itself. For instance, 'GQ=30;X' 
+    returns {'GQ': '30', 'X': 'X'}.
     """
     split_info = [field.split('=') for field in info_str.split(';')]
     info_dict = {}
@@ -718,7 +810,7 @@ def _build_info_dict(info_str):
             item = item[0]
             info_dict[item] = item
         else:
-            raise ValueError(f'Unsupported format in ``INFO/{item}')
+            raise ValueError(f'Unsupported format in ``INFO/{item}``')
         
     return info_dict
 
@@ -732,7 +824,6 @@ def _match_chromosomes(chrom1, chrom2):
     """
     _chrom1 = str(chrom1).lstrip("chr")
     _chrom2 = str(chrom2).lstrip("chr")
-    print(_chrom1, _chrom2)
     if _chrom1 == _chrom2:
         ret = True 
     else:
@@ -741,40 +832,26 @@ def _match_chromosomes(chrom1, chrom2):
     return ret
 
 
-def _spectrum_from_tally(
-    data, 
-    sample_sizes=None, 
-    mask_corners=True, 
-    pop_ids=None
-):
+def _spectrum_from_tally(data, sample_sizes=None, mask_corners=True):
     """
     From a nested dictionary of derived allele count tallies emitted by the
     `_tally_vcf`, build an SFS. 
     
-    If `sample_sizes` or `pop_ids` are not given, then these values are taken
-    from `tally`. If `sample_sizes` is given, then the output SFS will be this 
-    size- all records with higher samples will be projected down to the given
-    size and added to the output.
-
-    If `sample_sizes` is larger than the size recorded in `tally`, an error is 
-    raised.
+    If `sample_sizes` is given, then the output SFS will be projected to the
+    specified sizes. Otherwise the sample sizes recorded in `data` are used.
     
     :param tally: A dictionary representation of allele counts loaded from a 
-        VCF file from `tally_vcf`. 
+        VCF file with `_tally_vcf`. 
     :type tally: dict
-    :param sample_sizes: The sample size of the output SFS (default None). If 
-        given, projects all records with equal or higher sample size into the 
-        same output array. Must be less than or equal to the highest sample size
-        recorded in `tally`.
-    :type sample_sizes: tuple, optional
+    :param sample_sizes: The sample size of the output SFS (default None), 
+        specified as a dictionary mapping population IDs to haploid sample 
+        sizes.
+    :type sample_sizes: dict, optional
     :param mask_corners: If True (default), mask the 'observed in no samples'
         and 'observed in sall samples' entries of the SFS.
     :type mask_corners: bool, optional
-    :param pop_ids: Optional list of population IDs associated to the SFS 
-        (default None).
-    :type pop_ids: list, optional
 
-    :returns: Site frequency spectrum represented as a moments.Spectrum instance 
+    :returns: SFS represented as a moments.Spectrum instance 
     :rtype: moments.Spectrum
     """
     def build_fs(_sizes):
@@ -784,7 +861,9 @@ def _spectrum_from_tally(
         arr = np.zeros([n + 1 for n in _sizes])
         for entry in tally[_sizes]:
             arr[entry] += tally[_sizes][entry]
-        fs = Spectrum(arr, mask_corners=mask_corners, pop_ids=pop_ids)
+        fs = Spectrum_mod.Spectrum(
+            arr, mask_corners=mask_corners, pop_ids=pop_ids
+        )
         return fs
     
     def empty_fs(_sizes):
@@ -792,44 +871,36 @@ def _spectrum_from_tally(
         Construct an SFS with no entries and shape `_size`.
         """
         arr = np.zeros([n + 1 for n in _sizes])
-        fs = Spectrum(arr, mask_corners=mask_corners, pop_ids=pop_ids)
+        fs = Spectrum_mod.Spectrum(
+            arr, mask_corners=mask_corners, pop_ids=pop_ids
+        )
         return fs
-    
+
     tally = data['tally']
+    pop_ids = data['pop_ids']
     keys = list(tally.keys())
 
-    if pop_ids is None:
-        if 'pop_ids' in data:
-            pop_ids = data['pop_ids']
-        else:
-            pop_ids = None
-    
     if sample_sizes is None:
-        if 'sample_sizes' in data:
-            sample_sizes = data['sample_sizes']
-        else:
-            sample_sizes = tuple(
-                [max([key[i] for key in keys]) for i in range(len(keys[0]))]
-            )
-        fs = build_fs(sample_sizes)
+        sample_sizes = data['sample_sizes']
+        size_tuple = tuple([sample_sizes[pop] for pop in pop_ids])
+        fs = build_fs(size_tuple)
     else: 
-        if type(sample_sizes) == list:
-            sample_sizes = tuple(sample_sizes)
+        size_tuple = tuple([sample_sizes[pop] for pop in pop_ids])
         # find records with sample sizes >= `size`
         valid_keys = []
         for key in keys:
-            if np.all([m >= n for m, n in zip(key, sample_sizes)]):
+            if np.all([m >= n for m, n in zip(key, size_tuple)]):
                 valid_keys.append(key)
-        if sample_sizes in valid_keys:
-            fs = build_fs(sample_sizes)
+        if size_tuple in valid_keys:
+            fs = build_fs(size_tuple)
         else:
-            fs = empty_fs(sample_sizes)
+            fs = empty_fs(size_tuple)
         # project other valid sample sizes down to the primary one
         for key in valid_keys:
-            if key == sample_sizes:
+            if key == size_tuple:
                 continue
             pfs = build_fs(key)
-            fs += pfs.project(sample_sizes)
+            fs += pfs.project(size_tuple)
 
     return fs
 

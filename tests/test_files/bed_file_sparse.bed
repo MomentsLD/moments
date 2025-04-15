@@ -1,0 +1,4 @@
+#chrom  chromStart  chromEnd
+chr0    0   1
+chr0    2   3
+chr0    4   5
