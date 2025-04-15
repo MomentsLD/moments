@@ -229,8 +229,7 @@ class TestTallyVCF(unittest.TestCase):
 
     def test_filter_filter(self):
         vcf_file = os.path.join(
-            os.path.dirname(__file__), 'test_files/vcf_file_basic.vcf'
-        )
+            os.path.dirname(__file__), 'test_files/vcf_file_basic.vcf')
         proper_result = {(6,): {(4,): 1, (3,): 1, (1,): 1}}
         result = moments.Parsing._tally_vcf(
             vcf_file, filters={'FILTER': 'PASS'})['tally']
@@ -273,41 +272,120 @@ class TestParseFilters(unittest.TestCase):
 
 class TestFilters(unittest.TestCase):
     
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-    
     def test_check_anc(self):
-        pass
+        # `True` means that a line fails a filter
+        self.assertFalse(moments.Parsing._check_anc('A', False))
+        self.assertTrue(moments.Parsing._check_anc('a', False))
+        self.assertFalse(moments.Parsing._check_anc('a', True))
+        with self.assertWarns(UserWarning):
+            moments.Parsing._check_anc('.', False)
+        with self.assertWarns(UserWarning):
+            moments.Parsing._check_anc('N', False)
 
     def test_filter_QUAL(self):
-        pass
+        # Invalid/missing QUAL does not trigger line skip
+        self.assertFalse(moments.Parsing._filter_qual('31', 30))
+        self.assertTrue(moments.Parsing._filter_qual('29', 30))
+        self.assertFalse(moments.Parsing._filter_qual('.', 30))
+        self.assertFalse(moments.Parsing._filter_qual('X', 30))
      
     def test_filter_FILTER(self):
-        pass
+        # Invalid/missing FILTER does not trigger line skip
+        set1 = set(['PASS'])
+        set2 = set(['PASS', 'FAIL'])
+        self.assertFalse(moments.Parsing._filter_filter('PASS', set1))
+        self.assertFalse(moments.Parsing._filter_filter('PASS', set2))
+        self.assertTrue(moments.Parsing._filter_filter('FAIL', set1))
+        self.assertFalse(moments.Parsing._filter_filter('.', set1))
 
     def test_filter_INFO(self):
-        pass
+        info = {'GQ': '30', 'DP': '30', 'X': '.'}
+        # Absent INFO triggers a warning but does not skip a line
+        with self.assertWarns(UserWarning):
+            self.assertFalse(moments.Parsing._filter_info(info, {'Y': 10})) 
+        self.assertFalse(moments.Parsing._filter_info(info, {'GQ': 29.0}))
+        self.assertFalse(moments.Parsing._filter_info(info, 
+            {'DP': 29.0, 'GQ': 29.0}))
+        self.assertFalse(moments.Parsing._filter_info(info, {'DP': 29.0}))
+        self.assertTrue(moments.Parsing._filter_info(info, 
+            {'DP': 31.0, 'GQ': 31.0}))
+        self.assertFalse(moments.Parsing._filter_info(info, {'X': 10.0}))
+        self.assertFalse(moments.Parsing._filter_info(info, 
+            {'DP': 29.0, 'GQ': 29.0, 'X': 10.0}))
+        self.assertTrue(moments.Parsing._filter_info(info, 
+            {'DP': 29.0, 'GQ': 31.0, 'X': 10.0}))
 
     def test_filter_sample(self):
-        pass
-
+        sample = {'GT': '0|0', 'GQ': '30', 'DP': '30'}
+        self.assertTrue(moments.Parsing._filter_sample(sample, {'GQ': 31.0}))
+        self.assertTrue(moments.Parsing._filter_sample(sample, {'DP': 31.0}))
+        self.assertTrue(moments.Parsing._filter_sample(
+            sample, {'GQ': 31.0, 'DP': 31.0}))
+        self.assertFalse(moments.Parsing._filter_sample(sample, {'GQ': 29.0}))
+        self.assertFalse(moments.Parsing._filter_sample(sample, {'DP': 29.0}))
+        self.assertFalse(moments.Parsing._filter_sample(
+            sample, {'GQ': 29.0, 'DP': 29.0}))
+        with self.assertWarns(UserWarning):
+            self.assertFalse(moments.Parsing._filter_sample(sample, {'X': 10}))
+        msample = {'GT': '0|0', 'GQ': '.', 'DP': '29'}
+        self.assertFalse(moments.Parsing._filter_sample(msample, {'GQ': 30.0}))
+        self.assertTrue(moments.Parsing._filter_sample(msample, {'DP': 30.0}))
+        self.assertTrue(moments.Parsing._filter_sample(
+            msample, {'GQ': 30.0, 'DP': 30.0}))
+        
 
 class TestComputeL(unittest.TestCase):
     
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-    
     def test_just_bedfile(self):
-        pass
-
+        bed_file = os.path.join(
+            os.path.dirname(__file__), 'test_files/bed_file_full.bed')
+        result = moments.Parsing.compute_L(bed_file)
+        self.assertEqual(result, 6)
+        bed_file_sparse = os.path.join(
+            os.path.dirname(__file__), 'test_files/bed_file_sparse.bed')
+        result = moments.Parsing.compute_L(bed_file_sparse)
+        self.assertEqual(result, 3)
+        
     def test_anc_seq(self):
-        pass
+        bed_file = os.path.join(
+            os.path.dirname(__file__), 'test_files/bed_file_full.bed')
+        full_seq = os.path.join(
+            os.path.dirname(__file__), 'test_files/fasta_file_full.fa')
+        low_conf_seq = os.path.join(
+            os.path.dirname(__file__), 'test_files/fasta_file_low_conf.fa')
+        missing_data_seq = os.path.join(
+            os.path.dirname(__file__), 'test_files/fasta_file_missing_data.fa')
+        result = moments.Parsing.compute_L(bed_file, anc_seq_file=full_seq)
+        self.assertEqual(result, 6)
+        result = moments.Parsing.compute_L(bed_file, anc_seq_file=low_conf_seq)
+        self.assertEqual(result, 2)
+        result = moments.Parsing.compute_L(
+            bed_file, anc_seq_file=low_conf_seq, allow_low_confidence=True)
+        self.assertEqual(result, 6)
+        result = moments.Parsing.compute_L(
+            bed_file, anc_seq_file=missing_data_seq)
+        self.assertEqual(result, 2)
+        result = moments.Parsing.compute_L(
+            bed_file, anc_seq_file=missing_data_seq, allow_low_confidence=True)
+        self.assertEqual(result, 3)
+        
+    def test_interval(self):
+        bed_file = os.path.join(
+            os.path.dirname(__file__), 'test_files/bed_file_full.bed')
+        bed_file_sparse = os.path.join(
+            os.path.dirname(__file__), 'test_files/bed_file_sparse.bed')
+        result = moments.Parsing.compute_L(bed_file, interval=(0, 3))
+        self.assertEqual(result, 3)
+        result = moments.Parsing.compute_L(bed_file, interval=(3, 6))
+        self.assertEqual(result, 3)
+        result = moments.Parsing.compute_L(bed_file_sparse, interval=(0, 3))
+        self.assertEqual(result, 2)
+        result = moments.Parsing.compute_L(bed_file_sparse, interval=(3, 5))
+        self.assertEqual(result, 1)
+        with self.assertWarns(UserWarning):
+            moments.Parsing.compute_L(bed_file, interval=(0, 7))
+        with self.assertWarns(UserWarning):
+            moments.Parsing.compute_L(bed_file_sparse, interval=(3, 6))
 
 
 class TestFASTAFiles(unittest.TestCase):

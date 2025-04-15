@@ -15,7 +15,7 @@ import warnings
 from . import Spectrum_mod
 
 
-# raise each unique warning only once
+# Raise each unique warning only once
 warnings.simplefilter('once')
 
 
@@ -67,14 +67,14 @@ def parse_vcf(
         minimum value for a field. The typing of values is not explictly 
         checked against the expected type for a field- e.g. if a string is 
         given for the numeric field 'GQ', no explicit warning is raised- 
-        although an error will be thrown once parsing begins.
-    'SAMPLE/FIELD' e.g. 'SAMPLE/DP' imposes filters at the sample level. 
+        although an error will tend to be thrown once parsing begins.
+    'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
         'FIELD' should correspond to an entry in the ``FORMAT`` column of the 
         VCF. Typing is the same as in 'FORMAT'.
     In general, when quantities are absent in a given line, the line is not 
     skipped but a one-time alert message is raised. Missing values ('.') also
     do not cause lines to be skipped. 
-    
+
     :param vcf_file: Pathname of the VCF file to parse. The file may be 
         gzipped/bgzipped or uncompressed.
     :type vcf_file: str
@@ -365,6 +365,13 @@ def _tally_vcf(
                         pop_idx[pop].append(sample_ids.index(sample_id))
                 continue
             
+            # status report
+            if verbose > 1:
+                if counter % verbose == 0 and counter > 1:
+                    print_out(current_time(),
+                        f'parsed position {pos} line {counter}')
+            counter += 1
+            
             split_line = line.split()
 
             # check chromosome agreement
@@ -468,16 +475,19 @@ def _tally_vcf(
             # perform line-level filtering
             if 'QUAL' in filters:
                 qual = split_line[5]
-                if _filter_qual(qual, filters['QUAL'], pos=pos, verbose=verbose):
+                if _filter_qual(
+                    qual, filters['QUAL'], pos=pos, verbose=verbose):
                     continue
 
             if 'FILTER' in filters:
                 fltr = split_line[6]
-                if _filter_filter(fltr, filters['FILTER'], pos=pos, verbose=verbose):
+                if _filter_filter(
+                    fltr, filters['FILTER'], pos=pos, verbose=verbose):
                     continue
 
             if 'INFO' in filters:
-                if _filter_info(info_dict, filters['INFO'], pos=pos, verbose=verbose):
+                if _filter_info(
+                    info_dict, filters['INFO'], pos=pos, verbose=verbose):
                     continue
  
             # perform sample-level filtering and count alleles
@@ -493,7 +503,9 @@ def _tally_vcf(
                         dict(zip(split_frmt, s)) for s in split_samples
                     ]
                     for sample in sample_dicts:
-                        if _filter_sample(sample, filters['SAMPLE'], pos=pos, verbose=verbose):      
+                        if _filter_sample(
+                            sample, filters['SAMPLE'], pos=pos, verbose=verbose
+                        ):      
                             sample['GT'] = '.'
                     GT_str = ''.join(s['GT'] for s in sample_dicts)
                 else:
@@ -508,14 +520,8 @@ def _tally_vcf(
                 num_derived = tuple([pop_counts[pop][i] for pop in pop_idx])
                 tally[num_copies][num_derived] += 1
 
-            if verbose > 1:
-                if counter % verbose == 0 and counter > 1:
-                    print_out(current_time(),
-                        f'parsed position {pos} in line {counter}')
-            counter += 1
-
     if verbose and len(stats) > 0:
-        print_out('Statistics')
+        print_out(current_time(), 'Statistics')
         for key in stats:
             print(f'{key}:\t{stats[key]}')
 
