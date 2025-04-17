@@ -1,5 +1,5 @@
 """
-Functions for computing the SFS and related quantities from sequence data. 
+Functions for computing the SFS and sequence length (L) from data.
 """
 
 from collections import defaultdict
@@ -39,39 +39,44 @@ def parse_vcf(
     """
     Parse the SFS from genotype data stored in a VCF file.
 
-    There are several ways to specify ancestral alleles. By default, ``REF``
-    alleles from the VCF are used to polarize sites. When this is done, the
-    SFS should be folded. If `use_AA` is True, then the ``INFO/AA`` VCF field
-    is used to polarize alleles. When this is absent, the site is skipped and
-    a warning is raised. If `anc_seq_file` is given (FASTA format), then 
-    ancestral alleles are read from it. Here also, sites are skipped when they
-    lack a valid ancestral allele. This behavior is modulated by 
-    `allow_low_confidence`. When True, sites assigned ancestral states in
-    lower-case (e.g. 'a') are retained. Otherwise such sites are skipped.
+    Here there are several ways to specify estimated ancestral states. By 
+    default, the ancestral allele is set to the ``REF`` allele from the VCF. In 
+    this case the output SFS should be folded, because the reference allele 
+    does not in general correspond to the ancestral allele. If `use_AA` is 
+    True, then the ``INFO/AA`` VCF field is used to polarize alleles. When the 
+    ancestral allele field is absent, the site is skipped and a warning is 
+    raised. If `anc_seq_file` is given (FASTA format), then ancestral alleles 
+    are read from it. Here also, sites are skipped when they lack a valid 
+    ancestral allele. This behavior is modulated by `allow_low_confidence`: 
+    when True, sites assigned ancestral states in lower-case (e.g. 'a') are 
+    retained. By convention this encoding usually denotes a low-confidence 
+    assignment. Otherwise such sites are skipped.
 
     When `allow_multiallelic` is False and the ancestral allele is not 
     represented as either the reference or alternate allele at a site, that 
-    site is skipped automatically. 
+    site is skipped automatically.
 
     The parameter `filters` allows a number of criteria to be imposed on lines,
-    so that they can be filtered by quality or annotation. `filters` should be
-    a flat dictionary mapping strings to appropriately typed objects- the 
+    so that they can be filtered by various quality scores or annotations. 
+    `filters` should be a flat dictionary that maps strings to appropriately 
+    typed objects. Any combination of valid fields is permissible. The 
     following are valid key-value pairs:
     'QUAL' should map to a single number, imposing a minimum on the ``QUAL``
-        field. 
-    'FILTER' should map to a str or set/tuple/list of strings. ``FILTER``
-        must match the value (or an element thereof, if it is iterable)
-        to be parsed.
-    'FORMAT/FIELD' e.g. 'FORMAT/GQ' should map to a single number, or in
-        applicable cases to a str/set of strings. When a number, specifies a 
-        minimum value for a field. The typing of values is not explictly 
-        checked against the expected type for a field- e.g. if a string is 
-        given for the numeric field 'GQ', no explicit warning is raised- 
-        although an error will tend to be thrown once parsing begins.
+        field.
+    'FILTER' should map to a string or set/tuple/list of strings. ``FILTER``
+        must match the value (or an element thereof, if it is iterable) for a 
+        site to pass the filter and be counted.
+    'INFO/FIELD' e.g. 'INFO/GQ' may map to a number, string or set/tuple/
+        list of strings. When it is a number, it specifies a minimum value for
+        the given ``FIELD``. When a string or iterable, behaves as 'FILTER' 
+        does. The typing of values is not explictly checked against the proper 
+        type for a field- e.g. if 'INFO/GQ' maps to a string rather than a 
+        number, no explicit warning is raised- although an error will tend to 
+        be thrown once parsing begins.
     'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
         'FIELD' should correspond to an entry in the ``FORMAT`` column of the 
         VCF. Typing is the same as in 'FORMAT'.
-    In general, when quantities are absent in a given line, the line is not 
+    In general, when quantities are absent from a given line, the line is not 
     skipped but a one-time alert message is raised. Missing values ('.') also
     do not cause lines to be skipped. 
 
@@ -91,8 +96,8 @@ def parse_vcf(
         to parse; useful for applying masks to exclude difficult-to-call or 
         functionally constrained regions (default None). 
     :type bed_file: str, optional
-    :param interval: 2-tuple or 2-list specifying the (inclusive, 0-indexed) 
-        first and (exclusive, 0-indexed) last positions to parse; defines a
+    :param interval: 2-tuple or 2-list specifying the (inclusive, 1-indexed) 
+        first and (exclusive, 1-indexed) last positions to parse; defines a
         genomic window (default None parses the whole VCF file).
     :type interval: tuple of integers, optional
     :param anc_seq_file: Pathname of a FASTA file defining estimated ancestral 
@@ -112,10 +117,10 @@ def parse_vcf(
         above.
     :type filters: dict, optional
     :param allow_multiallelic: If True (default False), includes sites with 
-        more than one alternate allele, counting each derived allele separately-
-        otherwise skips these sites. Also allows sites those biallelic sites 
-        where neither alternate nor reference allele matches the assigned
-        ancestral state.
+        more than one alternate allele- otherwise these are skipped. At such 
+        sites, each derived allele is counted as a separate entry in the SFS. 
+        When True, also allows biallelic sites where neither alternate nor 
+        reference allele matches the ancestral state to be counted.
     :type allow_multiallelic: bool, optional
     :param sample_sizes: Dictionary mapping populations to sample sizes 
         (default None). The output SFS will be projected to these sample sizes.
@@ -247,9 +252,10 @@ def _tally_vcf(
     :param bed_file: Optional pathname to a mask file- only sites within regions
         defined in the file will be tallied (default None).
     :type bed_file: str, optional
-    :param interval: Optional positional interval within which to tally sites
-        (default None), specified as a 2-list or 2-tuple.
-    :type interval: list, optional
+    :param interval: 2-tuple or 2-list specifying the (inclusive, 1-indexed) 
+        first and (exclusive, 1-indexed) last positions to parse; defines a
+        genomic window (default None parses the whole VCF file).
+    :type interval: list or tuple, optional
     :param anc_seq_file: Pathname of a FASTA file assigning ancestral states
         to sites (default None).
     :type anc_seq_file: str, optional
@@ -385,15 +391,15 @@ def _tally_vcf(
                 if chrom != vcf_chrom:
                     raise ValueError('VCF file must record only one chromosome')
 
-            # check interval (decrement position to make it 0-indexed)
+            # check interval 
             pos = int(split_line[1])
             pos0 = pos - 1
             if intervaled:
-                if pos0 < interval[0]: 
+                if pos < interval[0]: 
                     stats['below_interval'] += 1
                     continue
                 # quit the loop if end of interval has been passed
-                if pos0 >= interval[1]:
+                if pos >= interval[1]:
                     print_out(current_time(),
                         'Reached specified interval end: quitting')
                     break
@@ -446,7 +452,7 @@ def _tally_vcf(
                     raise ValueError(f'Site {pos} falls beyond FASTA sequence')
                 anc = ancestral_sequence[pos0]
             elif use_AA:
-                # skip site if AA is not present
+                # skip site if AA is absent
                 if 'AA' not in info_dict:
                     warnings.warn('Absent ``INFO/AA`` field')
                     if stats['missing_AA_skipped'] == 0 and verbose:
@@ -928,8 +934,9 @@ def compute_L(
 
     :param bed_file: Pathname of a BED file specifying regions over which `L` 
         is to be computed.
-    :param interval: 2-list specifying the interval over which to compute `L`. 
-        The lower bound is inclusive, the upper noninclusive (default None).
+    :param interval: 2-list specifying the interval over which to compute `L`
+        (default None). The lower bound is inclusive, the upper noninclusive, 
+        and both are 1-indexed.
     :type interval: list, optional
     :param anc_seq_file: Pathname of a FASTA file holding ancestral nucleotide 
         states (default None). If given, only sites with assigned ancestral 
@@ -962,9 +969,14 @@ def compute_L(
         if len(interval) != 2:
             raise ValueError('Argument `interval` must have length 2')
         start, end = interval
-        if end > len(mask):
+        # convert to 0-indexed
+        start0 = start - 1
+        end0 = end - 1
+        if start0 < 0:
+            raise ValueError('Interval must have start > 0')
+        if end0 > len(mask):
             warnings.warn('Interval end is longer than mask')
-        mask = mask[start:end]
+        mask = mask[start0:end0]
     L = len(mask) - np.count_nonzero(mask)
 
     return L
@@ -999,7 +1011,7 @@ def _load_fasta_file(fasta_file):
 
 def _load_bed_file(bed_file):
     """
-    Load regions from a BED file. Expects the structure 
+    Load regions from a BED file as an array. Expects the structure 
         CHROM\tSTART\tEND...\n
     on each line, and skips any comment/header lines that begin with '#'. 
     Raises an error if the BED file has more than one unique CHROM entry.
@@ -1024,8 +1036,8 @@ def _load_bed_file(bed_file):
                 continue
             split_line = line.split()
             chroms.append(split_line[0])
-            starts.append(int(split_line[1]))
-            ends.append(int(split_line[2]))
+            starts.append(split_line[1])
+            ends.append(split_line[2])
     chrom_set = set(chroms)
     # check that there is one unique CHROM
     if len(chrom_set) > 1:
@@ -1034,7 +1046,9 @@ def _load_bed_file(bed_file):
     elif len(chrom_set) == 0:
         raise ValueError('BED file has no valid contents')
     chrom = list(chrom_set)[0]
-    regions = np.array([[start, end] for start, end in zip(starts, ends)])
+    regions = np.array(
+        [[start, end] for start, end in zip(starts, ends)], dtype=np.int64
+    )
 
     return regions, chrom
 

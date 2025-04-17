@@ -374,18 +374,19 @@ class TestComputeL(unittest.TestCase):
             os.path.dirname(__file__), 'test_files/bed_file_full.bed')
         bed_file_sparse = os.path.join(
             os.path.dirname(__file__), 'test_files/bed_file_sparse.bed')
-        result = moments.Parsing.compute_L(bed_file, interval=(0, 3))
+        result = moments.Parsing.compute_L(bed_file, interval=(1, 4))
         self.assertEqual(result, 3)
-        result = moments.Parsing.compute_L(bed_file, interval=(3, 6))
+        result = moments.Parsing.compute_L(bed_file, interval=(4, 7))
         self.assertEqual(result, 3)
-        result = moments.Parsing.compute_L(bed_file_sparse, interval=(0, 3))
+        result = moments.Parsing.compute_L(bed_file_sparse, interval=(1, 4))
         self.assertEqual(result, 2)
-        result = moments.Parsing.compute_L(bed_file_sparse, interval=(3, 5))
+        result = moments.Parsing.compute_L(bed_file_sparse, interval=(4, 6))
         self.assertEqual(result, 1)
-        with self.assertWarns(UserWarning):
+        with self.assertRaises(ValueError):
             moments.Parsing.compute_L(bed_file, interval=(0, 7))
         with self.assertWarns(UserWarning):
-            moments.Parsing.compute_L(bed_file_sparse, interval=(3, 6))
+            # interval extends beyond the end of the mask
+            moments.Parsing.compute_L(bed_file_sparse, interval=(3, 7))
 
 
 class TestFASTAFiles(unittest.TestCase):
