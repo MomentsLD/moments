@@ -1,5 +1,19 @@
 """
-Functions for computing the SFS and sequence length (L) from data.
+Functions for computing the SFS and sequence length ``L`` from data.
+
+`parse_vcf` calls the function `_tally_vcf` to build a dictionary 
+representation of the counts of derived alleles observed in a VCF file, then
+uses this object to constuct an SFS of appropriate dimension with the function
+`_spectrum_from_tally`. Users can provide arbitrary configurations of 
+populations, filter by quality/annotations, restrict sites using a BED file 
+and/or a half-open interval, and provide an estimated ancestral sequence in 
+several ways detailed in the docstrings. One can also specify a sample size for
+the SFS, allowing sites with missing or filtered information to be included in
+the result.
+
+`compute_L` calculates the number of callable sites (the effective sequence 
+length) ``L`` given a BED file, optionally taking into account a half-open 
+interval and the coverage of an ancestral sequence in FASTA format.
 """
 
 from collections import defaultdict
@@ -43,7 +57,7 @@ def parse_vcf(
     default, the ancestral allele is set to the ``REF`` allele from the VCF. In 
     this case the output SFS should be folded, because the reference allele 
     does not in general correspond to the ancestral allele. If `use_AA` is 
-    True, then the ``INFO/AA`` VCF field is used to polarize alleles. When the 
+    True, then the ``INFO/AA`` VCF field is used to polarize alleles. where the 
     ancestral allele field is absent, the site is skipped and a warning is 
     raised. If `anc_seq_file` is given (FASTA format), then ancestral alleles 
     are read from it. Here also, sites are skipped when they lack a valid 
@@ -117,10 +131,11 @@ def parse_vcf(
         above.
     :type filters: dict, optional
     :param allow_multiallelic: If True (default False), includes sites with 
-        more than one alternate allele- otherwise these are skipped. At such 
-        sites, each derived allele is counted as a separate entry in the SFS. 
-        When True, also allows biallelic sites where neither alternate nor 
-        reference allele matches the ancestral state to be counted.
+        more than one alternate allele, counting each derived allele at such 
+        sites as a separate entry in the SFS- otherwise multiallelic sites are
+        skipped. When True, also allows biallelic sites where neither alternate 
+        nor reference alleles match the ancestral state to be counted- these
+        are also otherwise skipped.
     :type allow_multiallelic: bool, optional
     :param sample_sizes: Dictionary mapping populations to sample sizes 
         (default None). The output SFS will be projected to these sample sizes.
@@ -384,7 +399,7 @@ def _tally_vcf(
             chrom = split_line[0]
             if vcf_chrom is None:
                 if bed_chrom is not None:
-                    if not _match_chromosomes(bed_chrom, chrom):
+                    if not _check_chromosomes(bed_chrom, chrom):
                         raise ValueError('BED and VCF chromosomes mismatch')
                 vcf_chrom = chrom 
             else:
@@ -827,7 +842,7 @@ def _build_info_dict(info_str):
     return info_dict
 
 
-def _match_chromosomes(chrom1, chrom2):
+def _check_chromosomes(chrom1, chrom2):
     """
     Check whether two chromosome numbers match.
 
