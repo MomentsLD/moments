@@ -457,7 +457,7 @@ def _tally_vcf(
                 if counter % verbose == 0 and counter > 1:
                     _print_out(
                         _current_time(),
-                        f'Parsed position {pos}, line {counter}'
+                        f'Parsed site {pos}, line {counter}'
                     )
             counter += 1
             
@@ -485,7 +485,7 @@ def _tally_vcf(
                 if pos >= interval[1]:
                     _print_out(
                         _current_time(),
-                        'Reached specified interval end: quitting'
+                        f'Quitting at site {pos}: beyond interval end'
                     )
                     break
 
@@ -494,7 +494,8 @@ def _tally_vcf(
                 # Quit the loop if beyond the last unmasked site
                 if pos0 >= len(mask):
                     _print_out(
-                        _current_time(), 'Beyond specified mask end: quitting'
+                        _current_time(), 
+                        f'Quitting at site {pos}: beyond mask end'
                     )
                     break
                 elif mask[pos0] == True:
@@ -513,7 +514,7 @@ def _tally_vcf(
             if skip:
                 if stats['non_SNP_skipped'] == 0 and verbose:
                     _print_err(
-                        _current_time(), f'Skipping non-SNP at position {pos}'
+                        _current_time(), f'Skipping site {pos}: non-SNP'
                     )
                 stats['non_SNP_skipped'] += 1
                 continue
@@ -524,7 +525,7 @@ def _tally_vcf(
                     if stats['multiallelic_skipped'] == 0 and verbose:
                         _print_err(
                             _current_time(),
-                            f'Skipping multiallelic site at position {pos}'
+                            f'Skipping site {pos}: multiallelic'
                         )
                     stats['multiallelic_skipped'] += 1
                     continue
@@ -546,8 +547,8 @@ def _tally_vcf(
                     warnings.warn('Absent ``INFO/AA`` field')
                     if stats['missing_AA_skipped'] == 0 and verbose:
                         _print_err(
-                            _current_time(), 
-                            f'``INFO/AA`` is absent at position {pos}'
+                            _current_time(), f'Skipping site {pos}: '
+                            'absent ``INFO/AA``'
                         )
                     stats['missing_AA_skipped'] += 1
                     continue
@@ -565,9 +566,8 @@ def _tally_vcf(
                 if anc not in alleles:
                     if stats['anc_unrepresented'] == 0 and verbose:
                         _print_err(
-                            _current_time(),
-                            'Ancestral allele not represented in ``REF`` or '
-                            f'``ALT`` at {pos}'
+                            _current_time(), f'Skipping site {pos}: '
+                            'unrepresented ancestral allele'
                         )
                     stats['anc_unrepresented'] += 1
                     continue
@@ -615,7 +615,9 @@ def _tally_vcf(
                 num_derived = tuple([pop_counts[pop][i] for pop in pop_idx])
                 tally[num_copies][num_derived] += 1
 
-    _print_out(_current_time(), f'Finished parsing {counter} lines')
+            stats['sites_passed'] += 1
+
+    _print_out(_current_time(), f'Finished parsing {counter} sites')
     if len(stats) > 0:
         _print_out(_current_time(), 'Statistics:')
         for key in stats:
@@ -730,8 +732,8 @@ def _check_anc(anc, allow_low_confidence, pos=None):
             warnings.warn('Missing ancestral allele')
             if stats['AA_missing'] == 0:
                 _print_err(
-                    _current_time(),
-                    f'Ancestral allele is missing at position {pos}'
+                    _current_time(), f'Skipping site {pos}: '
+                    'missing ancestral allele'
                 )
             stats['AA_missing'] += 1
             skip = True
@@ -742,8 +744,8 @@ def _check_anc(anc, allow_low_confidence, pos=None):
             else:
                 if stats['AA_low_confidence_skipped'] == 0:
                     _print_err(
-                        _current_time(),
-                      f'Skipping low-conf. ancestral allele at position {pos}'
+                        _current_time(), f'Skipping site {pos}: '
+                        'low-confidence ancestral allele'
                     )
                 stats['AA_low_confidence_skipped'] += 1
                 skip = True
@@ -751,8 +753,8 @@ def _check_anc(anc, allow_low_confidence, pos=None):
             warnings.warn('Invalid ancestral allele')
             if stats['AA_invalid'] == 0:
                 _print_err(
-                    _current_time(),
-                    f'Ancestral allele is invalid at position {pos}'
+                    _current_time(), f'Skipping site {pos}: '
+                    'invalid ancestral allele'
                 )
             stats['AA_invalid'] += 1
             skip = True
@@ -775,12 +777,12 @@ def _filter_qual(qual, threshold, pos=None):
     """
     skip = False
     if qual == '.':
-        if stats['QUAL_missing'] == 0 and verbose:
-            _print_err(_current_time(), f'Missing ``QUAL`` at position {pos}')
+        if stats['QUAL_missing'] == 0:
+            _print_err(_current_time(), f'Missing ``QUAL`` at site {pos}')
         stats['QUAL_missing'] += 1
     elif not qual.isnumeric():
-        if stats['QUAL_invalid'] == 0 and verbose:
-            _print_err(_current_time(), f'Invalid ``QUAL`` at position {pos}')
+        if stats['QUAL_invalid'] == 0:
+            _print_err(_current_time(), f'Invalid ``QUAL`` at site {pos}')
         stats['QUAL_invalid'] += 1
     else:
         if float(qual) < threshold:
@@ -805,7 +807,7 @@ def _filter_filter(fltr, passing, pos=None):
     skip = False
     if fltr == '.':
         if stats['FILTER_missing'] == 0:
-            _print_err(_current_time(), f'Missing ``FILTER`` at position {pos}')
+            _print_err(_current_time(), f'Missing ``FILTER`` at site {pos}')
         stats['FILTER_missing'] += 1
     else:
         if fltr not in passing:
@@ -835,15 +837,13 @@ def _filter_info(info, info_filters, pos=None):
             warnings.warn(f"Absent ``INFO/{field}`` field")
             if stats[f'INFO/{field}_absent'] == 0:
                 _print_err(
-                    _current_time(), 
-                    f'Absent ``INFO/{field}`` at position {pos}'
+                    _current_time(), f'Absent ``INFO/{field}`` at site {pos}'
                 )
             stats[f'INFO/{field}_absent'] += 1
         elif info[field] == '.':
             if stats[f'INFO/{field}_missing'] == 0:
                 _print_err(
-                    _current_time(), 
-                    f'Missing ``INFO/{field}`` at position {pos}'
+                    _current_time(), f'Missing ``INFO/{field}`` at site {pos}'
                 )
             stats[f'INFO/{field}_missing'] += 1
         else:
@@ -880,15 +880,13 @@ def _filter_sample(sample, sample_filters, pos=None):
             warnings.warn(f"Absent ``SAMPLE/{field}`` field")
             if stats[f'SAMPLE/{field}_absent'] == 0:
                 _print_err(
-                    _current_time(), 
-                    f'Absent ``SAMPLE/{field}`` at position {pos}'
+                    _current_time(), f'Absent ``SAMPLE/{field}`` at site {pos}'
                 )
             stats[f'SAMPLE/{field}_absent'] += 1
         elif sample[field] == '.':
             if stats[f'SAMPLE/{field}_missing'] == 0:
                 _print_err(
-                    _current_time(), 
-                    f'Missing ``SAMPLE/{field}`` at position {pos}'
+                    _current_time(), f'Missing ``SAMPLE/{field}`` at site {pos}'
                 )
             stats[f'SAMPLE/{field}_missing'] += 1
         else:

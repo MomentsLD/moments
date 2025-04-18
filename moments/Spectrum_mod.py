@@ -20,6 +20,7 @@ import demes
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
+from . import Parsing
 import moments.Demes.Demes
 
 _plotting = True
@@ -2282,6 +2283,17 @@ class Spectrum(np.ma.masked_array):
             fs += Numerics.reverse_array(negative_entries)
 
         return Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
+    
+    @staticmethod
+    def from_vcf_file(
+        vcf_file,
+        **kwargs
+    ):
+        """
+        placeholder
+        """
+        fs = Parsing.parse_vcf(vcf_file, **kwargs)
+        return fs
 
     @staticmethod
     def from_demes(
