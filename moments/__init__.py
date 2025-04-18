@@ -23,6 +23,7 @@ from . import Manips
 from . import Misc
 from . import Numerics
 from . import Demes
+from . import Parsing
 
 # Protect import of Plotting in case matplotlib not installed.
 try:
