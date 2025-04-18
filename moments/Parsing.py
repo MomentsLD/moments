@@ -49,7 +49,7 @@ def parse_vcf(
     sample_sizes=None,
     mask_corners=True,
     ploidy=2,
-    verbose=1,
+    verbose=0,
     folded=False
 ):
     """
@@ -124,8 +124,8 @@ def parse_vcf(
         by lower-case nucleotide codes- to stand. If False, sites with them
         are skipped.
     :type skip_low_conf: bool, optional
-    :param use_AA: If True, use entries in the VCF field ``INFO/AA`` to polarize
-        alleles (default False). 
+    :param use_AA: If True, use entries in the VCF field ``INFO/AA`` to 
+        polarize alleles (default False). 
     :type use_AA: bool, optional
     :param filters: A dictionary mapping VCF fields to filter criteria, for
         imposing quantitative thresholds on measures of genotype quality and 
@@ -149,10 +149,8 @@ def parse_vcf(
     :param ploidy: Optional (default 2), defines the maximum derived allele 
         count in combination with the number of samples.
     :type plody: int, optional
-    :param verbose: If 0, print only warning messages- if 1, print soft error
-        messages the first time they are triggered- if an integer larger than 1,
-        do the same and print a progress message every `verbose` lines 
-        (default 1)
+    :param verbose: If > 0, print a progress message every `verbose` lines
+        (default 0).
     :type verbose: int, optional
     :param folded: If True, return the folded SFS (default False).
     :type folded: bool, optional
@@ -185,6 +183,71 @@ def parse_vcf(
     return fs
 
 
+def compute_L(
+    bed_file,
+    interval=None,
+    anc_seq_file=None,
+    allow_low_confidence=False
+):
+    """
+    Compute the sequence length `L` from a BED file.
+
+    If `interval` is given, then only sites within the interval are counted.
+    If `anc_seq_file` is given, then only sites which are assigned an ancestral
+    state are counted. Whether or not low-confidence assignments- conventionally
+    represented with lower-case letters- are counted is modulated by 
+    `allow_low_confidence`.
+
+    :param bed_file: Pathname of a BED file specifying regions over which `L` 
+        is to be computed.
+    :param interval: 2-list specifying the interval over which to compute `L`
+        (default None). The lower bound is inclusive, the upper noninclusive, 
+        and both are 1-indexed.
+    :type interval: list, optional
+    :param anc_seq_file: Pathname of a FASTA file holding ancestral nucleotide 
+        states (default None). If given, only sites with assigned ancestral 
+        states are counted in `L`. Low-confidence assignments are excluded if 
+        `allow_low_confidence` is False.
+    :type anc_seq_file: str, optional
+    :param allow_low_confidence: If True (default False), include nucleotides 
+        coded with lower- case letters in the calculation of L. Otherwise, 
+        leave them out.
+    :type allow_low_confidence: bool, optional
+
+    :returns: Sequence length.
+    :rtype: int
+    """
+    regions, _ = _load_bed_file(bed_file)
+    mask = _bed_regions_to_mask(regions)
+    if anc_seq_file is not None:
+        anc_seq = _load_fasta_file(anc_seq_file)
+        if allow_low_confidence:
+            seq_mask = ~np.array(
+                [nt.capitalize() in ('A', 'T', 'C', 'G') for nt in anc_seq]
+            )
+        else:
+            seq_mask = ~np.array(
+                [nt in ('A', 'T', 'C', 'G') for nt in anc_seq]
+            )
+        length = min(len(mask), len(seq_mask))
+        mask = np.maximum(mask[:length], seq_mask[:length])
+    if interval is not None:
+        if len(interval) != 2:
+            raise ValueError('Argument `interval` must have length 2')
+        start, end = interval
+        if start < 0:
+            raise ValueError('Interval must have start > 0')
+        if end >= len(mask):
+            warnings.warn('Interval end is longer than mask')
+        # Convert `interval` to 0-indexing
+        start0 = start - 1
+        end0 = end - 1
+        mask = mask[start0:end0]
+    L = len(mask) - np.count_nonzero(mask)
+
+    return L
+
+
 stats = defaultdict(int)
 
 
@@ -197,14 +260,14 @@ def _clear_stats():
     return
 
 
-def current_time():
+def _current_time():
     """
     Return a string representing the time and date with yy-mm-dd format.
     """
     return '[' + datetime.strftime(datetime.now(), '%y-%m-%d %H:%M:%S') + ']'
 
 
-def print_err(*args, **kwargs):
+def _print_err(*args, **kwargs):
     """
     Print a (soft) error message to stderr.
     """
@@ -213,7 +276,7 @@ def print_err(*args, **kwargs):
     return
 
 
-def print_out(*args, **kwargs):
+def _print_out(*args, **kwargs):
     """
     Print a status report to stdout.
     """
@@ -234,7 +297,7 @@ def _tally_vcf(
     filters=None,
     allow_multiallelic=False,
     ploidy=2,
-    verbose=1,
+    verbose=0,
     return_stats=False
 ):
     """
@@ -266,8 +329,8 @@ def _tally_vcf(
         IDs (default None), with line format SAMPLE POPULATION, where strings 
         are seperated by any whitespace.
     :type pop_file: str, optional
-    :param bed_file: Optional pathname to a mask file- only sites within regions
-        defined in the file will be tallied (default None).
+    :param bed_file: Optional pathname to a mask file- only sites within 
+        regions defined in the file will be tallied (default None).
     :type bed_file: str, optional
     :param interval: 2-tuple or 2-list specifying the (inclusive, 1-indexed) 
         first and (exclusive, 1-indexed) last positions to parse; defines a
@@ -295,11 +358,9 @@ def _tally_vcf(
     :param ploidy: Optional (default 2), defines the maximum derived allele 
         count in combination with the number of samples.
     :type plody: int, optional
-    :param verbose: If 0, print only warning messages- if 1, print soft error
-        messages the first time they are triggered- if an integer larger than 1,
-        do the same and print a progress message every `verbose` lines 
-        (default 1)
-    :type verbose: bool, optional
+    :param verbose: If > 0, print a progress message every `verbose` lines
+        (default 0).
+    :type verbose: int, optional
     :param return_stats: If True (default False), return a dictionary of 
         statistics describing the number sites that were filtered out for 
         various reasons along with `tally`.
@@ -337,9 +398,11 @@ def _tally_vcf(
             has_anc_seq = False
         else:
             has_anc_seq = False
-            print_out(current_time(),
-                'Polarizing with ``REF`` alleles: output SFS should be folded')
-    
+            _print_out(
+                _current_time(),
+                'Polarizing with ``REF`` alleles: output SFS should be folded'
+            )
+
     if vcf_file.endswith('.gz'):
         openfunc = gzip.open 
     else:
@@ -373,7 +436,8 @@ def _tally_vcf(
                 elif pop_file is not None:
                     pop_mapping = _load_pop_file(pop_file)
                 elif pop_mapping is None:
-                    print_out(current_time(),
+                    _print_out(
+                        _current_time(),
                         'No populations given: placing all samples in "ALL"'
                     )
                     pop_mapping = {'ALL': sample_ids}
@@ -389,10 +453,12 @@ def _tally_vcf(
                 continue
             
             # Print a status report
-            if verbose > 1:
+            if verbose > 0:
                 if counter % verbose == 0 and counter > 1:
-                    print_out(current_time(),
-                        f'parsed position {pos} line {counter}')
+                    _print_out(
+                        _current_time(),
+                        f'Parsed position {pos}, line {counter}'
+                    )
             counter += 1
             
             split_line = line.split()
@@ -417,16 +483,19 @@ def _tally_vcf(
                     continue
                 # Quit the loop if the end of `interval` has been passed
                 if pos >= interval[1]:
-                    print_out(current_time(),
-                        'Reached specified interval end: quitting')
+                    _print_out(
+                        _current_time(),
+                        'Reached specified interval end: quitting'
+                    )
                     break
 
             # Check whether ``POS`` is in an unmasked interval
             if masked:
                 # Quit the loop if beyond the last unmasked site
                 if pos0 >= len(mask):
-                    print_out(current_time(),
-                        'Beyond specified mask end: quitting')
+                    _print_out(
+                        _current_time(), 'Beyond specified mask end: quitting'
+                    )
                     break
                 elif mask[pos0] == True:
                     stats['mask_failed'] += 1
@@ -443,8 +512,9 @@ def _tally_vcf(
                     break
             if skip:
                 if stats['non_SNP_skipped'] == 0 and verbose:
-                    print_err(current_time(),
-                        f'Skipping non-SNP at position {pos}')
+                    _print_err(
+                        _current_time(), f'Skipping non-SNP at position {pos}'
+                    )
                 stats['non_SNP_skipped'] += 1
                 continue
 
@@ -452,8 +522,10 @@ def _tally_vcf(
             if len(alts) > 1:
                 if not allow_multiallelic:
                     if stats['multiallelic_skipped'] == 0 and verbose:
-                        print_err(current_time(),
-                            f'Skipping multiallelic site at position {pos}')
+                        _print_err(
+                            _current_time(),
+                            f'Skipping multiallelic site at position {pos}'
+                        )
                     stats['multiallelic_skipped'] += 1
                     continue
                 else:
@@ -473,8 +545,10 @@ def _tally_vcf(
                 if 'AA' not in info_dict:
                     warnings.warn('Absent ``INFO/AA`` field')
                     if stats['missing_AA_skipped'] == 0 and verbose:
-                        print_err(current_time(), 
-                            f'``INFO/AA`` is absent at position {pos}')
+                        _print_err(
+                            _current_time(), 
+                            f'``INFO/AA`` is absent at position {pos}'
+                        )
                     stats['missing_AA_skipped'] += 1
                     continue
                 anc = info_dict['AA']
@@ -482,7 +556,7 @@ def _tally_vcf(
                 anc = ref
 
             # Check the validity of the ancestral allele
-            if _check_anc(anc, allow_low_confidence, pos=pos, verbose=verbose):
+            if _check_anc(anc, allow_low_confidence, pos=pos):
                 continue
 
             # Skip the site if `anc` is not ``REF`` or ``ALT`` and multiallelic
@@ -490,28 +564,27 @@ def _tally_vcf(
             if not allow_multiallelic:
                 if anc not in alleles:
                     if stats['anc_unrepresented'] == 0 and verbose:
-                        print_err(current_time(),
-                            'Ancestral allele not represented in ``REF``, '
-                            f'``ALT`` at {pos}')
+                        _print_err(
+                            _current_time(),
+                            'Ancestral allele not represented in ``REF`` or '
+                            f'``ALT`` at {pos}'
+                        )
                     stats['anc_unrepresented'] += 1
                     continue
 
             # Perform line-level filtering
             if 'QUAL' in filters:
                 qual = split_line[5]
-                if _filter_qual(
-                    qual, filters['QUAL'], pos=pos, verbose=verbose):
+                if _filter_qual(qual, filters['QUAL'], pos=pos):
                     continue
 
             if 'FILTER' in filters:
                 fltr = split_line[6]
-                if _filter_filter(
-                    fltr, filters['FILTER'], pos=pos, verbose=verbose):
+                if _filter_filter(fltr, filters['FILTER'], pos=pos):
                     continue
 
             if 'INFO' in filters:
-                if _filter_info(
-                    info_dict, filters['INFO'], pos=pos, verbose=verbose):
+                if _filter_info(info_dict, filters['INFO'], pos=pos):
                     continue
  
             # Perform sample-level filtering and count alleles
@@ -527,9 +600,7 @@ def _tally_vcf(
                         dict(zip(split_frmt, s)) for s in split_samples
                     ]
                     for sample in sample_dicts:
-                        if _filter_sample(
-                            sample, filters['SAMPLE'], pos=pos, verbose=verbose
-                        ):      
+                        if _filter_sample(sample, filters['SAMPLE'], pos=pos):      
                             sample['GT'] = '.'
                     GT_str = ''.join(s['GT'] for s in sample_dicts)
                 else:
@@ -544,8 +615,9 @@ def _tally_vcf(
                 num_derived = tuple([pop_counts[pop][i] for pop in pop_idx])
                 tally[num_copies][num_derived] += 1
 
-    if verbose and len(stats) > 0:
-        print_out(current_time(), 'Statistics')
+    _print_out(_current_time(), f'Finished parsing {counter} lines')
+    if len(stats) > 0:
+        _print_out(_current_time(), 'Statistics:')
         for key in stats:
             print(f'{key}:\t{stats[key]}')
 
@@ -639,7 +711,7 @@ def _parse_filters(filters):
     return nested_filters
 
 
-def _check_anc(anc, allow_low_confidence, pos=None, verbose=0):
+def _check_anc(anc, allow_low_confidence, pos=None):
     """
     Check whether the str `anc` encodes a valid ancestral state. Lines with
     invalid states (whether missing, not a valid nucleotide code, etc.) are
@@ -648,7 +720,6 @@ def _check_anc(anc, allow_low_confidence, pos=None, verbose=0):
     :type anc: str
     :type allow_low_confidence: bool
     :type pos: int, optional
-    :type verbose: int, optional
 
     :returns: True if the line should be skipped due to `anc` invalidity,
         False otherwise.
@@ -657,9 +728,11 @@ def _check_anc(anc, allow_low_confidence, pos=None, verbose=0):
     if anc not in ('A', 'T', 'C', 'G'):
         if anc == '.':
             warnings.warn('Missing ancestral allele')
-            if stats['AA_missing'] == 0 and verbose:
-                print_err(current_time(),
-                    f'Ancestral allele is missing at position {pos}')
+            if stats['AA_missing'] == 0:
+                _print_err(
+                    _current_time(),
+                    f'Ancestral allele is missing at position {pos}'
+                )
             stats['AA_missing'] += 1
             skip = True
         elif anc in ('a', 't', 'c', 'g'):
@@ -667,23 +740,27 @@ def _check_anc(anc, allow_low_confidence, pos=None, verbose=0):
                 anc = anc.capitalize()
                 stats['AA_low_confidence'] += 1
             else:
-                if stats['AA_low_confidence_skipped'] == 0 and verbose:
-                    print_err(current_time(),
-                      f'Skipping low-conf. ancestral allele at position {pos}')
+                if stats['AA_low_confidence_skipped'] == 0:
+                    _print_err(
+                        _current_time(),
+                      f'Skipping low-conf. ancestral allele at position {pos}'
+                    )
                 stats['AA_low_confidence_skipped'] += 1
                 skip = True
         else:
             warnings.warn('Invalid ancestral allele')
-            if stats['AA_invalid'] == 0 and verbose:
-                print_err(current_time(),
-                    f'Ancestral allele is invalid at position {pos}')
+            if stats['AA_invalid'] == 0:
+                _print_err(
+                    _current_time(),
+                    f'Ancestral allele is invalid at position {pos}'
+                )
             stats['AA_invalid'] += 1
             skip = True
 
     return skip
 
 
-def _filter_qual(qual, threshold, pos=None, verbose=0):
+def _filter_qual(qual, threshold, pos=None):
     """
     Apply a threshold to a ``QUAL`` column entry, printing soft error messages
     if the entry is missing or invalid.
@@ -691,7 +768,6 @@ def _filter_qual(qual, threshold, pos=None, verbose=0):
     :type qual: str
     :type threshold: float
     :type pos: int, optional
-    :type verbose: int, optional
 
     :returns: True if the site fails the QUAL filter and should be skipped,
         otherwise False.
@@ -700,11 +776,11 @@ def _filter_qual(qual, threshold, pos=None, verbose=0):
     skip = False
     if qual == '.':
         if stats['QUAL_missing'] == 0 and verbose:
-            print_err(current_time(), f'Missing ``QUAL`` at position {pos}')
+            _print_err(_current_time(), f'Missing ``QUAL`` at position {pos}')
         stats['QUAL_missing'] += 1
     elif not qual.isnumeric():
         if stats['QUAL_invalid'] == 0 and verbose:
-            print_err(current_time(), f'Invalid ``QUAL`` at position {pos}')
+            _print_err(_current_time(), f'Invalid ``QUAL`` at position {pos}')
         stats['QUAL_invalid'] += 1
     else:
         if float(qual) < threshold:
@@ -714,23 +790,22 @@ def _filter_qual(qual, threshold, pos=None, verbose=0):
     return skip
 
 
-def _filter_filter(fltr, passing, pos=None, verbose=0):
+def _filter_filter(fltr, passing, pos=None):
     """
     Apply a filter to the a ``FILTER`` column entry. 
 
     :type fltr: str
     :type passing: set
     :type pos: int, optional
-    :type verbose: int, optional
-    
+
     :returns: True if the site fails the ``FILTER`` filter and should be 
         skipped, else False.
     :rtype: bool
     """
     skip = False
     if fltr == '.':
-        if stats['FILTER_missing'] == 0 and verbose:
-            print_err(current_time(), f'Missing ``FILTER`` at position {pos}')
+        if stats['FILTER_missing'] == 0:
+            _print_err(_current_time(), f'Missing ``FILTER`` at position {pos}')
         stats['FILTER_missing'] += 1
     else:
         if fltr not in passing:
@@ -740,7 +815,7 @@ def _filter_filter(fltr, passing, pos=None, verbose=0):
     return skip
 
 
-def _filter_info(info, info_filters, pos=None, verbose=0):
+def _filter_info(info, info_filters, pos=None):
     """
     Apply `info_filters` to a dictionary representation of an ``INFO`` column
     entry. Increments appropriate statistics and raises warnings when fields 
@@ -749,7 +824,6 @@ def _filter_info(info, info_filters, pos=None, verbose=0):
     :type info: dict
     :type info_filters: dict
     :type pos: int, optional
-    :type verbose: int, optional
     
     :returns: True if the site fails at least one ``INFO`` filter and should be
         skipped, False otherwise.
@@ -759,14 +833,18 @@ def _filter_info(info, info_filters, pos=None, verbose=0):
     for field in info_filters:
         if field not in info:
             warnings.warn(f"Absent ``INFO/{field}`` field")
-            if stats[f'INFO/{field}_absent'] == 0 and verbose:
-                print_err(current_time(), 
-                    f'Absent ``INFO/{field}`` at position {pos}')
+            if stats[f'INFO/{field}_absent'] == 0:
+                _print_err(
+                    _current_time(), 
+                    f'Absent ``INFO/{field}`` at position {pos}'
+                )
             stats[f'INFO/{field}_absent'] += 1
         elif info[field] == '.':
-            if stats[f'INFO/{field}_missing'] == 0 and verbose:
-                print_err(current_time(), 
-                    f'Missing ``INFO/{field}`` at position {pos}')
+            if stats[f'INFO/{field}_missing'] == 0:
+                _print_err(
+                    _current_time(), 
+                    f'Missing ``INFO/{field}`` at position {pos}'
+                )
             stats[f'INFO/{field}_missing'] += 1
         else:
             if type(info_filters[field]) == float:
@@ -782,7 +860,7 @@ def _filter_info(info, info_filters, pos=None, verbose=0):
     return skip
 
 
-def _filter_sample(sample, sample_filters, pos=None, verbose=0):
+def _filter_sample(sample, sample_filters, pos=None):
     """
     Apply a `sample_filters` to a dictionary representation of a sample. 
     Returns True if the sample fails one or more filters and False else. Also
@@ -791,7 +869,6 @@ def _filter_sample(sample, sample_filters, pos=None, verbose=0):
     :type sample: dict
     :type sample_filters: dict
     :type pos: int, optional
-    :type verbose: int, optional
     
     :returns: True if the sample fails at least one filter and should be
         skipped, False otherwise.
@@ -801,14 +878,18 @@ def _filter_sample(sample, sample_filters, pos=None, verbose=0):
     for field in sample_filters:
         if field not in sample:
             warnings.warn(f"Absent ``SAMPLE/{field}`` field")
-            if stats[f'SAMPLE/{field}_absent'] == 0 and verbose:
-                print_err(current_time(), 
-                    f'Absent ``SAMPLE/{field}`` at position {pos}')
+            if stats[f'SAMPLE/{field}_absent'] == 0:
+                _print_err(
+                    _current_time(), 
+                    f'Absent ``SAMPLE/{field}`` at position {pos}'
+                )
             stats[f'SAMPLE/{field}_absent'] += 1
         elif sample[field] == '.':
-            if stats[f'SAMPLE/{field}_missing'] == 0 and verbose:
-                print_err(current_time(), 
-                    f'Missing ``SAMPLE/{field}`` at position {pos}')
+            if stats[f'SAMPLE/{field}_missing'] == 0:
+                _print_err(
+                    _current_time(), 
+                    f'Missing ``SAMPLE/{field}`` at position {pos}'
+                )
             stats[f'SAMPLE/{field}_missing'] += 1
         else:
             if type(sample_filters[field]) == float:
@@ -933,71 +1014,6 @@ def _spectrum_from_tally(data, sample_sizes=None, mask_corners=True):
             fs += pfs.project(size_tuple)
 
     return fs
-
-
-def compute_L(
-    bed_file,
-    interval=None,
-    anc_seq_file=None,
-    allow_low_confidence=False
-):
-    """
-    Compute the sequence length `L` from a BED file.
-
-    If `interval` is given, then only sites within the interval are counted.
-    If `anc_seq_file` is given, then only sites which are assigned an ancestral
-    state are counted. Whether or not low-confidence assignments- conventionally
-    represented with lower-case letters- are counted is modulated by 
-    `allow_low_confidence`.
-
-    :param bed_file: Pathname of a BED file specifying regions over which `L` 
-        is to be computed.
-    :param interval: 2-list specifying the interval over which to compute `L`
-        (default None). The lower bound is inclusive, the upper noninclusive, 
-        and both are 1-indexed.
-    :type interval: list, optional
-    :param anc_seq_file: Pathname of a FASTA file holding ancestral nucleotide 
-        states (default None). If given, only sites with assigned ancestral 
-        states are counted in `L`. Low-confidence assignments are excluded if 
-        `allow_low_confidence` is False.
-    :type anc_seq_file: str, optional
-    :param allow_low_confidence: If True (default False), include nucleotides 
-        coded with lower- case letters in the calculation of L. Otherwise, 
-        leave them out.
-    :type allow_low_confidence: bool, optional
-
-    :returns: Sequence length.
-    :rtype: int
-    """
-    regions, _ = _load_bed_file(bed_file)
-    mask = _bed_regions_to_mask(regions)
-    if anc_seq_file is not None:
-        anc_seq = _load_fasta_file(anc_seq_file)
-        if allow_low_confidence:
-            seq_mask = ~np.array(
-                [nt.capitalize() in ('A', 'T', 'C', 'G') for nt in anc_seq]
-            )
-        else:
-            seq_mask = ~np.array(
-                [nt in ('A', 'T', 'C', 'G') for nt in anc_seq]
-            )
-        length = min(len(mask), len(seq_mask))
-        mask = np.maximum(mask[:length], seq_mask[:length])
-    if interval is not None:
-        if len(interval) != 2:
-            raise ValueError('Argument `interval` must have length 2')
-        start, end = interval
-        if start < 0:
-            raise ValueError('Interval must have start > 0')
-        if end >= len(mask):
-            warnings.warn('Interval end is longer than mask')
-        # Convert `interval` to 0-indexing
-        start0 = start - 1
-        end0 = end - 1
-        mask = mask[start0:end0]
-    L = len(mask) - np.count_nonzero(mask)
-
-    return L
 
 
 def _load_fasta_file(fasta_file):
