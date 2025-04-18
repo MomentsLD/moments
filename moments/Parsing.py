@@ -3,17 +3,19 @@ Functions for computing the SFS and sequence length ``L`` from data.
 
 `parse_vcf` calls the function `_tally_vcf` to build a dictionary 
 representation of the counts of derived alleles observed in a VCF file, then
-uses this object to constuct an SFS of appropriate dimension with the function
+constucts an SFS of appropriate dimension from this object with the function
 `_spectrum_from_tally`. Users can provide arbitrary configurations of 
 populations, filter by quality/annotations, restrict sites using a BED file 
 and/or a half-open interval, and provide an estimated ancestral sequence in 
-several ways detailed in the docstrings. One can also specify a sample size for
-the SFS, allowing sites with missing or filtered information to be included in
-the result.
+several ways detailed in the docstrings. When calling the latter function, 
+users may also include sites with some missing or filtered data by specifying a 
+sample size to which they wish to project the parsed SFS- data from sites with 
+total allele counts greater than the specified size will be retained and 
+projected down to that size.
 
 `compute_L` calculates the number of callable sites (the effective sequence 
-length) ``L`` given a BED file, optionally taking into account a half-open 
-interval and the coverage of an ancestral sequence in FASTA format.
+length) ``L`` given a BED file and optionally a half-open interval and the 
+coverage of an ancestral sequence in FASTA format.
 """
 
 from collections import defaultdict
@@ -309,7 +311,7 @@ def _tally_vcf(
     """
     _clear_stats()
 
-    # inspect `filters` 
+    # Inspect `filters`
     filters = _parse_filters(filters)
 
     if bed_file:
@@ -343,7 +345,7 @@ def _tally_vcf(
     else:
         openfunc = open
 
-    # should the INFO field be inspected on each line?
+    # Should the INFO field be inspected on each line?
     if use_AA or 'INFO' in filters:
         need_info = True
     else:
@@ -359,7 +361,7 @@ def _tally_vcf(
             if line.startswith('##'):
                 continue
             if line.startswith('#CHROM'):
-                # gather sample ids and populations
+                # Gather sample IDs
                 split_header = line.split()
                 sample_ids = split_header[9:]
                 if len(sample_ids) == 0:
@@ -375,7 +377,7 @@ def _tally_vcf(
                         'No populations given: placing all samples in "ALL"'
                     )
                     pop_mapping = {'ALL': sample_ids}
-                # form mapping from population IDs to sample indices
+                # Form a mapping from population IDs to sample indices
                 pop_idx = defaultdict(list)
                 for pop in pop_mapping:
                     for sample_id in pop_mapping[pop]:
@@ -386,7 +388,7 @@ def _tally_vcf(
                         pop_idx[pop].append(sample_ids.index(sample_id))
                 continue
             
-            # status report
+            # Print a status report
             if verbose > 1:
                 if counter % verbose == 0 and counter > 1:
                     print_out(current_time(),
@@ -395,7 +397,7 @@ def _tally_vcf(
             
             split_line = line.split()
 
-            # check chromosome agreement
+            # Verify the consistency of chromosome labels
             chrom = split_line[0]
             if vcf_chrom is None:
                 if bed_chrom is not None:
@@ -406,22 +408,22 @@ def _tally_vcf(
                 if chrom != vcf_chrom:
                     raise ValueError('VCF file must record only one chromosome')
 
-            # check interval 
+            # Check whether ``POS`` is in `interval`, if given
             pos = int(split_line[1])
             pos0 = pos - 1
             if intervaled:
                 if pos < interval[0]: 
                     stats['below_interval'] += 1
                     continue
-                # quit the loop if end of interval has been passed
+                # Quit the loop if the end of `interval` has been passed
                 if pos >= interval[1]:
                     print_out(current_time(),
                         'Reached specified interval end: quitting')
                     break
 
-            # check mask
+            # Check whether ``POS`` is in an unmasked interval
             if masked:
-                # quit the loop if beyond the last unmasked site
+                # Quit the loop if beyond the last unmasked site
                 if pos0 >= len(mask):
                     print_out(current_time(),
                         'Beyond specified mask end: quitting')
@@ -430,7 +432,7 @@ def _tally_vcf(
                     stats['mask_failed'] += 1
                     continue
 
-            # skip non-SNPs
+            # Skip non-SNPs
             ref = split_line[3]
             alts = split_line[4].split(',')
             alleles = [ref] + alts
@@ -446,7 +448,7 @@ def _tally_vcf(
                 stats['non_SNP_skipped'] += 1
                 continue
 
-            # check whether multiallelic
+            # Check whether the site is multiallelic
             if len(alts) > 1:
                 if not allow_multiallelic:
                     if stats['multiallelic_skipped'] == 0 and verbose:
@@ -457,17 +459,17 @@ def _tally_vcf(
                 else:
                     stats['multiallelic_sites'] += 1
 
-            # build a dict representation of ``INFO`` if it will be needed
+            # Build a dict representation of ``INFO`` if it will be needed
             if need_info:
                 info_dict = _build_info_dict(split_line[7])
 
-            # assign ancestral allele
+            # Assign the ancestral allele
             if has_anc_seq:
                 if pos0 > len(ancestral_sequence):
                     raise ValueError(f'Site {pos} falls beyond FASTA sequence')
                 anc = ancestral_sequence[pos0]
             elif use_AA:
-                # skip site if AA is absent
+                # Skip the site if `use_AA` and ``INFO/AA`` is absent
                 if 'AA' not in info_dict:
                     warnings.warn('Absent ``INFO/AA`` field')
                     if stats['missing_AA_skipped'] == 0 and verbose:
@@ -479,11 +481,12 @@ def _tally_vcf(
             else:
                 anc = ref
 
-            # check validity of ancestral allele
+            # Check the validity of the ancestral allele
             if _check_anc(anc, allow_low_confidence, pos=pos, verbose=verbose):
                 continue
 
-            # skip if `anc` is not REF/ALT and multiallelic sites are forbidden
+            # Skip the site if `anc` is not ``REF`` or ``ALT`` and multiallelic
+            # sites are forbidden
             if not allow_multiallelic:
                 if anc not in alleles:
                     if stats['anc_unrepresented'] == 0 and verbose:
@@ -493,7 +496,7 @@ def _tally_vcf(
                     stats['anc_unrepresented'] += 1
                     continue
 
-            # perform line-level filtering
+            # Perform line-level filtering
             if 'QUAL' in filters:
                 qual = split_line[5]
                 if _filter_qual(
@@ -511,7 +514,7 @@ def _tally_vcf(
                     info_dict, filters['INFO'], pos=pos, verbose=verbose):
                     continue
  
-            # perform sample-level filtering and count alleles
+            # Perform sample-level filtering and count alleles
             derived_idx = [alleles.index(a) for a in alleles if a != anc]
             frmt = split_line[8]
             split_frmt = frmt.split(':')
@@ -535,7 +538,7 @@ def _tally_vcf(
                 pop_counts[pop] = [
                     GT_str.count(str(i)) for i in range(len(alleles))
                 ]
-            # count derived alleles and increment tally
+            # Count derived alleles and increment `tally`
             num_copies = tuple([sum(pop_counts[pop]) for pop in pop_idx])
             for i in derived_idx:
                 num_derived = tuple([pop_counts[pop][i] for pop in pop_idx])
@@ -549,7 +552,7 @@ def _tally_vcf(
     if sum([tally[n][x] for n in tally for x in tally[n]]) == 0:
         warnings.warn('Parsed tally sums to 0')
 
-    # build the output data structure
+    # Build the output data structure
     data = {}
     data['tally'] = tally
     data['pop_ids'] = [pop_id for pop_id in pop_idx]
@@ -913,7 +916,7 @@ def _spectrum_from_tally(data, sample_sizes=None, mask_corners=True):
         fs = build_fs(size_tuple)
     else: 
         size_tuple = tuple([sample_sizes[pop] for pop in pop_ids])
-        # find records with sample sizes >= `size`
+        # Find records with sample sizes >= `size`
         valid_keys = []
         for key in keys:
             if np.all([m >= n for m, n in zip(key, size_tuple)]):
@@ -922,7 +925,7 @@ def _spectrum_from_tally(data, sample_sizes=None, mask_corners=True):
             fs = build_fs(size_tuple)
         else:
             fs = empty_fs(size_tuple)
-        # project other valid sample sizes down to the primary one
+        # Project other valid sample sizes down to match the given one
         for key in valid_keys:
             if key == size_tuple:
                 continue
@@ -984,13 +987,13 @@ def compute_L(
         if len(interval) != 2:
             raise ValueError('Argument `interval` must have length 2')
         start, end = interval
-        # convert to 0-indexed
+        if start < 0:
+            raise ValueError('Interval must have start > 0')
+        if end >= len(mask):
+            warnings.warn('Interval end is longer than mask')
+        # Convert `interval` to 0-indexing
         start0 = start - 1
         end0 = end - 1
-        if start0 < 0:
-            raise ValueError('Interval must have start > 0')
-        if end0 > len(mask):
-            warnings.warn('Interval end is longer than mask')
         mask = mask[start0:end0]
     L = len(mask) - np.count_nonzero(mask)
 
@@ -1111,7 +1114,7 @@ def _load_pop_file(pop_file):
                 raise ValueError('Invalid `pop_file` format')
             sample_id, pop_id = split_line
             pop_mapping[pop_id].append(sample_id)
-    # check sample uniqueness
+    # Check sample uniqueness
     all_samples = [pop_mapping[key][i] for key in pop_mapping 
                    for i in range(len(pop_mapping[key]))]
     if len(all_samples) != len(set(all_samples)):
@@ -1144,5 +1147,3 @@ def _write_bed_file(filename, regions, chrom):
             fout.write(f'{chrom}\t{start}\t{end}\n'.encode())
         
     return 
-
-
