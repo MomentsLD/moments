@@ -61,6 +61,16 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.4.2
+=====
+- Introduce a new, flexible method to compute the SFS from a VCF file
+- Add deprecation warnings to previous VCF parsing methods, which will be
+  removed in version 1.5.0
+
+1.4.1
+=====
+- Bug fix in 2D SFS plotting
+
 1.4.0
 =====
 - Avoid masking zeros values in SFS when using Plotting functions

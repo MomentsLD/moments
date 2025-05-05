@@ -22,6 +22,7 @@ Welcome to moments's documentation!
    :maxdepth: 1
 
    sfs/sfs
+   sfs/parsing
    sfs/inference
 
 .. toctree::
