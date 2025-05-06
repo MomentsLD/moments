@@ -1,0 +1,17 @@
+time_units: generations
+generation_time: 1
+demes:
+- name: anc
+  epochs:
+  - {end_time: 1780.4330542399694, start_size: 8356.619646214745}
+- name: A
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 806.3741820199473, end_size: 9651.81211750924}
+- name: B
+  ancestors: [anc]
+  epochs:
+  - {end_time: 0, start_size: 21305.7995079762}
+migrations:
+- demes: [A, B]
+  rate: 0.0014820224257629413
