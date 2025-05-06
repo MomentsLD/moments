@@ -66,6 +66,7 @@ Change log
 - Introduce a new, flexible method to compute the SFS from a VCF file
 - Add deprecation warnings to previous VCF parsing methods, which will be
   removed in version 1.5.0
+- Remove deprecated ms and sfscode functions
 
 1.4.1
 =====
