@@ -32,3 +32,14 @@ Specifying regions
 *************
 Using filters
 *************
+
+
+
+******************
+Bootstrapping data
+******************
+
+TODO: Currently, Misc.bootstrap() works with the data dict to create bootstrap
+replicates. We should replace this function to work with independently parsed
+"tally" dictionaries from different regions, and show some example code blocks
+here.
