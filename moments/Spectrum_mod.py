@@ -2061,14 +2061,14 @@ class Spectrum(np.ma.masked_array):
         :param allow_multiallelic: If True (default False), includes sites with 
             more than one alternate allele, counting each derived allele at such 
             sites as a separate entry in the SFS- otherwise multiallelic sites 
-            are skipped. When True, also allows those biallelic sites where 
-            neither alternate nor reference alleles match the ancestral state 
-            to be counted- these are also otherwise skipped.
+            are skipped. Also allows sites where neither the reference nor any 
+            alternate allelle(s) matches the assigned ancestral state, which are 
+            skipped when False.
         :type allow_multiallelic: bool, optional
         :param sample_sizes: Dictionary mapping populations to haploid sample 
             sizes (default None). Determines the shape of the returned SFS.
             Any VCF sites with sample sizes greater than `sample_sizes` will be 
-            projected down to match them. This may be useful when some genotype 
+            projected down to match it. This may be useful when some genotype 
             data is missing or filtered- sites with missing data are otherwise 
             not included in the output SFS. When not given, output sample sizes 
             default to the sample sizes implied by `ploidy` and the number of 

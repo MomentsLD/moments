@@ -1,5 +1,5 @@
 """
-Functions for computing the SFS and sequence length ``L`` from data.
+Contains functions for computing the SFS and sequence length ``L`` from data.
 
 `parse_vcf` calls the function `_tally_vcf` to build a nested dictionary 
 representation of the counts of derived alleles observed in a VCF file, then
@@ -9,13 +9,15 @@ populations, filter by quality/annotations, restrict sites using a BED file
 and/or a half-open interval, and provide an estimated ancestral sequence in 
 several ways detailed in the docstrings. When calling `_spectrum_from_tally`, 
 users may also include sites with some missing or filtered data in the output
-SFS by specifying a sample size to which they wish to project the parsed SFS; 
-data from sites with sample sizes greater than the specified one will be 
-retained and projected down to match it.
+SFS by specifying a configuration of minimum population-specific sample sizes.
+All sites with greater than or equal to this number of samples in each 
+population will be included in the SFS. Sites with more samples than specified
+have their entries projected down to match the specified size configuration.
 
 `compute_L` calculates the number of callable sites (the effective sequence 
-length) ``L`` given a BED file, and optionally a half-open interval and the 
-coverage of an ancestral sequence in FASTA format.
+length) ``L`` given a BED file and optionally a half-open interval and the 
+coverage of an ancestral sequence in FASTA format. This quantity is useful when
+computing the expected SFS using a physical mutation rate. 
 """
 
 from collections import defaultdict
@@ -151,9 +153,9 @@ def parse_vcf(
     :param allow_multiallelic: If True (default False), includes sites with 
         more than one alternate allele, counting each derived allele at such 
         sites as a separate entry in the SFS- otherwise multiallelic sites 
-        are skipped. When True, also allows those biallelic sites where 
-        neither alternate nor reference alleles match the ancestral state 
-        to be counted- these are also otherwise skipped.
+        are skipped. Also allows sites where neither the reference nor any 
+        alternate allelle(s) matches the assigned ancestral state, which are 
+        skipped when False.
     :type allow_multiallelic: bool, optional
     :param sample_sizes: Dictionary mapping populations to haploid sample 
         sizes (default None). Determines the shape of the returned SFS.
@@ -321,15 +323,23 @@ def _tally_vcf(
     return_stats=False
 ):
     """
-    Read a dictionary representation of derived allele counts from a VCF file.
+    Build a dictionary representation of derived allele counts from a VCF file.
     See the documentation of `parse_vcf` for a more detailed discussion of
-    polarization, filtering and the treatment of multiallelic sites.
+    polarization, filtering and the treatment of multiallelic sites. The output
+    of this function can be transformed into an SFS array using the function
+    `spectrum_from_tally`.
     
-    Returns a dictionary with keys 'pop_ids', 'sample_sizes' and 'tally'. 
-    The `tally` is a nested dictionary which maps sample sizes to the tallies of 
-    different observed allele counts. A VCF file may have many different sample
-    sizes if some genotype data are missing or if filtering is imposed at the 
-    sample level. 
+    Returns a dictionary with keys 'pop_ids', 'sample_sizes' and 'tally'. The 
+    `tally` is a nested dictionary which maps configurations of population-
+    specific haploid sample sizes to subdictionaries, which in turn map 
+    configurations of population-specific derived allele counts to the number of 
+    times they are observed. A VCF file may have many different sample sizes if 
+    some genotype data are missing, or if filtering is imposed at the sample 
+    level. When an ancestral sequence is not provided, counts are of alternate
+    rather than derived alleles, and any SFS created from output should be 
+    folded to reflect the lack of polarization, as reference alleles do not
+    generally correspond to ancestral alleles. Whether alleles are polarized is
+    not explicitly tracked by output.
 
     :param vcf_file: Pathname of the VCF file from which to read. 
     :type vcf_file: str
@@ -368,9 +378,9 @@ def _tally_vcf(
         its specification is described under `parse_vcf` (default None).
     :type filters: dict, optional
     :param allow_multiallelic: If True (default False), include sites with more
-        than one alternate allele as separate entries in the tally. Also allow
-        sites where neither alternate nor reference allele matches the assigned
-        ancestral state.
+        than one alternate allele as separate entries in the tally. Also allows
+        sites where neither the reference nor any alternate allelle(s) matches
+        the assigned ancestral state, which are skipped when False.
     :type allow_multiallelic: bool, optional
     :param ploidy: Optional (default 2), defines the maximum derived allele 
         count in combination with the number of sampled individuals.
