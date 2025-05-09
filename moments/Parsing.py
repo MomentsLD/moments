@@ -41,6 +41,7 @@ def parse_vcf(
     vcf_file,
     pop_mapping=None,
     pop_file=None,
+    pops=None,
     bed_file=None,
     interval=None,
     anc_seq_file=None,
@@ -123,6 +124,11 @@ def parse_vcf(
         be unique and there should be one of them on each line (default None 
         combines all samples into a single population 'ALL'). Samples 
         present in the VCF but not included here are ignored.
+    :param pops: A list of populations from `pop_file `to parse (default 
+        None). This only works when `pop_file` is given. Populations not in 
+        `pops` are ignored. If None, then all populations in `pop_file` are
+        included.
+    :type pops: list of str
     :type pop_file: str, optional
     :param bed_file: Pathname of a BED file defining the intervals within 
         which to parse; useful for applying masks to exclude difficult-to-
@@ -186,6 +192,7 @@ def parse_vcf(
         vcf_file,
         pop_mapping=pop_mapping,
         pop_file=pop_file,
+        pops=pops,
         bed_file=bed_file,
         interval=interval,
         anc_seq_file=anc_seq_file,
@@ -311,6 +318,7 @@ def _tally_vcf(
     vcf_file,
     pop_mapping=None,
     pop_file=None,
+    pops=None,
     bed_file=None,
     interval=None,
     anc_seq_file=None,
@@ -353,6 +361,10 @@ def _tally_vcf(
         combines all samples into a single population 'ALL'). Samples present in 
         the VCF but not included here are ignored.
     :type pop_file: str, optional
+    :param pops: A list of populations from `pop_file `to parse (default None).
+        This only works when `pop_file` is given. Populations not in `pops` are
+        ignored. If None, then all populations in `pop_file` are included.
+    :type pops: list of str
     :param bed_file: Pathname of a BED file defining the intervals within which 
         to parse; useful for applying masks to exclude difficult-to-call or 
         functionally constrained genomic regions (default None). BED files 
@@ -462,6 +474,8 @@ def _tally_vcf(
                     )
                 elif pop_file is not None:
                     pop_mapping = _load_pop_file(pop_file)
+                    if pops is not None:
+                        pop_mapping = {pop: pop_mapping[pop] for pop in pops}
                 elif pop_mapping is None:
                     _print_out(
                         _current_time(),
@@ -1024,13 +1038,19 @@ def _spectrum_from_tally(data, sample_sizes=None, mask_corners=True):
     if len(tally) == 0:
         raise ValueError('Input data is empty')
     pop_ids = data['pop_ids']
+    data_sizes = data['sample_sizes']
     keys = list(tally.keys())
 
     if sample_sizes is None:
-        sample_sizes = data['sample_sizes']
+        sample_sizes = data_sizes
         size_tuple = tuple([sample_sizes[pop] for pop in pop_ids])
         fs = build_fs(size_tuple)
     else: 
+        # Check to make sure all sample_sizes <= data_sizes
+        if not np.all([sample_sizes[p] <= data_sizes[p] for p in pop_ids]):
+            raise ValueError(
+                'One or more `sample_sizes` exceeds the sample size of data'
+            )
         size_tuple = tuple([sample_sizes[pop] for pop in pop_ids])
         # Find records with sample sizes >= `size`
         valid_keys = []
