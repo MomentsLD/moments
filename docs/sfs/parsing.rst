@@ -59,7 +59,7 @@ If nothing is passed to this argument, then all populations in the file will be 
     pops = ['pop_A', 'pop_B']
     fs = moments.Spectrum.from_vcf(vcf_file, pop_file=pop_file, pops=pops)
 
-Any VCF samples that aren not mapped to a population are ignored. 
+Any VCF samples that are not mapped to a population are ignored. 
 
 Using ancestral allele information
 ----------------------------------
@@ -100,7 +100,7 @@ dictionary representing the desired quantitative/categorical filters to ``filter
 Valid key-value combinations are listed here. ``"QUAL"`` specifies a lower bound 
 on the VCF ``QUAL`` column and should map to a float or integer. ``"FILTER"``
 should map to a string or list/set/tuple of strings. To pass, sites must have a ``FILTER``
-entry equal to the value of ``"FILTER"`` if it is a string, or two one of its 
+entry equal to the value of ``"FILTER"`` if it is a string, or to one of its 
 elements if it is a string, tuple or list.
 
 ``"INFO/SUBFIELD"`` imposes a filter on ``SUBFIELD`` in the ``INFO`` column. Its 
