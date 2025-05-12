@@ -1949,6 +1949,7 @@ class Spectrum(np.ma.masked_array):
         vcf_file,
         pop_mapping=None,
         pop_file=None,
+        pops=None,
         bed_file=None,
         interval=None,
         anc_seq_file=None,
@@ -1980,18 +1981,19 @@ class Spectrum(np.ma.masked_array):
         behavior is modulated by `allow_low_confidence`: when True, sites 
         assigned ancestral states represented in lower-case (e.g. 'a') are 
         retained. This usually denotes a low-confidence assignment. Otherwise 
-        such sites are skipped. If the geometry of the FASTA file contradicts
-        that of the VCF (e.g. sites exist in the VCF which are not present in
-        the FASTA file), an error is raised.
+        such sites are skipped. If there are sites in the VCF that fall beyond
+        the end of the FASTA sequence which are not otherwise masked or excluded 
+        by the `interval` argument, an error is raised.
 
         When `allow_multiallelic` is False and the ancestral allele is not 
         represented as either the reference or alternate allele at a site, that 
-        site is skipped automatically.
+        site is skipped automatically. The relationship between derived alleles
+        at such sites is not generally clear.
 
         The parameter `filters` allows filtering by quality and/or annotation
         at the site and sample level. It should be a flat dictionary with str 
         keys. Key-value pairs may have the following forms:
-        'QUAL' should map to a single number (float or int); imposes a minimum 
+        'QUAL' should map to a single number (float or int), imposing a minimum 
             value for site ``QUAL`` fields.
         'FILTER' should map to a string or a set, tuple or list of strings. For
             a site to pass, its ``FILTER`` field must equal either the value of 
@@ -1999,14 +2001,14 @@ class Spectrum(np.ma.masked_array):
             tuple or list).
         'INFO/FIELD' e.g. 'INFO/GQ' may map to a number, a string, or a set, 
             tuple or list of strings. When it maps to a number, passing sites
-            must have ``INFO/FIELD`` greater than or equal to that number. When
-            it maps to a string, sites must have equal ``INFO/FIELD`` to pass. 
-            When maps to a set, tuple or list of strings, the filter is said to 
-            be categorical and a site's ``INFO/FIELD`` must be a member of the
-            iterable for it to pass. 
-            The typing of values is not explictly checked against the proper 
-            type for a field- e.g. if 'INFO/GQ' maps to a string rather than a 
-            number, no explicit warning is raised, although an error will 
+            must have ``INFO/FIELD`` greater than or equal to that number to 
+            pass. When it maps to a string, sites must have equal 
+            ``INFO/FIELD``. When it maps to a set, tuple or list of strings, the 
+            filter is said to be categorical and a site's ``INFO/FIELD`` must be
+            a member of the set/tuple/list to pass. 
+            The types of values are not explictly checked against the proper 
+            type for their fields- e.g. if 'INFO/GQ' maps to a string rather 
+            than a number, no explicit warning is raised, although an error will 
             typically be thrown once parsing begins.
         'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
             'FORMAT/FIELD' is equivalent to 'SAMPLE/FIELD'. The 'FIELD' should 
@@ -2021,25 +2023,30 @@ class Spectrum(np.ma.masked_array):
         :param vcf_file: Pathname of the VCF file to parse. The file may be 
             gzipped, bgzipped or uncompressed.
         :type vcf_file: str
-        :param pop_file: Pathname of a whitespace-separated file mapping samples
-            to populations with the format SAMPLE POPULATION. Sample names must
-            be unique and there should be one of them on each line (default None 
-            combines all samples into a single population 'ALL'). Samples 
-            present in the VCF but not included here are ignored.
-        :type pop_file: str, optional
         :param pop_mapping: Optional dictionary (default None) mapping 
             population IDs to lists of VCF sample IDs. Equivalent in function 
             to, and mutually exclusive with, `pop_file`.
         :type pop_mapping: dict, optional
+        :param pop_file: Pathname of a whitespace-separated file mapping samples
+            to populations with the format SAMPLE POPULATION. Sample names must
+            be unique and there should be one of them on each line (default None
+            combines all samples into a single population 'ALL'). Samples 
+            present in the VCF but not included here are ignored.
+        :type pop_file: str, optional
+        :param pops: A list of populations from `pop_file `to parse (default 
+            None). Only functions when `pop_file` is given. Populations not in 
+            `pops` are ignored. If None, then all populations in `pop_file` are
+            included.
+        :type pops: list of str
         :param bed_file: Pathname of a BED file defining the intervals within 
             which to parse; useful for applying masks to exclude difficult-to-
             call or functionally constrained genomic regions (default None). 
-            BED files represent intervals as 0-indexed and open-closed (interval
-            ends are noninclusive).
+            BED files represent intervals as 0-indexed and half-open (the ends
+            of intervals are noninclusive).
         :type bed_file: str, optional
-        :param interval: 2-tuple or 2-list specifying the (inclusive, 1-indexed) 
-            first and (exclusive, 1-indexed) last positions to parse; defines a
-            genomic window (default None).
+        :param interval: 2-tuple or 2-list specifying a 1-indexed, half-open
+            (upper boundary noninclusive) genomic window to parse (default
+            None). May be used in conjuction with a BED file.
         :type interval: tuple or list of integers, optional
         :param anc_seq_file: Pathname of a FASTA file defining inferred 
             ancestral nucleotide states (default None).
@@ -2048,37 +2055,37 @@ class Spectrum(np.ma.masked_array):
             is given, allows low-confidence ancestral state assignments- 
             represented by lower-case nucleotide codes- to stand. If False, 
             sites with low-confidence assignments are skipped.
-        :type skip_low_conf: bool, optional
+        :type allow_low_confidence: bool, optional
         :param use_AA: If True, use entries in the VCF field ``INFO/AA`` to 
             assign ancestral alleles (default False).
         :type use_AA: bool, optional
         :param filters: A dictionary mapping VCF fields to filter criteria, for
             imposing quantitative thresholds on measures of genotype quality and 
-            subsetting to qualitative classes of sites. Filtering is discussed
+            categorical requirements on annotations. Filtering is discussed 
             above.
         :type filters: dict, optional
         :param allow_multiallelic: If True (default False), includes sites with 
             more than one alternate allele, counting each derived allele at such 
             sites as a separate entry in the SFS- otherwise multiallelic sites 
-            are skipped. When True, also allows those biallelic sites where 
-            neither alternate nor reference alleles match the ancestral state 
-            to be counted- these are also otherwise skipped.
+            are skipped. Also allows sites where neither the reference nor any 
+            alternate allelle(s) matches the assigned ancestral state, which are 
+            skipped when False.
         :type allow_multiallelic: bool, optional
-        :param sample_sizes: Dictionary mapping populations to sample sizes 
-            (default None). The output SFS will have these sizes, and all VCF
-            records with sample sizes greater than the specified ones will be
-            projected down match. This may be useful when some genotype data is 
-            missing or filtered, as lines with missing data are otherwise not 
-            included in the output SFS. If not given, defaults to the sample 
-            sizes implied by `ploidy` and the number of individuals in each 
-            population.
+        :param sample_sizes: Dictionary mapping populations to haploid sample 
+            sizes (default None). Determines the shape of the returned SFS.
+            Any VCF sites with sample sizes greater than `sample_sizes` will be 
+            projected down to match it. This may be useful when some genotype 
+            data is missing or filtered- sites with missing data are otherwise 
+            not included in the output SFS. When not given, output sample sizes 
+            default to the sample sizes implied by `ploidy` and the number of 
+            individuals in each population.
         :type sample_sizes: dict, optional
         :param mask_corners: If True (default), the 'observed in none' and
             'observed in all' entries of the SFS array are masked.
         :type mask_corners: bool, optional
-        :param ploidy: Optional (default 2), defines the ploidy of samples.
-            Used to determine the maximum derived allele count in combination 
-            with the number of samples when `sample_sizes` is not given.
+        :param ploidy: Optionally defines the ploidy of samples (default 2).
+            Used to determine the haploid sample size from the number of sampled 
+            individuals when `sample_sizes` is not given.
         :type plody: int, optional
         :param verbose: If > 0, print a progress message every `verbose` lines
             (default 0).
@@ -2093,6 +2100,7 @@ class Spectrum(np.ma.masked_array):
             vcf_file,
             pop_mapping=pop_mapping,
             pop_file=pop_file,
+            pops=pops,
             bed_file=bed_file,
             interval=interval,
             anc_seq_file=anc_seq_file,
