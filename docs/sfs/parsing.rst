@@ -199,7 +199,6 @@ by ``allow_low_confidence``. Providing a FASTA file will restrict sites counted 
         allow_low_confidence=False
     )
 
-
 ******************
 Bootstrapping data
 ******************
