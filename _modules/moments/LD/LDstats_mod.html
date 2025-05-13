@@ -1,0 +1,1297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.LDstats_mod &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.LDstats_mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.LDstats_mod</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;LDstats_mod&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">demes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">Numerics</span><span class="p">,</span> <span class="n">Util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">moments.Demes.Demes</span>
+
+
+<div class="viewcode-block" id="LDstats">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LDstats</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents linkage disequilibrium statistics as a list of arrays, where</span>
+<span class="sd">    each entry in the list is an array of statistics for a corresponding</span>
+<span class="sd">    recombination rate. The final entry in the list is always the heterozygosity</span>
+<span class="sd">    statistics. Thus, if we have an LDstats object for 3 recombination rate</span>
+<span class="sd">    values, the list will have length 4.</span>
+
+<span class="sd">    LDstats are represented as a list of statistics over two locus pairs for</span>
+<span class="sd">    a given recombination distance.</span>
+
+<span class="sd">    :param data: A list of LD and heterozygosity stats.</span>
+<span class="sd">    :type data: list of arrays</span>
+<span class="sd">    :param num_pops: Number of populations. For one population, higher order</span>
+<span class="sd">        statistics may be computed.</span>
+<span class="sd">    :type num_pops: int</span>
+<span class="sd">    :param pop_ids: Population IDs in order that statistics are represented here.</span>
+<span class="sd">    :type pop_ids: list of strings, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">num_pops</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Specify number of populations as num_pops=.&quot;</span><span class="p">)</span>
+        <span class="n">my_list</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">LDstats</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;num_pops&quot;</span><span class="p">):</span>
+            <span class="n">my_list</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">num_pops</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">my_list</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">=</span> <span class="n">num_pops</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;pop_ids&quot;</span><span class="p">):</span>
+            <span class="n">my_list</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop_ids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">my_list</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="n">pop_ids</span>
+
+        <span class="k">return</span> <span class="n">my_list</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+            <span class="nb">list</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">list</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="c1"># See http://www.scipy.org/Subclasses for information on the</span>
+    <span class="c1"># __array_finalize__ and __array_wrap__ methods. I had to do some debugging</span>
+    <span class="c1"># myself to discover that I also needed _update_from.</span>
+    <span class="c1"># Also, see http://docs.scipy.org/doc/numpy/reference/arrays.classes.html</span>
+    <span class="c1"># Also, see http://docs.scipy.org/doc/numpy/user/basics.subclassing.html</span>
+    <span class="c1">#</span>
+    <span class="c1"># We need these methods to ensure extra attributes get copied along when</span>
+    <span class="c1"># we do arithmetic on the LD stats.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;num_pops&quot;</span><span class="p">,</span> <span class="s2">&quot;unspecified&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;pop_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;unspecified&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;num_pops&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">num_pops</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;pop_ids&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">pop_ids</span>
+
+    <span class="c1"># masked_array has priority 15.</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="bp">self</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;LDstats(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, num_pops=</span><span class="si">%s</span><span class="s2">, pop_ids=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">ys</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LDstats.names">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the set of LD and heterozygosity statistics names for the</span>
+<span class="sd">        number of populations represented by the LDstats.</span>
+
+<span class="sd">        Note that this will always return the full set of statistics,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Number of populations must be specified (as stats.num_pops)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+        <span class="p">)</span>  <span class="c1"># returns (ld_stat_names, het_stat_names)</span></div>
+
+
+<div class="viewcode-block" id="LDstats.LD">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.LD">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">LD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pops</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns LD stats for populations given (if None, returns all).</span>
+
+<span class="sd">        :param pops: The indexes of populations to return stats for.</span>
+<span class="sd">        :type pops: list of ints, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No LD statistics present&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pops</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">to_marginalize</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pops</span><span class="p">))</span>
+                <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">to_marginalize</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Y_new</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="LDstats.H">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.H">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pops</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns heterozygosity statistics for the populations given.</span>
+
+<span class="sd">        :param pops: The indexes of populations to return stats for.</span>
+<span class="sd">        :type pops: list of ints, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pops</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">to_marginalize</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pops</span><span class="p">))</span>
+            <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">to_marginalize</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Y_new</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="LDstats.f2">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.f2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns :math:`f_2(X, Y) = (X-Y)^2`.</span>
+
+<span class="sd">        X, and Y can be specified as population ID strings, or as indexes</span>
+<span class="sd">        (but these cannot be mixed).</span>
+
+<span class="sd">        :param X: One of the populations, as index or population ID.</span>
+<span class="sd">        :param Y: The other population, as index or population ID.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;X and Y must both be strings or both be indexes&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">X</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2"> not in pop_ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">Y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2"> not in pop_ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;X and Y must both be strings or both be indexes&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">X</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">Y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">X</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="ow">or</span> <span class="n">Y</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Population indexes out of bounds&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;X and Y must both be strings or both be indexes&quot;</span><span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="o">&gt;</span> <span class="n">Y</span><span class="p">:</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X</span>
+        <span class="n">H_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
+        <span class="n">H_Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
+        <span class="n">H_XY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">H_XY</span> <span class="o">-</span> <span class="n">H_X</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">H_Y</span> <span class="o">/</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="LDstats.f3">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.f3">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns :math:`f_3(X; Y, Z) = (X-Y)(X-Z)`. A significantly negative</span>
+<span class="sd">        :math:`f_3` of this form suggests that population X is the result</span>
+<span class="sd">        of admixture between ancient populations related to Y and Z. A positive</span>
+<span class="sd">        value suggests that X is an outgroup to Y and Z.</span>
+
+<span class="sd">        X, Y, and Z can be specified as population ID strings, or as indexes</span>
+<span class="sd">        (but these cannot be mixed).</span>
+
+<span class="sd">        :param X: The &quot;test&quot; population, as index or population ID.</span>
+<span class="sd">        :param Y: The first reference population, as index or population ID.</span>
+<span class="sd">        :param Z: The second reference population, as index or population ID.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="p">[</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">_</span><span class="si">}</span><span class="s2"> not in pop_ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+            <span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">X</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">Y</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">Z</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">X</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+                <span class="ow">or</span> <span class="n">Y</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+                <span class="ow">or</span> <span class="n">Z</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Population indexes out of bounds&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">H_XX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_XY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_XZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_YZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">H_XY</span> <span class="o">+</span> <span class="n">H_XZ</span> <span class="o">-</span> <span class="n">H_XX</span> <span class="o">-</span> <span class="n">H_YZ</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="LDstats.f4">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.f4">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">W</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns :math:`f_4(X, Y; Z, W) = (X-Y)(Z-W)`.</span>
+
+<span class="sd">        X, Y, Z and W can be specified as population ID strings, or as indexes</span>
+<span class="sd">        (but these cannot be mixed).</span>
+
+<span class="sd">        :param X: A population index or ID.</span>
+<span class="sd">        :param Y: A population index or ID.</span>
+<span class="sd">        :param Z: A population index or ID.</span>
+<span class="sd">        :param W: A population index or ID.</span>
+<span class="sd">        :returns: Patterson&#39;s f4 statistic (pX-pY)*(pZ-pW).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="p">[</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">W</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">_</span><span class="si">}</span><span class="s2"> not in pop_ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+            <span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+            <span class="n">W</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">X</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">Y</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">Z</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">W</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">X</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+                <span class="ow">or</span> <span class="n">Y</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+                <span class="ow">or</span> <span class="n">Z</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+                <span class="ow">or</span> <span class="n">W</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Population indexes out of bounds&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inputs must be all strings or all indexes&quot;</span><span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">H_XW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">W</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_XZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_YW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">W</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+        <span class="n">H_YZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">()[</span><span class="n">stats</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">H_XW</span> <span class="o">-</span> <span class="n">H_XZ</span> <span class="o">-</span> <span class="n">H_YW</span> <span class="o">+</span> <span class="n">H_YZ</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="LDstats.H2">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.H2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">H2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phased</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Note: the H2 name may change! This is sometimes called &quot;D+&quot;.</span>
+
+<span class="sd">        This is the statistics E[2*fAB*fab + 2*fAb*faB], which measures</span>
+<span class="sd">        the probability of polymorphism between two sampled genome copies</span>
+<span class="sd">        at two loci.</span>
+
+<span class="sd">        This is closely related to pi2=p(1-p)q(1-q), which is inherently</span>
+<span class="sd">        a four-haplotype statistic. Instead, H2 is a two-haplotype</span>
+<span class="sd">        statistic, which can be measured with just a single diploid.</span>
+
+<span class="sd">        In the one population case, it equals 4D^2+2Dz+4pi2. In the two</span>
+<span class="sd">        population case, it equals 4D1*D2+Dz(1,2,2)+Dz(2,1,1)+4pi2(1,2,1,2).</span>
+
+<span class="sd">        At steady state, the solution is</span>
+<span class="sd">        theta**2 * (36 + 14*rho + rho**2) / (18 + 13*rho + rho**2).</span>
+
+<span class="sd">        To compare to unphased data estimated assuming that double</span>
+<span class="sd">        heterozygotes have equal probability of being in coupling or</span>
+<span class="sd">        repulsion LD, the statistic equals</span>
+<span class="sd">        D1*D2+1/2(Dz(1,2,2)+Dz(2,1,1)+4pi2.</span>
+
+<span class="sd">        Note: This unphased case (setting phased=False) is only relevant to</span>
+<span class="sd">        comparing to data where a single diploid individual exists from each</span>
+<span class="sd">        population, and it is only needed for cross-population H2!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">X</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2"> not in pop_ids&quot;</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">Y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">Y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Population </span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2"> not in pop_ids&quot;</span><span class="p">)</span>
+                <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">X</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="ow">or</span> <span class="n">Y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">Y</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Population indexes out of bounds&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">Y</span> <span class="o">&lt;</span> <span class="n">X</span><span class="p">:</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X</span>
+
+        <span class="n">DD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DD_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Dz0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dz_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Dz1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dz_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">pi2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pi2_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LD</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">phased</span><span class="p">:</span>
+            <span class="n">Dplus</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">DD</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">Dz0</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">Dz1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">pi2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dplus</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">data</span><span class="p">[:,</span> <span class="n">DD</span><span class="p">]</span>
+                <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">Dz0</span><span class="p">]</span>
+                <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">Dz1</span><span class="p">]</span>
+                <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">pi2</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Dplus</span></div>
+
+
+    <span class="c1"># demographic and manipulation functions</span>
+<div class="viewcode-block" id="LDstats.split">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.split">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop_to_split</span><span class="p">,</span> <span class="n">new_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Splits the population given into two child populations. One child</span>
+<span class="sd">        population keeps the same index and the second child population is</span>
+<span class="sd">        placed at the end of the list of present populations. If new_ids</span>
+<span class="sd">        is given, we can set the population IDs of the child populations,</span>
+<span class="sd">        but only if the input LDstats have population IDs available.</span>
+
+<span class="sd">        :param pop_to_split: The index of the population to split.</span>
+<span class="sd">        :type pop_to_split: int</span>
+<span class="sd">        :param new_ids: List of child population names, of length two.</span>
+<span class="sd">        :type new_ids: list of strings, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pop_to_split</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;population to split must be an integer index&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pop_to_split</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;population to split must be a nonnegative index&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pop_to_split</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;population to split is greater than maximum index&quot;</span><span class="p">)</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">h_new</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">split_h</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pop_to_split</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)</span>
+        <span class="n">ys_new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ys</span><span class="p">:</span>
+            <span class="n">ys_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Numerics</span><span class="o">.</span><span class="n">split_ld</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pop_to_split</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">new_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_pop_ids</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+            <span class="n">new_pop_ids</span><span class="p">[</span><span class="n">pop_to_split</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">new_pop_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_ids</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_pop_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span>
+            <span class="n">ys_new</span> <span class="o">+</span> <span class="p">[</span><span class="n">h_new</span><span class="p">],</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_pop_ids</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LDstats.swap_pops">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.swap_pops">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">swap_pops</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Swaps pop0 and pop1 in the order of the population in the LDstats.</span>
+
+<span class="sd">        :param pop0: The index of the first population to swap.</span>
+<span class="sd">        :type pop0: int</span>
+<span class="sd">        :param pop1: The index of the second population to swap.</span>
+<span class="sd">        :type pop1: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pop0</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="ow">or</span> <span class="n">pop0</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid population number specified.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pop0</span> <span class="o">==</span> <span class="n">pop1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="n">mom_list</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)</span>
+        <span class="n">h_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mom_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mom_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">ys_new</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mom_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="n">pops_old</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">))</span>
+        <span class="n">pops_new</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">))</span>
+        <span class="n">pops_new</span><span class="p">[</span><span class="n">pop0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pop1</span>
+        <span class="n">pops_new</span><span class="p">[</span><span class="n">pop1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pop0</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pops_old</span><span class="p">,</span> <span class="n">pops_new</span><span class="p">))</span>
+
+        <span class="c1"># swap heterozygosity statistics</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">mom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mom_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">pops_mom</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="n">pops_mom_new</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops_mom</span><span class="p">]</span>
+            <span class="n">mom_new</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops_mom_new</span><span class="p">])</span>
+            <span class="n">h_new</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">mom_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="n">mom_new</span><span class="p">))]</span>
+
+        <span class="c1"># swap LD statistics</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">mom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mom_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">pops_mom</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]]</span>
+                <span class="n">pops_mom_new</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops_mom</span><span class="p">]</span>
+                <span class="n">mom_new</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pops_mom_new</span><span class="p">])</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">y_new</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">mom_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="n">mom_new</span><span class="p">))]</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">ys_new</span><span class="p">[</span><span class="n">jj</span><span class="p">][</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">jj</span><span class="p">][</span>
+                            <span class="n">mom_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">Util</span><span class="o">.</span><span class="n">map_moment</span><span class="p">(</span><span class="n">mom_new</span><span class="p">))</span>
+                        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">current_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span>
+            <span class="n">new_order</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_order</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LDstats</span><span class="p">([</span><span class="n">h_new</span><span class="p">],</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_order</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LDstats</span><span class="p">([</span><span class="n">y_new</span><span class="p">,</span> <span class="n">h_new</span><span class="p">],</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_order</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">ys_new</span> <span class="o">+</span> <span class="p">[</span><span class="n">h_new</span><span class="p">],</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_order</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LDstats.marginalize">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.marginalize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">marginalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pops</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Marginalize over the LDstats, removing moments for given populations.</span>
+
+<span class="sd">        :param pops: The index or list of indexes of populations to marginalize.</span>
+<span class="sd">        :type pops: int or list of ints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pops</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">pops</span> <span class="o">=</span> <span class="p">[</span><span class="n">pops</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Marginalization would remove all populations.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># multiple pop indices to marginalize over</span>
+        <span class="n">names_from_ld</span><span class="p">,</span> <span class="n">names_from_h</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)</span>
+        <span class="n">names_to_ld</span><span class="p">,</span> <span class="n">names_to_h</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">))</span>
+        <span class="n">y_new</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names_to_ld</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names_to_h</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">mom</span> <span class="ow">in</span> <span class="n">names_from_ld</span><span class="p">:</span>
+            <span class="n">mom_pops</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">pops</span><span class="p">,</span> <span class="n">mom_pops</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_new</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">y_new</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">names_from_ld</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mom</span><span class="p">)]</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">mom</span> <span class="ow">in</span> <span class="n">names_from_h</span><span class="p">:</span>
+            <span class="n">mom_pops</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mom</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">pops</span><span class="p">,</span> <span class="n">mom_pops</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">y_new</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">names_from_h</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mom</span><span class="p">)]</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">y_new</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_ids</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pops</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">new_ids</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">y_new</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">pops</span><span class="p">),</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_ids</span><span class="p">)</span></div>
+
+
+    <span class="c1">## Admix takes two populations, creates new population with fractions f, 1-f</span>
+    <span class="c1">## Merge takes two populations (pop1, pop2) and merges together with fraction</span>
+    <span class="c1">## f from population pop1, and (1-f) from pop2</span>
+    <span class="c1">## Pulse migrate again takes two populations, pop1 and pop2, and replaces fraction</span>
+    <span class="c1">## f from pop2 with pop1</span>
+    <span class="c1">## In each case, we use the admix function, which appends a new population on the end</span>
+    <span class="c1">## In the case of merge, we use admix and then marginalize pop1 and pop2</span>
+    <span class="c1">## in the case of pulse migrate, we use admix, and then swap new pop with pop2, and</span>
+    <span class="c1">## then marginalize pop2, so the new population takes the same position in pop_ids</span>
+    <span class="c1">## that pop2 was previously in</span>
+
+<div class="viewcode-block" id="LDstats.admix">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.admix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">admix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;Adm&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Admixture between pop0 and pop1, given by indexes. f is the fraction</span>
+<span class="sd">        contributed by pop0, so pop1 contributes 1-f. If new_id is not specified,</span>
+<span class="sd">        the admixed population&#39;s name is &#39;Adm&#39;. Otherwise, we can set it with</span>
+<span class="sd">        new_id=new_pop_id.</span>
+
+<span class="sd">        :param pop0: First population to admix.</span>
+<span class="sd">        :type pop0: int</span>
+<span class="sd">        :param pop1: Second population to admix.</span>
+<span class="sd">        :type pop1: int</span>
+<span class="sd">        :param f: The fraction of ancestry contributed by pop0, so pop1 contributes</span>
+<span class="sd">            1 - f.</span>
+<span class="sd">        :type f: float</span>
+<span class="sd">        :param new_id: The name of the admixed population.</span>
+<span class="sd">        :type new_id: str, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">&lt;</span> <span class="mi">2</span>
+            <span class="ow">or</span> <span class="n">pop0</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="ow">or</span> <span class="n">pop0</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Improper usage of admix (wrong indices?).&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pop0</span> <span class="o">==</span> <span class="n">pop1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop0 cannot equal pop1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Admixture fraction must be between 0 and 1&quot;</span><span class="p">)</span>
+
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_pop_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="o">+</span> <span class="p">[</span><span class="n">new_id</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_pop_ids</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">Y_new</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">new_pop_ids</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LDstats.merge">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.merge">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;Merged&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Merger of populations pop0 and pop1, with fraction f from pop0</span>
+<span class="sd">        and 1-f from pop1. Places new population at the end, then marginalizes</span>
+<span class="sd">        pop0 and pop1. To admix two populations and keep one or both, use pulse</span>
+<span class="sd">        migrate or admix, respectively.</span>
+
+<span class="sd">        :param pop0: First population to merge.</span>
+<span class="sd">        :type pop0: int</span>
+<span class="sd">        :param pop1: Second population to merge.</span>
+<span class="sd">        :type pop1: int</span>
+<span class="sd">        :param f: The fraction of ancestry contributed by pop0, so pop1 contributes</span>
+<span class="sd">            1 - f.</span>
+<span class="sd">        :type f: float</span>
+<span class="sd">        :param new_id: The name of the merged population.</span>
+<span class="sd">        :type new_id: str, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="n">new_id</span><span class="p">)</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="n">Y_new</span><span class="o">.</span><span class="n">marginalize</span><span class="p">([</span><span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Y_new</span></div>
+
+
+<div class="viewcode-block" id="LDstats.pulse_migrate">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.pulse_migrate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pulse_migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pulse migration/admixure event from pop0 to pop1, with fraction f</span>
+<span class="sd">        replacement. We use the admix function above. We want to keep the</span>
+<span class="sd">        original population names the same, if they are given in the LDstats</span>
+<span class="sd">        object, so we use new_pop=self.pop_ids[pop1].</span>
+
+<span class="sd">        We admix pop0 and pop1 with fraction f and 1-f, then swap the new</span>
+<span class="sd">        admixed population with pop1, then marginalize the original pop1.</span>
+
+<span class="sd">        :param pop0: The index of the source population.</span>
+<span class="sd">        :type pop0: int</span>
+<span class="sd">        :param pop1: The index of the target population.</span>
+<span class="sd">        :type pop1: int</span>
+<span class="sd">        :param f: The fraction of ancestry contributed by the source population.</span>
+<span class="sd">        :type f: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">&lt;</span> <span class="mi">2</span>
+            <span class="ow">or</span> <span class="n">pop0</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+            <span class="ow">or</span> <span class="n">pop0</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="ow">or</span> <span class="n">pop1</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Improper usage of admix (wrong indices?).&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pop0</span> <span class="o">==</span> <span class="n">pop1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop0 cannot equal pop1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Admixture fraction must be between 0 and 1&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">[</span><span class="n">pop1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="n">pop0</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="n">Y_new</span><span class="o">.</span><span class="n">swap_pops</span><span class="p">(</span><span class="n">pop1</span><span class="p">,</span> <span class="n">Y_new</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Y_new</span> <span class="o">=</span> <span class="n">Y_new</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">Y_new</span><span class="o">.</span><span class="n">num_pops</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Y_new</span></div>
+
+
+    <span class="c1"># Make from_file a static method, so we can use it without an instance.</span>
+<div class="viewcode-block" id="LDstats.from_file">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.from_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">return_statistics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_comments</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read LD statistics from file.</span>
+
+<span class="sd">        :param fid: The file name to read from or an open file object.</span>
+<span class="sd">        :type fid: str</span>
+<span class="sd">        :param return_statistics: If true, returns statistics writen to file.</span>
+<span class="sd">        :type return_statistics: bool, optional</span>
+<span class="sd">        :param return_comments: If true, the return value is (y, comments), where</span>
+<span class="sd">            comments is a list of strings containing the comments</span>
+<span class="sd">            from the file (without #&#39;s).</span>
+<span class="sd">        :type return_comments: bool, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Try to read from fid. If we can&#39;t, assume it&#39;s something that we can</span>
+        <span class="c1"># use to open a file.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="c1"># Strip out the comments</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="c1"># Read the num pops and pop_ids, if given</span>
+        <span class="n">line_spl</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">num_pops</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_spl</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_spl</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># get the pop_ids</span>
+            <span class="n">pop_ids</span> <span class="o">=</span> <span class="n">line_spl</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="n">num_pops</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: num_pops does not match number of pop_ids.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pop_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get the statistic names</span>
+        <span class="n">ld_stats</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">het_stats</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ld_stats</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;ALL&quot;</span><span class="p">]:</span>
+            <span class="n">ld_stats</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">het_stats</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;ALL&quot;</span><span class="p">]:</span>
+            <span class="n">het_stats</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="n">num_pops</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="p">[</span><span class="n">ld_stats</span><span class="p">,</span> <span class="n">het_stats</span><span class="p">]</span>
+
+        <span class="c1"># Get the number of LD statistic rows and read LD data</span>
+        <span class="n">num_ld_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_ld_rows</span><span class="p">):</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
+
+        <span class="c1"># Read heterozygosity data</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
+
+        <span class="c1"># If we opened a new file, clean it up.</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_statistics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_comments</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">statistics</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">statistics</span><span class="p">,</span> <span class="n">comments</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_comments</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">comments</span></div>
+
+
+<div class="viewcode-block" id="LDstats.to_file">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="s2">&quot;ALL&quot;</span><span class="p">,</span> <span class="n">comment_lines</span><span class="o">=</span><span class="p">[]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write LD statistics to file.</span>
+
+<span class="sd">        The file format is:</span>
+
+<span class="sd">        - # Any number of comment lines beginning with a &#39;#&#39;</span>
+<span class="sd">        - A single line containing an integer giving the number of</span>
+<span class="sd">          populations.</span>
+<span class="sd">        - On the *same line*, optional, the names of those populations. If</span>
+<span class="sd">          names are given, there needs to be the same number of pop_ids</span>
+<span class="sd">          as the integer number of populations. For example, the line could</span>
+<span class="sd">          be &#39;3 YRI CEU CHB&#39;.</span>
+<span class="sd">        - A single line giving the names of the *LD* statistics, in the order</span>
+<span class="sd">          they appear for each recombination rate distance or bin.</span>
+<span class="sd">          Optionally, this line could read ALL, indicating that every</span>
+<span class="sd">          statistic in the basis is given, and in the &#39;correct&#39; order.</span>
+<span class="sd">        - A single line giving the names of the *heterozygosity* statistics,</span>
+<span class="sd">          in the order they appear in the final row of data. Optionally,</span>
+<span class="sd">          this line could read ALL.</span>
+<span class="sd">        - A line giving the number of recombination rate bins/distances we</span>
+<span class="sd">          have data for (so we know how many to read)</span>
+<span class="sd">        - One line for each row of LD statistics.</span>
+<span class="sd">        - A single line for the heterozygosity statistics.</span>
+
+<span class="sd">        :param fid: The file name to write to or an open file object.</span>
+<span class="sd">        :type fid: str</span>
+<span class="sd">        :param precision: The precision with which to write out entries of the LD stats.</span>
+<span class="sd">            (They are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</span>
+<span class="sd">        :type precision: int</span>
+<span class="sd">        :param statistics: Defaults to &#39;ALL&#39;, meaning all statistics are given in the</span>
+<span class="sd">            LDstats object. Otherwise, list of two lists, first giving</span>
+<span class="sd">            present LD stats, and the second giving present het stats.</span>
+<span class="sd">        :type statistics: list of list of strings</span>
+<span class="sd">        :param comment_lines: List of strings to be used as comment lines in the header</span>
+<span class="sd">            of the output file.</span>
+<span class="sd">            I use comment lines mainly to record the recombination</span>
+<span class="sd">            bins or distances given in the LDstats (something like</span>
+<span class="sd">            &quot;&#39;edges = &#39; + str(r_edges)&quot;.</span>
+<span class="sd">        :type comment_lines: list of srtings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># if statistics is ALL, check to make sure the lengths are correct</span>
+        <span class="k">if</span> <span class="n">statistics</span> <span class="o">!=</span> <span class="s2">&quot;ALL&quot;</span><span class="p">:</span>
+            <span class="n">ld_stat_names</span><span class="p">,</span> <span class="n">het_stat_names</span> <span class="o">=</span> <span class="n">statistics</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ld_stat_names</span><span class="p">,</span> <span class="n">het_stat_names</span> <span class="o">=</span> <span class="n">Util</span><span class="o">.</span><span class="n">moment_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)</span>
+
+        <span class="n">all_correct_length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">ld_stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">LD</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ld_stats</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ld_stat_names</span><span class="p">):</span>
+                <span class="n">all_correct_length</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">het_stat_names</span><span class="p">):</span>
+            <span class="n">all_correct_length</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">all_correct_length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Length of data arrays does not match expected </span><span class="se">\</span>
+<span class="s2">                              length of statistics.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Open the file object.</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Write comments</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">comment_lines</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# &quot;</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write out the number of populations and pop_ids if given</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pop</span><span class="p">)</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write out LD statistics</span>
+        <span class="k">if</span> <span class="n">statistics</span> <span class="o">==</span> <span class="s2">&quot;ALL&quot;</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">statistics</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write out het statistics</span>
+        <span class="k">if</span> <span class="n">statistics</span> <span class="o">==</span> <span class="s2">&quot;ALL&quot;</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">statistics</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write the LD data to the file</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LD</span><span class="p">()))</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ld_stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">LD</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">ld_stats</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%%</span><span class="s2">.</span><span class="si">%i</span><span class="s2">g &quot;</span> <span class="o">%</span> <span class="n">precision</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write the het data to the file</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">():</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%%</span><span class="s2">.</span><span class="si">%i</span><span class="s2">g &quot;</span> <span class="o">%</span> <span class="n">precision</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span>
+
+        <span class="c1"># Close file</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LDstats.from_demes">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.from_demes">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_demes</span><span class="p">(</span>
+        <span class="n">g</span><span class="p">,</span>
+        <span class="n">sampled_demes</span><span class="p">,</span>
+        <span class="n">sample_times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="n">r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a deme graph and computes the LD stats. ``demes`` is a package for</span>
+<span class="sd">        specifying demographic models in a user-friendly, human-readable YAML</span>
+<span class="sd">        format. This function automatically parses the demographic description</span>
+<span class="sd">        and returns a LD for the specified populations and recombination and</span>
+<span class="sd">        mutation rates.</span>
+
+<span class="sd">        :param g: A ``demes`` DemeGraph from which to compute the LD.</span>
+<span class="sd">        :type g: :class:`demes.DemeGraph`</span>
+<span class="sd">        :param sampled_demes: A list of deme IDs to take samples from. We can repeat</span>
+<span class="sd">            demes, as long as the sampling of repeated deme IDs occurs at distinct</span>
+<span class="sd">            times.</span>
+<span class="sd">        :type sampled_demes: list of strings</span>
+<span class="sd">        :param sample_times: If None, assumes all sampling occurs at the end of the</span>
+<span class="sd">            existence of the sampled deme. If there are</span>
+<span class="sd">            ancient samples, ``sample_times`` must be a list of same length as</span>
+<span class="sd">            ``sampled_demes``, giving the sampling times for each sampled</span>
+<span class="sd">            deme. Sampling times are given in time units of the original deme graph,</span>
+<span class="sd">            so might not necessarily be generations (e.g. if ``g.time_units`` is years)</span>
+<span class="sd">        :type sample_times: list of floats, optional</span>
+<span class="sd">        :param rho: The population-size scaled recombination rate(s). Can be None, a</span>
+<span class="sd">            non-negative float, or a list of values.</span>
+<span class="sd">        :param theta: The population-size scaled mutation rate. This defaults to</span>
+<span class="sd">            ``theta=0.001``, which is very roughly what is observed in humans.</span>
+<span class="sd">        :param r: The raw recombination rate. Can be None, a non-negative float, or a</span>
+<span class="sd">            list of values.</span>
+<span class="sd">        :param u: The raw per-base mutation rate. ``theta`` is set to ``4 * Ne * u``,</span>
+<span class="sd">            where ``Ne`` is the reference population size from the root deme.</span>
+<span class="sd">        :return: A ``moments.LD`` LD statistics object, with number of populations equal</span>
+<span class="sd">            to the length of ``sampled_demes``.</span>
+<span class="sd">        :rtype: :class:`moments.LD.LDstats`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">dg</span> <span class="o">=</span> <span class="n">demes</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dg</span> <span class="o">=</span> <span class="n">g</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">Demes</span><span class="o">.</span><span class="n">LD</span><span class="p">(</span>
+            <span class="n">dg</span><span class="p">,</span>
+            <span class="n">sampled_demes</span><span class="p">,</span>
+            <span class="n">sample_times</span><span class="o">=</span><span class="n">sample_times</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+            <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span>
+            <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="LDstats.steady_state">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.steady_state">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">steady_state</span><span class="p">(</span>
+        <span class="n">nus</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">selfing_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Computes the steady state solution for any number of populations. The</span>
+<span class="sd">        number of populations is determined by the length of ``nus``, which is</span>
+<span class="sd">        a list with relative population sizes (often, these will be set to 1,</span>
+<span class="sd">        meaning sizes are equal to some reference or ancestral population</span>
+<span class="sd">        size).</span>
+
+<span class="sd">        If the solution for more than one population is desired, we must</span>
+<span class="sd">        provide ``m``, an n-by-n migration matrix, and there must be migrations</span>
+<span class="sd">        that connect all populations so that a steady state solution exists.</span>
+<span class="sd">        This corresponds to an island model with potentially asymmetric</span>
+<span class="sd">        migration and allows for unequal population sizes.</span>
+
+<span class="sd">        :param nus: The relative population sizes, with one or two entries,</span>
+<span class="sd">            corresponding to a steady state solution with one or two populations,</span>
+<span class="sd">            resp.</span>
+<span class="sd">        :type nus: list-like</span>
+<span class="sd">        :param m: A migration matrix, only provided when the length of `nus` is 2</span>
+<span class="sd">            or more.</span>
+<span class="sd">        :type m: array-like</span>
+<span class="sd">        :param rho: The population-size scaled recombination rate(s). Can be None, a</span>
+<span class="sd">            non-negative float, or a list of values.</span>
+<span class="sd">        :param theta: The population-size scaled mutation rate</span>
+<span class="sd">        :type theta: float</span>
+<span class="sd">        :param selfing_rate: Self-fertilization rate(s), given as a number (for a</span>
+<span class="sd">            single population, or list of numbers (for two populations). Selfing</span>
+<span class="sd">            rates must be between 0 and 1.</span>
+<span class="sd">        :type selfing_rate: number or list of numbers</span>
+<span class="sd">        :param pop_ids: The population IDs.</span>
+<span class="sd">        :type pop_ids: list of strings</span>
+<span class="sd">        :return: A ``moments.LD`` LD statistics object.</span>
+<span class="sd">        :rtype: :class:`moments.LD.LDstats`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_pops</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nus</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_pops</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Migration matrix cannot be provided for one population.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">num_pops</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Migration matrix must be provided for the steady state solution &quot;</span>
+                    <span class="s2">&quot;with two or more populations&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pop_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_pops</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pop_ids must be a list of length equal to nus.&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">steady_state</span><span class="p">(</span>
+            <span class="n">nus</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">selfing_rate</span><span class="o">=</span><span class="n">selfing_rate</span>
+        <span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span></div>
+
+
+    <span class="c1"># Ensures that when arithmetic is done with LDstats objects,</span>
+    <span class="c1"># attributes are preserved. For details, see similar code in</span>
+    <span class="c1"># moments.Spectrum_mod</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;__add__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__radd__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__sub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rsub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__mul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rmul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__div__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rdiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__truediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rtruediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__floordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rfloordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__rpow__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__pow__&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def %(method)s(self, other):</span>
+<span class="sd">    if isinstance(other, np.ma.masked_array):</span>
+<span class="sd">        newdata = self.%(method)s (other.data)</span>
+<span class="sd">        newmask = np.ma.mask_or(self.mask, other.mask)</span>
+<span class="sd">    else:</span>
+<span class="sd">        newdata = self.%(method)s (other)</span>
+<span class="sd">        newmask = self.mask</span>
+<span class="sd">    outLDstats = self.__class__.__new__(self.__class__, newdata, newmask, </span>
+<span class="sd">                                   num_pops=self.num_pops, pop_ids=self.pop_ids)</span>
+<span class="sd">    return outLDstats</span>
+<span class="sd">&quot;&quot;&quot;</span>
+            <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Methods that modify the Spectrum in-place.</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;__iadd__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__isub__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__imul__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__idiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__itruediv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__ifloordiv__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__ipow__&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def %(method)s(self, other):</span>
+<span class="sd">    if isinstance(other, np.ma.masked_array):</span>
+<span class="sd">        self.%(method)s (other.data)</span>
+<span class="sd">        self.mask = np.ma.mask_or(self.mask, other.mask)</span>
+<span class="sd">    else:</span>
+<span class="sd">        self.%(method)s (other)</span>
+<span class="sd">    return self</span>
+<span class="sd">&quot;&quot;&quot;</span>
+            <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">}</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LDstats.integrate">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.LDstats.integrate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">integrate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nu</span><span class="p">,</span>
+        <span class="n">tf</span><span class="p">,</span>
+        <span class="n">dt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dt_fac</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">selfing</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">selfing_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integrates the LD statistics forward in time. When integrating LD statistics</span>
+<span class="sd">        for a list of recombination rates and mutation rate, they must be passed</span>
+<span class="sd">        as keywork arguments to this function. We can integrate either single-population</span>
+<span class="sd">        LD statistics up to order 10, or multi-population LD statistics but only</span>
+<span class="sd">        for order 2 (which includes :math:`D^2`, :math:`Dz`, and :math:`\\pi_2`).</span>
+
+<span class="sd">        :param nu: The relative population size, may be a function of time,</span>
+<span class="sd">            given as a list [nu1, nu2, ...]</span>
+<span class="sd">        :type nu: list or function</span>
+<span class="sd">        :param tf: Total time to integrate</span>
+<span class="sd">        :type tf: float</span>
+<span class="sd">        :param dt: Integration timestep. This is deprecated! Use `dt_fac` instead.</span>
+<span class="sd">        :type dt: float</span>
+<span class="sd">        :param dt_fac: The integration time step factor, so that dt is determined by</span>
+<span class="sd">            `tf * dt_fac`. Note: Should also build in adaptive time-stepping... this</span>
+<span class="sd">            is to come.</span>
+<span class="sd">        :type dt_fac: float</span>
+<span class="sd">        :param rho: Can be a single recombination rate or list of recombination rates</span>
+<span class="sd">            (in which case we are integrating a list of LD stats for each rate)</span>
+<span class="sd">        :type rho: float or list of floats</span>
+<span class="sd">        :param theta: The per base population-scaled mutation rate (4N*mu)</span>
+<span class="sd">            if we pass [theta1, theta2], differing mutation rates at left and right</span>
+<span class="sd">            locus, implemented in the ISM=True model</span>
+<span class="sd">        :param m: The migration matrix (num_pops x num_pops, storing m_ij migration rates</span>
+<span class="sd">            where m_ij is probability that a lineage in i had parent in j</span>
+<span class="sd">            m_ii is unused, and found by summing off diag elements in the ith row</span>
+<span class="sd">        :type m: array</span>
+<span class="sd">        :param selfing: A list of selfing probabilities, same length as nu.</span>
+<span class="sd">        :type selfing: list of floats</span>
+<span class="sd">        :param selfing_rate: Alias for selfing.</span>
+<span class="sd">        :type selfing_rate: list of floats</span>
+<span class="sd">        :param frozen: A list of True and False same length as nu. True implies that a</span>
+<span class="sd">            lineage is frozen (as in ancient samples). False integrates as normal.</span>
+<span class="sd">        :type frozen: list of bools</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_pops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pops</span>
+
+        <span class="k">if</span> <span class="n">tf</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">tf</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">tf</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Integration time must be positive and finite.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rho</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There are LD statistics, but rho is None.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Single rho passed but LD object does have correct number of entries.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mismatch length of input rho and size of LD object.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">nu</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nu</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">!=</span> <span class="n">num_pops</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;len of pop size function must equal number of pops.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_pops</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;len of pop sizes must equal number of pops.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">num_pops</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;migration matrix incorrectly defined for number of pops.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">frozen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frozen</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_pops</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;frozen must have same length as number of pops.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">selfing_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">selfing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot specify both selfing and selfing_rate&quot;</span><span class="p">)</span>
+            <span class="n">selfing</span> <span class="o">=</span> <span class="n">selfing_rate</span>
+        <span class="k">if</span> <span class="n">selfing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selfing</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_pops</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selfing must have same length as number of pops.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># enforce minimum 10 time steps per integration</span>
+        <span class="c1"># if tf &lt; dt * 10:</span>
+        <span class="c1">#    dt_adj = tf / 10</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    dt_adj = dt * 1.0</span>
+        <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;dt is deprecated, use dt_fac to control integration time steps&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">dt_fac</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dt_fac</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dt_fac must be between 0 and 1&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">[:],</span>
+            <span class="n">nu</span><span class="p">,</span>
+            <span class="n">tf</span><span class="p">,</span>
+            <span class="n">dt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dt_fac</span><span class="o">=</span><span class="n">dt_fac</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span><span class="p">,</span>
+            <span class="n">selfing</span><span class="o">=</span><span class="n">selfing</span><span class="p">,</span>
+            <span class="n">frozen</span><span class="o">=</span><span class="n">frozen</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Allow LDstats objects to be pickled.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">copy_reg</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">copyreg</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">LDstats_pickler</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">LDstats_unpickler</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span><span class="p">[:],</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">LDstats_unpickler</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">LDstats</span><span class="p">(</span><span class="n">data</span><span class="p">[:],</span> <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span><span class="p">,</span> <span class="n">pop_ids</span><span class="o">=</span><span class="n">pop_ids</span><span class="p">)</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">LDstats</span><span class="p">,</span> <span class="n">LDstats_pickler</span><span class="p">,</span> <span class="n">LDstats_unpickler</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">copyreg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">LDstats</span><span class="p">,</span> <span class="n">LDstats_pickler</span><span class="p">,</span> <span class="n">LDstats_unpickler</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
