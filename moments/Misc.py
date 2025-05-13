@@ -81,6 +81,12 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
     seeds: Seeds for random number generator. If None, ms default is used.
            Otherwise, three integers should be passed. Example: (132, 435, 123)
     """
+    warnings.warn(
+        "Functions relating to `ms` are deprecated in favor of `demes`, will be "
+        "removed in version 1.5",
+        warnings.DeprecationWarning,
+    )   
+
     if len(ns) > 1:
         ms_command = (
             "ms %(total_chrom)i %(iter)i -t %(theta)f -I %(numpops)i "
@@ -156,6 +162,13 @@ def make_fux_table(fid, ts, Q, tri_freq):
               Note that should be the frequency in the entire region scanned
               for variation, not just sites where there are SNPs.
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )   
+
     # Ensure that the *columns* of Q sum to zero.
     # That is the correct condition when Q_{i,j} is the rate from i to j.
     # This indicates a typo in Hernandez, Williamson, and Bustamante.
@@ -260,6 +273,13 @@ def make_data_dict(filename):
     The file can be zipped (extension .zip) or gzipped (extension .gz). If
     zipped, there must be only a single file in the zip archive.
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )   
+
     if os.path.splitext(filename)[1] == ".gz":
         import gzip
 
@@ -340,6 +360,13 @@ def count_data_dict(data_dict, pop_ids):
     :param pop_ids: IDs of populations to collect data for
     :type pop_ids: list of strings
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )   
+
     count_dict = collections.defaultdict(int)
     for snp_key, snp_info in data_dict.items():
         # Skip SNPs that aren't biallelic.
@@ -426,6 +453,13 @@ def make_data_dict_vcf(
         have more than one ALT allele.
     :type skip_multiallelic: bool, optional
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )   
+
     if not skip_multiallelic:
         raise ValueError(
             "We can only keep biallelic sites, and multiallelic tallying is not "
@@ -591,6 +625,13 @@ def _get_popinfo(popinfo_file):
 
     popinfo_file : An open text file of the format described above.
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )
+    
     popinfo_dict = {}
     sample_col = 0
     pop_col = 1
@@ -680,6 +721,13 @@ def bootstrap(
         of the new SFS should be saved.
     :type save_dir: str, optional
     """
+    warnings.warn(
+        "Operations using the `data_dict` are deprecated and will be removed "
+        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in the `Parsing` module",
+        warnings.DeprecationWarning,
+    )   
+
     # Read in information from BED file if present and store by chromosome
     if bed_filename is not None:
         bed_file = open(bed_filename)

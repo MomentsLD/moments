@@ -20,6 +20,7 @@ import demes
 import moments.Integration
 import moments.Integration_nomig
 from . import Numerics
+from . import Parsing
 import moments.Demes.Demes
 
 _plotting = True
@@ -1565,373 +1566,6 @@ class Spectrum(np.ma.masked_array):
     ## Overide the (perhaps confusing) original np tofile method.
     tofile = to_file
 
-    @staticmethod
-    def from_ms_file(
-        fid,
-        average=True,
-        mask_corners=True,
-        return_header=False,
-        pop_assignments=None,
-        pop_ids=None,
-        bootstrap_segments=1,
-    ):
-        """
-        Read frequency spectrum from file of ms output.
-
-        :param fid: string with file name to read from or an open file object.
-        :param average: If True, the returned fs is the average over the runs in the ms
-            file. If False, the returned fs is the sum.
-        :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-            all samples' entries.
-        :param return_header: If True, the return value is (fs, (command,seeds), where
-            command and seeds are strings containing the ms
-            commandline and the seeds used.
-        :param pop_assignments: If None, the assignments of samples to populations is
-            done automatically, using the assignment in the ms
-            command line. To manually assign populations, pass a
-            list of the from [6,8]. This example places
-            the first 6 samples into population 1, and the next 8
-            into population 2.
-        :param pop_ids: Optional list of strings containing the population labels.
-            If pop_ids is None, labels will be "pop0", "pop1", ...
-        :param bootstrap_segments: If bootstrap_segments is an integer greater than 1,
-            the data will be broken up into that many segments
-            based on SNP position. Instead of single FS, a list
-            of spectra will be returned, one for each segment.
-        """
-        warnings.warn(
-            "Spectrum.from_ms_file() is deprecated and will be removed in version 1.2",
-            warnings.DeprecationWarning,
-        )
-        newfile = False
-        # Try to read from fid. If we can't, assume it's something that we can
-        # use to open a file.
-        if not hasattr(fid, "read"):
-            newfile = True
-            fid = open(fid, "r")
-
-        # Parse the commandline
-        command = line = fid.readline()
-        command_terms = line.split()
-
-        if command_terms[0].count("ms"):
-            runs = int(command_terms[2])
-            try:
-                pop_flag = command_terms.index("-I")
-                num_pops = int(command_terms[pop_flag + 1])
-                pop_samples = [
-                    int(command_terms[pop_flag + ii]) for ii in range(2, 2 + num_pops)
-                ]
-            except ValueError:
-                num_pops = 1
-                pop_samples = [int(command_terms[1])]
-        else:
-            raise ValueError("Unrecognized command string: %s." % command)
-
-        total_samples = np.sum(pop_samples)
-        if pop_assignments:
-            num_pops = len(pop_assignments)
-            pop_samples = pop_assignments
-
-        sample_indices = np.cumsum([0] + pop_samples)
-        bottom_l = sample_indices[:-1]
-        top_l = sample_indices[1:]
-
-        seeds = line = fid.readline()
-        while not line.startswith("//"):
-            line = fid.readline()
-
-        counts = np.zeros(len(pop_samples), np.int_)
-        fs_shape = np.asarray(pop_samples) + 1
-        dimension = len(counts)
-
-        if dimension > 1:
-            bottom0 = bottom_l[0]
-            top0 = top_l[0]
-            bottom1 = bottom_l[1]
-            top1 = top_l[1]
-        if dimension > 2:
-            bottom2 = bottom_l[2]
-            top2 = top_l[2]
-        if dimension > 3:
-            bottom3 = bottom_l[3]
-            top3 = top_l[3]
-        if dimension > 4:
-            bottom4 = bottom_l[4]
-            top4 = top_l[4]
-        if dimension > 5:
-            bottom5 = bottom_l[5]
-            top5 = top_l[5]
-
-        all_data = [
-            np.zeros(fs_shape, np.int_) for boot_ii in range(bootstrap_segments)
-        ]
-        for run_ii in range(runs):
-            line = fid.readline()
-            segsites = int(line.split()[-1])
-
-            if segsites == 0:
-                # Special case, need to read 3 lines to stay synced.
-                for _ in range(3):
-                    line = fid.readline()
-                continue
-            line = fid.readline()
-            while not line.startswith("positions"):
-                line = fid.readline()
-
-            # Read SNP positions for creating bootstrap segments
-            positions = [float(_) for _ in line.split()[1:]]
-            # Where we should break our interval to create our bootstraps
-            breakpts = np.linspace(0, 1, bootstrap_segments + 1)
-            # The indices that correspond to those breakpoints
-            break_iis = np.searchsorted(positions, breakpts)
-            # Correct for searchsorted behavior if last position is 1,
-            # to ensure all SNPs are captured
-            break_iis[-1] = len(positions)
-
-            # Read the chromosomes in
-            chromos = fid.read((segsites + 1) * total_samples)
-
-            # For each bootstrap segment, relevant SNPs run from start_ii:end_ii
-            for boot_ii, (start_ii, end_ii) in enumerate(
-                zip(break_iis[:-1], break_iis[1:])
-            ):
-                # Use the data array corresponding to this bootstrap segment
-                data = all_data[boot_ii]
-                for snp in range(start_ii, end_ii):
-                    # Slice to get all the entries that refer to a given SNP
-                    this_snp = chromos[snp :: segsites + 1]
-                    # Count SNPs per population, and record them.
-                    if dimension == 1:
-                        data[this_snp.count("1")] += 1
-                    elif dimension == 2:
-                        data[
-                            this_snp[bottom0:top0].count("1"),
-                            this_snp[bottom1:top1].count("1"),
-                        ] += 1
-                    elif dimension == 3:
-                        data[
-                            this_snp[bottom0:top0].count("1"),
-                            this_snp[bottom1:top1].count("1"),
-                            this_snp[bottom2:top2].count("1"),
-                        ] += 1
-                    elif dimension == 4:
-                        data[
-                            this_snp[bottom0:top0].count("1"),
-                            this_snp[bottom1:top1].count("1"),
-                            this_snp[bottom2:top2].count("1"),
-                            this_snp[bottom3:top3].count("1"),
-                        ] += 1
-                    elif dimension == 5:
-                        data[
-                            this_snp[bottom0:top0].count("1"),
-                            this_snp[bottom1:top1].count("1"),
-                            this_snp[bottom2:top2].count("1"),
-                            this_snp[bottom3:top3].count("1"),
-                            this_snp[bottom4:top4].count("1"),
-                        ] += 1
-                    elif dimension == 6:
-                        data[
-                            this_snp[bottom0:top0].count("1"),
-                            this_snp[bottom1:top1].count("1"),
-                            this_snp[bottom2:top2].count("1"),
-                            this_snp[bottom3:top3].count("1"),
-                            this_snp[bottom4:top4].count("1"),
-                            this_snp[bottom5:top5].count("1"),
-                        ] += 1
-                    else:
-                        # This is noticably slower, so we special case the cases
-                        # above.
-                        for dim_ii in range(dimension):
-                            bottom = bottom_l[dim_ii]
-                            top = top_l[dim_ii]
-                            counts[dim_ii] = this_snp[bottom:top].count("1")
-                        data[tuple(counts)] += 1
-
-            # Read to the next iteration
-            line = fid.readline()
-            line = fid.readline()
-
-        if newfile:
-            fid.close()
-
-        all_fs = [
-            Spectrum(data, mask_corners=mask_corners, pop_ids=pop_ids)
-            for data in all_data
-        ]
-        if average:
-            all_fs = [fs / runs for fs in all_fs]
-
-        # If we aren't setting up for bootstrapping, return fs, rather than a
-        # list of length 1. (This ensures backward compatibility.)
-        if bootstrap_segments == 1:
-            all_fs = all_fs[0]
-
-        if not return_header:
-            return all_fs
-        else:
-            return all_fs, (command, seeds)
-
-    @staticmethod
-    def _from_sfscode_file(
-        fid,
-        sites="all",
-        average=True,
-        mask_corners=True,
-        return_header=False,
-        pop_ids=None,
-    ):
-        """
-        Read frequency spectrum from file of sfs_code output.
-
-        :param fid: string with file name to read from or an open file object.
-        :param sites: If sites=='all', return the fs of all sites. If sites == 'syn',
-            use only synonymous mutations. If sites == 'nonsyn', use
-            only non-synonymous mutations.
-        :param average: If True, the returned fs is the average over the runs in the
-            file. If False, the returned fs is the sum.
-        :param mask_corners: If True, mask the 'absent in all samples' and 'fixed in
-            all samples' entries.
-        :param return_header: If true, the return value is (fs, (command,seeds), where
-            command and seeds are strings containing the ms
-            commandline and the seeds used.
-        :param pop_ids: Optional list of strings containing the population labels.
-            If pop_ids is None, labels will be "pop0", "pop1", ...
-        """
-        warnings.warn(
-            "Spectrum.from_sfscode_file() is deprecated and will be removed in ver 1.2",
-            warnings.DeprecationWarning,
-        )
-        newfile = False
-        # Try to read from fid. If we can't, assume it's something that we can
-        # use to open a file.
-        if not hasattr(fid, "read"):
-            newfile = True
-            fid = open(fid, "r")
-
-        if sites == "all":
-            only_nonsyn, only_syn = False, False
-        elif sites == "syn":
-            only_nonsyn, only_syn = False, True
-        elif sites == "nonsyn":
-            only_nonsyn, only_syn = True, False
-        else:
-            raise ValueError(
-                "'sites' argument must be one of ('all', 'syn', " "'nonsyn')."
-            )
-
-        command = fid.readline()
-        command_terms = command.split()
-
-        runs = int(command_terms[2])
-        num_pops = int(command_terms[1])
-
-        # sfs_code default is 6 individuals, and I assume diploid pop
-        pop_samples = [12] * num_pops
-        if "--sampSize" in command_terms or "-n" in command_terms:
-            try:
-                pop_flag = command_terms.index("--sampSize")
-                pop_flag = command_terms.index("-n")
-            except ValueError:
-                pass
-            pop_samples = [
-                2 * int(command_terms[pop_flag + ii]) for ii in range(1, 1 + num_pops)
-            ]
-
-        pop_samples = np.asarray(pop_samples)
-        pop_digits = [str(i) for i in range(num_pops)]
-        pop_fixed_str = [",%s.-1" % i for i in range(num_pops)]
-        pop_count_str = [",%s." % i for i in range(num_pops)]
-
-        seeds = fid.readline()
-        line = fid.readline()
-
-        data = np.zeros(np.asarray(pop_samples) + 1, np.int_)
-
-        # line = //iteration...
-        line = fid.readline()
-        for iter_ii in range(runs):
-            for ii in range(5):
-                line = fid.readline()
-
-            # It is possible for a mutation to be listed several times in the
-            # output.  To accomodate this, I keep a dictionary of identities
-            # for those mutations, and hold off processing them until I've seen
-            # all mutations listed for the iteration.
-            mut_dict = {}
-
-            # Loop until this iteration ends.
-            while not line.startswith("//") and line != "":
-                split_line = line.split(";")
-                if split_line[-1] == "\n":
-                    split_line = split_line[:-1]
-
-                # Loop over mutations on this line.
-                for mut_ii, mutation in enumerate(split_line):
-                    counts_this_mut = np.zeros(num_pops, np.int_)
-
-                    split_mut = mutation.split(",")
-
-                    # Exclude synonymous mutations
-                    if only_nonsyn and split_mut[7] == "0":
-                        continue
-                    # Exclude nonsynonymous mutations
-                    if only_syn and split_mut[7] == "1":
-                        continue
-
-                    ind_start = len(",".join(split_mut[:12]))
-                    by_individual = mutation[ind_start:]
-
-                    mut_id = ",".join(split_mut[:4] + split_mut[5:11])
-
-                    # Count mutations in each population
-                    for pop_ii, fixed_str, count_str in zip(
-                        range(num_pops), pop_fixed_str, pop_count_str
-                    ):
-                        if fixed_str in by_individual:
-                            counts_this_mut[pop_ii] = pop_samples[pop_ii]
-                        else:
-                            counts_this_mut[pop_ii] = by_individual.count(count_str)
-
-                    # Initialize the list that will track the counts for this
-                    # mutation. Using setdefault means that it won't overwrite
-                    # if there's already a list stored there.
-                    mut_dict.setdefault(mut_id, [0] * num_pops)
-                    for ii in range(num_pops):
-                        if counts_this_mut[ii] > 0 and mut_dict[mut_id][ii] > 0:
-                            sys.stderr.write(
-                                "Contradicting counts between "
-                                "listings for mutation %s in "
-                                "population %i." % (mut_id, ii)
-                            )
-                        mut_dict[mut_id][ii] = max(
-                            counts_this_mut[ii], mut_dict[mut_id][ii]
-                        )
-
-                line = fid.readline()
-
-            # Now apply all the mutations with fixations that we deffered.
-            for mut_id, counts in mut_dict.items():
-                if np.any(np.asarray(counts) > pop_samples):
-                    sys.stderr.write(
-                        "counts_this_mut > pop_samples: %s > "
-                        "%s\n%s\n" % (counts, pop_samples, mut_id)
-                    )
-                    counts = np.minimum(counts, pop_samples)
-                data[tuple(counts)] += 1
-
-        if newfile:
-            fid.close()
-
-        fs = Spectrum(data, mask_corners=mask_corners, pop_ids=pop_ids)
-        if average:
-            fs /= runs
-
-        if not return_header:
-            return fs
-        else:
-            return fs, (command, seeds)
-
     def scramble_pop_ids(self, mask_corners=True):
         """
         Spectrum corresponding to scrambling individuals among populations.
@@ -2016,6 +1650,13 @@ class Spectrum(np.ma.masked_array):
             If False, any 'outgroup_allele' info present is ignored,
             and the returned spectrum is folded.
         """
+        warnings.warn(
+            "Operations using the `data_dict` are deprecated and will be removed "
+            "in version 1.5, in favor of `from_vcf` and associated functions "
+            "in the `Parsing` module",
+            warnings.DeprecationWarning,
+        )
+
         Npops = len(pop_ids)
         fs = np.zeros(np.asarray(projections) + 1)
         for snp, snp_info in data_dict.items():
@@ -2098,6 +1739,12 @@ class Spectrum(np.ma.masked_array):
             If False, include all SNPs and fold resulting Spectrum.
         :param pop_ids: Optional list of strings containing the population labels.
         """
+        warnings.warn(
+            "Operations using the `data_dict` are deprecated and will be removed "
+            "in version 1.5, in favor of `from_vcf` and associated functions "
+            "in the `Parsing` module",
+            warnings.DeprecationWarning,
+        )
 
         # create slices for projection calculation
         slices = [[np.newaxis] * len(projections) for ii in range(len(projections))]
@@ -2138,6 +1785,13 @@ class Spectrum(np.ma.masked_array):
         use of Hernandez's ancestral misidentification correction. It is
         organized as {(derived_tri, outgroup_base): {snp_id: data,...}}
         """
+        warnings.warn(
+            "Operations using the `data_dict` are deprecated and will be removed "
+            "in version 1.5, in favor of `from_vcf` and associated functions "
+            "in the `Parsing` module",
+            warnings.DeprecationWarning,
+        )
+        
         result = {}
         genetic_bases = "ACTG"
         for snp, snp_info in data_dict.items():
@@ -2230,6 +1884,13 @@ class Spectrum(np.ma.masked_array):
         This method skips entries for which the correction cannot be applied.
         Most commonly this is because of missing or non-constant context.
         """
+        warnings.warn(
+            "Operations using the `data_dict` are deprecated and will be removed "
+            "in version 1.5, in favor of `from_vcf` and associated functions "
+            "in the `Parsing` module",
+            warnings.DeprecationWarning,
+        )
+        
         # Read the fux file into a dictionary.
         fux_dict = {}
         f = open(fux_filename)
@@ -2282,6 +1943,178 @@ class Spectrum(np.ma.masked_array):
             fs += Numerics.reverse_array(negative_entries)
 
         return Spectrum(fs, mask_corners=mask_corners, pop_ids=pop_ids)
+    
+    @staticmethod
+    def from_vcf(
+        vcf_file,
+        pop_mapping=None,
+        pop_file=None,
+        pops=None,
+        bed_file=None,
+        interval=None,
+        anc_seq_file=None,
+        allow_low_confidence=False,
+        use_AA=False,
+        filters=None,
+        allow_multiallelic=False,
+        sample_sizes=None,
+        mask_corners=True,
+        ploidy=2,
+        verbose=0,
+        folded=False
+    ):
+        """
+        Compute the SFS from genotype data stored in a VCF file. There are 
+        several optional parameters for controlling the assignment of ancestral
+        states, filtering by quality or annotation, restricting SFS parsing to
+        certain intervals, and adjusting the shape of the output SFS.
+
+        There are several ways to specify estimated ancestral states. By 
+        default, VCF ``REF`` alleles are interpreted as ancestral alleles. In 
+        this case the output SFS should be folded, because the reference allele 
+        does not in general correspond to the ancestral allele. If `use_AA` is 
+        True, then the ``INFO/AA`` VCF field specifies the ancestral allele. 
+        Sites where ``INFO/AA`` is absent or missing data (represented by '.')
+        are skipped, raising a warning at the first occurence. If `anc_seq_file` 
+        (FASTA format) is given, then ancestral alleles are read from it. Here 
+        also, sites are skipped when they lack a valid ancestral allele. This 
+        behavior is modulated by `allow_low_confidence`: when True, sites 
+        assigned ancestral states represented in lower-case (e.g. 'a') are 
+        retained. This usually denotes a low-confidence assignment. Otherwise 
+        such sites are skipped. If there are sites in the VCF that fall beyond
+        the end of the FASTA sequence which are not otherwise masked or excluded 
+        by the `interval` argument, an error is raised.
+
+        When `allow_multiallelic` is False and the ancestral allele is not 
+        represented as either the reference or alternate allele at a site, that 
+        site is skipped automatically. The relationship between derived alleles
+        at such sites is not generally clear.
+
+        The parameter `filters` allows filtering by quality and/or annotation
+        at the site and sample level. It should be a flat dictionary with str 
+        keys. Key-value pairs may have the following forms:
+        'QUAL' should map to a single number (float or int), imposing a minimum 
+            value for site ``QUAL`` fields.
+        'FILTER' should map to a string or a set, tuple or list of strings. For
+            a site to pass, its ``FILTER`` field must equal either the value of 
+            'FILTER' (if a string) or that of one of its elements (if a set,
+            tuple or list).
+        'INFO/FIELD' e.g. 'INFO/GQ' may map to a number, a string, or a set, 
+            tuple or list of strings. When it maps to a number, passing sites
+            must have ``INFO/FIELD`` greater than or equal to that number to 
+            pass. When it maps to a string, sites must have equal 
+            ``INFO/FIELD``. When it maps to a set, tuple or list of strings, the 
+            filter is said to be categorical and a site's ``INFO/FIELD`` must be
+            a member of the set/tuple/list to pass. 
+            The types of values are not explictly checked against the proper 
+            type for their fields- e.g. if 'INFO/GQ' maps to a string rather 
+            than a number, no explicit warning is raised, although an error will 
+            typically be thrown once parsing begins.
+        'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
+            'FORMAT/FIELD' is equivalent to 'SAMPLE/FIELD'. The 'FIELD' should 
+            correspond to an entry in the ``FORMAT`` column of the VCF file.
+            Typing is the same as for ``INFO/FIELD``.
+        When fields targeted for filtering are missing ('.') or absent in given 
+        lines/samples, those lines/samples are not skipped, but a one-time 
+        alert message is raised. Depending on the context, this may be a sign
+        of misspecified filters, or it may be unproblematic. Any combination of
+        valid filter fields is permissible.
+
+        :param vcf_file: Pathname of the VCF file to parse. The file may be 
+            gzipped, bgzipped or uncompressed.
+        :type vcf_file: str
+        :param pop_mapping: Optional dictionary (default None) mapping 
+            population IDs to lists of VCF sample IDs. Equivalent in function 
+            to, and mutually exclusive with, `pop_file`.
+        :type pop_mapping: dict, optional
+        :param pop_file: Pathname of a whitespace-separated file mapping samples
+            to populations with the format SAMPLE POPULATION. Sample names must
+            be unique and there should be one of them on each line (default None
+            combines all samples into a single population 'ALL'). Samples 
+            present in the VCF but not included here are ignored.
+        :type pop_file: str, optional
+        :param pops: A list of populations from `pop_file `to parse (default 
+            None). Only functions when `pop_file` is given. Populations not in 
+            `pops` are ignored. If None, then all populations in `pop_file` are
+            included.
+        :type pops: list of str
+        :param bed_file: Pathname of a BED file defining the intervals within 
+            which to parse; useful for applying masks to exclude difficult-to-
+            call or functionally constrained genomic regions (default None). 
+            BED files represent intervals as 0-indexed and half-open (the ends
+            of intervals are noninclusive).
+        :type bed_file: str, optional
+        :param interval: 2-tuple or 2-list specifying a 1-indexed, half-open
+            (upper boundary noninclusive) genomic window to parse (default
+            None). May be used in conjuction with a BED file.
+        :type interval: tuple or list of integers, optional
+        :param anc_seq_file: Pathname of a FASTA file defining inferred 
+            ancestral nucleotide states (default None).
+        :type anc_seq_file: str, optional
+        :param allow_low_confidence: If True (default False) and `anc_seq_file` 
+            is given, allows low-confidence ancestral state assignments- 
+            represented by lower-case nucleotide codes- to stand. If False, 
+            sites with low-confidence assignments are skipped.
+        :type allow_low_confidence: bool, optional
+        :param use_AA: If True, use entries in the VCF field ``INFO/AA`` to 
+            assign ancestral alleles (default False).
+        :type use_AA: bool, optional
+        :param filters: A dictionary mapping VCF fields to filter criteria, for
+            imposing quantitative thresholds on measures of genotype quality and 
+            categorical requirements on annotations. Filtering is discussed 
+            above.
+        :type filters: dict, optional
+        :param allow_multiallelic: If True (default False), includes sites with 
+            more than one alternate allele, counting each derived allele at such 
+            sites as a separate entry in the SFS- otherwise multiallelic sites 
+            are skipped. Also allows sites where neither the reference nor any 
+            alternate allelle(s) matches the assigned ancestral state, which are 
+            skipped when False.
+        :type allow_multiallelic: bool, optional
+        :param sample_sizes: Dictionary mapping populations to haploid sample 
+            sizes (default None). Determines the shape of the returned SFS.
+            Any VCF sites with sample sizes greater than `sample_sizes` will be 
+            projected down to match it. This may be useful when some genotype 
+            data is missing or filtered- sites with missing data are otherwise 
+            not included in the output SFS. When not given, output sample sizes 
+            default to the sample sizes implied by `ploidy` and the number of 
+            individuals in each population.
+        :type sample_sizes: dict, optional
+        :param mask_corners: If True (default), the 'observed in none' and
+            'observed in all' entries of the SFS array are masked.
+        :type mask_corners: bool, optional
+        :param ploidy: Optionally defines the ploidy of samples (default 2).
+            Used to determine the haploid sample size from the number of sampled 
+            individuals when `sample_sizes` is not given.
+        :type plody: int, optional
+        :param verbose: If > 0, print a progress message every `verbose` lines
+            (default 0).
+        :type verbose: int, optional
+        :param folded: If True, return the folded SFS (default False).
+        :type folded: bool, optional
+    
+        :returns: The SFS, represented as a ``moments.Spectrum`` instance.
+        :rtype: moments.Spectrum
+        """
+        fs = Parsing.parse_vcf(
+            vcf_file,
+            pop_mapping=pop_mapping,
+            pop_file=pop_file,
+            pops=pops,
+            bed_file=bed_file,
+            interval=interval,
+            anc_seq_file=anc_seq_file,
+            allow_low_confidence=allow_low_confidence,
+            use_AA=use_AA,
+            filters=filters,
+            allow_multiallelic=allow_multiallelic,
+            ploidy=ploidy,
+            verbose=verbose,
+            sample_sizes=sample_sizes,
+            mask_corners=mask_corners,
+            folded=folded
+        )
+        return fs
 
     @staticmethod
     def from_demes(
