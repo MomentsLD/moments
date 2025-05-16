@@ -1125,8 +1125,8 @@ def _load_bed_file(bed_file):
                 continue
             split_line = line.split()
             chroms.append(split_line[0])
-            starts.append(split_line[1])
-            ends.append(split_line[2])
+            starts.append(float(split_line[1]))
+            ends.append(float(split_line[2]))
     chrom_set = set(chroms)
     # check that there is one unique CHROM
     if len(chrom_set) > 1:

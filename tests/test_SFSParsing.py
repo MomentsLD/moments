@@ -884,6 +884,14 @@ class TestLoadBEDFile(unittest.TestCase):
         expected = np.array([[0, 1], [2, 3], [4, 5]])
         self.assertTrue(np.all(regions == expected))
 
+    def test_scientific_format(self):
+        # reading BED files with entries in scientific format e.g. 1.07e+08
+        file_path = os.path.join(os.path.dirname(__file__), 
+            'test_files/sci_format.bed')
+        result, _ = moments.Parsing._load_bed_file(file_path)
+        expected = np.array([[10500, 7600000], [95000000, 107000000]])
+        self.assertTrue(np.all(result == expected))
+
 
 class TestBEDRegionsToMask(unittest.TestCase):   
     ## Test handling of BED file regions.
