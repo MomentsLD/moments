@@ -1654,7 +1654,7 @@ class Spectrum(np.ma.masked_array):
             "Operations using the `data_dict` are deprecated and will be removed "
             "in version 1.5, in favor of `from_vcf` and associated functions "
             "in the `Parsing` module",
-            warnings.DeprecationWarning,
+            category=DeprecationWarning,
         )
 
         Npops = len(pop_ids)
@@ -1716,14 +1716,15 @@ class Spectrum(np.ma.masked_array):
             if np.sum(fsout) == 0:
                 warnings.warn(
                     "Spectrum is empty. Did you compute the outgroup alleles "
-                    "at variable sites?"
+                    "at variable sites?",
+                    category=RuntimeWarning,
                 )
             return fsout
         else:
             if np.sum(fsout) == 0:
                 warnings.warn(
                     "Spectrum is empty. Check input data dictionary.",
-                    warnings.RuntimeWarning,
+                    category=RuntimeWarning,
                 )
             return fsout.fold()
 
@@ -1743,7 +1744,7 @@ class Spectrum(np.ma.masked_array):
             "Operations using the `data_dict` are deprecated and will be removed "
             "in version 1.5, in favor of `from_vcf` and associated functions "
             "in the `Parsing` module",
-            warnings.DeprecationWarning,
+            category=DeprecationWarning,
         )
 
         # create slices for projection calculation
@@ -1789,7 +1790,7 @@ class Spectrum(np.ma.masked_array):
             "Operations using the `data_dict` are deprecated and will be removed "
             "in version 1.5, in favor of `from_vcf` and associated functions "
             "in the `Parsing` module",
-            warnings.DeprecationWarning,
+            category=DeprecationWarning,
         )
         
         result = {}
@@ -1888,7 +1889,7 @@ class Spectrum(np.ma.masked_array):
             "Operations using the `data_dict` are deprecated and will be removed "
             "in version 1.5, in favor of `from_vcf` and associated functions "
             "in the `Parsing` module",
-            warnings.DeprecationWarning,
+            category=DeprecationWarning,
         )
         
         # Read the fux file into a dictionary.
@@ -2244,7 +2245,7 @@ class Spectrum(np.ma.masked_array):
         if len(sample_sizes) > 2:
             warnings.warn(
                 "Importing ANGSD-formatted data has only been tested for 2 populations",
-                warnings.UserWarning,
+                category=UserWarning,
             )
         # get the SFS data
         with open(sfs_file) as f_data:
