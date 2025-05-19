@@ -84,7 +84,7 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
     warnings.warn(
         "Functions relating to `ms` are deprecated in favor of `demes`, will be "
         "removed in version 1.5",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     if len(ns) > 1:
@@ -166,7 +166,7 @@ def make_fux_table(fid, ts, Q, tri_freq):
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     # Ensure that the *columns* of Q sum to zero.
@@ -277,7 +277,7 @@ def make_data_dict(filename):
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     if os.path.splitext(filename)[1] == ".gz":
@@ -364,7 +364,7 @@ def count_data_dict(data_dict, pop_ids):
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     count_dict = collections.defaultdict(int)
@@ -457,7 +457,7 @@ def make_data_dict_vcf(
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     if not skip_multiallelic:
@@ -629,7 +629,7 @@ def _get_popinfo(popinfo_file):
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )
     
     popinfo_dict = {}
@@ -725,7 +725,7 @@ def bootstrap(
         "Operations using the `data_dict` are deprecated and will be removed "
         "in version 1.5, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
-        warnings.DeprecationWarning,
+        category=DeprecationWarning,
     )   
 
     # Read in information from BED file if present and store by chromosome
