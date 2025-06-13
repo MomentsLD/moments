@@ -54,7 +54,7 @@ def run_msprime_replicates(num_reps=100, L=1000000, u=1.5e-8, r=1.5e-8, n=10):
         ts = msprime.sim_mutations(ts, rate=u, random_seed=ii + 1)
         vcf_name = "./data/split_mig.{0}.vcf".format(ii)
         with open(vcf_name, "w+") as fout:
-            ts.write_vcf(fout)
+            ts.write_vcf(fout, allow_position_zero=True)
         os.system(f"gzip {vcf_name}")
 
 
@@ -179,8 +179,9 @@ if __name__ == "__main__":
     # scales recombination rates so can be simultaneously fit
     p_guess = [0.1, 2, 0.075, 2, 10000]
     p_guess = moments.LD.Util.perturb_params(p_guess, fold=0.1)
+
     opt_params, LL = moments.LD.Inference.optimize_log_lbfgsb(
-        p_guess, [mv["means"], mv["varcovs"]], [demo_func], rs=r_bins,
+        p_guess, [mv["means"], mv["varcovs"]], [demo_func], rs=r_bins
     )
 
     physical_units = moments.LD.Util.rescale_params(
@@ -193,7 +194,7 @@ if __name__ == "__main__":
     print(f"  Div. time (gen)  :  {g.demes[1].epochs[0].start_time:.1f}")
     print(f"  Migration rate   :  {g.migrations[0].rate:.6f}")
     print(f"  N(ancestral)     :  {g.demes[0].epochs[0].start_size:.1f}")
-    
+
     print("best fit parameters:")
     print(f"  N(deme0)         :  {physical_units[0]:.1f}")
     print(f"  N(deme1)         :  {physical_units[1]:.1f}")
@@ -202,8 +203,25 @@ if __name__ == "__main__":
     print(f"  N(ancestral)     :  {physical_units[4]:.1f}")
 
     print("computing confidence intervals for parameters")
+
+    # This is somewhat ugly and poor API in moments, and we prefer to use
+    # demes for inference and CI calculations in any case. But this at
+    # least gets this example to work.
+    means, varcovs = moments.LD.Inference.remove_normalized_data(
+        mv["means"], mv["varcovs"], num_pops=2
+    )
+    stats = mv["stats"]
+    stats[0].pop(stats[0].index("pi2_0_0_0_0"))
+    stats[1].pop(stats[1].index("H_0_0"))
+
     uncerts = moments.LD.Godambe.GIM_uncert(
-        demo_func, all_boot, opt_params, mv["means"], mv["varcovs"], r_edges=r_bins,
+        demo_func,
+        all_boot,
+        opt_params,
+        means,
+        varcovs,
+        r_edges=r_bins,
+        statistics=stats,
     )
 
     lower = opt_params - 1.96 * uncerts
