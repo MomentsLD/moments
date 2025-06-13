@@ -216,6 +216,7 @@ def _get_godambe(
     :param log: If True, calculate derivatives in terms of log-parameters
     :param just_hess: If True, only evaluate and return the Hessian matrix
     """
+
     # Cache evaluations of the LDstats inside our hessian/J
     # evaluation function
     def func(params, m, v):
@@ -372,6 +373,17 @@ def GIM_uncert(
         else:
             y = model_func(p0[:-1])
         statistics = y.names()
+        if (
+            len(means[0]) != len(statistics[0])
+            or len(means[-1]) != len(statistics[-1])
+            or len(all_boots[0][0]) != len(statistics[0])
+            or len(all_boots[0][-1]) != len(statistics[-1])
+        ):
+            raise ValueError(
+                "If 'statistics' is not given, then means, varcovs, and "
+                "all_boots must have consistent sizes and be equal to the "
+                "number of stats for the number of populations in the model."
+            )
         statistics, means, varcovs, all_boots = _remove_normalized_data(
             statistics, normalization, means, varcovs, all_boots
         )
