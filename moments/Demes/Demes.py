@@ -1117,10 +1117,10 @@ def _compute_sfs(
             h0 = h_dict["_default"]
 
     if reversible is False:
-        fs = theta * moments.LinearSystem_1D.steady_state_1D(n0[0], gamma=gamma0, h=h0)
+        fs = theta * moments.LinearSystem_1D.steady_state_1D(n0, gamma=gamma0, h=h0)
     else:
         fs = moments.LinearSystem_1D.steady_state_1D_reversible(
-            n0[0], gamma=gamma0, theta_fd=theta_fd, theta_bd=theta_bd
+            n0, gamma=gamma0, theta_fd=theta_fd, theta_bd=theta_bd
         )
         if h0 != 0.5:
             raise ValueError("can only use h=0.5 with reversible mutation model")
