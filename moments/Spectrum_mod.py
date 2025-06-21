@@ -1994,27 +1994,28 @@ class Spectrum(np.ma.masked_array):
         The parameter `filters` allows filtering by quality and/or annotation
         at the site and sample level. It should be a flat dictionary with str 
         keys. Key-value pairs may have the following forms:
-        'QUAL' should map to a single number (float or int), imposing a minimum 
-            value for site ``QUAL`` fields.
-        'FILTER' should map to a string or a set, tuple or list of strings. For
-            a site to pass, its ``FILTER`` field must equal either the value of 
-            'FILTER' (if a string) or that of one of its elements (if a set,
-            tuple or list).
-        'INFO/FIELD' e.g. 'INFO/GQ' may map to a number, a string, or a set, 
-            tuple or list of strings. When it maps to a number, passing sites
-            must have ``INFO/FIELD`` greater than or equal to that number to 
-            pass. When it maps to a string, sites must have equal 
-            ``INFO/FIELD``. When it maps to a set, tuple or list of strings, the 
-            filter is said to be categorical and a site's ``INFO/FIELD`` must be
-            a member of the set/tuple/list to pass. 
-            The types of values are not explictly checked against the proper 
-            type for their fields- e.g. if 'INFO/GQ' maps to a string rather 
-            than a number, no explicit warning is raised, although an error will 
-            typically be thrown once parsing begins.
-        'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
-            'FORMAT/FIELD' is equivalent to 'SAMPLE/FIELD'. The 'FIELD' should 
-            correspond to an entry in the ``FORMAT`` column of the VCF file.
-            Typing is the same as for ``INFO/FIELD``.
+        - 'QUAL' should map to a single number (float or int), imposing a minimum 
+          value for site ``QUAL`` fields.
+        - 'FILTER' should map to a string or a set, tuple or list of strings. For
+          a site to pass, its ``FILTER`` field must equal either the value of 
+          'FILTER' (if a string) or that of one of its elements (if a set,
+          tuple or list).
+        - 'INFO/FIELD' e.g. 'INFO/GQ' may map to a number, a string, or a set, 
+          tuple or list of strings. When it maps to a number, passing sites
+          must have ``INFO/FIELD`` greater than or equal to that number to 
+          pass. When it maps to a string, sites must have equal 
+          ``INFO/FIELD``. When it maps to a set, tuple or list of strings, the 
+          filter is said to be categorical and a site's ``INFO/FIELD`` must be
+          a member of the set/tuple/list to pass. 
+          The types of values are not explictly checked against the proper 
+          type for their fields- e.g. if 'INFO/GQ' maps to a string rather 
+          than a number, no explicit warning is raised, although an error will 
+          typically be thrown once parsing begins.
+        - 'SAMPLE/FIELD' e.g. 'SAMPLE/GQ' imposes filters at the sample level. 
+          'FORMAT/FIELD' is equivalent to 'SAMPLE/FIELD'. The 'FIELD' should 
+          correspond to an entry in the ``FORMAT`` column of the VCF file.
+          Typing is the same as for ``INFO/FIELD``.
+        
         When fields targeted for filtering are missing ('.') or absent in given 
         lines/samples, those lines/samples are not skipped, but a one-time 
         alert message is raised. Depending on the context, this may be a sign
@@ -2093,7 +2094,6 @@ class Spectrum(np.ma.masked_array):
         :type verbose: int, optional
         :param folded: If True, return the folded SFS (default False).
         :type folded: bool, optional
-    
         :returns: The SFS, represented as a ``moments.Spectrum`` instance.
         :rtype: moments.Spectrum
         """

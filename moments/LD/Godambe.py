@@ -313,14 +313,22 @@ def _get_statistics_and_remove_normalization(
     if (
         len(means[0]) != len(statistics[0])
         or len(means[-1]) != len(statistics[-1])
-        or len(all_boots[0][0]) != len(statistics[0])
-        or len(all_boots[0][-1]) != len(statistics[-1])
     ):
         raise ValueError(
             "If 'statistics' is not given, then means, varcovs, and "
             "all_boots must have consistent sizes and be equal to the "
             "number of stats for the number of populations in the model."
         )
+    if len(all_boots) > 0:
+        if (
+            len(all_boots[0][0]) != len(statistics[0])
+            or len(all_boots[0][-1]) != len(statistics[-1])
+        ):
+            raise ValueError(
+                "If 'statistics' is not given, then means, varcovs, and "
+                "all_boots must have consistent sizes and be equal to the "
+                "number of stats for the number of populations in the model."
+            )
     statistics, means, varcovs, all_boots = _remove_normalized_data(
         statistics, normalization, means, varcovs, all_boots
     )
