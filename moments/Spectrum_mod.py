@@ -717,7 +717,7 @@ class Spectrum(np.ma.masked_array):
             heterozygotes, in a selection system with fitnesses 1:1+s:1. Underdominance
             can be modeled by passing a negative value. Not that this is a symmetric
             under/over-dominance model, in which homozygotes for either the ancestral
-            or derived allele have equal fitness. `gamma`, `h`, and `overdominance`
+            or derived allele have equal fitness. ``gamma``, ``h``, and ``overdominance``
             can be combined (additively) to implement non-symmetric selection
             scenarios.
         :type overdominance: float or list of floats or function that returns a float or
@@ -725,7 +725,7 @@ class Spectrum(np.ma.masked_array):
         :param m: The migration rates matrix as a 2-D array with shape nxn,
             where n is the number of populations. The entry of the migration
             matrix m[i,j] is the migration rate from pop j to pop i in genetic
-            units, that is, normalized by :math:`2N_e`. `m` may be either a
+            units, that is, normalized by :math:`2N_e`. ``m`` may be either a
             2-D array, or a function that returns a 2-D array (with dimensions
             equal to (num pops)x(num pops)).
         :type m: array-like, optional
@@ -2093,7 +2093,7 @@ class Spectrum(np.ma.masked_array):
             Used to determine the haploid sample size from the number of sampled
             individuals when ``sample_sizes`` is not given.
         :type plody: int, optional
-        :param verbose: If > 0, print a progress message every `verbose` lines
+        :param verbose: If > 0, print a progress message every ``verbose`` lines
             (default 0).
         :type verbose: int, optional
         :param folded: If True, return the folded SFS (default False).
@@ -2148,7 +2148,7 @@ class Spectrum(np.ma.masked_array):
             quickly in the number of populations.
 
         :param g: A ``demes`` DemeGraph from which to compute the SFS. The DemeGraph
-            can either be specified as a YAML file, in which case `g` is a string,
+            can either be specified as a YAML file, in which case ``g`` is a string,
             or as a ``DemeGraph`` object.
         :type g: str or :class:`demes.DemeGraph`
         :param sampled_demes: A list of deme IDs to take samples from. We can repeat
@@ -2174,7 +2174,7 @@ class Spectrum(np.ma.masked_array):
             be given as a dictionary, with keys given as population names in the
             input Demes model. Any population missing from this dictionary will be
             assigned a selection coefficient of zero. A non-zero default selection
-            coefficient can be provided, using the key `_default`. See the Demes
+            coefficient can be provided, using the key ``_default``. See the Demes
             exension documentation for more details and examples.
         :type gamma: float or dict
         :param h: The dominance coefficient(s). Defaults to additivity (or genic
@@ -2183,13 +2183,13 @@ class Spectrum(np.ma.masked_array):
             dictionary, with keys given as population names in the input Demes model.
             Any population missing from this dictionary will be assigned a dominance
             coefficient of 1/2 (additivity). A different default dominance
-            coefficient can be provided, using the key `_default`. See the Demes
+            coefficient can be provided, using the key ``_default``. See the Demes
             exension documentation for more details and examples.
         :type h: float or dict
         :param theta: The population-size scaled mutation rate (4*Ne*u or 4*Ne*u*L).
             The default value is 1. For more control of mutation rates and mutation
             models (including using a reversible mutation model), please use
-            `moments.Demes.SFS`, which has options to specify theta, the per-base
+            ``moments.Demes.SFS``, which has options to specify theta, the per-base
             mutation rate u, and/or a reversible mutation model that allows for
             different forward and backward mutation rates.
         :type theta: scalar
