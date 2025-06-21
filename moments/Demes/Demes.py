@@ -481,6 +481,120 @@ def LD(g, sampled_demes, sample_times=None, rho=None, theta=None, r=None, u=None
     return y
 
 
+def LDdecay(g, sampled_demes, rho=None, r=None, method="simpson", **kwargs):
+    """
+    Computes average LD statistics within recombination bins. The input demographic
+    model, sampled demes, and other arguments follow ``moments.Demes.LD()``. Here,
+    either ``rho`` or ``r`` must be given as an array of at least length 2.
+    Recombination bins are defined by adjacent values in the list of recombination
+    distances, so that there are ``len(r) - 1`` sets of LD statistics in the output
+    ``LDstats`` object.
+
+    Possible numerical integration methods:
+      - "simpson", quadratic
+      - "trapezoid", linear
+      - "midpoint", zeroth order
+
+    :param g: The input demographic model, loaded using ``demes``.
+    :type g: :class:`demes.Graph`
+    :param sampled_deme: List of deme names of demes in the input demographic
+        model from which to draw samples from.
+    :type sampled_deme: list of str
+    :param rho: Monotonically increasing list of length two or more specifying
+        recombination bin endpoints (in units of :math:`4 N_e r`). Only one of
+        rho and r can be given.
+    :type rho: list-like
+    :param r: Monotonically increasing list of length two or more specifying
+        recombination bin endpoints. Only one of rho and r can be given.
+    :type r: list-like
+    :param method: One of ``"simpson", ``"trapezoid"``, or ``"midpoint"``.
+    :type method: str
+    :param sample_times: If None, assumes all sampling occurs at the end of the
+        existence of the sampled deme. If there are
+        ancient samples, ``sample_times`` must be a list of same length as
+        ``sampled_demes``, giving the sampling times for each sampled
+        deme. Sampling times are given in time units of the original deme graph,
+        so might not necessarily be generations (e.g. if ``g.time_units`` is years)
+    :type sample_times: list of floats, optional
+    :param theta: The population-size scaled mutation rate. Cannot be used
+        with ``u``.
+    :type theta: scalar
+    :param u: The raw per-base mutation rate. The reference effective population
+        size ``Ne`` is determined from the demograhic model, after which
+        ``theta`` is set to ``4*Ne*u``.
+    :type u: scalar
+    :return: A ``moments.LD`` LD statistics object, with number of populations equal
+        to the length of ``sampled_demes``.
+    :rtype: :class:`moments.LD.LDstats`
+    """
+    if rho is not None:
+        rho = np.asarray(rho)
+        if not np.all(rho[1:] > rho[:-1]):
+            raise ValueError("rho must be monotinically increasing")
+    if r is not None:
+        r = np.asarray(r)
+        if not np.all(r[1:] > r[:-1]):
+            raise ValueError("r must be monotinically increasing")
+
+    if rho is not None and r is not None:
+        raise ValueError("Only one of rho and r can be provided")
+    if rho is None and r is None:
+        raise ValueError(
+            "Exactly one of rho and r must be given as a list of length at least two")
+    if rho is not None and len(rho) < 2:
+        raise ValueError("rho must have length at least two")
+    if r is not None and len(r) < 2:
+        raise ValueError("r must have length at least two")
+    
+    possible_methods = ["simpson", "trapezoid", "midpoint"]
+    if method not in possible_methods:
+        raise ValueError(f"method {method} is not in possible methods: {possible_methods}")
+
+    if method == "simpson":
+        if rho is not None:
+            rho_pass = np.sort(np.concatenate((rho, (rho[1:] + rho[:-1]) / 2)))
+            r_pass = None
+        elif r is not None:
+            r_pass = np.sort(np.concatenate((r, (r[1:] + r[:-1]) / 2)))
+            rho_pass = None
+    elif method == "trapezoid":
+        if rho is not None:
+            rho_pass = rho
+            r_pass = None
+        elif rs is not None:
+            r_pass = r
+            rho_pass = None
+    else:
+        assert method == "midpoint"
+        if rho is not None:
+            rho_pass = (rho[1:] + rho[:-1]) / 2
+            r_pass = None
+        elif r is not None:
+            r_pass = (r[1:] + r[:-1]) / 2
+            rho_pass = None
+    
+    # Additional kwargs that can be passed to LD() : sample_times=None, theta=None, u=None
+
+    y = LD(g, sampled_demes, r=r_pass, rho=rho_pass, **kwargs)
+    if method == "midpoint":
+        return y
+    elif method == "trapezoid":
+        ld_binned = []
+        for ld0, ld1 in zip(y.LD()[:-1], y.LD()[1:]):
+            ld_binned.append((ld0 + ld1) / 2)
+        y_new = moments.LD.LDstats(ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids)
+        return y_new
+    elif method == "simpson":
+        ld_binned = []
+        for i in range((len(y.LD()) - 1) // 2):
+            ld0 = y.LD()[2 * i]
+            ldc = y.LD()[2 * i + 1]
+            ld1 = y.LD()[2 * i + 2]
+            ld_binned.append((ld0 + 4 * ldc + ld1) / 6)
+        y_new = moments.LD.LDstats(ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids)
+        return y_new
+
+
 ##
 ## general functions used by both SFS and LD
 ##
