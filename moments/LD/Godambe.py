@@ -311,27 +311,22 @@ def _get_statistics_and_remove_normalization(
         y = model_func(p0[:-1])
     statistics = y.names()
     if (
-        len(means[0]) != len(statistics[0])
-        or len(means[-1]) != len(statistics[-1])
+        len(means[0]) != len(statistics[0]) or len(means[-1]) != len(statistics[-1])
+    ) or (
+        len(all_boots) > 0
+        and (
+            len(all_boots[0][0]) != len(statistics[0])
+            or len(all_boots[0][-1]) != len(statistics[-1])
+        )
     ):
         raise ValueError(
             "If 'statistics' is not given, then means, varcovs, and "
             "all_boots must have consistent sizes and be equal to the "
             "number of stats for the number of populations in the model."
         )
-    if len(all_boots) > 0:
-        if (
-            len(all_boots[0][0]) != len(statistics[0])
-            or len(all_boots[0][-1]) != len(statistics[-1])
-        ):
-            raise ValueError(
-                "If 'statistics' is not given, then means, varcovs, and "
-                "all_boots must have consistent sizes and be equal to the "
-                "number of stats for the number of populations in the model."
-            )
-    statistics, means, varcovs, all_boots = _remove_normalized_data(
-        statistics, normalization, means, varcovs, all_boots
-    )
+    # returns (statistics, means, varcovs, all_boots)
+    return _remove_normalized_data(statistics, normalization, means, varcovs, all_boots)
+
 
 def GIM_uncert(
     model_func,
@@ -400,7 +395,12 @@ def GIM_uncert(
     if statistics is None:
         # get statistics and remove normalizing statistic - requires that all statistics
         # in the input means and varcovs are present, including the normalizing stats
-        statistics, means, varcovs, all_boots, = _get_statistics_and_remove_normalization(
+        (
+            statistics,
+            means,
+            varcovs,
+            all_boots,
+        ) = _get_statistics_and_remove_normalization(
             model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
         )
 
@@ -523,7 +523,9 @@ def FIM_uncert(
     H = _get_godambe(
         pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
     )
-    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
+    # NOTE: There appears to be some discrepancy with +/- when returning log-likelihoods,
+    # which makes returned hessian matrix negative
+    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(-H)))
     return uncerts
 
 
@@ -547,7 +549,7 @@ def LRT_adjust(
     simpler model, resp), the adjustment factor scales the difference in
     log-likelihoods, which can then be used in a chi-squared test, as
     implemented in `moments.Godambe.sum_chi2_ppf()`.
-    
+
     :param model_func:
     :type model_func:
     :param all_boot:
@@ -567,7 +569,12 @@ def LRT_adjust(
     if statistics is None:
         # get statistics and remove normalizing statistic - requires that all statistics
         # in the input means and varcovs are present, including the normalizing stats
-        statistics, means, varcovs, all_boots, = _get_statistics_and_remove_normalization(
+        (
+            statistics,
+            means,
+            varcovs,
+            all_boots,
+        ) = _get_statistics_and_remove_normalization(
             model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
         )
 
@@ -587,4 +594,3 @@ def LRT_adjust(
 
     adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
     return adjust
-

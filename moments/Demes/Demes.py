@@ -540,15 +540,18 @@ def LDdecay(g, sampled_demes, rho=None, r=None, method="simpson", **kwargs):
         raise ValueError("Only one of rho and r can be provided")
     if rho is None and r is None:
         raise ValueError(
-            "Exactly one of rho and r must be given as a list of length at least two")
+            "Exactly one of rho and r must be given as a list of length at least two"
+        )
     if rho is not None and len(rho) < 2:
         raise ValueError("rho must have length at least two")
     if r is not None and len(r) < 2:
         raise ValueError("r must have length at least two")
-    
+
     possible_methods = ["simpson", "trapezoid", "midpoint"]
     if method not in possible_methods:
-        raise ValueError(f"method {method} is not in possible methods: {possible_methods}")
+        raise ValueError(
+            f"method {method} is not in possible methods: {possible_methods}"
+        )
 
     if method == "simpson":
         if rho is not None:
@@ -572,7 +575,7 @@ def LDdecay(g, sampled_demes, rho=None, r=None, method="simpson", **kwargs):
         elif r is not None:
             r_pass = (r[1:] + r[:-1]) / 2
             rho_pass = None
-    
+
     # Additional kwargs that can be passed to LD() : sample_times=None, theta=None, u=None
 
     y = LD(g, sampled_demes, r=r_pass, rho=rho_pass, **kwargs)
@@ -582,7 +585,9 @@ def LDdecay(g, sampled_demes, rho=None, r=None, method="simpson", **kwargs):
         ld_binned = []
         for ld0, ld1 in zip(y.LD()[:-1], y.LD()[1:]):
             ld_binned.append((ld0 + ld1) / 2)
-        y_new = moments.LD.LDstats(ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids)
+        y_new = moments.LD.LDstats(
+            ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids
+        )
         return y_new
     elif method == "simpson":
         ld_binned = []
@@ -591,7 +596,9 @@ def LDdecay(g, sampled_demes, rho=None, r=None, method="simpson", **kwargs):
             ldc = y.LD()[2 * i + 1]
             ld1 = y.LD()[2 * i + 2]
             ld_binned.append((ld0 + 4 * ldc + ld1) / 6)
-        y_new = moments.LD.LDstats(ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids)
+        y_new = moments.LD.LDstats(
+            ld_binned + [y.H()], num_pops=y.num_pops, pop_ids=y.pop_ids
+        )
         return y_new
 
 
@@ -1129,7 +1136,7 @@ def _compute_sfs(
     # for each set of demographic events and integration epochs, step through
     # integration, apply events, and then reorder populations to align with demes
     # present in the next integration epoch
-    for (T, nu, M, frozen, interval) in zip(
+    for T, nu, M, frozen, interval in zip(
         integration_times,
         nu_funcs,
         migration_matrices,
@@ -1405,7 +1412,7 @@ def _compute_LD(
     # for each set of demographic events and integration epochs, step through
     # integration, apply events, and then reorder populations to align with demes
     # present in the next integration epoch
-    for (T, nu, M, frozen, interval, selfing_rate) in zip(
+    for T, nu, M, frozen, interval, selfing_rate in zip(
         integration_times,
         nu_funcs,
         migration_matrices,
