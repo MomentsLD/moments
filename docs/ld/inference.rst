@@ -298,7 +298,8 @@ And using the GIM approach:
 
 .. jupyter-execute::
 
-    bootstrap_sets = pickle.load(open("data/bootstrap_sets.split_mig.100_reps.bp", "rb"))
+    with open("data/bootstrap_sets.split_mig.100_reps.bp", "rb") as fin:
+        bootstrap_sets = pickle.load(fin)
 
     # using GIM
     uncerts_GIM = moments.LD.Godambe.GIM_uncert(

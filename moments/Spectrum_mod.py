@@ -1974,27 +1974,30 @@ class Spectrum(np.ma.masked_array):
         There are several ways to specify estimated ancestral states. By
         default, VCF ``REF`` alleles are interpreted as ancestral alleles. In
         this case the output SFS should be folded, because the reference allele
-        does not in general correspond to the ancestral allele. If `use_AA` is
-        True, then the ``INFO/AA`` VCF field specifies the ancestral allele.
+        does not in general correspond to the ancestral allele. If ``use_AA``
+        is True, then the ``INFO/AA`` VCF field specifies the ancestral allele.
         Sites where ``INFO/AA`` is absent or missing data (represented by '.')
-        are skipped, raising a warning at the first occurence. If `anc_seq_file`
-        (FASTA format) is given, then ancestral alleles are read from it. Here
-        also, sites are skipped when they lack a valid ancestral allele. This
-        behavior is modulated by `allow_low_confidence`: when True, sites
-        assigned ancestral states represented in lower-case (e.g. 'a') are
-        retained. This usually denotes a low-confidence assignment. Otherwise
-        such sites are skipped. If there are sites in the VCF that fall beyond
-        the end of the FASTA sequence which are not otherwise masked or excluded
-        by the `interval` argument, an error is raised.
+        are skipped, raising a warning at the first occurence.
 
-        When `allow_multiallelic` is False and the ancestral allele is not
+        If ``anc_seq_file`` (FASTA format) is given, then ancestral alleles are
+        read from it. Here also, sites are skipped when they lack a valid
+        ancestral allele. This behavior is modulated by
+        ``allow_low_confidence``: when True, sites assigned ancestral states
+        represented in lower-case (e.g. 'a') are retained. This usually denotes
+        a low-confidence assignment. Otherwise such sites are skipped. If there
+        are sites in the VCF that fall beyond the end of the FASTA sequence
+        which are not otherwise masked or excluded by the ``interval`` argument,
+        an error is raised.
+
+        When ``allow_multiallelic`` is False and the ancestral allele is not
         represented as either the reference or alternate allele at a site, that
         site is skipped automatically. The relationship between derived alleles
         at such sites is not generally clear.
 
-        The parameter `filters` allows filtering by quality and/or annotation
+        The parameter ``filters`` allows filtering by quality and/or annotation
         at the site and sample level. It should be a flat dictionary with str
         keys. Key-value pairs may have the following forms:
+        
         - 'QUAL' should map to a single number (float or int), imposing a minimum
           value for site ``QUAL`` fields.
         - 'FILTER' should map to a string or a set, tuple or list of strings. For
@@ -2028,7 +2031,7 @@ class Spectrum(np.ma.masked_array):
         :type vcf_file: str
         :param pop_mapping: Optional dictionary (default None) mapping
             population IDs to lists of VCF sample IDs. Equivalent in function
-            to, and mutually exclusive with, `pop_file`.
+            to, and mutually exclusive with, ``pop_file``.
         :type pop_mapping: dict, optional
         :param pop_file: Pathname of a whitespace-separated file mapping samples
             to populations with the format SAMPLE POPULATION. Sample names must
@@ -2036,9 +2039,9 @@ class Spectrum(np.ma.masked_array):
             combines all samples into a single population 'ALL'). Samples
             present in the VCF but not included here are ignored.
         :type pop_file: str, optional
-        :param pops: A list of populations from `pop_file `to parse (default
-            None). Only functions when `pop_file` is given. Populations not in
-            `pops` are ignored. If None, then all populations in `pop_file` are
+        :param pops: A list of populations from ``pop_file`` to parse (default
+            None). Only functions when ``pop_file`` is given. Populations not in
+            ``pops`` are ignored. If None, then all populations in ``pop_file`` are
             included.
         :type pops: list of str
         :param bed_file: Pathname of a BED file defining the intervals within
@@ -2054,7 +2057,7 @@ class Spectrum(np.ma.masked_array):
         :param anc_seq_file: Pathname of a FASTA file defining inferred
             ancestral nucleotide states (default None).
         :type anc_seq_file: str, optional
-        :param allow_low_confidence: If True (default False) and `anc_seq_file`
+        :param allow_low_confidence: If True (default False) and ``anc_seq_file``
             is given, allows low-confidence ancestral state assignments-
             represented by lower-case nucleotide codes- to stand. If False,
             sites with low-confidence assignments are skipped.
@@ -2076,11 +2079,11 @@ class Spectrum(np.ma.masked_array):
         :type allow_multiallelic: bool, optional
         :param sample_sizes: Dictionary mapping populations to haploid sample
             sizes (default None). Determines the shape of the returned SFS.
-            Any VCF sites with sample sizes greater than `sample_sizes` will be
+            Any VCF sites with sample sizes greater than ``sample_sizes`` will be
             projected down to match it. This may be useful when some genotype
             data is missing or filtered- sites with missing data are otherwise
             not included in the output SFS. When not given, output sample sizes
-            default to the sample sizes implied by `ploidy` and the number of
+            default to the sample sizes implied by ``ploidy`` and the number of
             individuals in each population.
         :type sample_sizes: dict, optional
         :param mask_corners: If True (default), the 'observed in none' and
@@ -2088,7 +2091,7 @@ class Spectrum(np.ma.masked_array):
         :type mask_corners: bool, optional
         :param ploidy: Optionally defines the ploidy of samples (default 2).
             Used to determine the haploid sample size from the number of sampled
-            individuals when `sample_sizes` is not given.
+            individuals when ``sample_sizes`` is not given.
         :type plody: int, optional
         :param verbose: If > 0, print a progress message every `verbose` lines
             (default 0).
