@@ -1,6 +1,7 @@
 """
 Parameter uncertainties and likelihood ratio tests using Godambe information.
 """
+
 import numpy
 
 from . import Inference

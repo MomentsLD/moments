@@ -177,7 +177,8 @@ use ``optimize_log_fmin`` to fit the model.
     import moments.LD
     import pickle
 
-    data = pickle.load(open("data/means.varcovs.split_mig.100_reps.bp", "rb"))
+    with open("data/means.varcovs.split_mig.100_reps.bp", "rb") as fin:
+        data = pickle.load(fin)
 
     rs = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3]
 
@@ -206,7 +207,7 @@ use ``optimize_log_fmin`` to fit the model.
     print(f"  N(ancestral)     :  {physical_units[4]:.1f}")
 
 These should be pretty close to the input demographic parameters from the
-simulations! They won't be spot on, as this was only using 100Mb of simulated
+simulations. They won't be spot on, as this was only using 100Mb of simulated
 data, but we should be in the ballpark.
 
 ******************************
@@ -297,7 +298,8 @@ And using the GIM approach:
 
 .. jupyter-execute::
 
-    bootstrap_sets = pickle.load(open("data/bootstrap_sets.split_mig.100_reps.bp", "rb"))
+    with open("data/bootstrap_sets.split_mig.100_reps.bp", "rb") as fin:
+        bootstrap_sets = pickle.load(fin)
 
     # using GIM
     uncerts_GIM = moments.LD.Godambe.GIM_uncert(

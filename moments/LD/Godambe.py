@@ -225,7 +225,7 @@ def _get_godambe(
             _ld_cache[key] = func_ex(params, statistics)
         y = _ld_cache[key]
         ll = Inference.ll_over_bins(y, m, v)
-        return ll
+        return -ll
 
     def log_func(logparams, m, v):
         return func(numpy.exp(logparams), m, v)
@@ -302,6 +302,32 @@ def _expected_number_of_calls(params):
     return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 
+def _get_statistics_and_remove_normalization(
+    model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
+):
+    if pass_Ne:
+        y = model_func(p0)
+    else:
+        y = model_func(p0[:-1])
+    statistics = y.names()
+    if (
+        len(means[0]) != len(statistics[0]) or len(means[-1]) != len(statistics[-1])
+    ) or (
+        len(all_boots) > 0
+        and (
+            len(all_boots[0][0]) != len(statistics[0])
+            or len(all_boots[0][-1]) != len(statistics[-1])
+        )
+    ):
+        raise ValueError(
+            "If 'statistics' is not given, then means, varcovs, and "
+            "all_boots must have consistent sizes and be equal to the "
+            "number of stats for the number of populations in the model."
+        )
+    # returns (statistics, means, varcovs, all_boots)
+    return _remove_normalized_data(statistics, normalization, means, varcovs, all_boots)
+
+
 def GIM_uncert(
     model_func,
     all_boot,
@@ -367,25 +393,15 @@ def GIM_uncert(
         Misc.delayed_flush(delay=0.5)
 
     if statistics is None:
-        # get statistics
-        if pass_Ne:
-            y = model_func(p0)
-        else:
-            y = model_func(p0[:-1])
-        statistics = y.names()
-        if (
-            len(means[0]) != len(statistics[0])
-            or len(means[-1]) != len(statistics[-1])
-            or len(all_boots[0][0]) != len(statistics[0])
-            or len(all_boots[0][-1]) != len(statistics[-1])
-        ):
-            raise ValueError(
-                "If 'statistics' is not given, then means, varcovs, and "
-                "all_boots must have consistent sizes and be equal to the "
-                "number of stats for the number of populations in the model."
-            )
-        statistics, means, varcovs, all_boots = _remove_normalized_data(
-            statistics, normalization, means, varcovs, all_boots
+        # get statistics and remove normalizing statistic - requires that all statistics
+        # in the input means and varcovs are present, including the normalizing stats
+        (
+            statistics,
+            means,
+            varcovs,
+            all_boots,
+        ) = _get_statistics_and_remove_normalization(
+            model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
         )
 
     def pass_func(params, statistics):
@@ -479,14 +495,10 @@ def FIM_uncert(
         Misc.delayed_flush(delay=0.5)
 
     if statistics is None:
-        # get statistics
-        if pass_Ne:
-            y = model_func(p0)
-        else:
-            y = model_func(p0[:-1])
-        statistics = y.names()
-        statistics, means, varcovs, _ = _remove_normalized_data(
-            statistics, normalization, means, varcovs, []
+        # get statistics and remove normalizing statistic - requires that all statistics
+        # in the input means and varcovs are present, including the normalizing stats
+        statistics, means, varcovs, _ = _get_statistics_and_remove_normalization(
+            model_func, p0, means, varcovs, [], normalization, pass_Ne
         )
 
     def pass_func(params, statistics):
@@ -511,5 +523,74 @@ def FIM_uncert(
     H = _get_godambe(
         pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
     )
-    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
+    # NOTE: There appears to be some discrepancy with +/- when returning log-likelihoods,
+    # which makes returned hessian matrix negative
+    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(-H)))
     return uncerts
+
+
+def LRT_adjust(
+    model_func,
+    all_boot,
+    p0,
+    nested_indices,
+    ms,
+    vcs,
+    eps=0.01,
+    r_edges=None,
+    normalization=0,
+    pass_Ne=False,
+    statistics=None,
+):
+    """
+    Following `moments.Godambe.LRT_adjust()`, this function performs
+    first-order moment matching to adjust the test statistic for the likelihood
+    ratio test. Given log-likelihoods for a full and nested model (complex and
+    simpler model, resp), the adjustment factor scales the difference in
+    log-likelihoods, which can then be used in a chi-squared test, as
+    implemented in `moments.Godambe.sum_chi2_ppf()`.
+
+    :param model_func:
+    :type model_func:
+    :param all_boot:
+    :type all_boot:
+    :param p0:
+    :type p0:
+    :param nested_indices:
+    :type nested_indices:
+
+    """
+    # TODO: complete docstring
+    means = copy.deepcopy(ms)
+    varcovs = copy.deepcopy(vcs)
+    all_boots = copy.deepcopy(all_boot)
+    rs = np.array(r_edges)
+
+    if statistics is None:
+        # get statistics and remove normalizing statistic - requires that all statistics
+        # in the input means and varcovs are present, including the normalizing stats
+        (
+            statistics,
+            means,
+            varcovs,
+            all_boots,
+        ) = _get_statistics_and_remove_normalization(
+            model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
+        )
+
+    def pass_func(params, statistics):
+        rho = 4 * params[-1] * rs
+        if pass_Ne:
+            y = Inference.bin_stats(model_func, params, rho=rho)
+        else:
+            y = Inference.bin_stats(model_func, params[:-1], rho=rho)
+        y = Inference.sigmaD2(y, normalization=normalization)
+        y = Inference.remove_nonpresent_statistics(y, statistics)
+        return y
+
+    GIM, H, J, cU = _get_godambe(
+        pass_func, all_boots, p0, means, varcovs, eps, statistics, log=False
+    )
+
+    adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
+    return adjust
