@@ -1,6 +1,7 @@
 """
 Parameter uncertainties and likelihood ratio tests using Godambe information.
 """
+
 import numpy
 
 from . import Inference
@@ -372,6 +373,8 @@ def sum_chi2_ppf(x, weights=(0, 1)):
     # scalar on output.
     if numpy.isscalar(x):
         scalar_input = True
+    else:
+        scalar_input = False
     # Convert x into an array, so we can index it easily.
     x = numpy.atleast_1d(x)
     # Calculate total cdf of all chi^2 dists with dof > 1.

@@ -235,8 +235,10 @@ def ll_over_bins(xs, mus, Sigmas):
     for ii in range(len(xs)):
         # get var-cov inverse from cache dictionary, or compute it
         recompute = True
-        if ii in _varcov_inv_cache and np.all(
-            _varcov_inv_cache[ii]["data"] == Sigmas[ii]
+        if (
+            ii in _varcov_inv_cache
+            and (_varcov_inv_cache[ii]["data"].size == Sigmas[ii].size)
+            and np.all(_varcov_inv_cache[ii]["data"] == Sigmas[ii])
         ):
             Sigma_inv = _varcov_inv_cache[ii]["inv"]
             recompute = False
