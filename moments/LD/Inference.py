@@ -173,6 +173,37 @@ def remove_normalized_data(
         return ms, vcs, stats
 
 
+def remove_normalized_stat_name(statistics=None, normalization=0, num_pops=None):
+    """
+    Returns the set of statistic names with the normalizing statistic removed. Note that
+    the normalizing statistics for LD and H must be present for this function to not
+    fail.
+
+    If the list of statistics are not provided, set the number of populations so that
+    all statistics are present, aside from the removed normalizing statistic.
+
+    :param statistics: Tuple of lists, with length two, specifying the names of LD stats
+        and H stats. See ``moments.LD.Util.moment_names()``.
+    :param normalization: The index of the normalizing population.
+    :param num_pops: The number of populations to generate statistic names for. Cannot be
+        used with ``statistics``.
+    :return: Tuple of lists with statistic names, with normalizing statistics removed.
+    """
+    if statistics is None:
+        if num_pops is None:
+            raise ValueError(
+                "if `statistics` are not given, we must provide `num_pops`"
+            )
+        statistics = moments.LD.Util.moment_names(num_pops)
+    norm_ld = f"pi2_{normalization}_{normalization}_{normalization}_{normalization}"
+    norm_h = f"H_{normalization}_{normalization}"
+    stats_out_ld = copy.deepcopy(statistics[0])
+    stats_out_h = copy.deepcopy(statistics[1])
+    stats_out_ld.pop(stats_out_ld.index(norm_ld))
+    stats_out_h.pop(stats_out_h.index(norm_h))
+    return (stats_out_ld, stats_out_h)
+
+
 def remove_nonpresent_statistics(y, statistics=[[], []]):
     """
     Removes data not found in the given set of statistics.
@@ -209,6 +240,7 @@ def _ll(x, mu, Sigma_inv):
         return 0
     else:
         return -1.0 / 2 * np.dot(np.dot((x - mu).transpose(), Sigma_inv), x - mu)
+        ## NOTE: fix this to return actuall LL, should also be negative...
         # - len(x)*np.pi - 1./2*np.log(np.linalg.det(Sigma))
 
 
