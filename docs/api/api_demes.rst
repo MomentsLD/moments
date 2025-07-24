@@ -11,6 +11,8 @@ Computing statistics from ``demes``
 
 .. autofunction:: moments.Demes.LD
 
+.. autofunction:: moments.Demes.LDdecay
+
 Running SFS inference using ``demes``
 -------------------------------------
 
