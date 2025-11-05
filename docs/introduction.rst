@@ -61,6 +61,22 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.4.6
+=====
+- Drop wheel building for macos-13, add support for macos-15
+
+1.4.5
+=====
+- Add function in LD handling to more easily remove normalizing statistic names
+
+1.4.4
+=====
+- Bug fixes in LD methods and Godambe.sum_chi2_ppf
+
+1.4.3
+=====
+- Fixes bugs in error messages introduced in 1.4.2
+
 1.4.2
 =====
 - Introduce a new, flexible method to compute the SFS from a VCF file
