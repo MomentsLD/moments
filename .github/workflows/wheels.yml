@@ -227,18 +227,18 @@ jobs:
         run: |
           for wheel in $(find . -name "*.whl")
           do
-          n=`basename $i`
+          n=`basename $wheel`
           if [ ! -e dist/$n ]
           then
-          cp wheel dist
+          cp $wheel dist
           fi
           done
           for wheel in $(find . -name "*.gz")
           do
-          n=`basename $i`
+          n=`basename $wheel`
           if [ ! -e dist/$n ]
           then
-          cp wheel dist
+          cp $wheel dist
           fi
           done
       
