@@ -54,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14]
+        os: [macos-15, macos-14]
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -176,7 +176,7 @@ jobs:
     strategy:
       matrix:
         python: ["3.12", "3.13"]
-        os: [macos-14]
+        os: [macos-15, macos-14]
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -219,9 +219,28 @@ jobs:
         uses: actions/download-artifact@v4.1.4
       
       - name: Move to dist
+        # macos-15 breaks the previous run cmd, since
+        # it appears to copy the wheels directly to dist
+        #run: |
+        #  mkdir dist
+        #  cp */*.{whl,gz} dist/.
         run: |
-          mkdir dist
-          cp */*.{whl,gz} dist/.
+          for wheel in $(find . -name "*.whl")
+          do
+          n=`basename $wheel`
+          if [ ! -e dist/$n ]
+          then
+          cp $wheel dist
+          fi
+          done
+          for wheel in $(find . -name "*.gz")
+          do
+          n=`basename $wheel`
+          if [ ! -e dist/$n ]
+          then
+          cp $wheel dist
+          fi
+          done
       
       - name: Publish distribution to PRODUCTION PyPI
         if: github.event_name == 'release'
