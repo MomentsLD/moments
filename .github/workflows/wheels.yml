@@ -225,6 +225,7 @@ jobs:
         #  mkdir dist
         #  cp */*.{whl,gz} dist/.
         run: |
+          mkdir dist
           for wheel in $(find . -name "*.whl")
           do
           n=`basename $wheel`
