@@ -241,6 +241,7 @@ jobs:
           cp $wheel dist
           fi
           done
+          ls dist
       
       - name: Publish distribution to PRODUCTION PyPI
         if: github.event_name == 'release'
