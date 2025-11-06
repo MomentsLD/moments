@@ -28,6 +28,7 @@ def SFS(
     u=None,
     reversible=False,
     L=1,
+    mutation_time_windows=None,
 ):
     """
     Compute the SFS from a ``demes``-specified demographic model.
@@ -104,6 +105,18 @@ def SFS(
         set the total mutation rate. Defaults to 1, and it must be 1 when using
         the reversible mutation model.
     :type L: scalar
+    :param mutation_time_windows: A list of times, in ascending order,
+        specifying time window breakpoints, over which we partition the SFS
+        into the contributions of mutations originating within each window. It
+        must start at zero and be monotonically increasing, and the final
+        window spans from the last breakpoint until infinity. If specified, we
+        return a list of :class:`moments.Spectrum` objects, one for each time
+        window (so that number will be equal to
+        ``len(mutation_time_windows)``). The order or spectra in this list will
+        be in ascending order, so that the first element represents the SFS
+        from mutation originating from time zero to the first non-zero specified
+        time.
+    :type mutation_time_windows: list of floats
     :return: A ``moments`` site frequency spectrum, with dimension equal to the
         length of ``sampled_demes``, and shape equal to ``sample_sizes`` plus one
         in each dimension, indexing the allele frequency in each deme from 0
@@ -154,9 +167,23 @@ def SFS(
         if t < g[d].end_time or t >= g[d].start_time:
             raise ValueError(f"sample time {t} is outside of deme {d}'s time span")
 
+    if mutation_time_windows is not None:
+        mutation_time_windows = _validate_mutation_time_windows(mutation_time_windows)
+        extra_empty_spectra_needed = 0
+
     # for any ancient samples, we need to add frozen branches
     # with this, all "sample times" are at time 0, and ancient sampled demes are frozen
     if np.any(np.array(deme_sample_times) != 0):
+        if mutation_time_windows is not None:
+            # shift the times if min_t is larger than zero
+            min_t = min(deme_sample_times)
+            if min_t > 0:
+                mutation_time_windows -= min_t
+                mutation_time_windows[mutation_time_windows < 0] = 0
+            num_zeros = np.sum(mutation_time_windows == 0)
+            if num_zeros > 1:
+                extra_empty_spectra_needed = num_zeros - 1
+                mutation_time_windows = mutation_time_windows[num_zeros - 1 :]
         g, sampled_pops, list_of_frozen_demes = _augment_with_ancient_samples(
             g, sampled_pops, deme_sample_times
         )
@@ -165,6 +192,9 @@ def SFS(
         list_of_frozen_demes = []
 
     if g.time_units != "generations":
+        if mutation_time_windows is not None:
+            # rescale time units
+            mutation_time_windows = np.array(mutation_time_windows) / g.generation_time
         g, deme_sample_times = _convert_to_generations(g, deme_sample_times)
 
     # if any sample sizes are less than unsample_n, we increase and project after
@@ -247,6 +277,10 @@ def SFS(
         if theta <= 0:
             raise ValueError("Mutation rate must be positive")
     if reversible:
+        if mutation_time_windows is not None:
+            raise ValueError(
+                "`mutation_time_windows` can only be specifice with ISM (`reversible=False`)"
+            )
         if L != 1:
             raise ValueError(
                 "Sequence length L must be 1 when using the reversible mutation model"
@@ -258,18 +292,18 @@ def SFS(
         if theta[0] >= 1 or theta[1] >= 1:
             raise ValueError("Mutation rates too large for reversible mutation model")
 
-    # get the list of demographic events from demes, which is a dictionary with
-    # lists of splits, admixtures, mergers, branches, and pulses
+    # Get the list of demographic events from demes, which is a dictionary with
+    # lists of splits, admixtures, mergers, branches, and pulses.
     demes_demo_events = g.discrete_demographic_events()
 
-    # get the dict of events and event times that partition integration epochs, in
-    # descending order. events include demographic events, such as splits and
+    # Get the dict of events and event times that partition integration epochs, in
+    # descending order. Events include demographic events, such as splits and
     # mergers and admixtures, as well as changes in population sizes or migration
     # rates that require instantaneous changes in the size function or migration matrix.
-    # get the list of demes present in each epoch, as a dictionary with non-overlapping
-    # adjoint epoch time intervals
+    # Also get the list of demes present in each epoch, as a dictionary with non-overlapping
+    # adjoint epoch time intervals.
     demo_events, demes_present = _get_demographic_events(
-        g, demes_demo_events, sampled_pops
+        g, demes_demo_events, sampled_pops, mutation_time_windows=mutation_time_windows
     )
 
     for epoch, epoch_demes in demes_present.items():
@@ -279,13 +313,13 @@ def SFS(
                 f"Epoch {epoch} has demes {epoch_demes}."
             )
 
-    # get the list of size functions, migration matrices, and frozen attributes from
-    # the deme graph and event times, matching the integration times
+    # Get the list of size functions, migration matrices, and frozen attributes from
+    # the deme graph and event times, matching the integration times.
     nu_funcs, mig_mats, Ts, frozen_pops = _get_integration_parameters(
         g, demes_present, list_of_frozen_demes, Ne=Ne
     )
 
-    # get the sample sizes within each deme, given sample sizes
+    # Get the sample sizes within each deme, given sample sizes.
     deme_sample_sizes = _get_deme_sample_sizes(
         g,
         demo_events,
@@ -295,7 +329,7 @@ def SFS(
         unsampled_n=unsampled_n,
     )
 
-    # compute the SFS
+    # Compute the SFS.
     fs = _compute_sfs(
         demo_events,
         demes_present,
@@ -308,19 +342,44 @@ def SFS(
         gamma=gamma,
         h=h,
         reversible=reversible,
+        mutation_time_windows=mutation_time_windows,
     )
 
-    fs = _reorder_fs(fs, sampled_pops)
+    if mutation_time_windows is None:
+        fs = _reorder_fs(fs, sampled_pops)
+    else:
+        for i in range(len(fs)):
+            fs[i] = _reorder_fs(fs[i], sampled_pops)
 
     # project down to desired sample sizes, if needed
-    fs = fs.project(sample_sizes)
-    # simplify pop id name if ancient sample at end time of that deme
-    for ii, pid in enumerate(fs.pop_ids):
+    if mutation_time_windows is None:
+        fs = fs.project(sample_sizes)
+    else:
+        for i in range(len(fs)):
+            fs[i] = fs[i].project(sample_sizes)
+
+    # simplify pop id name of ancient sample at end time of that deme
+    if mutation_time_windows is None:
+        pids = fs.pop_ids
+    else:
+        pids = fs[0].pop_ids
+        for fs_comp in fs[1:]:
+            assert fs_comp.pop_ids == pids
+    for ii, pid in enumerate(pids):
         if "_sampled_" in pid:
             p, t = pid.split("_sampled_")
             t = float(t.replace("_", "."))
             if t == sampled_deme_end_times[ii]:
-                fs.pop_ids[ii] = p
+                if mutation_time_windows is None:
+                    fs.pop_ids[ii] = p
+                else:
+                    for i in range(len(fs)):
+                        fs[i].pop_ids[ii] = p
+
+    if mutation_time_windows is not None and extra_empty_spectra_needed > 0:
+        for _ in range(extra_empty_spectra_needed):
+            fs.insert(0, copy.deepcopy(fs[0]))
+            fs[0] *= 0
 
     return fs
 
@@ -683,13 +742,18 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     return g_new, sampled_demes, frozen_demes
 
 
-def _get_demographic_events(g, demes_demo_events, sampled_demes):
+def _get_demographic_events(
+    g, demes_demo_events, sampled_demes, mutation_time_windows=None
+):
     """
     Returns demographic events and present demes over each epoch.
     Epochs are divided by any demographic event.
+
+    If mutation_time_windows is not None, we can also have "events" that
+    are the breakpoints of those time windows, in which we turn on/off migration.
     """
     # first get set of all time dividers, from demographic events, migration
-    # rate changes, deme epoch changes
+    # rate changes, deme epoch changes, and mutation_time_windows (if given)
     break_points = set()
     for deme in g.demes:
         for e in deme.epochs:
@@ -700,6 +764,9 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
     for migration in g.migrations:
         break_points.add(migration.start_time)
         break_points.add(migration.end_time)
+    if mutation_time_windows is not None:
+        for t in mutation_time_windows[1:]:
+            break_points.add(t)
 
     # get demes present for each integration epoch
     integration_times = [
@@ -760,6 +827,13 @@ def _get_demographic_events(g, demes_demo_events, sampled_demes):
         ):
             event = ("marginalize", deme_id)
             demo_events[g[deme_id].end_time].append(event)
+
+    # Mutation rate breakpoints get added as a special event, after all other
+    # demographic events are handled for a given time.
+    if mutation_time_windows is not None:
+        for mut_break_time in mutation_time_windows[1:]:
+            event = ("mut_break",)
+            demo_events[mut_break_time].append(event)
 
     return demo_events, demes_present
 
@@ -929,6 +1003,23 @@ def _migration_rate_in_interval(g, source, dest, time_interval):
 ##
 
 
+def _validate_mutation_time_windows(mutation_time_windows):
+    mutation_time_windows = np.array(mutation_time_windows)
+    if len(mutation_time_windows) < 1:
+        raise ValueError("mutation time window must be at least [0]")
+    if np.any(mutation_time_windows < 0):
+        raise ValueError("mutation time window values must be positive")
+    if mutation_time_windows[0] != 0:
+        raise ValueError("mutation time windows must start at zero")
+    if len(mutation_time_windows) != len(set(mutation_time_windows)):
+        raise ValueError("mutation time window values cannot repeat")
+    if np.any(mutation_time_windows[1:] - mutation_time_windows[:-1] <= 0):
+        raise ValueError(
+            "mutation time windows values must be monotonically increasing"
+        )
+    return mutation_time_windows
+
+
 def _get_deme_sample_sizes(
     g, demo_events, sampled_demes, sample_sizes, demes_present, unsampled_n=4
 ):
@@ -1083,6 +1174,7 @@ def _compute_sfs(
     gamma=None,
     h=None,
     reversible=False,
+    mutation_time_windows=None,
 ):
     """
     Integrates using moments to find the SFS for given demo events, etc
@@ -1126,12 +1218,14 @@ def _compute_sfs(
     if reversible is False:
         fs = theta * moments.LinearSystem_1D.steady_state_1D(n0, gamma=gamma0, h=h0)
     else:
+        if h0 != 0.5:
+            raise ValueError("can only use h=0.5 with reversible mutation model")
         fs = moments.LinearSystem_1D.steady_state_1D_reversible(
             n0, gamma=gamma0, theta_fd=theta_fd, theta_bd=theta_bd
         )
-        if h0 != 0.5:
-            raise ValueError("can only use h=0.5 with reversible mutation model")
     fs = moments.Spectrum(fs, pop_ids=[root_deme], mask_corners=mask_corners)
+    if mutation_time_windows is not None:
+        fs = [fs]
 
     # for each set of demographic events and integration epochs, step through
     # integration, apply events, and then reorder populations to align with demes
@@ -1169,13 +1263,41 @@ def _compute_sfs(
                     theta_bd=theta_bd,
                 )
             else:
-                fs.integrate(
-                    nu, T, m=M, frozen=frozen, gamma=gamma_int, h=h_int, theta=theta
-                )
+                if mutation_time_windows is None:
+                    fs.integrate(
+                        nu, T, m=M, frozen=frozen, gamma=gamma_int, h=h_int, theta=theta
+                    )
+                else:
+                    for i in range(len(fs)):
+                        # the first spectrum is the "live" one
+                        this_theta = theta * (i == 0)
+                        fs[i].integrate(
+                            nu,
+                            T,
+                            m=M,
+                            frozen=frozen,
+                            gamma=gamma_int,
+                            h=h_int,
+                            theta=this_theta,
+                        )
 
         events = demo_events[interval[1]]
         for event in events:
-            fs = _apply_event(fs, event, interval[1], deme_sample_sizes, demes_present)
+            if event[0] == "mut_break":
+                # if event is a time window break, apply it separately by extending the
+                # list of spectra, by copying one of them and zeroing it out
+                fs.insert(0, copy.deepcopy(fs[0]))
+                fs[0] *= 0
+            else:
+                if mutation_time_windows is None:
+                    fs = _apply_event(
+                        fs, event, interval[1], deme_sample_sizes, demes_present
+                    )
+                else:
+                    for i in range(len(fs)):
+                        fs[i] = _apply_event(
+                            fs[i], event, interval[1], deme_sample_sizes, demes_present
+                        )
 
         if interval[1] > 0:
             # rearrange to next order of demes
@@ -1183,9 +1305,15 @@ def _compute_sfs(
                 [x[0] for x in integration_intervals].index(interval[1])
             ]
             next_deme_order = demes_present[next_interval]
-            assert fs.ndim == len(next_deme_order)
-            assert np.all([d in next_deme_order for d in fs.pop_ids])
-            fs = _reorder_fs(fs, next_deme_order)
+            if mutation_time_windows is None:
+                # these may be able to be removed - from initial testing of method
+                assert fs.ndim == len(next_deme_order)
+                assert np.all([d in next_deme_order for d in fs.pop_ids])
+            if mutation_time_windows is None:
+                fs = _reorder_fs(fs, next_deme_order)
+            else:
+                for i in range(len(fs)):
+                    fs[i] = _reorder_fs(fs[i], next_deme_order)
 
     return fs
 
