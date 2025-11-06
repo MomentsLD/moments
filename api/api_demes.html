@@ -1,0 +1,657 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API for demes functions &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="API for linkage disequilibrium" href="api_ld.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#computing-statistics-from-demes">Computing statistics from <code class="docutils literal notranslate"><span class="pre">demes</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.SFS"><code class="docutils literal notranslate"><span class="pre">SFS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.LD"><code class="docutils literal notranslate"><span class="pre">LD()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.LDdecay"><code class="docutils literal notranslate"><span class="pre">LDdecay()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-sfs-inference-using-demes">Running SFS inference using <code class="docutils literal notranslate"><span class="pre">demes</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.Inference.optimize"><code class="docutils literal notranslate"><span class="pre">optimize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.Inference.uncerts"><code class="docutils literal notranslate"><span class="pre">uncerts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-ld-inference-using-demes">Running LD inference using <code class="docutils literal notranslate"><span class="pre">demes</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.Inference.optimize_LD"><code class="docutils literal notranslate"><span class="pre">optimize_LD()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.Inference.uncerts_LD"><code class="docutils literal notranslate"><span class="pre">uncerts_LD()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.Inference.compute_bin_stats"><code class="docutils literal notranslate"><span class="pre">compute_bin_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#manipulating-demes-models">Manipulating <code class="docutils literal notranslate"><span class="pre">demes</span></code> models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.DemesUtil.slice"><code class="docutils literal notranslate"><span class="pre">slice()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.DemesUtil.swipe"><code class="docutils literal notranslate"><span class="pre">swipe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.Demes.DemesUtil.rescale"><code class="docutils literal notranslate"><span class="pre">rescale()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/api_demes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-for-demes-functions">
+<span id="sec-demes-api"></span><h1>API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions<a class="headerlink" href="#api-for-demes-functions" title="Link to this heading"></a></h1>
+<section id="computing-statistics-from-demes">
+<h2>Computing statistics from <code class="docutils literal notranslate"><span class="pre">demes</span></code><a class="headerlink" href="#computing-statistics-from-demes" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.SFS">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.</span></span><span class="sig-name descname"><span class="pre">SFS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_demes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsampled_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reversible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_time_windows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Demes.html#SFS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.SFS" title="Link to this definition"></a></dt>
+<dd><p>Compute the SFS from a <code class="docutils literal notranslate"><span class="pre">demes</span></code>-specified demographic model.
+<code class="docutils literal notranslate"><span class="pre">demes</span></code> is a package for specifying demographic models in a
+user-friendly, human-readable YAML format. This function
+automatically parses the demographic model and returns the SFS
+for the specified populations, sample sizes, and (optionally)
+sampling times.</p>
+<p>Selection and dominance can be specified as a single value for
+all populations, or on a per-deme basis using a dictionary
+mapping deme name to the coefficient (defaults can also be set
+if multiple demes have the same selection or dominance
+coefficient). The mutation rate can be given as either a
+per-base rate (possibly multiplied by the sequence length),
+or as a population size-scaled rate. If mutation rates are not
+given, the SFS is scaled by <code class="docutils literal notranslate"><span class="pre">4*N_e</span></code>, so that multiplying the
+output SFS by <code class="docutils literal notranslate"><span class="pre">u</span></code> results in a properly scaled SFS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.DemeGraph</span></code>) – A <code class="docutils literal notranslate"><span class="pre">demes</span></code> DemeGraph from which to compute the SFS.</p></li>
+<li><p><strong>sampled_demes</strong> (<em>list</em><em> of </em><em>strings</em>) – A list of deme IDs to take samples from. We can repeat
+demes, as long as the sampling of repeated deme IDs occurs at distinct
+times.</p></li>
+<li><p><strong>sample_sizes</strong> (<em>list</em><em> of </em><em>ints</em>) – A list of the same length as <code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>,
+giving the sample sizes for each sampled deme.</p></li>
+<li><p><strong>sample_times</strong> (<em>list</em><em> of </em><em>scalars</em><em>, </em><em>optional</em>) – If None, assumes all sampling occurs at the end of the
+existence of the sampled deme. If there are
+ancient samples, <code class="docutils literal notranslate"><span class="pre">sample_times</span></code> must be a list of same length as
+<code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>, giving the sampling times for each sampled
+deme. Sampling times are given in time units of the original deme graph,
+so might not necessarily be generations (e.g. if <code class="docutils literal notranslate"><span class="pre">g.time_units</span></code> is years)</p></li>
+<li><p><strong>unsampled_n</strong> (<em>int</em><em>, </em><em>optional</em>) – The default sample size of unsampled demes, which must be
+greater than or equal to 4.</p></li>
+<li><p><strong>gamma</strong> (<em>scalar</em><em> or </em><em>dict</em>) – The scaled selection coefficient(s), <code class="docutils literal notranslate"><span class="pre">2*Ne*s</span></code>. Defaults to None,
+which implies neutrality. Can be given as a scalar value, in which case
+all populations have the same selection coefficient. Alternatively, can
+be given as a dictionary, with keys given as population names in the
+input Demes model. Any population missing from this dictionary will be
+assigned a selection coefficient of zero. A non-zero default selection
+coefficient can be provided, using the key <code class="docutils literal notranslate"><span class="pre">_default</span></code>. See the Demes
+exension documentation for more details and examples.</p></li>
+<li><p><strong>h</strong> (<em>scalar</em><em> or </em><em>dict</em>) – The dominance coefficient(s). Defaults to additivity (or genic
+selection). Can be given as a scalar value, in which case all populations
+have the same dominance coefficient. Alternatively, can be given as a
+dictionary, with keys given as population names in the input Demes model.
+Any population missing from this dictionary will be assigned a dominance
+coefficient of <code class="docutils literal notranslate"><span class="pre">1/2</span></code> (additivity). A different default dominance
+coefficient can be provided, using the key <code class="docutils literal notranslate"><span class="pre">_default</span></code>. See the Demes
+exension documentation for more details and examples.</p></li>
+<li><p><strong>theta</strong> (<em>scalar</em><em> or </em><em>list</em><em> of </em><em>length 2</em>) – The scaled mutation rate(s), 4*Ne*u. When simulating under the
+infinite sites model (the default mutation model), <code class="docutils literal notranslate"><span class="pre">theta</span></code> should be given
+as a scalar value greater than zero. If it is not provided, it is computed
+using the input value of <code class="docutils literal notranslate"><span class="pre">u</span></code> as <code class="docutils literal notranslate"><span class="pre">4*Ne*u</span></code>. If <code class="docutils literal notranslate"><span class="pre">u</span></code> is not provided, then
+the SFS is scaled by <code class="docutils literal notranslate"><span class="pre">4*Ne</span></code>, and the user can recover a properly scaled SFS
+by multiplying it by <code class="docutils literal notranslate"><span class="pre">u</span></code> or <code class="docutils literal notranslate"><span class="pre">u*L</span></code>. When simulating under the reversible
+mutation model (with <code class="docutils literal notranslate"><span class="pre">reversible=True</span></code>), <code class="docutils literal notranslate"><span class="pre">theta</span></code> may be a list of length
+2 and both the forward and backward scaled mutation rates must be less
+than 1.</p></li>
+<li><p><strong>u</strong> (<em>scalar</em><em> or </em><em>list</em><em> of </em><em>length 2</em>) – The per-base mutation rate. When simulating under the infinite sites
+model (the default mutation model), <code class="docutils literal notranslate"><span class="pre">u</span></code> should be a scalar. When simulating
+under the reversible mutation model (with <code class="docutils literal notranslate"><span class="pre">reversible=True</span></code>), <code class="docutils literal notranslate"><span class="pre">u</span></code> may
+be a list of length 2, and mutation rate(s) must be small enough so that
+the product of <code class="docutils literal notranslate"><span class="pre">4*Ne*u</span></code> is less than 1.</p></li>
+<li><p><strong>L</strong> (<em>scalar</em>) – The effective sequence length, which may be used along with <code class="docutils literal notranslate"><span class="pre">u</span></code> to
+set the total mutation rate. Defaults to 1, and it must be 1 when using
+the reversible mutation model.</p></li>
+<li><p><strong>mutation_time_windows</strong> (<em>list</em><em> of </em><em>floats</em>) – A list of times, in ascending order,
+specifying time window breakpoints, over which we partition the SFS
+into the contributions of mutations originating within each window. It
+must start at zero and be monotonically increasing, and the final
+window spans from the last breakpoint until infinity. If specified, we
+return a list of <a class="reference internal" href="api_moments.html#moments.Spectrum" title="moments.Spectrum"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.Spectrum</span></code></a> objects, one for each time
+window (so that number will be equal to
+<code class="docutils literal notranslate"><span class="pre">len(mutation_time_windows)</span></code>). The order or spectra in this list will
+be in ascending order, so that the first element represents the SFS
+from mutation originating from time zero to the first non-zero specified
+time.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">moments</span></code> site frequency spectrum, with dimension equal to the
+length of <code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>, and shape equal to <code class="docutils literal notranslate"><span class="pre">sample_sizes</span></code> plus one
+in each dimension, indexing the allele frequency in each deme from 0
+to n[i], where i is the deme index.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="api_moments.html#moments.Spectrum" title="moments.Spectrum"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.Spectrum</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.LD">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.</span></span><span class="sig-name descname"><span class="pre">LD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_demes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Demes.html#LD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.LD" title="Link to this definition"></a></dt>
+<dd><p>Compute LD statistics from a <code class="docutils literal notranslate"><span class="pre">demes</span></code>-specified demographic model.
+<code class="docutils literal notranslate"><span class="pre">demes</span></code> is a package for specifying demographic models in a
+user-friendly, human-readable YAML format. This function
+automatically parses the demographic model and returns LD statistics
+for the specified populations and (optionally) sampling times.</p>
+<p>No mutation or recombination rates are required. If recombination
+rates are omitted, only single-locus allelic diversity statistics
+will be computed. If mutation rates are omitted, that is, neither
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> nor <code class="docutils literal notranslate"><span class="pre">u</span></code> are provided, the per-base mutation rate is set
+to 1. Thus, to recover the correctly scaled LD statistics, multiply
+the two-locus statistics by <span class="math notranslate nohighlight">\(u^2\)</span> and the single-locus
+statistics by <span class="math notranslate nohighlight">\(u\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.DemeGraph</span></code>) – A <code class="docutils literal notranslate"><span class="pre">demes</span></code> DemeGraph from which to compute the LD.</p></li>
+<li><p><strong>sampled_demes</strong> (<em>list</em><em> of </em><em>strings</em>) – A list of deme IDs to take samples from. We can repeat
+demes, as long as the sampling of repeated deme IDs occurs at distinct
+times.</p></li>
+<li><p><strong>sample_times</strong> (<em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – If None, assumes all sampling occurs at the end of the
+existence of the sampled deme. If there are
+ancient samples, <code class="docutils literal notranslate"><span class="pre">sample_times</span></code> must be a list of same length as
+<code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>, giving the sampling times for each sampled
+deme. Sampling times are given in time units of the original deme graph,
+so might not necessarily be generations (e.g. if <code class="docutils literal notranslate"><span class="pre">g.time_units</span></code> is years)</p></li>
+<li><p><strong>rho</strong> – The population-size scaled recombination rate(s). Can be None, a
+non-negative float, or a list of values. Cannot be used with <code class="docutils literal notranslate"><span class="pre">Ne</span></code>.</p></li>
+<li><p><strong>theta</strong> – The population-size scaled mutation rate. Cannot be used
+with <code class="docutils literal notranslate"><span class="pre">u</span></code>.</p></li>
+<li><p><strong>r</strong> (<em>scalar</em><em> or </em><em>list</em><em> of </em><em>scalars</em>) – The unscaled recombination rate(s). Can be None, a non-negative
+float, or a list of values. Recombination rates are scaled by <code class="docutils literal notranslate"><span class="pre">Ne</span></code> to
+get <code class="docutils literal notranslate"><span class="pre">rho=4*Ne*u</span></code>, and <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is determined by the root population size.</p></li>
+<li><p><strong>u</strong> (<em>scalar</em>) – The raw per-base mutation rate. The reference effective population
+size <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is determined from the demograhic model, after which
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> is set to <code class="docutils literal notranslate"><span class="pre">4*Ne*u</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> LD statistics object, with number of populations equal
+to the length of <code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="api_ld.html#moments.LD.LDstats" title="moments.LD.LDstats"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.LD.LDstats</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.LDdecay">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.</span></span><span class="sig-name descname"><span class="pre">LDdecay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_demes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simpson'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Demes.html#LDdecay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.LDdecay" title="Link to this definition"></a></dt>
+<dd><p>Computes average LD statistics within recombination bins. The input demographic
+model, sampled demes, and other arguments follow <code class="docutils literal notranslate"><span class="pre">moments.Demes.LD()</span></code>. Here,
+either <code class="docutils literal notranslate"><span class="pre">rho</span></code> or <code class="docutils literal notranslate"><span class="pre">r</span></code> must be given as an array of at least length 2.
+Recombination bins are defined by adjacent values in the list of recombination
+distances, so that there are <code class="docutils literal notranslate"><span class="pre">len(r)</span> <span class="pre">-</span> <span class="pre">1</span></code> sets of LD statistics in the output
+<code class="docutils literal notranslate"><span class="pre">LDstats</span></code> object.</p>
+<dl class="simple">
+<dt>Possible numerical integration methods:</dt><dd><ul class="simple">
+<li><p>“simpson”, quadratic</p></li>
+<li><p>“trapezoid”, linear</p></li>
+<li><p>“midpoint”, zeroth order</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code>) – The input demographic model, loaded using <code class="docutils literal notranslate"><span class="pre">demes</span></code>.</p></li>
+<li><p><strong>sampled_deme</strong> (<em>list</em><em> of </em><em>str</em>) – List of deme names of demes in the input demographic
+model from which to draw samples from.</p></li>
+<li><p><strong>rho</strong> (<em>list-like</em>) – Monotonically increasing list of length two or more specifying
+recombination bin endpoints (in units of <span class="math notranslate nohighlight">\(4 N_e r\)</span>). Only one of
+rho and r can be given.</p></li>
+<li><p><strong>r</strong> (<em>list-like</em>) – Monotonically increasing list of length two or more specifying
+recombination bin endpoints. Only one of rho and r can be given.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – One of <code class="docutils literal notranslate"><span class="pre">&quot;simpson&quot;,</span> <span class="pre">``&quot;trapezoid&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;midpoint&quot;</span></code>.</p></li>
+<li><p><strong>sample_times</strong> (<em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – If None, assumes all sampling occurs at the end of the
+existence of the sampled deme. If there are
+ancient samples, <code class="docutils literal notranslate"><span class="pre">sample_times</span></code> must be a list of same length as
+<code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>, giving the sampling times for each sampled
+deme. Sampling times are given in time units of the original deme graph,
+so might not necessarily be generations (e.g. if <code class="docutils literal notranslate"><span class="pre">g.time_units</span></code> is years)</p></li>
+<li><p><strong>theta</strong> (<em>scalar</em>) – The population-size scaled mutation rate. Cannot be used
+with <code class="docutils literal notranslate"><span class="pre">u</span></code>.</p></li>
+<li><p><strong>u</strong> (<em>scalar</em>) – The raw per-base mutation rate. The reference effective population
+size <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is determined from the demograhic model, after which
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> is set to <code class="docutils literal notranslate"><span class="pre">4*Ne*u</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> LD statistics object, with number of populations equal
+to the length of <code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="api_ld.html#moments.LD.LDstats" title="moments.LD.LDstats"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.LD.LDstats</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="running-sfs-inference-using-demes">
+<h2>Running SFS inference using <code class="docutils literal notranslate"><span class="pre">demes</span></code><a class="headerlink" href="#running-sfs-inference-using-demes" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.Inference.optimize">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.Inference.</span></span><span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deme_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uL=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method='fmin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_ancestral_misid=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">misid_guess=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_stream=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Inference.html#optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.Inference.optimize" title="Link to this definition"></a></dt>
+<dd><p>Optimize demography given a deme graph of initial and fixed parameters and
+inference options that specify which parameters to fit, and bounds or constraints
+on those parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>deme_graph</strong> – A demographic model as a YAML file in <code class="docutils literal notranslate"><span class="pre">demes</span></code> format. This
+should be given as a string specifying the path and file name of the model.</p></li>
+<li><p><strong>inference_options</strong> – A second YAML file, specifying the parameters to be
+optimized, parameter bounds, and constraints between parameters. Please see
+the documentation at
+<a class="reference external" href="https://momentsld.github.io/moments/extensions/demes.html#the-options-file">https://momentsld.github.io/moments/extensions/demes.html#the-options-file</a></p></li>
+<li><p><strong>data</strong> – The SFS to fit, which must have pop_ids specified. Can either be a
+Spectrum object or the file path to the stored frequency spectrum. The
+populations in the SFS (as given by <code class="docutils literal notranslate"><span class="pre">sfs.pop_ids</span></code>) need to be present in
+the demographic model and have matching IDs.</p></li>
+<li><p><strong>maxiter</strong> – The maximum number of iterations to run optimization. Defaults
+to 1000. Note: maxiter does not seem to work with the Powell method! This
+appears to be a bug within scipy.optimize.</p></li>
+<li><p><strong>perturb</strong> – The perturbation amount of the initial parameters. Defaults to
+zero, in which case we do not perturb the initial parameters in the input
+demes YAML. If perturb is greater than zero, the initial parameters in the input
+YAML are randomly perturbed by up to <cite>perturb</cite>-fold.</p></li>
+<li><p><strong>verbose</strong> – The frequency to print updates to <cite>output_stream</cite> if greater than 1.</p></li>
+<li><p><strong>uL</strong> – The mutuation rate scaled by number of callable sites, so that theta
+is the compound parameter 4*Ne*uL. If given, we optimize with <cite>multinom=False</cite>,
+and theta is determined by taking Ne as the ancestral or root population size,
+which can be fit. Defaults to None. If uL is not given, we use <cite>multinom=True</cite>
+and we likely do not want to fit the ancestral population size.</p></li>
+<li><p><strong>log</strong> – If True, optimize over log of the parameters.</p></li>
+<li><p><strong>method</strong> – The optimization method. Available methods are “fmin”, “powell”,
+and “lbfgsb”.</p></li>
+<li><p><strong>fit_ancestral_misid</strong> – If True, we fit the probability that the ancestral
+state of a given SNP is misidenitified, resulting in ancestral/derived
+labels being flipped. Note: this is only allowed with <em>unfolded</em> spectra.
+Defaults to False.</p></li>
+<li><p><strong>misid_guess</strong> – Defaults to 0.01.</p></li>
+<li><p><strong>output</strong> – If given, the filename for the output best-fit model YAML.</p></li>
+<li><p><strong>overwrite</strong> – If True, overwrites any existing file with the same output
+name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Output_stream<span class="colon">:</span></dt>
+<dd class="field-even"><p>Defaults to standard output. Can be given an open file stream
+instead or other output stream.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of parameter names, optimal parameters, and LL</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.Inference.uncerts">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.Inference.</span></span><span class="sig-name descname"><span class="pre">uncerts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deme_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstraps=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uL=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstraps_uL=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method='FIM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_ancestral_misid=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">misid_fit=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_stream=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Inference.html#uncerts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.Inference.uncerts" title="Link to this definition"></a></dt>
+<dd><p>Compute uncertainties for fitted parameters, using the output YAML from
+<code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.optimize()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>deme_graph</strong> (<em>str</em>) – The file path to the output demes graph from <cite>optimize()</cite>.</p></li>
+<li><p><strong>inference_options</strong> (<em>str</em>) – The same options file used in the original optimization.</p></li>
+<li><p><strong>data</strong> (<a class="reference internal" href="api_moments.html#moments.Spectrum" title="moments.Spectrum"><em>moments.Spectrum</em></a>) – The same data SFS used in the origional optimization.</p></li>
+<li><p><strong>bootstraps</strong> (<em>list</em>) – A list of bootstrap replicates of the SFS. See documentation
+for examples of computing block-bootstrap replicate data.</p></li>
+<li><p><strong>uL</strong> (<em>float</em>) – The sequence length-scaled mutation rate. This must be provided if
+it was used in the original optimization.</p></li>
+<li><p><strong>bootstraps_uL</strong> (<em>list</em>) – If uL was used in the original optimization, this should be
+provided. It is a list of the same length as the bootstrap replicates
+containing the sequence length-scaled mutation rates for the corresponding
+bootstrap SFS replicates, matching the index. If it it not given, uL is assumed
+to be equivalent across bootstrap sets, using the value provided in the uL
+keyword argument.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – Defaults to False. If True, we assume a log-normal distribution of
+parameters. Returned values are then the standard deviations of the <em>logs</em>
+of the parameter values, which can be interpreted as relative parameter
+uncertainties.</p></li>
+<li><p><strong>eps</strong> (<em>float</em>) – Fractional stepsize to use when taking finite-difference derivatives.
+Note that if eps*param is &lt; 1e-6, then the step size for that parameter
+will simply be eps, to avoid numerical issues with small parameter
+perturbations. Defaults to 0.01.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Choose between either “FIM” (Fisher Information) or “GIM” (Godambe
+Information). Defaults to FIM. If GIM is chosen, bootstrap replicates must
+be provided.</p></li>
+<li><p><strong>fit_ancestral_misid</strong> (<em>bool</em>) – If we fit the ancestral misidentification in the
+original optimization, set to True.</p></li>
+<li><p><strong>misid_fit</strong> (<em>float</em>) – If we fit the ancestral misidentification in the original
+optimization, provide the best fit value here.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – If greater than zero, print the progress of iterations needed
+to compute uncertainties. Prints every {verbose} number of iterations.</p></li>
+<li><p><strong>output_stream</strong> – Default is sys.stdout, but can be changed using this
+option.</p></li>
+<li><p><strong>output</strong> (<em>str</em>) – If given, write the output as a tab-delimited table with
+parameter names, best-fit values, and standard errors as columns.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – If True, overwrite the output table of uncertainties.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="running-ld-inference-using-demes">
+<h2>Running LD inference using <code class="docutils literal notranslate"><span class="pre">demes</span></code><a class="headerlink" href="#running-ld-inference-using-demes" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.Inference.optimize_LD">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.Inference.</span></span><span class="sig-name descname"><span class="pre">optimize_LD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deme_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varcovs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method='fmin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_stream=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Inference.html#optimize_LD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.Inference.optimize_LD" title="Link to this definition"></a></dt>
+<dd><p>Optimize demography given a deme graph of initial and fixed parameters and
+inference options that specify which parameters to fit, and bounds or constraints
+on those parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>deme_graph</strong> – A demographic model as a YAML file in <code class="docutils literal notranslate"><span class="pre">demes</span></code> format. This
+should be given as a string specifying the path and file name of the model.</p></li>
+<li><p><strong>inference_options</strong> – A second YAML file, specifying the parameters to be
+optimized, parameter bounds, and constraints between parameters. Please see
+the documentation at
+<a class="reference external" href="https://momentsld.github.io/moments/extensions/demes.html#the-options-file">https://momentsld.github.io/moments/extensions/demes.html#the-options-file</a></p></li>
+<li><p><strong>means</strong> – The list of average normalized LD and H statistics, as produced by
+the parsing function <code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.bootstrap_data(region_data)</span></code>.</p></li>
+<li><p><strong>varcovs</strong> – The list of variance-covariance matrices for data within each
+recombination bin, as produced by the parsing function
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.bootstrap_data(region_data)</span></code>.</p></li>
+<li><p><strong>pop_ids</strong> – The list of population names corresponding to the data.</p></li>
+<li><p><strong>rs</strong> – A list of recombination bin edges, defining the recombination
+distance bins.</p></li>
+<li><p><strong>statistics</strong> – A list of two lists, the first being the LD statistics
+present in the data, and the second the list of single-locus statistics
+present in the data.  <strong>WARNING</strong>: This option should <em>only</em> be used if
+there are missing or masked statistics in your data, aside from the
+normalizing pi2 statistic!  If there are no missing or removed
+statistics other than the normalization statistic, this option should
+not be used.</p></li>
+<li><p><strong>normalization</strong> – The name of the population that was used to normalize
+the data. See documentation for examples specifying each of these arguments.</p></li>
+<li><p><strong>maxiter</strong> – The maximum number of iterations to run optimization. Defaults
+to 1000. Note: maxiter does not seem to work with the Powell method! This
+appears to be a bug within scipy.optimize.</p></li>
+<li><p><strong>perturb</strong> – The perturbation amount of the initial parameters. Defaults to
+zero, in which case we do not perturb the initial parameters in the input
+demes YAML. If perturb is greater than zero, the initial parameters in the input
+YAML are randomly perturbed by up to <cite>perturb</cite>-fold.</p></li>
+<li><p><strong>verbose</strong> – The frequency to print updates to <cite>output_stream</cite> if greater than 1.</p></li>
+<li><p><strong>log</strong> – If True, optimize over log of the parameters.</p></li>
+<li><p><strong>method</strong> – The optimization method. Available methods are “fmin”, “powell”,
+and “lbfgsb”.</p></li>
+<li><p><strong>output</strong> – If given, the filename for the output best-fit model YAML.</p></li>
+<li><p><strong>overwrite</strong> – If True, overwrites any existing file with the same output
+name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Output_stream<span class="colon">:</span></dt>
+<dd class="field-even"><p>Defaults to standard output. Can be given an open file stream
+instead or other output stream.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of parameter names, optimized parameter values, and LL</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.Inference.uncerts_LD">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.Inference.</span></span><span class="sig-name descname"><span class="pre">uncerts_LD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deme_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varcovs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstraps=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method='FIM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_stream=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Inference.html#uncerts_LD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.Inference.uncerts_LD" title="Link to this definition"></a></dt>
+<dd><p>Compute uncertainties for fitted parameters, using the output YAML from
+<code class="docutils literal notranslate"><span class="pre">moments.Demes.Inference.optimize_LD()</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.Inference.compute_bin_stats">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.Inference.</span></span><span class="sig-name descname"><span class="pre">compute_bin_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_demes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/Inference.html#compute_bin_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.Inference.compute_bin_stats" title="Link to this definition"></a></dt>
+<dd><p>Given a list of per-base recombination rates defining recombination bin
+edges, computes expected LD statistics within each bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> – A demes-formatted demographic model.</p></li>
+<li><p><strong>sampled_demes</strong> – List of populations to sample.</p></li>
+<li><p><strong>sample_types</strong> – Optional list of sample times for each population.</p></li>
+<li><p><strong>rs</strong> – The list of bin edges, as an array of increasing values. Bins
+are defined using adjacent values, so that if <code class="docutils literal notranslate"><span class="pre">rs</span></code> has length n,
+there are n-1 bins.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An LDstats object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="manipulating-demes-models">
+<h2>Manipulating <code class="docutils literal notranslate"><span class="pre">demes</span></code> models<a class="headerlink" href="#manipulating-demes-models" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.DemesUtil.slice">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.DemesUtil.</span></span><span class="sig-name descname"><span class="pre">slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/DemesUtil.html#slice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.DemesUtil.slice" title="Link to this definition"></a></dt>
+<dd><p>Slice a Demes model at a given time, returning the portion of the
+demographic model above the given time, and all model times are
+shifted to the specified slice time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code>) – The input demes model.</p></li>
+<li><p><strong>t</strong> (<em>scalar</em>) – The time in the past at which to slice the graph.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new demes model with demography more recent than the
+specified time removed and time shifted to that time <code class="docutils literal notranslate"><span class="pre">t</span></code>
+is time “zero” in the new model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.DemesUtil.swipe">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.DemesUtil.</span></span><span class="sig-name descname"><span class="pre">swipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/DemesUtil.html#swipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.DemesUtil.swipe" title="Link to this definition"></a></dt>
+<dd><p>Returns a new demes graph with demography above the given time removed.
+Demes that existed before that time are removed, and demes that overlap
+with that time are given a constant size equal to their size at that time
+extending into the past.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code>) – The input demes model.</p></li>
+<li><p><strong>t</strong> (<em>scalar</em>) – The time at which to erase preceding demographic events.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new demes model with demographic events above the specified time
+removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.Demes.DemesUtil.rescale">
+<span class="sig-prename descclassname"><span class="pre">moments.Demes.DemesUtil.</span></span><span class="sig-name descname"><span class="pre">rescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/Demes/DemesUtil.html#rescale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.Demes.DemesUtil.rescale" title="Link to this definition"></a></dt>
+<dd><p>Rescale a demes model by scaling factor <code class="docutils literal notranslate"><span class="pre">Q</span></code>. This rescaling is done so
+that compound parameters (e.g., <code class="docutils literal notranslate"><span class="pre">Ne*m</span></code>) remain constant. In the new
+model, population sizes are <code class="docutils literal notranslate"><span class="pre">Ne/Q</span></code>, model times are <cite>‘T/Q’</cite>, and
+migration rates are <code class="docutils literal notranslate"><span class="pre">m*Q</span></code>.</p>
+<p>For example, setting <code class="docutils literal notranslate"><span class="pre">Q=10</span></code> will reduce all population sizes by a factor
+of <span class="math notranslate nohighlight">\(1/10\)</span>, all times will be reduced by that same amount, and
+migration rates will increase by a factor of 10 so that the product
+<code class="docutils literal notranslate"><span class="pre">2*Ne*m</span></code> remains constant.</p>
+<p>When simulating with mutation and recombination rates, or with selection,
+those values should also be scaled by <span class="math notranslate nohighlight">\(Q\)</span> to ensure that compound
+parameters remain constant.</p>
+<p>Note: As of version 1.2.3, the meaning of <code class="docutils literal notranslate"><span class="pre">Q</span></code> has been inverted to
+match standard convention for this scaling parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> – A <code class="docutils literal notranslate"><span class="pre">demes</span></code> demographic model.</p></li>
+<li><p><strong>Q</strong> – The scaling factor. Population sizes and times are scaled by
+dividing values by <code class="docutils literal notranslate"><span class="pre">Q</span></code>. Migration rates are scaled by multiplying
+by <code class="docutils literal notranslate"><span class="pre">Q</span></code>. Admixture and ancestry proportions are unchanged, though
+the timing of those events are scaled. Generation times and units
+are unchanged.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code></p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>scalar</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new, rescaled <code class="docutils literal notranslate"><span class="pre">demes</span></code> demographic model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">demes.Graph</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_ld.html" class="btn btn-neutral float-left" title="API for linkage disequilibrium" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

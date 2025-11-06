@@ -1,0 +1,1097 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Site Frequency Spectrum &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Parsing the SFS from a VCF file" href="parsing.html" />
+    <link rel="prev" title="Installation" href="../installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Site Frequency Spectrum</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-sfs">The SFS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#spectrum-objects-in-moments">Spectrum objects in <code class="docutils literal notranslate"><span class="pre">moments</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manipulating-sfs">Manipulating SFS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#folding">Folding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#projecting">Projecting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#marginalizing">Marginalizing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resampling">Resampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#demographic-events">Demographic events</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#population-splits-and-branches">Population splits and branches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admixture-and-mergers">Admixture and mergers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#integration">Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#size-functions">Size functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-time-and-time-units">Integration time and time units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#migration-rates">Migration rates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mutation-rates-and-mutation-model">Mutation rates and mutation model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reversible-mutations">Reversible mutations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#illustration-ancestral-state-misidentification">Illustration: ancestral state misidentification</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#selection-and-dominance">Selection and dominance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ancient-samples-and-frozen-populations">Ancient samples and frozen populations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-summary-statistics">Computing summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-sfs-from-vcf">Compute SFS from VCF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-the-sfs">Plotting the SFS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The Site Frequency Spectrum</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/sfs/sfs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="jupyter_cell docutils container" id="sec-sfs">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="the-site-frequency-spectrum">
+<h1>The Site Frequency Spectrum<a class="headerlink" href="#the-site-frequency-spectrum" title="Link to this heading"></a></h1>
+<p>This page describes the Site Frequency Spectrum (SFS), how to compute
+its expectation using <code class="docutils literal notranslate"><span class="pre">moments</span></code>, manipulate spectra, implement demographic
+models using the <code class="docutils literal notranslate"><span class="pre">moments</span></code> API, and computing and saving spectra from
+a VCF.</p>
+<p>If you use the SFS methods in <code class="docutils literal notranslate"><span class="pre">moments</span></code> in your research, please cite</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#jouganous2017" id="id1"><span>[Jouganous2017]</span></a> Jouganous, J., Long, W., Ragsdale, A. P., &amp; Gravel, S. (2017).
+Inferring the joint demographic history of multiple populations:
+beyond the diffusion approximation. <em>Genetics</em>, 206(3), 1549-1567.</p></li>
+</ul>
+<section id="the-sfs">
+<h2>The SFS<a class="headerlink" href="#the-sfs" title="Link to this heading"></a></h2>
+<p>A site-frequency spectrum is a <span class="math notranslate nohighlight">\(p\)</span>-dimensional histogram, where <span class="math notranslate nohighlight">\(p\)</span>
+is the number of populations for which we have data. Thus, the shape of the SFS
+is <span class="math notranslate nohighlight">\((n_0+1) \times (n_1+1) \times \ldots (n_{p-1}+1)\)</span>, where <span class="math notranslate nohighlight">\(n_i\)</span>
+is the haploid sample size in population <span class="math notranslate nohighlight">\(i\)</span>. An entry of the SFS
+(call it <code class="docutils literal notranslate"><span class="pre">fs</span></code>) stores the number, density, or probability for SNP frequencies
+given by the index of that entry. That is, <code class="docutils literal notranslate"><span class="pre">fs[j,</span> <span class="pre">k,</span> <span class="pre">l]</span></code> is the number
+(or density) of mutations with allele frequencies <code class="docutils literal notranslate"><span class="pre">j</span></code> in population 0, <code class="docutils literal notranslate"><span class="pre">k</span></code>
+in population 1, and <code class="docutils literal notranslate"><span class="pre">l</span></code> in population 2. (Note that all indexing, as is
+typical in Python, is zero-based.)</p>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<p>It can be helpful to visualize site-frequency spectra if you are new to working
+with them. In the single-population case, a SFS is a one-dimensional array. For
+variable biallelic loci and steady-state demography (no historical size changes,
+migrants, etc), the SFS is proportional to <span class="math notranslate nohighlight">\(1/i\)</span>, with total size depending
+on the mutation rate and sequence length. Historical size changes and demographic
+events perturb the SFS from this shape, as does negative or positive selection,
+skewing the SFS to lower or higher frequencies, resp.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">moments</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">sample_size</span> <span class="o">=</span> <span class="mi">40</span>
+
+<span class="c1"># A neutral SFS</span>
+<span class="n">fs_neu</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="n">sample_size</span><span class="p">])</span>
+<span class="c1"># SFS under negative selection</span>
+<span class="n">fs_neg</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span>
+    <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=-</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="c1"># SFS under positive selection</span>
+<span class="n">fs_pos</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span>
+    <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fs_neu</span><span class="p">,</span> <span class="s2">&quot;.-&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Neutral&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fs_neg</span><span class="p">,</span> <span class="s2">&quot;x-&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Neg. selection&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fs_pos</span><span class="p">,</span> <span class="s2">&quot;+-&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pos. selection&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Allele frequency&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Density&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/sfs_1_0.png" src="../_images/sfs_1_0.png" />
+</div>
+</div>
+<p>Multi-population SFS can be illustrated as multi-dimensional histograms, such
+as 2D heat maps. Here, we consider a very simple model of a population split
+and both derived populations are the same size as the ancestral population and
+do not exchange migrants. Allele frequencies in populations that split more
+recently will still be quite similar, while more distantly related populations
+are expected to have larger allele frequency differences.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">]</span>
+
+<span class="c1"># parameters of `split_mig` are (nu0, nu1, T, m)</span>
+<span class="c1"># T is measured in units of 2Ne generations</span>
+<span class="n">fs_recent</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">split_mig</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">fs_older</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">split_mig</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sample_sizes</span><span class="p">)</span>
+
+<span class="c1"># assume theta = 20000, and then resample to fake data</span>
+<span class="n">fs_recent</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20000</span> <span class="o">*</span> <span class="n">fs_recent</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+<span class="n">fs_older</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20000</span> <span class="o">*</span> <span class="n">fs_older</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_single_2d_sfs</span><span class="p">(</span><span class="n">fs_recent</span><span class="p">)</span>
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_single_2d_sfs</span><span class="p">(</span><span class="n">fs_older</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/sfs_2_0.png" src="../_images/sfs_2_0.png" />
+<img alt="../_images/sfs_2_1.png" src="../_images/sfs_2_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="spectrum-objects-in-moments">
+<h2>Spectrum objects in <code class="docutils literal notranslate"><span class="pre">moments</span></code><a class="headerlink" href="#spectrum-objects-in-moments" title="Link to this heading"></a></h2>
+<p>SFS are stored as <code class="docutils literal notranslate"><span class="pre">moments.Spectrum</span></code> objects. If you are familiar with
+<a class="reference external" href="https://bitbucket.org/ryangutenkunst/dadi.git">dadi</a>’s Spectrum objects,
+then you already will know your way around a <code class="docutils literal notranslate"><span class="pre">moments.Spectrum</span></code> object.
+<code class="docutils literal notranslate"><span class="pre">moments</span></code> has built off the <code class="docutils literal notranslate"><span class="pre">dadi</span></code> SFS construction, manipulation,
+and demographic specification, with minor adjustments that reflect the
+differences between the simulation engines and parameterizations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> objects are a subclass of <code class="docutils literal notranslate"><span class="pre">numpy.masked_array</span></code>, so that standard
+array manipulation is possible. Indexing also works the same way as a typical
+array, so that <code class="docutils literal notranslate"><span class="pre">fs[2,</span> <span class="pre">3,</span> <span class="pre">5]</span></code> will return the entry in the SFS corresponding
+to allele frequencies <span class="math notranslate nohighlight">\((2, 3, 5)\)</span> (here, in a three-population SFS).
+Similarly, we can check if the SFS is masked at a given entry. For example,
+<code class="docutils literal notranslate"><span class="pre">fs.mask[0,</span> <span class="pre">0]</span></code> returns whether the “fixed” bin (where no samples carry
+the derived allele) is ignored.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> object has a few additional useful attributes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fs.pop_ids</span></code>: A list of population IDs (as strings) for each population
+in the SFS.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fs.sample_sizes</span></code>: A list of sample sizes (as integers) corresponding to
+the shape of the SFS.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fs.folded</span></code>: If True, the SFS is folded, meaning we polarize
+allele frequencies by the minor allele frequency. If False, the SFS is
+polarized by the derived allele.</p></li>
+</ul>
+</section>
+<section id="manipulating-sfs">
+<h2>Manipulating SFS<a class="headerlink" href="#manipulating-sfs" title="Link to this heading"></a></h2>
+<p>Along with standard array manipulations, there are operations specific to SFS.
+Some of these are equivalent to standard array operations, but we ensure that
+the masking and population IDs are updated properly.</p>
+<section id="folding">
+<h3>Folding<a class="headerlink" href="#folding" title="Link to this heading"></a></h3>
+<p>Folding a SFS removes information about how SNPs are polarized, so that the
+Spectrum stores counts of mutations with a given minor allele frequency. To
+fold a SFS, we call <code class="docutils literal notranslate"><span class="pre">fold()</span></code>, which returns a folded Spectrum object.</p>
+<p>For example, the standard neutral model of sample size 10,</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">])</span>
+<span class="n">fs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 1.0 0.4999999999999999 0.33333333333333326 0.25 0.2
+ 0.16666666666666666 0.14285714285714285 0.125 0.1111111111111111 --], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>can be folded to the minor allele frequency, which updates the allele counts
+in the minor allele frequency bins and the mask:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_folded</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">fold</span><span class="p">()</span>
+<span class="n">fs_folded</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 1.1111111111111112 0.6249999999999999 0.4761904761904761
+ 0.41666666666666663 0.2 -- -- -- -- --], folded=True, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>When folding multi-dimensional SFS, note that the folding occurs over the global
+minor allele frequency.</p>
+</section>
+<section id="projecting">
+<h3>Projecting<a class="headerlink" href="#projecting" title="Link to this heading"></a></h3>
+<p>SFS projection takes a Spectrum of some sample size and reduces the sample size
+in one or more populations. The output Spectrum sums over all possible
+down-samplings so that it is equivalent to having sampled a smaller sample size
+to begin with.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_proj</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">project</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">fs_proj</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 0.9999999999999996 0.49999999999999994 0.33333333333333354
+ 0.24999999999999994 0.19999999999999996 --], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>For multi-dimensional frequency spectra, we must pass a list of sample sizes
+of equal length to the dimension of the SFS:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)))</span>
+<span class="n">fs_proj</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">project</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">fs_proj</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[-- 1.5791998008463062 1.1451178432332396 1.075140556215068
+  1.0990446051362617]
+ [1.856453582149576 1.6360657803448266 1.609247948094588
+  1.4117387300880182 1.5152150156657607]
+ [1.5801800843077487 1.7861096729534347 1.9334023122712167
+  1.608744213149313 1.4229285766514514]
+ [1.4360832240874761 1.7872019522327713 2.0818619681524666
+  1.8687005915067862 1.3359933528226728]
+ [1.3166800333793967 1.6599892971644 2.014136007039562 1.925029855371596
+  1.5484601711843329]
+ [1.6452994970398622 1.6319456095277953 1.818371893131967
+  1.869153202295119 2.1119175072940406]
+ [1.2241550329579391 1.0983916493416692 1.2658108426495032
+  1.2652897853009875 --]], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="marginalizing">
+<h3>Marginalizing<a class="headerlink" href="#marginalizing" title="Link to this heading"></a></h3>
+<p>If a population goes extinct, or if we want to subset a SFS to some focal
+populations, we use the <code class="docutils literal notranslate"><span class="pre">marginalize(</span> <span class="pre">)</span></code> function. This function takes
+a list of population indexes as input, and removes those indexes from the
+output SFS. The array operation is simply a sum over those axes, but the
+marginalization function also preserves population IDs if given.</p>
+<p>For example, given a three-population spectrum</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="n">pop_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">])</span>
+<span class="n">fs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[[-- 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]]
+
+ [[1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]]
+
+ [[1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]]
+
+ [[1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]]
+
+ [[1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 1.0]
+  [1.0 1.0 1.0 1.0 --]]], folded=False, pop_ids=[&#39;A&#39;, &#39;B&#39;, &#39;C&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<p>we can view the one-population SFS, here the first population:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_marg</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">marginalize</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">fs_marg</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 25.0 25.0 25.0 --], folded=False, pop_ids=[&#39;A&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<p>or the joint two-population SFS for population indexes 1 and 2:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_marg</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">marginalize</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">fs_marg</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[-- 5.0 5.0 5.0 5.0]
+ [5.0 5.0 5.0 5.0 5.0]
+ [5.0 5.0 5.0 5.0 5.0]
+ [5.0 5.0 5.0 5.0 5.0]
+ [5.0 5.0 5.0 5.0 --]], folded=False, pop_ids=[&#39;B&#39;, &#39;C&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that the population IDs stay consistent after marginalizing.</p>
+</section>
+<section id="resampling">
+<h3>Resampling<a class="headerlink" href="#resampling" title="Link to this heading"></a></h3>
+<p>We can resample a new SFS from a given Spectrum using two approaches. First,
+a standard assumption is that entries in an “expected” SFS give the expectation
+of counts within each bin, and data follows a Poisson distribution with rates
+equal to the bin values. Then <code class="docutils literal notranslate"><span class="pre">sample()</span></code> creates a Poisson-sampled SFS:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">])</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="n">fs_pois</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+<span class="n">fs_pois</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 1021 508 303 222 203 176 149 122 122 --], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Alternatively, we could resample and enforce that we obtain a SFS with the
+same number of segregating sites:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_fixed</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">fixed_size_sample</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">S</span><span class="p">()))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;number of sites in input:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs</span><span class="o">.</span><span class="n">S</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;number of sites in resampled SFS:&quot;</span><span class="p">,</span> <span class="n">fs_fixed</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+<span class="n">fs_fixed</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>number of sites in input: 2828.97
+number of sites in resampled SFS: 2829
+</pre></div>
+</div>
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([-- 1009 507 312 249 202 166 133 133 118 --], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="demographic-events">
+<h2>Demographic events<a class="headerlink" href="#demographic-events" title="Link to this heading"></a></h2>
+<p>When defining demographic models with multiple populations, we need to apply
+demographic events such as population splits, mergers, and admixtures. These
+operations often change the dimension or size of the SFS, so they do not
+act in-place. Instead, they return a new Spectrum object, similar to the
+manipulations in the previous section.</p>
+<section id="population-splits-and-branches">
+<h3>Population splits and branches<a class="headerlink" href="#population-splits-and-branches" title="Link to this heading"></a></h3>
+<p>New in <code class="docutils literal notranslate"><span class="pre">moments</span></code> version 1.1, the Spectrum class includes functions to
+directly apply demographic events. A population split is called using
+<code class="docutils literal notranslate"><span class="pre">fs.split(idx,</span> <span class="pre">n0,</span> <span class="pre">n1)</span></code>, where the population indexed by <code class="docutils literal notranslate"><span class="pre">idx</span></code> splits
+into <code class="docutils literal notranslate"><span class="pre">n0</span></code> and <code class="docutils literal notranslate"><span class="pre">n1</span></code> lineages. The <code class="docutils literal notranslate"><span class="pre">split</span></code> function also takes a
+<code class="docutils literal notranslate"><span class="pre">new_ids</span></code> keyword argument, where we can specify the population IDs of
+the two new populations after the split. Note that <code class="docutils literal notranslate"><span class="pre">n0</span></code> and <code class="docutils literal notranslate"><span class="pre">n1</span></code> cannot
+sum to larger than the current sample size of the population that we are
+splitting.</p>
+<p>For example, to split a single population with 6 tracked lineages into
+two populations with 3 lineages in each population:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">fs_split</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">fs_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[-- 0.4999999999999997 0.09999999999999999 0.016666666666666653]
+ [0.4999999999999997 0.29999999999999993 0.14999999999999986
+  0.049999999999999996]
+ [0.09999999999999999 0.14999999999999986 0.14999999999999997
+  0.09999999999999994]
+ [0.016666666666666653 0.049999999999999996 0.09999999999999994 --]], folded=False, pop_ids=None)
+</pre></div>
+</div>
+</div>
+</div>
+<p>If we use <code class="docutils literal notranslate"><span class="pre">new_ids</span></code>, we can also keep track of population ids after
+a split event:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">pop_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])</span>
+<span class="n">fs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[-- 0.24999999999999994 0.017857142857142853]
+ [0.7500000000000001 0.21428571428571433 0.03571428571428571]
+ [0.2678571428571428 0.17857142857142852 0.053571428571428506]
+ [0.11904761904761908 0.1428571428571428 0.07142857142857138]
+ [0.053571428571428506 0.10714285714285701 0.08928571428571426]
+ [0.021428571428571408 0.07142857142857144 0.10714285714285715]
+ [0.00595238095238095 0.035714285714285705 --]], folded=False, pop_ids=[&#39;A&#39;, &#39;B&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs_split</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">new_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">])</span>
+<span class="n">fs_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[[-- 0.24999999999999994 0.017857142857142853]
+  [0.24999999999999994 0.07142857142857141 0.0119047619047619]
+  [0.017857142857142853 0.011904761904761899 0.003571428571428567]]
+
+ [[0.49999999999999994 0.14285714285714285 0.0238095238095238]
+  [0.14285714285714285 0.09523809523809523 0.02857142857142854]
+  [0.0238095238095238 0.028571428571428543 0.014285714285714268]]
+
+ [[0.10714285714285711 0.0714285714285714 0.0214285714285714]
+  [0.0714285714285714 0.0857142857142856 0.0428571428571428]
+  [0.0214285714285714 0.042857142857142795 0.0357142857142857]]
+
+ [[0.0238095238095238 0.028571428571428543 0.01428571428571427]
+  [0.02857142857142854 0.057142857142857086 0.047619047619047616]
+  [0.014285714285714268 0.047619047619047616 0.07142857142857142]]
+
+ [[0.003571428571428567 0.007142857142857133 0.00595238095238095]
+  [0.007142857142857134 0.023809523809523805 0.035714285714285705]
+  [0.00595238095238095 0.035714285714285705 --]]], folded=False, pop_ids=[&#39;C&#39;, &#39;B&#39;, &#39;D&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<p>As of version 1.1.5, we can apply a “branch” event. This is conceptually similar
+to a split, but simpler in that a child population branches off from a parental
+population. In this case, we just need to give the sample size of the new child
+population (and it’s new population ID), and the parental population is left
+with the same number of lineages minus the size of the new population, and its
+population ID (if given) remains unchanged.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">5</span><span class="p">],</span> <span class="n">pop_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">])</span>
+<span class="n">fs_branch</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">branch</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;B&quot;</span><span class="p">)</span>
+<span class="n">fs_branch</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Spectrum([[-- 0.40000000000000013 0.05000000000000001]
+ [0.6000000000000001 0.30000000000000004 0.1]
+ [0.15000000000000002 0.2 0.15000000000000002]
+ [0.03333333333333334 0.10000000000000003 --]], folded=False, pop_ids=[&#39;A&#39;, &#39;B&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Previous versions of <code class="docutils literal notranslate"><span class="pre">moments</span></code> required calling functions such as
+<code class="docutils literal notranslate"><span class="pre">moments.Manips.split_1D_to_2D(fs,</span> <span class="pre">n0,</span> <span class="pre">n1)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">moments.Manips.split_3D_to_4D_2(fs,</span> <span class="pre">n0,</span> <span class="pre">n1)</span></code>.
+The new API (<code class="docutils literal notranslate"><span class="pre">fs.split(idx,</span> <span class="pre">n0,</span> <span class="pre">n1)</span></code>) wraps the different split functions
+in <code class="docutils literal notranslate"><span class="pre">moments.Manips</span></code> so that we don’t need to worry about picking the
+correct split function.</p>
+</div>
+</section>
+<section id="admixture-and-mergers">
+<h3>Admixture and mergers<a class="headerlink" href="#admixture-and-mergers" title="Link to this heading"></a></h3>
+<p>Here, we consider two types of admixture events. First, two populations mix
+with given proportions to form a new population (which we will call an
+“admix” event). And second, one population contributes some proportion to
+another population in the SFS (which we call a “pulse migration” event).
+In both cases, lineages within the SFS are moved from one or more populations
+to another, and its size and possibly dimension can change.</p>
+<p>To mix two population with a given proportion, we use
+<code class="docutils literal notranslate"><span class="pre">fs.admix(idx0,</span> <span class="pre">idx1,</span> <span class="pre">num_lineages,</span> <span class="pre">proportion)</span></code>, where <code class="docutils literal notranslate"><span class="pre">proportion</span></code> is the
+proportion of the new population that comes from population <code class="docutils literal notranslate"><span class="pre">idx0</span></code>, and 1-proportion
+comes from population indexed by <code class="docutils literal notranslate"><span class="pre">idx1</span></code>. The number of lineages is the sample
+size in the new admixed population, and the sample sizes in the source populations
+necessarily decrease by that same amount. Note that if the sample size of a source
+population equals the number of lineages that are moved, that source population
+no longer exists and the dimension decreases by one.</p>
+<p>For example, in a two-population SFS, we can look at a few different scenarios of
+admixture and sample sizes:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;original SFS has sample size&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">fs_admix</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;admix SFS has size&quot;</span><span class="p">,</span> <span class="n">fs_admix</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">,</span> <span class="s2">&quot;after moving 10 lineages&quot;</span><span class="p">)</span>
+<span class="n">fs_admix2</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;second admix SFS has size&quot;</span><span class="p">,</span> <span class="n">fs_admix2</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">,</span> <span class="s2">&quot;after moving 5 lineages&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>original SFS has sample size [10 10]
+admix SFS has size [10] after moving 10 lineages
+second admix SFS has size [5 5 5] after moving 5 lineages
+</pre></div>
+</div>
+</div>
+</div>
+<p>And to account for population IDs after admixture:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span> <span class="n">pop_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;original SFS has size&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">,</span> <span class="s2">&quot;and pop ids&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">)</span>
+<span class="n">fs_admix</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">admix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">new_id</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;admix SFS has size&quot;</span><span class="p">,</span> <span class="n">fs_admix</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">,</span> <span class="s2">&quot;and pop ids&quot;</span><span class="p">,</span> <span class="n">fs_admix</span><span class="o">.</span><span class="n">pop_ids</span><span class="p">,</span>
+    <span class="s2">&quot;after moving 4 lineages into new population C&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>original SFS has size [8 6] and pop ids [&#39;A&#39;, &#39;B&#39;]
+admix SFS has size [4 2 4] and pop ids [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;] after moving 4 lineages into new population C
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="integration">
+<h2>Integration<a class="headerlink" href="#integration" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> integrates the SFS forward in time by calling <code class="docutils literal notranslate"><span class="pre">fs.integrate(</span> <span class="pre">)</span></code>. At a
+minimum, we need to pass the population size(s) <code class="docutils literal notranslate"><span class="pre">nu</span></code> and the integration time
+<code class="docutils literal notranslate"><span class="pre">T</span></code>. All parameters are scaled by a reference effective population size, so that
+time is measured in units of <span class="math notranslate nohighlight">\(2N_e\)</span> generations, sizes are relative to this
+same <span class="math notranslate nohighlight">\(N_e\)</span>, and mutation and migration rates and the selection coefficient is
+scaled by <span class="math notranslate nohighlight">\(2N_e\)</span>.</p>
+<section id="size-functions">
+<h3>Size functions<a class="headerlink" href="#size-functions" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">)</span></code> function can take either a list of relative sizes, equal to the
+number of populations represented by the SFS, or it can take a function that returns
+a list of population sizes over time.</p>
+<p>For example, to integrate a two-population SFS with the first population having relative
+size 2.0 (double the reference size), and the second having size 0.1 (one-tenth the
+relative size) for 0.05 time units:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>To specify a size function that changes over time, for example an exponential growth
+model, we can instead pass a size function to the integration method:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">])</span>
+<span class="n">nu0</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">nuF</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">nu_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">nu0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nuF</span> <span class="o">/</span> <span class="n">nu0</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">T</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;size at start of epoch:&quot;</span><span class="p">,</span> <span class="n">nu_func</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;size at end of epoch:&quot;</span><span class="p">,</span> <span class="n">nu_func</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">nu_func</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>size at start of epoch: [np.float64(0.5)]
+size at end of epoch: [np.float64(1.9999999999999996)]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="integration-time-and-time-units">
+<h3>Integration time and time units<a class="headerlink" href="#integration-time-and-time-units" title="Link to this heading"></a></h3>
+<p>Unlike coalescent simulators, such as <code class="docutils literal notranslate"><span class="pre">msprime</span></code>, integration times in <code class="docutils literal notranslate"><span class="pre">moments</span></code>
+are in units of <span class="math notranslate nohighlight">\(2N_e\)</span> generations. Thus, typical integration times for many
+demographic scenarios could be much smaller than one.</p>
+<p>Times are not cummulative when integrating multiple epochs - each time <code class="docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">)</span></code>
+is called, internally time starts from zero by default. Thus, when defining multiple
+epochs with size functions, keep in mind that time for that epoch runs from zero to the
+integration time <code class="docutils literal notranslate"><span class="pre">T</span></code>.</p>
+</section>
+<section id="migration-rates">
+<h3>Migration rates<a class="headerlink" href="#migration-rates" title="Link to this heading"></a></h3>
+<p>Migration between populations is specified by the migration matrix, with has shape
+<span class="math notranslate nohighlight">\(p \\times p\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> is the number of populations represented by the
+SFS. The <span class="math notranslate nohighlight">\(i\)</span>-th row of the migration matrix gives the migration rates from
+each other population <em>into</em> the population indexed by <span class="math notranslate nohighlight">\(i\)</span>. Because rates are
+rescaled by the effective population size, the entry <code class="docutils literal notranslate"><span class="pre">M[i,</span> <span class="pre">j]</span></code> gives the migration
+rate <code class="docutils literal notranslate"><span class="pre">2*Ne*m_ij</span></code>, where <code class="docutils literal notranslate"><span class="pre">m_ij</span></code> is the per-generation probability of a lineage
+in population <code class="docutils literal notranslate"><span class="pre">i</span></code> having its parent in population <code class="docutils literal notranslate"><span class="pre">j</span></code>. Note that the diagonal
+elements of <code class="docutils literal notranslate"><span class="pre">M</span></code> are ignored.</p>
+<p>For example, to integrate a two-population SFS with migration:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.75</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="p">])</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">M</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="mutation-rates-and-mutation-model">
+<h3>Mutation rates and mutation model<a class="headerlink" href="#mutation-rates-and-mutation-model" title="Link to this heading"></a></h3>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">moments</span></code> uses an infinite-sites model (ISM). Then the mutation rate
+<span class="math notranslate nohighlight">\(\theta\)</span> is the population-size scaled mutation rate multiplied by the number
+of loci: <code class="docutils literal notranslate"><span class="pre">theta</span> <span class="pre">=</span> <span class="pre">4*Ne*u*L</span></code>. By default, <code class="docutils literal notranslate"><span class="pre">theta</span></code> is set to 1.</p>
+<p>Luckily, we do not often need to worry about setting <code class="docutils literal notranslate"><span class="pre">theta</span></code>, because the ISM
+guarantees that the expected count in each frequency bin of the SFS scales linearly
+in the mutation rate. This means that we can happily integrate with the default
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> and only rescale the SFS at the end:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">theta</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">fs_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="n">fs_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs_theta</span><span class="p">)</span>
+<span class="n">fs_theta</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mf">2.0</span><span class="p">],</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">two_epoch</span><span class="p">((</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span><span class="mi">20</span><span class="p">])</span> <span class="c1"># default theta = 1</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">fs</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">fs_theta</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>395.6948077081298
+395.69480770813
+</pre></div>
+</div>
+</div>
+</div>
+<section id="reversible-mutations">
+<h4>Reversible mutations<a class="headerlink" href="#reversible-mutations" title="Link to this heading"></a></h4>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">dadi</span></code>, which solves the diffusion equation directly and can only
+simulate under the ISM, the moments-based engine in <code class="docutils literal notranslate"><span class="pre">moments</span></code> lets us
+accurately track the density of the “fixed” bins. That is, we can compute
+not just the distribution of segregating mutation frequencies, but also the
+probability that a locus is monomorphic in a sample for the derived or
+ancestral allele.</p>
+<p>To compute a SFS in which we track monomorphic loci, we use a reversible mutation
+model, which we specify by setting <code class="docutils literal notranslate"><span class="pre">finite_genome=True</span></code>. When simulating under
+the finite genome model, the mutation rate is no longer scaled by the number of
+loci, <code class="docutils literal notranslate"><span class="pre">L</span></code>. Instead, the mutation rates are simply <code class="docutils literal notranslate"><span class="pre">theta_fd=4*Ne*u</span></code> and
+<code class="docutils literal notranslate"><span class="pre">theta_bd=4*Ne*v</span></code> where <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are the forward and backward mutation rates,
+respectively. Therefore, <code class="docutils literal notranslate"><span class="pre">theta_fd</span></code> and <code class="docutils literal notranslate"><span class="pre">theta_bd</span></code> are typically much less than
+1 (and in fact the model breaks down for scaled mutation rates around 1).</p>
+<p>To simulate under the reversible mutation model, we first initialize the
+steady-state SFS with <code class="docutils literal notranslate"><span class="pre">mask_corners=False</span></code>, and then apply demographic events
+as normal and integrate using <code class="docutils literal notranslate"><span class="pre">finite_genome=True</span></code>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">theta_fd</span> <span class="o">=</span> <span class="mf">0.0005</span> <span class="c1"># 4*Ne*u, with Ne = 1e4 and u = 1.25e-8</span>
+<span class="n">theta_bd</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="c1"># the backward mutation rate is double the forward rate</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D_reversible</span><span class="p">(</span>
+    <span class="mi">20</span><span class="p">,</span> <span class="n">theta_fd</span><span class="o">=</span><span class="n">theta_fd</span><span class="p">,</span> <span class="n">theta_bd</span><span class="o">=</span><span class="n">theta_bd</span><span class="p">)</span> <span class="c1"># sample size = 20</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">mask_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span>
+    <span class="p">[</span><span class="mf">5.0</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">finite_genome</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">theta_fd</span><span class="o">=</span><span class="n">theta_fd</span><span class="p">,</span> <span class="n">theta_bd</span><span class="o">=</span><span class="n">theta_bd</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Note that if the forward and backward mutation rates are equal, we can use <code class="docutils literal notranslate"><span class="pre">theta</span></code>
+to set both mutation rates (which must be set, as <code class="docutils literal notranslate"><span class="pre">theta</span></code> must be less than 1).</p>
+</section>
+<section id="illustration-ancestral-state-misidentification">
+<h4>Illustration: ancestral state misidentification<a class="headerlink" href="#illustration-ancestral-state-misidentification" title="Link to this heading"></a></h4>
+<p>In SFS analyses, a typical confounder is the misidentification of the ancestral
+allele. This occurs because polarization requires estimating the ancestral state
+of a locus, which is typically done by comparing to one or more outgroup species
+in a sequence alignment. For humans, we typically use chimpanzee and other great
+apes to infer the ancstral allele.</p>
+<p>At longer evolutionary timescales, it is not uncommon for multiple independent
+mutations to occur at the same locus, so that when comparing to an outgroup species
+we classify some derived mutations as ancestral and some ancestral mutations as
+derived. For humans, the rate of ancestral misidentification is typically in the
+1-3% range, depending on the method used to polarize alleles.</p>
+<p>For example, we can simulate using rough parameters (<span class="math notranslate nohighlight">\(u=1.25\times 10^{-8}\)</span>,
+<span class="math notranslate nohighlight">\(N_e=10^4\)</span>, divergence of 6 million years, and a generation time of 25 years)
+and symmetric mutation rates to see
+the effect of polarizing based on the allele in a chimp sequence. Here, if the
+chimp carries the derived allele, we will instead assume the ancestral allele
+is derived:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Ne</span> <span class="o">=</span> <span class="mf">1e4</span>
+<span class="n">u</span> <span class="o">=</span> <span class="mf">1.25e-8</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">u</span>
+<span class="n">generation_time</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">divergence_years</span> <span class="o">=</span> <span class="mf">6e6</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">divergence_years</span> <span class="o">/</span> <span class="n">generation_time</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Ne</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D_reversible</span><span class="p">(</span>
+    <span class="mi">101</span><span class="p">,</span> <span class="n">theta_fd</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">theta_bd</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">mask_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">T</span><span class="p">,</span> <span class="n">finite_genome</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+
+<span class="n">fs_polarized</span> <span class="o">=</span> <span class="n">fs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">fs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">fs_polarized</span><span class="o">.</span><span class="n">mask_corners</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Then visualizing using <code class="docutils literal notranslate"><span class="pre">moments.Plotting.plot_1d_fs(fs_polarized)</span></code>, we can see
+the uptick at high-frequency variants due to ancestral misidentification - that is,
+recurrent mutations along the lineage leading from humans to chimps:</p>
+<figure class="align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/ancestral_misid.png"><img alt="../_images/ancestral_misid.png" src="../_images/ancestral_misid.png" style="width: 512.0px; height: 384.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Excess of high-frequency derived mutations due to
+ancestral misspecification.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="selection-and-dominance">
+<h3>Selection and dominance<a class="headerlink" href="#selection-and-dominance" title="Link to this heading"></a></h3>
+<p>One of the great benefits to forward simulators is their ability to include the
+effects of selection and dominance with little extra cost. In the selection
+model implemented in <code class="docutils literal notranslate"><span class="pre">moments</span></code>, genotype fitnesses are given relative to the
+ancestral homozygous genotype (i.e. relative fitness of <em>aa</em> is 1), so that
+heterozygous genotypes (<em>Aa</em>) have relative fitness <span class="math notranslate nohighlight">\(1+2hs\)</span> and
+homozygous derived genotypes (<em>AA</em>) have relative fitness <span class="math notranslate nohighlight">\(1+2s\)</span>.</p>
+<p>When <span class="math notranslate nohighlight">\(h=1/2\)</span>, selection is additive (or genic), which corresponds to
+haploid copies of the derived allele having average fitness <span class="math notranslate nohighlight">\(1+s\)</span>. If
+<code class="docutils literal notranslate"><span class="pre">h</span></code> is unspecified, the selection model defaults to additivity
+(<span class="math notranslate nohighlight">\(h=1/2\)</span>), and if <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is unspecified, we default to neutrality.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We assume <span class="math notranslate nohighlight">\(|s| \ll 1\)</span>, so that <span class="math notranslate nohighlight">\(s^2\)</span> and higher order terms can
+be ignored. For strong selection in a moments framework, see recent
+advances from <a class="reference internal" href="#krukov2021" id="id2"><span>[Krukov2021]</span></a>.</p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> takes scaled selection coefficients <span class="math notranslate nohighlight">\(\gamma = 2 N_e s\)</span> and
+dominance coefficients <span class="math notranslate nohighlight">\(h\)</span> as keyword parameters when initializing the
+SFS and integrating. The reference <span class="math notranslate nohighlight">\(N_e\)</span> is often taken as the ancestral
+effective population size.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">ns</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LinearSystem_1D</span><span class="o">.</span><span class="n">steady_state_1D</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tajima&#39;s D (before expansion):&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Tajima_D</span><span class="p">())</span>
+
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">3</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tajima&#39;s D (after expansion):&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Tajima_D</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Tajima&#39;s D (before expansion): -0.643870774090141
+Tajima&#39;s D (after expansion): -1.1502872304492777
+</pre></div>
+</div>
+</div>
+</div>
+<p>Simulating selection with multiple populations works similarly. We can specify
+<code class="docutils literal notranslate"><span class="pre">gamma</span></code> and <code class="docutils literal notranslate"><span class="pre">h</span></code> as scalar values, which implies that the allele has the
+same selection and dominance effect in each population. We can instead simulate
+population-specific selection and dominance coefficients by setting <code class="docutils literal notranslate"><span class="pre">gamma</span></code>
+and/or <code class="docutils literal notranslate"><span class="pre">h</span></code> as a list of length equal to the number of populations in the
+spectrum, with indexing matching the ordering of the populations in the
+spectrum object.</p>
+</section>
+<section id="ancient-samples-and-frozen-populations">
+<h3>Ancient samples and frozen populations<a class="headerlink" href="#ancient-samples-and-frozen-populations" title="Link to this heading"></a></h3>
+<p>So far, in all the examples we’ve seen the output SFS integrates all populations
+until the same end time. If one or more of the sampled populations are
+non-contemporary, we need to “freeze” those populations at their time of sampling.
+This is done by specifying which populations to freeze using the <code class="docutils literal notranslate"><span class="pre">frozen</span></code>
+argument.</p>
+<p>For example, if we sample two populations that split 100kya, and one
+population consisting of ancient samples from 20kya, we integrate the first
+80 thousand years as normal, and then the last 20 thousand years with the ancient
+population frozen:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Ne</span> <span class="o">=</span> <span class="mf">1e4</span>
+<span class="n">generation_time</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="mf">80e3</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Ne</span> <span class="o">/</span> <span class="n">generation_time</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="mf">20e3</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Ne</span> <span class="o">/</span> <span class="n">generation_time</span>
+<span class="n">migrate</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">T1</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">migrate</span><span class="p">],</span> <span class="p">[</span><span class="n">migrate</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">T1</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">migrate</span><span class="p">],</span> <span class="p">[</span><span class="n">migrate</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">frozen</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+</section>
+<section id="computing-summary-statistics">
+<h2>Computing summary statistics<a class="headerlink" href="#computing-summary-statistics" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> allows us to compute a handful of summary statistics from the SFS.
+For single populations, we can get Watterson’s <span class="math notranslate nohighlight">\(\theta\)</span>, the diversity
+<span class="math notranslate nohighlight">\(\pi\)</span>, or Tajima’s <span class="math notranslate nohighlight">\(D\)</span> directly from the SFS:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">two_epoch</span><span class="p">((</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="p">[</span><span class="mi">20</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Watterson&#39;s theta:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Watterson_theta</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Diversity:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">pi</span><span class="p">())</span>
+<span class="n">snm</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">20</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tajima&#39;s D at steady state:&quot;</span><span class="p">,</span> <span class="n">snm</span><span class="o">.</span><span class="n">Tajima_D</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tajima&#39;s D after expansion:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Tajima_D</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Watterson&#39;s theta: 1.291270898392208
+Diversity: 1.128986048415916
+Tajima&#39;s D at steady state: 3.1116722926989843e-16
+Tajima&#39;s D after expansion: -0.37656997453348207
+</pre></div>
+</div>
+</div>
+</div>
+<p>For multi-population spectra, we can also compute FST using Weir and Cokerham’s
+(1984) method, which generalizes to any number of populations greater than one:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FST immediately after split:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FST after isolation of 0.05*2*Ne gens:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+<span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FST after isolation of 0.1*2*Ne gens:&quot;</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>FST immediately after split: 0.05263157894736842
+FST after isolation of 0.05*2*Ne gens: 0.09774436090225562
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>FST after isolation of 0.1*2*Ne gens: 0.13875598086124397
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that FST is sensitive to sample sizes: smaller sample sizes artificially
+inflate the “true” divergence.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;10 samples each:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;100 samples each:&quot;</span><span class="p">,</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span><span class="o">.</span><span class="n">Fst</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>10 samples each: 0.05263157894736842
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>100 samples each: 0.005025125628140707
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="compute-sfs-from-vcf">
+<h2>Compute SFS from VCF<a class="headerlink" href="#compute-sfs-from-vcf" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> supports computing a SFS from files in VCF format, given a
+population information file. This takes two steps. We first parse the VCF
+using and we then pass that data dictionary to the Spectrum class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_dict</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Misc</span><span class="o">.</span><span class="n">make_data_dict_vcf</span><span class="p">(</span><span class="n">vcf_filename</span><span class="p">,</span> <span class="n">popinfo_filename</span><span class="p">)</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_data_dict</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting-the-sfs">
+<h2>Plotting the SFS<a class="headerlink" href="#plotting-the-sfs" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> comes pre-installed with a number of plotting functions, which can be
+called from <code class="docutils literal notranslate"><span class="pre">moments.Plotting</span></code>. These include functions to plot individual
+SFS, or to compare two SFS (for example, to compare a model to data). These
+functions can be used out-of-the-box, or serve as inspiration for your own
+<code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> adventures. To see what plotting functions are available and view
+their documentation, head to the <a class="reference internal" href="../api/api_moments.html#sec-sfs-api-plotting"><span class="std std-ref">moments API</span></a>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="jouganous2017" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Jouganous2017</a><span class="fn-bracket">]</span></span>
+<p>Jouganous, Julien, et al. “Inferring the joint demographic history of multiple populations: beyond the diffusion approximation.” <em>Genetics</em> 206.3 (2017): 1549-1567.</p>
+</div>
+<div class="citation" id="krukov2021" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Krukov2021</a><span class="fn-bracket">]</span></span>
+<p>Krukov, Ivan, and Simon Gravel. “Taming strong selection with large sample sizes.”
+<em>bioRxiv</em> (2021), doi: 10.1101/2021.03.30.437711.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parsing.html" class="btn btn-neutral float-right" title="Parsing the SFS from a VCF file" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

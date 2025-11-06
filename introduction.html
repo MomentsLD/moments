@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fc837d61"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Welcome to moments’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#citations">Citations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#change-log">Change log</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">1.4.6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1.4.5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">1.4.4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">1.4.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">1.4.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">1.4.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">1.4.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">1.3.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">1.3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">1.2.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">1.2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">1.1.18</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">1.1.17</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">1.1.16</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">1.1.15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">1.1.14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">1.1.13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">1.1.12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">1.1.11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20">1.1.10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">1.1.9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22">1.1.8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23">1.1.7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">1.1.6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">1.1.5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26">1.1.4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id27">1.1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id28">1.1.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id29">1.1.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id30">1.1.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31">1.0.9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">1.0.8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id33">1.0.7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id34">1.0.6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id35">1.0.5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id36">1.0.4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id37">1.0.3</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These docs are under development. In particular, many of the modules have not
+yet been completed and some of the extensions are not documented in great
+detail. If you find any issues, confusing bits, or have suggestions to make
+them more complete or clearer, please open an issue or a PR. Thanks!</p>
+</div>
+<p>Welcome to <code class="docutils literal notranslate"><span class="pre">moments</span></code>! <code class="docutils literal notranslate"><span class="pre">moments</span></code> implements methods for inferring demographic
+history and patterns of selection from genetic data, based on solutions to the
+diffusion approximations to the site-frequency spectrum (SFS).
+The SFS implementation and interface of <code class="docutils literal notranslate"><span class="pre">moments</span></code> is large based on the
+<a class="reference external" href="https://bitbucket.org/gutenkunstlab/dadi/">∂a∂i</a> open
+source package developed by <a class="reference external" href="http://gutengroup.mcb.arizona.edu">Ryan Gutenkunst</a>.
+We largely reuse <code class="docutils literal notranslate"><span class="pre">∂a∂i</span></code>’s interface but introduced a new simulation engine. This
+new method is based on the direct computation of the frequency spectrum without
+solving the diffusion system. Consequently we circumvent the numerical PDE
+approximations and we get rid of the frequency grids used in <code class="docutils literal notranslate"><span class="pre">∂a∂i</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> implements methods for computing linkage disequilibrium statistics
+and running multi-population demographic inference using patterns of LD. This
+extension contains methods for parsing phased or unphased sequencing data to
+compute LD-decay for a large number of informative two-locus statistics, and
+then uses those statistics to infer demographic history for large numbers of
+populations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> was developed in
+<a class="reference external" href="http://simongravel.lab.mcgill.ca/Home.html">Simon Gravel’s group</a> in the Human
+Genetics department at McGill University, with maintenance and development by the
+Gravel Lab and <a class="reference external" href="http://apragsdale.github.io">Aaron Ragsdale</a>.</p>
+<section id="citations">
+<h2>Citations<a class="headerlink" href="#citations" title="Link to this heading"></a></h2>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">moments</span></code> in your research, please cite:</p>
+<ul class="simple">
+<li><p>Jouganous, J., Long, W., Ragsdale, A. P., &amp; Gravel, S. (2017). Inferring the
+joint demographic history of multiple populations: beyond the diffusion
+approximation. <em>Genetics</em>, 206(3), 1549-1567.</p></li>
+</ul>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> in your research, please cite:</p>
+<ul class="simple">
+<li><p>Ragsdale, A. P. &amp; Gravel, S. (2019). Models of archaic admixture and recent
+history from two-locus statistics. <em>PLoS Genetics</em>, 15(6), e1008204.</p></li>
+<li><p>Ragsdale, A. P. &amp; Gravel, S. (2020). Unbiased estimation of linkage
+disequilibrium from unphased data. <em>Mol Biol Evol</em>, 37(3), 923-932.</p></li>
+</ul>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">moments.TwoLocus</span></code> in your research, please cite:</p>
+<ul class="simple">
+<li><p>Ragsdale, A. P. (2022). Local fitness and epistatic effects lead to distinct
+patterns of linkage disequilibrium in protein-coding genes. <em>Genetics</em>,
+221(4), iyac097.</p></li>
+</ul>
+</section>
+<section id="change-log">
+<h2>Change log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>1.4.6<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Drop wheel building for macos-13, add support for macos-15</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>1.4.5<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add function in LD handling to more easily remove normalizing statistic names</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>1.4.4<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bug fixes in LD methods and Godambe.sum_chi2_ppf</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>1.4.3<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fixes bugs in error messages introduced in 1.4.2</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>1.4.2<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Introduce a new, flexible method to compute the SFS from a VCF file</p></li>
+<li><p>Add deprecation warnings to previous VCF parsing methods, which will be
+removed in version 1.5.0</p></li>
+<li><p>Remove deprecated ms and sfscode functions</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>1.4.1<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bug fix in 2D SFS plotting</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>1.4.0<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Avoid masking zeros values in SFS when using Plotting functions</p></li>
+<li><p>Fix bug in mask_corners behavior in Spectrum.from_file()</p></li>
+<li><p>Fix bug in confidence interval calculation using Demes-based SFS inference</p></li>
+<li><p>Support python 3.10 through 3.13, require numpy &gt;= 2.0</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>1.3.1<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+</section>
+<section id="id9">
+<h3>1.3.0<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+</section>
+<section id="id10">
+<h3>1.2.3<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Invert meaning of rescaling parameter in <code class="docutils literal notranslate"><span class="pre">moments.Demes.DemesUtil.rescale()</span></code>
+to match standard conventions.</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>1.2.0<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Change project name to <code class="docutils literal notranslate"><span class="pre">moments-popgen</span></code>, still imports as <code class="docutils literal notranslate"><span class="pre">moments</span></code></p></li>
+<li><p>Fix unexpected behavior when perturbing input parameters in Demes inference</p></li>
+<li><p>Change scaling behavior for mutation, selection and recombination  when
+computing statistics using Demes (detailed in documentation)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">H2()</span></code> function to LD statistics</p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>1.1.18<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Implement underdominance and overdominance in SFS integration.</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>1.1.17<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Allow selection and dominance to be specified as time-dependent functions
+in SFS integration.</p></li>
+</ul>
+</section>
+<section id="id14">
+<h3>1.1.16<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Flexible steady-state solution in LD statistics for multi-population
+island models</p></li>
+<li><p>Fix bug in reversible mutation model for SFS with multiple populations
+with migration</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>1.1.15<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix various bugs in LD parsing methods, including when data is missing and
+recursion errors in cythonized genotype calculation methods</p></li>
+<li><p>Add steady state solution to LD methods</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>1.1.14<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bugs when computing multi-population LD statistics using phased haplotype
+data</p></li>
+<li><p>Steady state LD statistics for two-population island models</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>1.1.13<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Function to parse ANGSD-formatted data as a moments.Spectrum object (issue #106)</p></li>
+<li><p>Catch if genotype matrix is too large to compute pairwise LD (issue #105)</p></li>
+</ul>
+</section>
+<section id="id18">
+<h3>1.1.12<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Efficiency improvements in LD Parsing and Integration</p></li>
+<li><p>Test demes graph slicing features</p></li>
+</ul>
+</section>
+<section id="id19">
+<h3>1.1.11<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The LD inference methods now allow calculation of f-statistics (f2, f3, f4)</p></li>
+<li><p>Demes methods allow multiple sources in pulses</p></li>
+<li><p>Demes integration allow for ancient samples</p></li>
+<li><p>Fix bugs in L-BFGS-B methods for inference using the SFS</p></li>
+</ul>
+</section>
+<section id="id20">
+<h3>1.1.10<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add warnings and exceptions if bins are improperly defined in LD.Parsing (Issue #99).</p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">ld_extensions</span></code> flag from installation so that all extensions are built
+automatically.</p></li>
+<li><p>Pin cython to ~0.29 until recursion error is fixed</p></li>
+<li><p>Allow samples to be specified with a dictionary for SFS calculation with Demes</p></li>
+<li><p>Memory-efficient caching of projection in TwoLocus</p></li>
+<li><p>Add LD inference using Demes and clean up uncertainty calculations for SFS inference
+using demes</p></li>
+</ul>
+</section>
+<section id="id21">
+<h3>1.1.9<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Allow ancient samples in Demes inference function</p></li>
+<li><p>Add selection and dominance to Demes SFS integration function</p></li>
+<li><p>Add f2 and f4 statistics to LDstats object</p></li>
+<li><p>Allow multiple simultaneous merger events in Demes integration methods</p></li>
+<li><p>Add uncertainty functions to Demes SFS inference module</p></li>
+<li><p>Refactor Demes SFS inference options (#85)</p></li>
+<li><p>Add function to compute genotype matrix from the SFS</p></li>
+<li><p>Add function to compute allele frequency threshold LD statistics from
+TwoLocus spectrum</p></li>
+<li><p>Fix factor of 2 discrepancy between LD and TwoLocus mutation model (#60)</p></li>
+</ul>
+</section>
+<section id="id22">
+<h3>1.1.8<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bug that plotted multiple colorbars in plot_single_2d_sfs (issue #82).</p></li>
+<li><p>Add L-BFGS-B optimization method to LD inference.</p></li>
+<li><p>Fix bug in SFS inference using demes when a branch event time is a variable parameter.</p></li>
+<li><p>Fix bug in LD Godambe method that improperly normalized J matrix and cU vector.</p></li>
+</ul>
+</section>
+<section id="id23">
+<h3>1.1.7<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Inference using demes allows for ancestral misidentification estimation
+(#81).</p></li>
+<li><p>Fst computation now has option for all pairwise computations (#80).</p></li>
+<li><p>Bug fix when computing LD with an input VCF that includes multiple
+chromosomes (#78).</p></li>
+<li><p>Bug fix when computing LD means over multiple regions.</p></li>
+<li><p>Expanded documentation, particularly for clarification of installation steps
+in docs when using LD parsing methods (#79), usage of Godambe methods for
+computing confidence intervals (#77), and more details for LD methods.</p></li>
+</ul>
+</section>
+<section id="id24">
+<h3>1.1.6<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Many small bug fixes and API improvements to LD parsing, inference, and
+confidence interval methods.</p></li>
+<li><p>Expanded documentation for computing, parsing, and running inference using LD
+statistics (#73).</p></li>
+<li><p>Expand LD examples in repository and bring them up to date with current API
+(#74).</p></li>
+<li><p>Minor improvements to 1D SFS plotting (#64).</p></li>
+</ul>
+</section>
+<section id="id25">
+<h3>1.1.5<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Use (chrom, pos) tuple as data dictionary key, to avoid conflicts with
+underscores. Underscores in contig/chromosome names are again supported.</p></li>
+<li><p>Add branch function to Spectrum class.</p></li>
+<li><p>Fix bug when computing SFS from demes with branches occurring simultaneously
+(#71).</p></li>
+<li><p>Fix bug when computing SFS from demes with pulses occurring simultaneously
+(#72).</p></li>
+</ul>
+</section>
+<section id="id26">
+<h3>1.1.4<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bugs in Plotting multi-population SFS comparisons that were showing each
+subplot in a new figure instead of in a single plot.</p></li>
+<li><p>Hide the intrusive scale bar in ModelPlot by default.</p></li>
+</ul>
+</section>
+<section id="id27">
+<h3>1.1.3<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bug in Misc.make_data_dict_vcf that skipped any site with missing data.</p></li>
+<li><p>Fix numpy deprecation warning when projecting.</p></li>
+<li><p>Documentation updates for miscellaneous functions.</p></li>
+<li><p>Fix bug where copying and pickling LDstats objects resulted in a recursion
+error (#66).</p></li>
+</ul>
+</section>
+<section id="id28">
+<h3>1.1.2<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bug when checking if matplotlib is installed for model plotting  (issue
+#68).</p></li>
+<li><p>Now compatible with demes &gt;= 0.1.</p></li>
+</ul>
+</section>
+<section id="id29">
+<h3>1.1.1<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix a pesky RecursionError in <code class="docutils literal notranslate"><span class="pre">moments.LD.Inference.sigmaD2</span></code>.</p></li>
+<li><p>Fix bug when simulating LD using <code class="docutils literal notranslate"><span class="pre">Demes</span></code> if admixture timing coincides with
+a deme’s end time.</p></li>
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">numpy.float</span></code> deprecation warning in <code class="docutils literal notranslate"><span class="pre">moments.LD.Numerics</span></code>.</p></li>
+<li><p>Update demes methods to work with <code class="docutils literal notranslate"><span class="pre">demes</span></code> version 0.1.0a4.</p></li>
+<li><p>Improve (or at least change) some of the plotting outputs.</p></li>
+<li><p>Protect import of <code class="docutils literal notranslate"><span class="pre">demes</span></code> if not installed.</p></li>
+</ul>
+</section>
+<section id="id30">
+<h3>1.1.0<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Completely rebuilt documentation, now hosted on [Read the
+Docs](<a class="reference external" href="https://moments.readthedocs.io/">https://moments.readthedocs.io/</a>).</p></li>
+<li><p>Tutorials and modules in the documentation for running inference, inferring
+the DFE, and exploring LD under a range of selection models.</p></li>
+<li><p>More helpful documentation in docstrings.</p></li>
+<li><p>Support for
+[demes](<a class="reference external" href="https://moments.readthedocs.io/en/latest/extensions/demes.html">https://moments.readthedocs.io/en/latest/extensions/demes.html</a>).</p></li>
+<li><p>Simpler functions to improve Spectrum manipulation and demographic events,
+such as fs.split(), fs.admix, etc.</p></li>
+<li><p>API and numerics overhaul for Triallele and TwoLocus methods.</p></li>
+<li><p>Expanded selection models in the TwoLocus module.</p></li>
+<li><p>moments.LD methods are now zero-based.</p></li>
+<li><p>Reversible mutation model supports a single symmetric mutation rate.</p></li>
+</ul>
+</section>
+<section id="id31">
+<h3>1.0.9<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Numpy version bump from 0.19 to 0.20 creates incompatibility if cython
+extension are built with different version than user environment. This more
+explicitly specifies the numpy version to maintain compatibility (with thanks
+to Graham Gower).</p></li>
+</ul>
+</section>
+<section id="id32">
+<h3>1.0.8<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Allow for variable migration rate by passing a function as the migration
+matrix (with thanks to Ekaterina <a class="reference external" href="mailto:Noskova/&#37;&#52;&#48;noscode">Noskova/<span>&#64;</span>noscode</a>).</p></li>
+<li><p>Fixes an issue with ModelPlot when splitting 3D and 4D SFS.</p></li>
+</ul>
+</section>
+<section id="id33">
+<h3>1.0.7<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bug fixes and haplotype parsing in moments.LD.Parsing.
+(Issues #38 through #42, with thanks to Nathaniel Pope).</p></li>
+</ul>
+</section>
+<section id="id34">
+<h3>1.0.6<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Updates to installation, so that <code class="docutils literal notranslate"><span class="pre">pip</span></code> installs dependencies automatically.</p></li>
+<li><p>Protect against importing <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> if not installed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Triallele</span></code> and <code class="docutils literal notranslate"><span class="pre">TwoLocus</span></code> now ensure using CSC format sparse matrix to avoid
+sparse efficiency warnings.</p></li>
+<li><p>Streamline test suite, which now works with <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, as
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytests</span> <span class="pre">tests</span></code>.</p></li>
+</ul>
+</section>
+<section id="id35">
+<h3>1.0.5<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fixes install issues using pip: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> or
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">git+https://github.com/MomentsLD/moments.git</span></code> is now functional.</p></li>
+</ul>
+</section>
+<section id="id36">
+<h3>1.0.4<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Stable importing of scipy.optimize nnls function.</p></li>
+<li><p>Fixes a plotting bug when ax was set to None (from &#64;noscode - thanks!).</p></li>
+</ul>
+</section>
+<section id="id37">
+<h3>1.0.3<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Options in plotting scripts for showing and saving output.</p></li>
+<li><p>Add confidence interval computation for LD.</p></li>
+<li><p>Add parsing script for ANGSD frequency spectrum output.</p></li>
+</ul>
+<p>Note that we started tracking changes between versions with version 1.0.2.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to moments’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

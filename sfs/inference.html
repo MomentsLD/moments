@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SFS Inference &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Multi-population LD statistics" href="../ld/ld.html" />
+    <link rel="prev" title="Parsing the SFS from a VCF file" href="parsing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SFS Inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#computing-likelihoods">Computing likelihoods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimization">Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-population-example">Single population example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#confidence-intervals">Confidence intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#two-population-example">Two population example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SFS Inference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/sfs/inference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="jupyter_cell docutils container" id="sec-sfs-inferenc">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="sfs-inference">
+<h1>SFS Inference<a class="headerlink" href="#sfs-inference" title="Link to this heading"></a></h1>
+<section id="computing-likelihoods">
+<h2>Computing likelihoods<a class="headerlink" href="#computing-likelihoods" title="Link to this heading"></a></h2>
+<p>Following <a class="reference internal" href="#sawyer1992" id="id1"><span>[Sawyer1992]</span></a> the distribution of mutation frequencies is treated as
+a Poisson random field, so that composite likelihoods (in which we assume
+mutations are independent) are computed by taking Poisson likelihoods over bins
+in the SFS. We typically work with log-likelihoods, so that the log-likelihood
+of the data (<span class="math notranslate nohighlight">\(D\)</span>) given the model (<span class="math notranslate nohighlight">\(M\)</span>) is</p>
+<div class="math notranslate nohighlight">
+\[\log{\mathcal{L}} = \sum_{i} D_i \log{M_i} - M_i - \log{D_i !}\]</div>
+<p>where <span class="math notranslate nohighlight">\(i\)</span> indexes the bins of the SFS.</p>
+<p>Likelihoods can be computed from <code class="docutils literal notranslate"><span class="pre">moments.Inference</span></code>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">moments</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">theta</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">10</span><span class="p">])</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>[-- 1000.0 499.9999999999999 333.33333333333326 250.0 200.0
+ 166.66666666666666 142.85714285714286 125.0 111.1111111111111 --]
+[-- 1023 521 340 247 220 174 148 141 109 --]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>-36.134913437620924
+</pre></div>
+</div>
+</div>
+</div>
+<p>When simulating under some demographic model, we usually use the default <code class="docutils literal notranslate"><span class="pre">theta</span></code>
+of 1, because the SFS scales linearly in the mutation rate. When comparing to data
+in this case, we need to rescale the model SFS. It turns out that the
+maximum-likelihood rescaling is that which makes the total number of segregating
+sites in the model equal to the total number in the data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3900</span><span class="p">,</span> <span class="mi">1500</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mi">750</span><span class="p">,</span> <span class="mi">720</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">two_epoch</span><span class="p">((</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of segregating sites in data:&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of segregating sites in model:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ratio of segregating sites:&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">S</span><span class="p">()</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">S</span><span class="p">())</span>
+
+<span class="n">opt_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal theta:&quot;</span><span class="p">,</span> <span class="n">opt_theta</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Number of segregating sites in data: 9070.0
+Number of segregating sites in model: 2.7771726368386327
+Ratio of segregating sites: 3265.911481226729
+Optimal theta: 3265.911481226729
+</pre></div>
+</div>
+</div>
+</div>
+<p>Then we can compute the log-likelihood of the rescaled model with the data, which
+will give us the same answer as <code class="docutils literal notranslate"><span class="pre">moments.Inference.ll_multinom</span></code> using the unscaled
+data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll</span><span class="p">(</span><span class="n">opt_theta</span> <span class="o">*</span> <span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>-59.880644681554486
+-59.880644681554486
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="optimization">
+<h2>Optimization<a class="headerlink" href="#optimization" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">moments</span></code> optimization is effectively a wrapper for <code class="docutils literal notranslate"><span class="pre">scipy</span></code> optimization
+routines, with some features specific to working with SFS data. In short, given
+a demographic model defined by a set of parameters, we try to find those parameters
+that minimize the negative log-likelihood of the data given the model. There are
+a number of optimization functions available in <code class="docutils literal notranslate"><span class="pre">moments.Inference</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize</span></code> and <code class="docutils literal notranslate"><span class="pre">optimize_log</span></code>: Uses the BFGS algorithm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_lbfgsb</span></code> and <code class="docutils literal notranslate"><span class="pre">optimize_log_lbfgsb</span></code>: Uses the L-BFGS-B algorithm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_log_fmin</span></code>: Uses the downhill simplex algorithm on the log of
+the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_powell</span></code> and <code class="docutils literal notranslate"><span class="pre">optimize_log_powell</span></code>: Uses the modified Powell’s
+method, which optimizes slices of parameter space sequentially.</p></li>
+</ul>
+<p>More information about optimization algorithms can be found in the
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.html">scipy documentation</a>.</p>
+<p>With each method, we require at least three inputs: 1) the initial guess, 2) the
+data SFS, and 3) the model function that returns a SFS of the same size as the data.</p>
+<p>Additionally, it is common to set the following:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lower_bound</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code>: Constraints on the lower and upper
+bounds during optimization. These are given as lists of the same length of
+the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fixed_params</span></code>: A list of the same length of the parameters, with fixed
+values given matching the order of the input parameters. <code class="docutils literal notranslate"><span class="pre">None</span></code> is used to
+specify parameters that are still to be optimized.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code>: If an integer greater than 0, prints updates of the optimization
+procedure at intervals given by that spacing.</p></li>
+</ul>
+<p>For a full description of the various inference functions, please see the
+<a class="reference internal" href="../api/api_moments.html#sec-sfs-api"><span class="std std-ref">SFS inference API</span></a>.</p>
+<section id="single-population-example">
+<h3>Single population example<a class="headerlink" href="#single-population-example" title="Link to this heading"></a></h3>
+<p>As a toy example, we’ll generate some fake data from a demographic model
+and then reinfer the input parameters of that demographic model. The
+model is an instantaneous bottleneck followed by exponential growth,
+implemented in <code class="docutils literal notranslate"><span class="pre">moments.Demographics1D.bottlegrowth</span></code>, which takes
+parameters <code class="docutils literal notranslate"><span class="pre">[nuB,</span> <span class="pre">nuF,</span> <span class="pre">T]</span></code> and the sample size. Here <code class="docutils literal notranslate"><span class="pre">nuB</span></code> is the
+bottleneck size (relative to the ancestral size), <code class="docutils literal notranslate"><span class="pre">nuF</span></code> is the relative
+final size, and <code class="docutils literal notranslate"><span class="pre">T</span></code> is the time in the past the bottleneck occurred
+(in units of <span class="math notranslate nohighlight">\(2N_e\)</span> generations).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nuB</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">nuF</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mf">0.4</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1"># the haploid sample size</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">bottlegrowth</span><span class="p">([</span><span class="n">nuB</span><span class="p">,</span> <span class="n">nuF</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span> <span class="p">[</span><span class="n">n</span><span class="p">])</span>
+
+<span class="n">theta</span> <span class="o">=</span> <span class="mi">2000</span>  <span class="c1"># the scaled mutation rate (4*Ne*u*L)</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">fs</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The input demographic model (assuming an <span class="math notranslate nohighlight">\(N_e\)</span> of 10,000), plotted using
+<a class="reference external" href="https://github.com/grahamgower/demesdraw">demesdraw</a>:</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/inference_6_0.png" src="../_images/inference_6_0.png" />
+</div>
+</div>
+<p>We then set up the optimization inputs, including the initial parameter
+guesses, lower bounds, and upper bounds, and then run optimization. Here,
+I’ve decided to use the log-L-BFGS-B method, though there are a number of
+built in options (see previous section).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">p_guess</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Misc</span><span class="o">.</span><span class="n">perturb_params</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">model_func</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">bottlegrowth</span>
+
+<span class="n">opt_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_lbfgsb</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">)</span>
+<span class="n">opt_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="o">*</span> <span class="n">opt_theta</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The reinferred parameters:</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Params	nuB	nuF	T	theta
+Input	0.2	3.0	0.4	2000
+Refit	0.2193	3.063	0.38	1.941e+03
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can also visualize the fit of the model to the data:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_1d_comp_Poisson</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/inference_9_0.png" src="../_images/inference_9_0.png" />
+</div>
+</div>
+<section id="confidence-intervals">
+<h4>Confidence intervals<a class="headerlink" href="#confidence-intervals" title="Link to this heading"></a></h4>
+<p>We’re often interested in estimating the precision of the inferred parameters
+from our best fit model. To do this, we can compute a <em>confidence interval</em> for
+each free parameter from the model fit. Methods implemented in <code class="docutils literal notranslate"><span class="pre">moments</span></code> to
+compute, particularly the method based on the Godambe Information Matrix
+<a class="reference internal" href="#coffman2016" id="id2"><span>[Coffman2016]</span></a>, were first implemented in dadi by Alec Coffman, who’s paper
+should be cited if these methods are used.</p>
+<p>See the <a class="reference internal" href="../api/api_moments.html#sec-sfs-api"><span class="std std-ref">API documentation for uncertainty functions</span></a> for
+information on their usage.</p>
+</section>
+</section>
+<section id="two-population-example">
+<h3>Two population example<a class="headerlink" href="#two-population-example" title="Link to this heading"></a></h3>
+<p>Here, we will create some fake data for a two-population split-migration model,
+and then re-infer the input parameters to the model used to create that data.
+This example uses the <code class="docutils literal notranslate"><span class="pre">optimize_log_fmin</span></code> optimization function. We’ll also
+use the <code class="docutils literal notranslate"><span class="pre">FIM_uncert</span></code> function to compute uncertainties (reported as standard
+errors).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_theta</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]</span>
+<span class="n">model_func</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics2D</span><span class="o">.</span><span class="n">split_mig</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">input_theta</span> <span class="o">*</span> <span class="n">model</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+
+<span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+
+<span class="n">p_guess</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Misc</span><span class="o">.</span><span class="n">perturb_params</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>
+
+<span class="n">opt_params</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># report every 20 iterations</span>
+
+<span class="n">refit_theta</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimal_sfs_scaling</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="n">uncerts</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">FIM_uncert</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span> <span class="n">opt_params</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="n">print_params</span> <span class="o">=</span> <span class="n">params</span> <span class="o">+</span> <span class="p">[</span><span class="n">input_theta</span><span class="p">]</span>
+<span class="n">print_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">opt_params</span><span class="p">,</span> <span class="p">[</span><span class="n">refit_theta</span><span class="p">]))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Params</span><span class="se">\t</span><span class="s2">nu1</span><span class="se">\t</span><span class="s2">nu2</span><span class="se">\t</span><span class="s2">T_div</span><span class="se">\t</span><span class="s2">m_sym</span><span class="se">\t</span><span class="s2">theta&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">print_params</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Refit</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">.4</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">print_opt</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Std-err</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">u</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">uncerts</span><span class="p">]))</span>
+
+<span class="n">moments</span><span class="o">.</span><span class="n">Plotting</span><span class="o">.</span><span class="n">plot_2d_comp_multinom</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">(</span><span class="n">opt_params</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>80      , -2694.93    , array([ 3.37038    ,  1.4533     ,  0.14818    ,  3.56425    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>100     , -1848.46    , array([ 2.2946     ,  1.61942    ,  0.231622   ,  3.08907    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>120     , -1606.99    , array([ 1.67084    ,  1.70768    ,  0.21488    ,  3.19717    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>140     , -1301.39    , array([ 2.09014    ,  2.41663    ,  0.228081   ,  2.46434    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>160     , -1221.3     , array([ 2.08209    ,  3.15773    ,  0.208222   ,  1.82665    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>180     , -1207.6     , array([ 1.98888    ,  2.98949    ,  0.196215   ,  1.96569    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>200     , -1207.33    , array([ 1.97776    ,  2.98773    ,  0.196067   ,  1.94659    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>220     , -1207.33    , array([ 1.97607    ,  2.98639    ,  0.195956   ,  1.94756    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>240     , -1207.33    , array([ 1.97558    ,  2.98583    ,  0.196038   ,  1.95016    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Params	nu1	nu2	T_div	m_sym	theta
+Input	2.0	3.0	0.2	2.0	10000
+Refit	1.976	2.986	0.1961	1.95	1.007e+04
+Std-err	0.0387	0.0666	0.0043	0.0721	69.7
+</pre></div>
+</div>
+<img alt="../_images/inference_10_10.png" src="../_images/inference_10_10.png" />
+</div>
+</div>
+<p>Above, we can see that we recovered the parameters used to simulate the data
+very closely, and we used <code class="docutils literal notranslate"><span class="pre">moments</span></code>’s plotting features to visually compare
+the data to the model fit.</p>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="sawyer1992" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Sawyer1992</a><span class="fn-bracket">]</span></span>
+<p>Sawyer, Stanley A., and Daniel L. Hartl. “Population genetics of polymorphism and divergence.” <em>Genetics</em> 132.4 (1992): 1161-1176.</p>
+</div>
+<div class="citation" id="coffman2016" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Coffman2016</a><span class="fn-bracket">]</span></span>
+<p>Coffman, Alec J., et al. “Computationally efficient composite likelihood statistics for demographic inference.” <em>Molecular biology and evolution</em> 33.2 (2016): 591-593.</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parsing.html" class="btn btn-neutral float-left" title="Parsing the SFS from a VCF file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../ld/ld.html" class="btn btn-neutral float-right" title="Multi-population LD statistics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

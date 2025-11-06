@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demography and genetic diversity &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DFE inference" href="dfe.html" />
+    <link rel="prev" title="Triallele frequency spectrum" href="../extensions/triallele.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Demography and genetic diversity</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#measures-of-genetic-diversity">Measures of genetic diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#single-population-demography">Single-population demography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multiple-populations">Multiple populations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Demography and genetic diversity</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/diversity.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="jupyter_cell docutils container" id="sec-diversity">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="demography-and-genetic-diversity">
+<h1>Demography and genetic diversity<a class="headerlink" href="#demography-and-genetic-diversity" title="Link to this heading"></a></h1>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>This module has not been completed.</p>
+</div>
+<p>Intro - intuition about how demography is expected to affect summary statistics
+helps in hypothesizing historical scenarios to explain observed patterns of genetic
+diversity, or trouble-shooting poor fits of models to data. It’s also important
+to understand how demographic parameters can be confounded and different evolutionary
+scenarios can give rise to similar patterns of genetic diversity.</p>
+<section id="measures-of-genetic-diversity">
+<h2>Measures of genetic diversity<a class="headerlink" href="#measures-of-genetic-diversity" title="Link to this heading"></a></h2>
+<p>Many of the common single-site diversity statistics we are familiar with in population
+genetics are summaries of the SFS.</p>
+<p>For single populations, diversity within a
+population is very often reported as the average heterozygosity (typically denoted
+<span class="math notranslate nohighlight">\(\pi\)</span> or <span class="math notranslate nohighlight">\(H\)</span>): the probability that two genome copies (i.e. samples) differ
+in state at a given locus. Suppose our SFS stores the distribution of allele frequencies
+over <span class="math notranslate nohighlight">\(L\)</span> loci for <span class="math notranslate nohighlight">\(n\)</span> samples. Then the expected or average
+<span class="math notranslate nohighlight">\(\pi\)</span> can be found by summing across allele frequency bins in the SFS and
+computing the probability that two randomly drawn copies carry different alleles for
+the given allele frequency:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{E}[\pi] = \frac{1}{L} \sum_{i=1}^{n-1} 2\frac{i(n-i)}{n(n-1)} \text{SFS}(i)\]</div>
+<p>Under the standard neutral model with steady-state demography, diversity is expected
+to be equal to the scaled mutation rate:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">moments</span>
+
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="c1"># the per-base scaled mutation rate, 4*Ne*u</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1"># the haploid sample size</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="n">n</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Theta:&quot;</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Diversity:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span><span class="si">:</span><span class="s2">0.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Theta: 0.001
+Diversity: 0.0010
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="single-population-demography">
+<h2>Single-population demography<a class="headerlink" href="#single-population-demography" title="Link to this heading"></a></h2>
+<p>Store values every x generations after instantaneouls double of size:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Ne</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="n">singletons</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">doubletons</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">tripletons</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">diversity</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Demographics1D</span><span class="o">.</span><span class="n">snm</span><span class="p">([</span><span class="mi">20</span><span class="p">])</span>
+<span class="n">singletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">doubletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">tripletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">diversity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">pi</span><span class="p">())</span>
+
+<span class="k">for</span> <span class="n">gens</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ne</span><span class="p">):</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="mi">4</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="n">Ne</span><span class="p">)</span>
+    <span class="n">singletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">doubletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">tripletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">diversity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">pi</span><span class="p">())</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">tt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ne</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">singletons</span> <span class="o">/</span> <span class="n">singletons</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Singletons&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">doubletons</span> <span class="o">/</span> <span class="n">doubletons</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Doubletons&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">tripletons</span> <span class="o">/</span> <span class="n">tripletons</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Tripletons&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">diversity</span> <span class="o">/</span> <span class="n">diversity</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Diversity (pi)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Generations after expansion&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7fc273328590&gt;
+</pre></div>
+</div>
+<img alt="../_images/diversity_2_1.png" src="../_images/diversity_2_1.png" />
+</div>
+</div>
+<ul class="simple">
+<li><p>Tajima’s D and pi over time with size changes</p></li>
+<li><p>dynamics of allele frequency classes with size changes</p></li>
+</ul>
+</section>
+<section id="multiple-populations">
+<h2>Multiple populations<a class="headerlink" href="#multiple-populations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Comparison to some classical result in an IM model?</p></li>
+<li><p>m-T confounding in heatmap of Fst</p></li>
+<li><p>Fst with small sizes vs large divergence</p></li>
+<li><p>pi over time in OOA model</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../extensions/triallele.html" class="btn btn-neutral float-left" title="Triallele frequency spectrum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dfe.html" class="btn btn-neutral float-right" title="DFE inference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

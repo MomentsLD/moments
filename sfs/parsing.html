@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parsing the SFS from a VCF file &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SFS Inference" href="inference.html" />
+    <link rel="prev" title="The Site Frequency Spectrum" href="sfs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsing the SFS from a VCF file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#specifying-populations">Specifying populations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-ancestral-allele-information">Using ancestral allele information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#biallelic-and-multiallelic-sites">Biallelic and multiallelic sites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-filters">Using filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#projecting-to-a-smaller-sample-size">Projecting to a smaller sample size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#specifying-regions">Specifying regions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#computing-l">Computing L</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrapping-data">Bootstrapping data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Parsing the SFS from a VCF file</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/sfs/parsing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <blockquote>
+<div></div></blockquote>
+<section id="parsing-the-sfs-from-a-vcf-file">
+<span id="sec-sfs-parsing"></span><h1>Parsing the SFS from a VCF file<a class="headerlink" href="#parsing-the-sfs-from-a-vcf-file" title="Link to this heading"></a></h1>
+<p>As described in the <a class="reference external" href="sfs">SFS section</a>, the site frequencey spectrum (SFS) is
+a multidimensional histogram that records the counts, frequencies or probabilities
+of the observed counts of SNPs in one or more populations. Here we show how to use
+<code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_vcf</span></code> to compute the SFS from a VCF file.</p>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<p>The only argument required to compute the SFS is the path to the desired VCF.
+The function <code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_vcf</span></code> returns an SFS array in the form of a
+<code class="docutils literal notranslate"><span class="pre">moments.Spectrum</span></code> instance. A minimal example of usage is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">moments</span>
+
+<span class="n">vcf_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/vcf_file.vcf.gz&quot;</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span><span class="n">vcf_file</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="specifying-populations">
+<h2>Specifying populations<a class="headerlink" href="#specifying-populations" title="Link to this heading"></a></h2>
+<p>By default, all samples present in the VCF are collected into a single population <code class="docutils literal notranslate"><span class="pre">&quot;ALL&quot;</span></code>.
+There are two ways to group samples into multiple populations. We can specify a <code class="docutils literal notranslate"><span class="pre">pop_mapping</span></code>,
+a dictionary that directly maps population names to lists of VCF sample IDs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pop_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pop_A&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id_0&quot;</span><span class="p">,</span> <span class="s2">&quot;id_1&quot;</span><span class="p">,</span> <span class="s2">&quot;id_2&quot;</span><span class="p">],</span> <span class="s2">&quot;pop_B&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id_4&quot;</span><span class="p">,</span> <span class="s2">&quot;id_5&quot;</span><span class="p">]}</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span><span class="n">vcf_file</span><span class="p">,</span> <span class="n">pop_mapping</span><span class="o">=</span><span class="n">pop_mapping</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or we can specify the path to a <code class="docutils literal notranslate"><span class="pre">pop_file</span></code>, a whitespace-separated file following the
+pattern <code class="docutils literal notranslate"><span class="pre">sample_id</span> <span class="pre">pop_id</span></code> on each line. Optionally, we can parse only a subset of
+the populations listed in this file by passing a list of population names to the argument <code class="docutils literal notranslate"><span class="pre">pops</span></code>.
+If nothing is passed to this argument, then all populations in the file will be included.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">id_0</span> <span class="n">pop_A</span>
+<span class="n">id_1</span> <span class="n">pop_A</span>
+<span class="n">id_2</span> <span class="n">pop_A</span>
+<span class="n">id_4</span> <span class="n">pop_B</span>
+<span class="n">id_5</span> <span class="n">pop_B</span>
+<span class="n">id_6</span> <span class="n">pop_C</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pop_file</span> <span class="o">=</span> <span class="s1">&#39;path/to/pop_file.txt&#39;</span>
+<span class="n">pops</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pop_A&#39;</span><span class="p">,</span> <span class="s1">&#39;pop_B&#39;</span><span class="p">]</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span><span class="n">vcf_file</span><span class="p">,</span> <span class="n">pop_file</span><span class="o">=</span><span class="n">pop_file</span><span class="p">,</span> <span class="n">pops</span><span class="o">=</span><span class="n">pops</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any VCF samples that are not mapped to a population are ignored.</p>
+</section>
+<section id="using-ancestral-allele-information">
+<h2>Using ancestral allele information<a class="headerlink" href="#using-ancestral-allele-information" title="Link to this heading"></a></h2>
+<p>By default, reference alleles are interpreted as ancestral alleles. In this case,
+we will most likely wish to pass <code class="docutils literal notranslate"><span class="pre">True</span></code> to the argument <code class="docutils literal notranslate"><span class="pre">folded</span></code> to fold the
+returned SFS, as there is no general correspondence between ancestral and reference
+alleles. We can provide inferred ancestral alleles for polarizing alleles in two different
+ways. If the input VCF file has <code class="docutils literal notranslate"><span class="pre">AA</span></code> (ancestral allele) information in its <code class="docutils literal notranslate"><span class="pre">INFO</span></code> field,
+we can pass <code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">use_AA</span></code> to obtain ancestral allele assignments from this
+subfield. Sites where <code class="docutils literal notranslate"><span class="pre">AA</span></code> is absent or has missing data are skipped and an alert
+message is printed at the first such site.</p>
+<p>Otherwise, we can pass the path to a FASTA-format file containing estimated ancestral alleles
+to <code class="docutils literal notranslate"><span class="pre">anc_seq_file</span></code>. Sites with invalid or missing data are skipped, raising a single alert
+message as described above. Often, FASTA files represent low-confidence ancestral allele
+assignments with lower-case nucleotide codes. By default, sites assigned these are skipped
+as though the data were missing, but the assignments may be taken as valid by passing
+<code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">allow_low_confidence</span></code>.</p>
+</section>
+<section id="biallelic-and-multiallelic-sites">
+<h2>Biallelic and multiallelic sites<a class="headerlink" href="#biallelic-and-multiallelic-sites" title="Link to this heading"></a></h2>
+<p>By default, multiallelic sites are skipped. We can pass <code class="docutils literal notranslate"><span class="pre">True``to</span> <span class="pre">``allow_multiallelic</span></code>
+to include derived alleles at multiallelic sites as distinct entries in the SFS.
+When we provide an ancestral sequence and <code class="docutils literal notranslate"><span class="pre">allow_multiallelic</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+biallelic sites where the reference and alternate alleles both differ from
+the ancestral allele are skipped, because these sites represent recurrent mutations and
+the relationship between the derived alleles is unclear. Conversely, when <code class="docutils literal notranslate"><span class="pre">allow_multiallelic</span></code>
+is <code class="docutils literal notranslate"><span class="pre">True</span></code>, this exception is ignored and all the derived alleles at such sites are counted.</p>
+</section>
+<section id="using-filters">
+<h2>Using filters<a class="headerlink" href="#using-filters" title="Link to this heading"></a></h2>
+<p>It is often desirable to set quality thresholds or categorical requirements for
+the inclusion of sites in the returned SFS. We can do this by passing a flat
+dictionary representing the desired quantitative/categorical filters to <code class="docutils literal notranslate"><span class="pre">filters</span></code>.
+Valid key-value combinations are listed here. <code class="docutils literal notranslate"><span class="pre">&quot;QUAL&quot;</span></code> specifies a lower bound
+on the VCF <code class="docutils literal notranslate"><span class="pre">QUAL</span></code> column and should map to a float or integer. <code class="docutils literal notranslate"><span class="pre">&quot;FILTER&quot;</span></code>
+should map to a string or list/set/tuple of strings. To pass, sites must have a <code class="docutils literal notranslate"><span class="pre">FILTER</span></code>
+entry equal to the value of <code class="docutils literal notranslate"><span class="pre">&quot;FILTER&quot;</span></code> if it is a string, or to one of its
+elements if it is a string, tuple or list.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;INFO/SUBFIELD&quot;</span></code> imposes a filter on <code class="docutils literal notranslate"><span class="pre">SUBFIELD</span></code> in the <code class="docutils literal notranslate"><span class="pre">INFO</span></code> column. Its
+value may be a float or integer, in which case it imposes a minimum threshold on that
+entry. It may also map to a string or list/set/tuple of strings, with equivalent
+behavior to <code class="docutils literal notranslate"><span class="pre">&quot;FILTER&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">&quot;SAMPLE/SUBFIELD&quot;</span></code> works in the same way, but imposes
+filters on individual samples rather than lines. The fields <code class="docutils literal notranslate"><span class="pre">&quot;SAMPLE&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;FORMAT&quot;</span></code>
+are equivalent and refer to subfields enumerated in the <code class="docutils literal notranslate"><span class="pre">FORMAT</span></code> VCF column.
+Their types and behavior are the same as for <code class="docutils literal notranslate"><span class="pre">INFO</span></code> subfields, but filtering occurs
+at the sample level. An arbitrary example is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">filter_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;QUAL&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="s2">&quot;FILTER&quot;</span><span class="p">:</span> <span class="s2">&quot;PASS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;INFO/DP&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="s2">&quot;INFO/DB&quot;</span><span class="p">:</span> <span class="s2">&quot;DB&quot;</span>
+    <span class="s2">&quot;FORMAT/GQ&quot;</span><span class="p">:</span> <span class="mi">30</span>
+    <span class="s2">&quot;FORMAT/DP&quot;</span><span class="p">:</span> <span class="mi">30</span>
+<span class="p">}</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span><span class="n">vcf_file</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The types of filters are not explicitly checked for consistency with their definitions
+in the VCF file, so care should be taken when specifying them. Inappropriately typed
+filters will generally raise errors. Lines or samples with absent fields/missing data
+are not skipped, but one-time alert messages are printed for each unique exception.</p>
+</section>
+<section id="projecting-to-a-smaller-sample-size">
+<h2>Projecting to a smaller sample size<a class="headerlink" href="#projecting-to-a-smaller-sample-size" title="Link to this heading"></a></h2>
+<p>We may wish to reduce the size the output SFS to reduce the space it occupies in
+memory, to make computing an expected SFS for the same shape faster, to allow sites
+where some samples are filtered out or missing to be retained in output, or for
+other reasons. We can accomplish this by passing a dictionary of desired haploid sample sizes to
+<code class="docutils literal notranslate"><span class="pre">sample_sizes</span></code>. Any VCF sites with exactly this number of observed alleles will be
+retained without alteration in the output SFS, and the SFS from all sites with
+sample-size configurations larger than <code class="docutils literal notranslate"><span class="pre">sample_sizes</span></code> will be projected down to
+match. The output SFS is a sum over these cases. Projection is a procedure for reducing
+the size of the SFS by summing over the possible subsamplings of an entry. An example
+usage with the population file shown above is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pop_A&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;pop_B&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;pop_C&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span>
+    <span class="n">vcf_file</span><span class="p">,</span>
+    <span class="n">pop_file</span><span class="o">=</span><span class="n">pop_file</span><span class="p">,</span>
+    <span class="n">sample_sizes</span><span class="o">=</span><span class="n">sample_sizes</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that sample sizes can be equal to, but not greater than, the total haploid sample
+size of a population.</p>
+</section>
+<section id="specifying-regions">
+<h2>Specifying regions<a class="headerlink" href="#specifying-regions" title="Link to this heading"></a></h2>
+<p>We can subset parsing to a genomic window by using the <code class="docutils literal notranslate"><span class="pre">interval</span></code> argument, which
+should be a 2-list of integers. This interval should be one-indexed and half-open.
+Additionally, we provide a mask file in BED format with the argument <code class="docutils literal notranslate"><span class="pre">bed_file</span></code>,
+which will filter out sites that fall outside its region intervals.
+<code class="docutils literal notranslate"><span class="pre">bed_file</span></code> can be given alongside <code class="docutils literal notranslate"><span class="pre">interval</span></code>, so that only sites which fall
+within a BED interval and within <code class="docutils literal notranslate"><span class="pre">interval</span></code> are parsed. Note that BED file
+intervals are half-open and zero-indexed. Also note that <code class="docutils literal notranslate"><span class="pre">moments.Spectrum.from_vcf</span></code>
+does not support VCF files that contain sites from multiple chromosomes. An
+example where both arguments are passed is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bed_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/bed_file.bed.gz&quot;</span>
+<span class="n">interval</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10000001</span><span class="p">]</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">from_vcf</span><span class="p">(</span><span class="n">vcf_file</span><span class="p">,</span> <span class="n">bed_file</span><span class="o">=</span><span class="n">bed_file</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="computing-l">
+<h3>Computing L<a class="headerlink" href="#computing-l" title="Link to this heading"></a></h3>
+<p>We can compute the effective sequence length corresponding to our SFS, <span class="math notranslate nohighlight">\(L\)</span>,
+with the <code class="docutils literal notranslate"><span class="pre">moments.Parsing.compute_L</span></code> function. Its only required argument is
+<code class="docutils literal notranslate"><span class="pre">bed_file</span></code>, the path to the BED file that was used to parse the SFS. We can also
+give an <code class="docutils literal notranslate"><span class="pre">interval</span></code>, restricting sites to a one-indexed, half-open interval. Also,
+if we used an ancestral sequence from an external FASTA file, it can be passed to
+<code class="docutils literal notranslate"><span class="pre">anc_seq_file</span></code>, with the interpretation of low-confidence allele assignements modulated
+by <code class="docutils literal notranslate"><span class="pre">allow_low_confidence</span></code>. Providing a FASTA file will restrict sites counted in
+<span class="math notranslate nohighlight">\(L\)</span> to those with inferred ancestral states. A maximal example is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bed_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/bed_file.bed.gz&quot;</span>
+<span class="n">interval</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10000001</span><span class="p">]</span>
+<span class="n">anc_seq</span> <span class="o">=</span> <span class="s2">&quot;path/to/anc_seq_file.fa.gz&quot;</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">compute_L</span><span class="p">(</span>
+    <span class="n">bed_file</span><span class="p">,</span>
+    <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+    <span class="n">anc_seq_file</span><span class="o">=</span><span class="n">anc_seq</span><span class="p">,</span>
+    <span class="n">allow_low_confidence</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bootstrapping-data">
+<h3>Bootstrapping data<a class="headerlink" href="#bootstrapping-data" title="Link to this heading"></a></h3>
+<p>TODO: Currently, Misc.bootstrap() works with the data dict to create bootstrap
+replicates. We should replace this function to work with independently parsed
+“tally” dictionaries from different regions, and show some example code blocks
+here.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sfs.html" class="btn btn-neutral float-left" title="The Site Frequency Spectrum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="inference.html" class="btn btn-neutral float-right" title="SFS Inference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

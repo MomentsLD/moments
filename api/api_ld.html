@@ -1,0 +1,1702 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API for linkage disequilibrium &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API for demes functions" href="api_demes.html" />
+    <link rel="prev" title="API for site frequency spectra" href="api_moments.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API for linkage disequilibrium</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ld-statistics-class-and-function">LD statistics class and function</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.LDstats"><code class="docutils literal notranslate"><span class="pre">LDstats</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.H"><code class="docutils literal notranslate"><span class="pre">LDstats.H()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.H2"><code class="docutils literal notranslate"><span class="pre">LDstats.H2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.LD"><code class="docutils literal notranslate"><span class="pre">LDstats.LD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.admix"><code class="docutils literal notranslate"><span class="pre">LDstats.admix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.f2"><code class="docutils literal notranslate"><span class="pre">LDstats.f2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.f3"><code class="docutils literal notranslate"><span class="pre">LDstats.f3()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.f4"><code class="docutils literal notranslate"><span class="pre">LDstats.f4()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.from_demes"><code class="docutils literal notranslate"><span class="pre">LDstats.from_demes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.from_file"><code class="docutils literal notranslate"><span class="pre">LDstats.from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.integrate"><code class="docutils literal notranslate"><span class="pre">LDstats.integrate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.marginalize"><code class="docutils literal notranslate"><span class="pre">LDstats.marginalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.merge"><code class="docutils literal notranslate"><span class="pre">LDstats.merge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.names"><code class="docutils literal notranslate"><span class="pre">LDstats.names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.pulse_migrate"><code class="docutils literal notranslate"><span class="pre">LDstats.pulse_migrate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.split"><code class="docutils literal notranslate"><span class="pre">LDstats.split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.steady_state"><code class="docutils literal notranslate"><span class="pre">LDstats.steady_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.swap_pops"><code class="docutils literal notranslate"><span class="pre">LDstats.swap_pops()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.LDstats.to_file"><code class="docutils literal notranslate"><span class="pre">LDstats.to_file()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-moments.LD.Demographics1D">Demographic functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics1D.bottlegrowth"><code class="docutils literal notranslate"><span class="pre">bottlegrowth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics1D.growth"><code class="docutils literal notranslate"><span class="pre">growth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics1D.snm"><code class="docutils literal notranslate"><span class="pre">snm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics1D.three_epoch"><code class="docutils literal notranslate"><span class="pre">three_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics1D.two_epoch"><code class="docutils literal notranslate"><span class="pre">two_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics2D.island_model"><code class="docutils literal notranslate"><span class="pre">island_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics2D.snm"><code class="docutils literal notranslate"><span class="pre">snm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics2D.split_mig"><code class="docutils literal notranslate"><span class="pre">split_mig()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Demographics3D.out_of_Africa"><code class="docutils literal notranslate"><span class="pre">out_of_Africa()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-moments.LD.Util">Utility functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.het_names"><code class="docutils literal notranslate"><span class="pre">het_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.ld_names"><code class="docutils literal notranslate"><span class="pre">ld_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.map_moment"><code class="docutils literal notranslate"><span class="pre">map_moment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.moment_names"><code class="docutils literal notranslate"><span class="pre">moment_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.perturb_params"><code class="docutils literal notranslate"><span class="pre">perturb_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Util.rescale_params"><code class="docutils literal notranslate"><span class="pre">rescale_params()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-moments.LD.Parsing">Parsing functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.bootstrap_data"><code class="docutils literal notranslate"><span class="pre">bootstrap_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.compute_average_stats"><code class="docutils literal notranslate"><span class="pre">compute_average_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.compute_average_stats_between"><code class="docutils literal notranslate"><span class="pre">compute_average_stats_between()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.compute_ld_statistics"><code class="docutils literal notranslate"><span class="pre">compute_ld_statistics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.compute_pairwise_stats"><code class="docutils literal notranslate"><span class="pre">compute_pairwise_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.compute_pairwise_stats_between"><code class="docutils literal notranslate"><span class="pre">compute_pairwise_stats_between()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.get_bootstrap_sets"><code class="docutils literal notranslate"><span class="pre">get_bootstrap_sets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.get_genotypes"><code class="docutils literal notranslate"><span class="pre">get_genotypes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.means_from_region_data"><code class="docutils literal notranslate"><span class="pre">means_from_region_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moments.LD.Parsing.subset_data"><code class="docutils literal notranslate"><span class="pre">subset_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#inference-and-computing-confidence-intervals">Inference and computing confidence intervals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-moments.LD.Inference">Inference methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.bin_stats"><code class="docutils literal notranslate"><span class="pre">bin_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.ll_over_bins"><code class="docutils literal notranslate"><span class="pre">ll_over_bins()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.optimize_log_fmin"><code class="docutils literal notranslate"><span class="pre">optimize_log_fmin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.optimize_log_lbfgsb"><code class="docutils literal notranslate"><span class="pre">optimize_log_lbfgsb()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.optimize_log_powell"><code class="docutils literal notranslate"><span class="pre">optimize_log_powell()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.remove_nonpresent_statistics"><code class="docutils literal notranslate"><span class="pre">remove_nonpresent_statistics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.remove_normalized_data"><code class="docutils literal notranslate"><span class="pre">remove_normalized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.remove_normalized_lds"><code class="docutils literal notranslate"><span class="pre">remove_normalized_lds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.remove_normalized_stat_name"><code class="docutils literal notranslate"><span class="pre">remove_normalized_stat_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Inference.sigmaD2"><code class="docutils literal notranslate"><span class="pre">sigmaD2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-moments.LD.Godambe">Confidence intervals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Godambe.FIM_uncert"><code class="docutils literal notranslate"><span class="pre">FIM_uncert()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Godambe.GIM_uncert"><code class="docutils literal notranslate"><span class="pre">GIM_uncert()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#moments.LD.Godambe.LRT_adjust"><code class="docutils literal notranslate"><span class="pre">LRT_adjust()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting">Plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API for linkage disequilibrium</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/api_ld.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-for-linkage-disequilibrium">
+<span id="sec-api-ld"></span><h1>API for linkage disequilibrium<a class="headerlink" href="#api-for-linkage-disequilibrium" title="Link to this heading"></a></h1>
+<section id="ld-statistics-class-and-function">
+<h2>LD statistics class and function<a class="headerlink" href="#ld-statistics-class-and-function" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="moments.LD.LDstats">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moments.LD.</span></span><span class="sig-name descname"><span class="pre">LDstats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats" title="Link to this definition"></a></dt>
+<dd><p>Represents linkage disequilibrium statistics as a list of arrays, where
+each entry in the list is an array of statistics for a corresponding
+recombination rate. The final entry in the list is always the heterozygosity
+statistics. Thus, if we have an LDstats object for 3 recombination rate
+values, the list will have length 4.</p>
+<p>LDstats are represented as a list of statistics over two locus pairs for
+a given recombination distance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>list</em><em> of </em><em>arrays</em>) – A list of LD and heterozygosity stats.</p></li>
+<li><p><strong>num_pops</strong> (<em>int</em>) – Number of populations. For one population, higher order
+statistics may be computed.</p></li>
+<li><p><strong>pop_ids</strong> (<em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – Population IDs in order that statistics are represented here.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.H">
+<span class="sig-name descname"><span class="pre">H</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.H"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.H" title="Link to this definition"></a></dt>
+<dd><p>Returns heterozygosity statistics for the populations given.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pops</strong> (<em>list</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – The indexes of populations to return stats for.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.H2">
+<span class="sig-name descname"><span class="pre">H2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phased</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.H2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.H2" title="Link to this definition"></a></dt>
+<dd><p>Note: the H2 name may change! This is sometimes called “D+”.</p>
+<p>This is the statistics E[2*fAB*fab + 2*fAb*faB], which measures
+the probability of polymorphism between two sampled genome copies
+at two loci.</p>
+<p>This is closely related to pi2=p(1-p)q(1-q), which is inherently
+a four-haplotype statistic. Instead, H2 is a two-haplotype
+statistic, which can be measured with just a single diploid.</p>
+<p>In the one population case, it equals 4D^2+2Dz+4pi2. In the two
+population case, it equals 4D1*D2+Dz(1,2,2)+Dz(2,1,1)+4pi2(1,2,1,2).</p>
+<p>At steady state, the solution is
+theta**2 * (36 + 14*rho + rho**2) / (18 + 13*rho + rho**2).</p>
+<p>To compare to unphased data estimated assuming that double
+heterozygotes have equal probability of being in coupling or
+repulsion LD, the statistic equals
+D1*D2+1/2(Dz(1,2,2)+Dz(2,1,1)+4pi2.</p>
+<p>Note: This unphased case (setting phased=False) is only relevant to
+comparing to data where a single diploid individual exists from each
+population, and it is only needed for cross-population H2!</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.LD">
+<span class="sig-name descname"><span class="pre">LD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.LD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.LD" title="Link to this definition"></a></dt>
+<dd><p>Returns LD stats for populations given (if None, returns all).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pops</strong> (<em>list</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – The indexes of populations to return stats for.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.admix">
+<span class="sig-name descname"><span class="pre">admix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Adm'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.admix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.admix" title="Link to this definition"></a></dt>
+<dd><p>Admixture between pop0 and pop1, given by indexes. f is the fraction
+contributed by pop0, so pop1 contributes 1-f. If new_id is not specified,
+the admixed population’s name is ‘Adm’. Otherwise, we can set it with
+new_id=new_pop_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop0</strong> (<em>int</em>) – First population to admix.</p></li>
+<li><p><strong>pop1</strong> (<em>int</em>) – Second population to admix.</p></li>
+<li><p><strong>f</strong> (<em>float</em>) – The fraction of ancestry contributed by pop0, so pop1 contributes
+1 - f.</p></li>
+<li><p><strong>new_id</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the admixed population.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.f2">
+<span class="sig-name descname"><span class="pre">f2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.f2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.f2" title="Link to this definition"></a></dt>
+<dd><p>Returns <span class="math notranslate nohighlight">\(f_2(X, Y) = (X-Y)^2\)</span>.</p>
+<p>X, and Y can be specified as population ID strings, or as indexes
+(but these cannot be mixed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – One of the populations, as index or population ID.</p></li>
+<li><p><strong>Y</strong> – The other population, as index or population ID.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.f3">
+<span class="sig-name descname"><span class="pre">f3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.f3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.f3" title="Link to this definition"></a></dt>
+<dd><p>Returns <span class="math notranslate nohighlight">\(f_3(X; Y, Z) = (X-Y)(X-Z)\)</span>. A significantly negative
+<span class="math notranslate nohighlight">\(f_3\)</span> of this form suggests that population X is the result
+of admixture between ancient populations related to Y and Z. A positive
+value suggests that X is an outgroup to Y and Z.</p>
+<p>X, Y, and Z can be specified as population ID strings, or as indexes
+(but these cannot be mixed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The “test” population, as index or population ID.</p></li>
+<li><p><strong>Y</strong> – The first reference population, as index or population ID.</p></li>
+<li><p><strong>Z</strong> – The second reference population, as index or population ID.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.f4">
+<span class="sig-name descname"><span class="pre">f4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.f4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.f4" title="Link to this definition"></a></dt>
+<dd><p>Returns <span class="math notranslate nohighlight">\(f_4(X, Y; Z, W) = (X-Y)(Z-W)\)</span>.</p>
+<p>X, Y, Z and W can be specified as population ID strings, or as indexes
+(but these cannot be mixed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – A population index or ID.</p></li>
+<li><p><strong>Y</strong> – A population index or ID.</p></li>
+<li><p><strong>Z</strong> – A population index or ID.</p></li>
+<li><p><strong>W</strong> – A population index or ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Patterson’s f4 statistic (pX-pY)*(pZ-pW).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.from_demes">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_demes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_demes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.from_demes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.from_demes" title="Link to this definition"></a></dt>
+<dd><p>Takes a deme graph and computes the LD stats. <code class="docutils literal notranslate"><span class="pre">demes</span></code> is a package for
+specifying demographic models in a user-friendly, human-readable YAML
+format. This function automatically parses the demographic description
+and returns a LD for the specified populations and recombination and
+mutation rates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">demes.DemeGraph</span></code>) – A <code class="docutils literal notranslate"><span class="pre">demes</span></code> DemeGraph from which to compute the LD.</p></li>
+<li><p><strong>sampled_demes</strong> (<em>list</em><em> of </em><em>strings</em>) – A list of deme IDs to take samples from. We can repeat
+demes, as long as the sampling of repeated deme IDs occurs at distinct
+times.</p></li>
+<li><p><strong>sample_times</strong> (<em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – If None, assumes all sampling occurs at the end of the
+existence of the sampled deme. If there are
+ancient samples, <code class="docutils literal notranslate"><span class="pre">sample_times</span></code> must be a list of same length as
+<code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>, giving the sampling times for each sampled
+deme. Sampling times are given in time units of the original deme graph,
+so might not necessarily be generations (e.g. if <code class="docutils literal notranslate"><span class="pre">g.time_units</span></code> is years)</p></li>
+<li><p><strong>rho</strong> – The population-size scaled recombination rate(s). Can be None, a
+non-negative float, or a list of values.</p></li>
+<li><p><strong>theta</strong> – The population-size scaled mutation rate. This defaults to
+<code class="docutils literal notranslate"><span class="pre">theta=0.001</span></code>, which is very roughly what is observed in humans.</p></li>
+<li><p><strong>r</strong> – The raw recombination rate. Can be None, a non-negative float, or a
+list of values.</p></li>
+<li><p><strong>u</strong> – The raw per-base mutation rate. <code class="docutils literal notranslate"><span class="pre">theta</span></code> is set to <code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">Ne</span> <span class="pre">*</span> <span class="pre">u</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is the reference population size from the root deme.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> LD statistics object, with number of populations equal
+to the length of <code class="docutils literal notranslate"><span class="pre">sampled_demes</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#moments.LD.LDstats" title="moments.LD.LDstats"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.LD.LDstats</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.from_file">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_comments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.from_file" title="Link to this definition"></a></dt>
+<dd><p>Read LD statistics from file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – The file name to read from or an open file object.</p></li>
+<li><p><strong>return_statistics</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, returns statistics writen to file.</p></li>
+<li><p><strong>return_comments</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, the return value is (y, comments), where
+comments is a list of strings containing the comments
+from the file (without #’s).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selfing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selfing_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frozen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.integrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.integrate" title="Link to this definition"></a></dt>
+<dd><p>Integrates the LD statistics forward in time. When integrating LD statistics
+for a list of recombination rates and mutation rate, they must be passed
+as keywork arguments to this function. We can integrate either single-population
+LD statistics up to order 10, or multi-population LD statistics but only
+for order 2 (which includes <span class="math notranslate nohighlight">\(D^2\)</span>, <span class="math notranslate nohighlight">\(Dz\)</span>, and <span class="math notranslate nohighlight">\(\pi_2\)</span>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> (<em>list</em><em> or </em><em>function</em>) – The relative population size, may be a function of time,
+given as a list [nu1, nu2, …]</p></li>
+<li><p><strong>tf</strong> (<em>float</em>) – Total time to integrate</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Integration timestep. This is deprecated! Use <cite>dt_fac</cite> instead.</p></li>
+<li><p><strong>dt_fac</strong> (<em>float</em>) – The integration time step factor, so that dt is determined by
+<cite>tf * dt_fac</cite>. Note: Should also build in adaptive time-stepping… this
+is to come.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em>) – Can be a single recombination rate or list of recombination rates
+(in which case we are integrating a list of LD stats for each rate)</p></li>
+<li><p><strong>theta</strong> – The per base population-scaled mutation rate (4N*mu)
+if we pass [theta1, theta2], differing mutation rates at left and right
+locus, implemented in the ISM=True model</p></li>
+<li><p><strong>m</strong> (<em>array</em>) – The migration matrix (num_pops x num_pops, storing m_ij migration rates
+where m_ij is probability that a lineage in i had parent in j
+m_ii is unused, and found by summing off diag elements in the ith row</p></li>
+<li><p><strong>selfing</strong> (<em>list</em><em> of </em><em>floats</em>) – A list of selfing probabilities, same length as nu.</p></li>
+<li><p><strong>selfing_rate</strong> (<em>list</em><em> of </em><em>floats</em>) – Alias for selfing.</p></li>
+<li><p><strong>frozen</strong> (<em>list</em><em> of </em><em>bools</em>) – A list of True and False same length as nu. True implies that a
+lineage is frozen (as in ancient samples). False integrates as normal.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.marginalize">
+<span class="sig-name descname"><span class="pre">marginalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pops</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.marginalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.marginalize" title="Link to this definition"></a></dt>
+<dd><p>Marginalize over the LDstats, removing moments for given populations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pops</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>ints</em>) – The index or list of indexes of populations to marginalize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Merged'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.merge" title="Link to this definition"></a></dt>
+<dd><p>Merger of populations pop0 and pop1, with fraction f from pop0
+and 1-f from pop1. Places new population at the end, then marginalizes
+pop0 and pop1. To admix two populations and keep one or both, use pulse
+migrate or admix, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop0</strong> (<em>int</em>) – First population to merge.</p></li>
+<li><p><strong>pop1</strong> (<em>int</em>) – Second population to merge.</p></li>
+<li><p><strong>f</strong> (<em>float</em>) – The fraction of ancestry contributed by pop0, so pop1 contributes
+1 - f.</p></li>
+<li><p><strong>new_id</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the merged population.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.names">
+<span class="sig-name descname"><span class="pre">names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.names" title="Link to this definition"></a></dt>
+<dd><p>Returns the set of LD and heterozygosity statistics names for the
+number of populations represented by the LDstats.</p>
+<p>Note that this will always return the full set of statistics,</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.pulse_migrate">
+<span class="sig-name descname"><span class="pre">pulse_migrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.pulse_migrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.pulse_migrate" title="Link to this definition"></a></dt>
+<dd><p>Pulse migration/admixure event from pop0 to pop1, with fraction f
+replacement. We use the admix function above. We want to keep the
+original population names the same, if they are given in the LDstats
+object, so we use new_pop=self.pop_ids[pop1].</p>
+<p>We admix pop0 and pop1 with fraction f and 1-f, then swap the new
+admixed population with pop1, then marginalize the original pop1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop0</strong> (<em>int</em>) – The index of the source population.</p></li>
+<li><p><strong>pop1</strong> (<em>int</em>) – The index of the target population.</p></li>
+<li><p><strong>f</strong> (<em>float</em>) – The fraction of ancestry contributed by the source population.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop_to_split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.split" title="Link to this definition"></a></dt>
+<dd><p>Splits the population given into two child populations. One child
+population keeps the same index and the second child population is
+placed at the end of the list of present populations. If new_ids
+is given, we can set the population IDs of the child populations,
+but only if the input LDstats have population IDs available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop_to_split</strong> (<em>int</em>) – The index of the population to split.</p></li>
+<li><p><strong>new_ids</strong> (<em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – List of child population names, of length two.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.steady_state">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">steady_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selfing_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.steady_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.steady_state" title="Link to this definition"></a></dt>
+<dd><p>Computes the steady state solution for any number of populations. The
+number of populations is determined by the length of <code class="docutils literal notranslate"><span class="pre">nus</span></code>, which is
+a list with relative population sizes (often, these will be set to 1,
+meaning sizes are equal to some reference or ancestral population
+size).</p>
+<p>If the solution for more than one population is desired, we must
+provide <code class="docutils literal notranslate"><span class="pre">m</span></code>, an n-by-n migration matrix, and there must be migrations
+that connect all populations so that a steady state solution exists.
+This corresponds to an island model with potentially asymmetric
+migration and allows for unequal population sizes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nus</strong> (<em>list-like</em>) – The relative population sizes, with one or two entries,
+corresponding to a steady state solution with one or two populations,
+resp.</p></li>
+<li><p><strong>m</strong> (<em>array-like</em>) – A migration matrix, only provided when the length of <cite>nus</cite> is 2
+or more.</p></li>
+<li><p><strong>rho</strong> – The population-size scaled recombination rate(s). Can be None, a
+non-negative float, or a list of values.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – The population-size scaled mutation rate</p></li>
+<li><p><strong>selfing_rate</strong> (<em>number</em><em> or </em><em>list</em><em> of </em><em>numbers</em>) – Self-fertilization rate(s), given as a number (for a
+single population, or list of numbers (for two populations). Selfing
+rates must be between 0 and 1.</p></li>
+<li><p><strong>pop_ids</strong> (<em>list</em><em> of </em><em>strings</em>) – The population IDs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> LD statistics object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#moments.LD.LDstats" title="moments.LD.LDstats"><code class="xref py py-class docutils literal notranslate"><span class="pre">moments.LD.LDstats</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.swap_pops">
+<span class="sig-name descname"><span class="pre">swap_pops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.swap_pops"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.swap_pops" title="Link to this definition"></a></dt>
+<dd><p>Swaps pop0 and pop1 in the order of the population in the LDstats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop0</strong> (<em>int</em>) – The index of the first population to swap.</p></li>
+<li><p><strong>pop1</strong> (<em>int</em>) – The index of the second population to swap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moments.LD.LDstats.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/LDstats_mod.html#LDstats.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.LDstats.to_file" title="Link to this definition"></a></dt>
+<dd><p>Write LD statistics to file.</p>
+<p>The file format is:</p>
+<ul class="simple">
+<li><p># Any number of comment lines beginning with a ‘#’</p></li>
+<li><p>A single line containing an integer giving the number of
+populations.</p></li>
+<li><p>On the <em>same line</em>, optional, the names of those populations. If
+names are given, there needs to be the same number of pop_ids
+as the integer number of populations. For example, the line could
+be ‘3 YRI CEU CHB’.</p></li>
+<li><p>A single line giving the names of the <em>LD</em> statistics, in the order
+they appear for each recombination rate distance or bin.
+Optionally, this line could read ALL, indicating that every
+statistic in the basis is given, and in the ‘correct’ order.</p></li>
+<li><p>A single line giving the names of the <em>heterozygosity</em> statistics,
+in the order they appear in the final row of data. Optionally,
+this line could read ALL.</p></li>
+<li><p>A line giving the number of recombination rate bins/distances we
+have data for (so we know how many to read)</p></li>
+<li><p>One line for each row of LD statistics.</p></li>
+<li><p>A single line for the heterozygosity statistics.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fid</strong> (<em>str</em>) – The file name to write to or an open file object.</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – The precision with which to write out entries of the LD stats.
+(They are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</p></li>
+<li><p><strong>statistics</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>strings</em>) – Defaults to ‘ALL’, meaning all statistics are given in the
+LDstats object. Otherwise, list of two lists, first giving
+present LD stats, and the second giving present het stats.</p></li>
+<li><p><strong>comment_lines</strong> (<em>list</em><em> of </em><em>srtings</em>) – List of strings to be used as comment lines in the header
+of the output file.
+I use comment lines mainly to record the recombination
+bins or distances given in the LDstats (something like
+“‘edges = ‘ + str(r_edges)”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-moments.LD.Demographics1D">
+<span id="demographic-functions"></span><span id="sec-api-ld-demog"></span><h2>Demographic functions<a class="headerlink" href="#module-moments.LD.Demographics1D" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics1D.bottlegrowth">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics1D.</span></span><span class="sig-name descname"><span class="pre">bottlegrowth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics1D.html#bottlegrowth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics1D.bottlegrowth" title="Link to this definition"></a></dt>
+<dd><p>Exponential growth (or decay) model after size change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – The relative initial and final sizes of the final epoch
+and its integration time in genetic units: (nuB, nuF, T).</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The maximum order of the LD statistics. Defaults to 2.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics1D.growth">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics1D.</span></span><span class="sig-name descname"><span class="pre">growth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics1D.html#growth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics1D.growth" title="Link to this definition"></a></dt>
+<dd><p>Exponential growth (or decay) model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – The relative final size and integration time of recent epoch,
+in genetic units: (nuF, T)</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The maximum order of the LD statistics. Defaults to 2.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics1D.snm">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics1D.</span></span><span class="sig-name descname"><span class="pre">snm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics1D.html#snm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics1D.snm" title="Link to this definition"></a></dt>
+<dd><p>Equilibrium neutral model. Does not take demographic parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Unused.</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The maximum order of the LD statistics. Defaults to 2.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics1D.three_epoch">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics1D.</span></span><span class="sig-name descname"><span class="pre">three_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics1D.html#three_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics1D.three_epoch" title="Link to this definition"></a></dt>
+<dd><p>Three epoch model with constant sized epochs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – The relative sizes and integration times of recent epochs,
+in genetic units: (nu1, nu2, T1, T2).</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The maximum order of the LD statistics. Defaults to 2.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics1D.two_epoch">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics1D.</span></span><span class="sig-name descname"><span class="pre">two_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics1D.html#two_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics1D.two_epoch" title="Link to this definition"></a></dt>
+<dd><p>Two epoch model with a single size change and constant sized epochs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – The relative size and integration time of recent epoch,
+in genetic units: (nu, T).</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The maximum order of the LD statistics. Defaults to 2.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-moments.LD.Demographics2D">
+<dt class="sig sig-object py" id="moments.LD.Demographics2D.island_model">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics2D.</span></span><span class="sig-name descname"><span class="pre">island_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics2D.html#island_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics2D.island_model" title="Link to this definition"></a></dt>
+<dd><p>Split into two populations of specifed size, which then have their own
+relative constant sizes and symmetric migration between populations.</p>
+<ul class="simple">
+<li><p>nu1: Relative size of population 1 after split.</p></li>
+<li><p>nu2: Relative size of population 2 after split.</p></li>
+<li><p>m12: Migration rate, from 2 to 1 forward in time (in units 2*Ne*m)</p></li>
+<li><p>m21: Migration rate, from 1 to 2 forward in time (in units 2*Ne*m)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – The input parameters: (nu1, nu2, m12, m21)</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics2D.snm">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics2D.</span></span><span class="sig-name descname"><span class="pre">snm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics2D.html#snm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics2D.snm" title="Link to this definition"></a></dt>
+<dd><p>Equilibrium neutral model. Neutral steady state followed by split in
+the immediate past.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Unused.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 2.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics2D.split_mig">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics2D.</span></span><span class="sig-name descname"><span class="pre">split_mig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics2D.html#split_mig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics2D.split_mig" title="Link to this definition"></a></dt>
+<dd><p>Split into two populations of specifed size, which then have their own
+relative constant sizes and symmetric migration between populations.</p>
+<ul class="simple">
+<li><p>nu1: Size of population 1 after split.</p></li>
+<li><p>nu2: Size of population 2 after split.</p></li>
+<li><p>T: Time in the past of split (in units of 2*Na generations)</p></li>
+<li><p>m: Migration rate between populations (2*Na*m)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – The input parameters: (nu1, nu2, T, m)</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Population-scaled recombination rate (4Nr),
+given as scalar or list of rhos.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Population-scaled mutation rate (4Nu). Defaults to 0.001.</p></li>
+<li><p><strong>pop_ids</strong> (<em>lits</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of population IDs of length 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-moments.LD.Demographics3D">Three-population demographic models.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Demographics3D.out_of_Africa">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Demographics3D.</span></span><span class="sig-name descname"><span class="pre">out_of_Africa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['YRI',</span> <span class="pre">'CEU',</span> <span class="pre">'CHB']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Demographics3D.html#out_of_Africa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Demographics3D.out_of_Africa" title="Link to this definition"></a></dt>
+<dd><p>The Gutenkunst et al (2009) out-of-Africa that has been reinferred a
+number of times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – List of parameters, in the order (nuA, TA, nuB, TB, nuEu0,
+nuEuF, nuAs0, nuAsF, TF, mAfB, mAfEu, mAfAs, mEuAs).</p></li>
+<li><p><strong>rho</strong> – Recombination rate or list of recombination rates (population-size
+scaled).</p></li>
+<li><p><strong>theta</strong> – Population-size scaled mutation rate.</p></li>
+<li><p><strong>pop_ids</strong> – List of population IDs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-moments.LD.Util">
+<span id="utility-functions"></span><h2>Utility functions<a class="headerlink" href="#module-moments.LD.Util" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.het_names">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">het_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_pops</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#het_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.het_names" title="Link to this definition"></a></dt>
+<dd><p>Returns the heterozygosity statistic representation names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_pops</strong> (<em>int</em>) – Number of populations.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.ld_names">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">ld_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_pops</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#ld_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.ld_names" title="Link to this definition"></a></dt>
+<dd><p>Returns the LD statistic representation names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_pops</strong> (<em>int</em>) – Number of populations.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.map_moment">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">map_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#map_moment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.map_moment" title="Link to this definition"></a></dt>
+<dd><p>There are repeated moments with equal expectations, so we collapse them into
+the same moment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mom</strong> (<em>str</em>) – The moment to map to its “canonical” name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.moment_names">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">moment_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_pops</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#moment_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.moment_names" title="Link to this definition"></a></dt>
+<dd><p>Returns a tuple of length two with LD and heterozygosity moment names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_pops</strong> (<em>int</em>) – Number of populations</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.perturb_params">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">perturb_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#perturb_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.perturb_params" title="Link to this definition"></a></dt>
+<dd><p>Generate a perturbed set of parameters. Each element of params is randomly
+perturbed by the given factor of 2 up or down.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – A list of input parameters.</p></li>
+<li><p><strong>fold</strong> (<em>float</em>) – Number of factors of 2 to perturb by.</p></li>
+<li><p><strong>lower_bound</strong> (<em>list</em>) – If not None, the resulting parameter set is adjusted
+to have all value greater than lower_bound. Must have equal length to
+<code class="docutils literal notranslate"><span class="pre">params</span></code>.</p></li>
+<li><p><strong>upper_bound</strong> (<em>list</em>) – If not None, the resulting parameter set is adjusted
+to have all value less than upper_bound. Must have equal length to
+<code class="docutils literal notranslate"><span class="pre">params</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Util.rescale_params">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Util.</span></span><span class="sig-name descname"><span class="pre">rescale_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncerts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Util.html#rescale_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Util.rescale_params" title="Link to this definition"></a></dt>
+<dd><p>Rescale parameters to physical units, so that times are in generations or years,
+sizes in effective instead of relative sizes, and migration probabilities in
+per-generation units.</p>
+<p>For generation times of events to be correctly rescaled, times in the
+parameters list must be specified so that earlier epochs are earlier in the
+list, because we return rescaled cumulative times. All time parameters must
+refer to consecutive epochs. Epochs need not start at contemporary time, and
+we can specify the time offset using <cite>time_offset</cite>.</p>
+<p>If uncertainties are not given (<cite>uncerts = None</cite>), the return value is an
+array of rescaled parameters. If uncertainties are given, the return value
+has length two: the first entry is an array of rescaled parameters, and the
+second entry is an array of rescaled uncertainties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – List of parameters.</p></li>
+<li><p><strong>types</strong> (<em>list</em>) – List of parameter types. Times are given by “T”, sizes by “nu”,
+effective size by “Ne”, migration rates by “m”, and fractions by “x” or “f”.</p></li>
+<li><p><strong>Ne</strong> (<em>float</em>) – The effective population size, typically as the last entry in
+<code class="docutils literal notranslate"><span class="pre">params</span></code>.</p></li>
+<li><p><strong>gens</strong> (<em>float</em>) – The generation time.</p></li>
+<li><p><strong>uncerts</strong> (<em>list</em>) – List of uncertainties, same length as <code class="docutils literal notranslate"><span class="pre">params</span></code>.</p></li>
+<li><p><strong>time_offset</strong> (<em>int</em><em> or </em><em>float</em>) – The amount of time added to each rescaled time point. This
+lets us have consecutive epochs that stop short of time 0 (final sampling
+time).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-moments.LD.Parsing">
+<span id="parsing-functions"></span><h2>Parsing functions<a class="headerlink" href="#module-moments.LD.Parsing" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.bootstrap_data">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">bootstrap_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#bootstrap_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.bootstrap_data" title="Link to this definition"></a></dt>
+<dd><p>Returns bootstrapped variances for LD statistics. This function operates
+on data that is sums (i.e. the direct output of <code class="docutils literal notranslate"><span class="pre">compute_ld_statistics()</span></code>),
+instead of mean statistics.</p>
+<p>We first check that all ‘stats’, ‘bins’, ‘pops’ (if present),
+match across all regions</p>
+<p>If there are N total regions, we compute N bootstrap replicates
+by sampling N times with replacement and summing over all ‘sums’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_data</strong> (<em>dict</em>) – A dictionary (with arbitrary keys), where each value
+is LD statistics computed from a distinct region. all_data[reg]
+stats from each region has keys, ‘bins’, ‘sums’, ‘stats’, and
+optional ‘pops’.</p></li>
+<li><p><strong>normalization</strong> (<em>int</em>) – we work with <span class="math notranslate nohighlight">\(\sigma_d^2\)</span> statistics,
+and by default we use population 0 to normalize stats</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.compute_average_stats">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">compute_average_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genotypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#compute_average_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.compute_average_stats" title="Link to this definition"></a></dt>
+<dd><p>Takes the outputs of <code class="docutils literal notranslate"><span class="pre">compute_pairwise_stats</span></code> and returns
+the average value for each statistic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Gs</strong> – A genotype matrix, of size L-by-n, where
+L is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+<li><p><strong>genotypes</strong> – If True, use 0, 1, 2 genotypes. If False,
+use 0, 1 phased haplotypes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.compute_average_stats_between">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">compute_average_stats_between</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gs1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gs2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genotypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#compute_average_stats_between"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.compute_average_stats_between" title="Link to this definition"></a></dt>
+<dd><p>Takes the outputs of compute_pairwise_stats_between and returns
+the average value for each statistic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Gs1</strong> – A genotype matrices, of size L1 by n, where
+L1 is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+<li><p><strong>Gs2</strong> – A genotype matrices, of size L2 by n, where
+L1 is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.compute_ld_statistics">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">compute_ld_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vcf_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bed_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromosome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_map_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bp_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_genotypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_h5</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats_to_compute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ac_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#compute_ld_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.compute_ld_statistics" title="Link to this definition"></a></dt>
+<dd><p>Computes LD statistics for a given VCF. Binning can be done by base pair
+or recombination distances, the latter requiring a recombination map. For
+more than one population, we include a population file that maps samples
+to populations, and specify with populations to compute statistics fro.</p>
+<p>If data is phased, we can set <code class="docutils literal notranslate"><span class="pre">use_genotypes</span></code> to False, and there are
+other options for masking data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently, the recombination map is not given in HapMap format.
+Future versions will accept HapMap formatted recombination maps
+and deprecate some of the boutique handling of map options here.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcf_file</strong> (<em>str</em>) – The input VCF file name.</p></li>
+<li><p><strong>bed_file</strong> (<em>str</em>) – An optional bed file that specifies regions over which
+to compute LD statistics. If None, computes statistics for all positions
+in VCF.</p></li>
+<li><p><strong>chromosome</strong> (<em>str</em>) – If None, treats all positions in VCF as coming from same
+chromosome. If multiple chromosomes are reported in the same VCF, we need to
+specify which chromosome to keep variants from.</p></li>
+<li><p><strong>rec_map_file</strong> (<em>str</em>) – The input recombination map. The format is
+{pos}   {map (cM)}      {additional maps}</p></li>
+<li><p><strong>map_name</strong> (<em>str</em>) – If None, takes the first map column, otherwise takes the
+specified map column with the name matching the recombination map file header.</p></li>
+<li><p><strong>map_sep</strong> (<em>str</em>) – Deprecated! We now read the recombination map, splitting by
+any white space. Previous behaviour: Tells pandas how to parse the recombination map.</p></li>
+<li><p><strong>pop_file</strong> (<em>str</em>) – A file the specifies the population for each sample in the VCF.
+Each sample is listed on its own line, in the format “{sample}  {pop}”. The
+first line must be “sample      pop”.</p></li>
+<li><p><strong>pops</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – List of populations to compute statistics for.
+If none are given, it treates every sample as coming from the same population.</p></li>
+<li><p><strong>cM</strong> (<em>bool</em>) – If True, the recombination map is specified in cM. If False,
+the map is given in units of Morgans.</p></li>
+<li><p><strong>r_bins</strong> (<em>list</em><em>(</em><em>float</em><em>)</em>) – A list of raw recombination rate bin edges.</p></li>
+<li><p><strong>bp_bins</strong> (<em>list</em><em>(</em><em>float</em><em>)</em>) – If <code class="docutils literal notranslate"><span class="pre">r_bins</span></code> are not given, a list of bp bin
+edges (for use when no recombination map is specified).</p></li>
+<li><p><strong>min_bp</strong> (<em>int</em><em>, </em><em>float</em>) – The minimum bp allowed for a segment specified
+by the bed file.</p></li>
+<li><p><strong>use_genotypes</strong> (<em>bool</em>) – If True, we assume the data in the VCF is unphased.
+Otherwise, we use phased information.</p></li>
+<li><p><strong>use_h5</strong> (<em>bool</em>) – If True, we use the h5 format.</p></li>
+<li><p><strong>stats_to_compute</strong> (<em>list</em>) – If given, we compute only the statistics specified.
+Otherwise, we compute all possible statistics for the populations given.</p></li>
+<li><p><strong>ac_filter</strong> – Ensure at least two samples are present per population. This
+prevents computed heterozygosity statistics from returning NaN when some
+loci have too few called samples.</p></li>
+<li><p><strong>report</strong> (<em>bool</em>) – If True, we report the progress of our parsing.</p></li>
+<li><p><strong>report_spacing</strong> (<em>int</em>) – We track the number of “left” variants we compute,
+and report our progress with the given spacing.</p></li>
+<li><p><strong>use_cache</strong> (<em>bool</em>) – If True, cache intermediate results.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.compute_pairwise_stats">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">compute_pairwise_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genotypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#compute_pairwise_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.compute_pairwise_stats" title="Link to this definition"></a></dt>
+<dd><p>Computes <span class="math notranslate nohighlight">\(D^2\)</span>, <span class="math notranslate nohighlight">\(Dz\)</span>, <span class="math notranslate nohighlight">\(\pi_2\)</span>, and <span class="math notranslate nohighlight">\(D\)</span> for every
+pair of loci within a block of SNPs, coded as a genotype matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Gs</strong> – A genotype matrix, of size L-by-n, where
+L is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+<li><p><strong>genotypes</strong> – If True, use 0, 1, 2 genotypes. If False,
+use 0, 1 phased haplotypes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.compute_pairwise_stats_between">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">compute_pairwise_stats_between</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gs1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gs2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genotypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#compute_pairwise_stats_between"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.compute_pairwise_stats_between" title="Link to this definition"></a></dt>
+<dd><p>Computes <span class="math notranslate nohighlight">\(D^2\)</span>, <span class="math notranslate nohighlight">\(Dz\)</span>, <span class="math notranslate nohighlight">\(\pi_2\)</span>, and <span class="math notranslate nohighlight">\(D\)</span>
+for every pair of loci between two blocks of SNPs, coded as
+genotype matrices.</p>
+<p>The Gs are matrices, where rows correspond to loci and columns to individuals.
+Both matrices must have the same number of individuals. If Gs1 has length L1
+and Gs2 has length L2, we compute all pairwise counts, which has size (L1*L2, 9).</p>
+<p>We use the sparse genotype matrix representation, where
+we first “sparsify” the genotype matrix, and then count
+two-locus genotype configurations from that, from which
+we compute two-locus statistics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Gs1</strong> – A genotype matrices, of size L1 by n, where
+L1 is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+<li><p><strong>Gs2</strong> – A genotype matrices, of size L2 by n, where
+L1 is the number of loci and n is the sample size.
+Missing data is encoded as -1.</p></li>
+<li><p><strong>genotypes</strong> – If True, use 0, 1, 2 genotypes. If False,
+use 0, 1 phased haplotypes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.get_bootstrap_sets">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">get_bootstrap_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstraps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_norm_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_Dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#get_bootstrap_sets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.get_bootstrap_sets" title="Link to this definition"></a></dt>
+<dd><p>From a dictionary of all the regional data, resample with replacement
+to construct bootstrap data.</p>
+<p>Returns a list of bootstrapped datasets of mean statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_data</strong> (<em>dict</em>) – Dictionary of regional LD statistics. Keys are region
+identifiers and must be unique, and the items are the outputs of
+<code class="docutils literal notranslate"><span class="pre">compute_ld_statistics</span></code>.</p></li>
+<li><p><strong>num_bootstraps</strong> (<em>int</em>) – The number of bootstrap replicates to compute. If
+None, it computes the same number as the nubmer of regions in <code class="docutils literal notranslate"><span class="pre">all_data</span></code>.</p></li>
+<li><p><strong>normalization</strong> (<em>int</em>) – The index of the population to normalize by. Defaults
+to 0.</p></li>
+<li><p><strong>remove_norm_stats</strong> (<em>bool</em>) – If we should remove the stat used for normalization.</p></li>
+<li><p><strong>remove_Dz</strong> (<em>bool</em>) – If we should remove Dz statistics.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.get_genotypes">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">get_genotypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vcf_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bed_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromosome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_bp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_h5</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#get_genotypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.get_genotypes" title="Link to this definition"></a></dt>
+<dd><p>Given a vcf file, we extract the biallelic SNP genotypes. If bed_file is None,
+we use all valid variants. Otherwise we filter genotypes by the given bed file.
+If chromosome is given, filters to keep snps only in given chrom (useful for vcfs
+spanning multiple chromosomes).</p>
+<p>If use_h5 is True, we try to load the h5 file, which has the same path/name as
+vcf_file, but with {fname}.h5 instead of {fname}.vcf or {fname}.vcf.gz. If the h5
+file does not exist, we create it and save it as {fname}.h5</p>
+<p>Returns (biallelic positions, biallelic genotypes, biallelic allele counts,
+sampled ids).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcf_file</strong> (<em>str</em>) – A VCF-formatted file.</p></li>
+<li><p><strong>bed_file</strong> (<em>str</em><em>, </em><em>optional</em>) – A bed file specifying regions to compute statistics from. The
+chromosome name formatting must match the chromosome name formatting of the
+input VCF (i.e., both carry the leading “chr” or both omit it).</p></li>
+<li><p><strong>min_bp</strong> (<em>int</em><em>, </em><em>optional</em>) – only used with bed file, filters out features that are smaller
+than <code class="docutils literal notranslate"><span class="pre">min_bp</span></code>.</p></li>
+<li><p><strong>chromosome</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Chromosome to compute LD statistics from.</p></li>
+<li><p><strong>use_h5</strong> (<em>bool</em><em>, </em><em>optional</em>) – If use_h5 is True, we try to load the h5 file, which has the
+same path/name as vcf_file, but with .h5 instead of .vcf or .vcf.gz extension.
+If the h5 file does not exist, we create it and save it with .h5 extension.
+Defaults to True.</p></li>
+<li><p><strong>report</strong> (<em>bool</em><em>, </em><em>optional</em>) – Prints progress updates if True, silent otherwise. Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.means_from_region_data">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">means_from_region_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#means_from_region_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.means_from_region_data" title="Link to this definition"></a></dt>
+<dd><p>Get means over all parsed regions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_data</strong> (<em>dict</em>) – A dictionary with keys as unique identifiers of the
+regions and values as reported stats from <code class="docutils literal notranslate"><span class="pre">compute_ld_statistics</span></code>.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em> of </em><em>lists</em>) – The list of LD and H statistics that are present
+in the data replicates.</p></li>
+<li><p><strong>norm_idx</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the population to normalize by.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Parsing.subset_data">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Parsing.</span></span><span class="sig-name descname"><span class="pre">subset_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pops_to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_Dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Parsing.html#subset_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Parsing.subset_data" title="Link to this definition"></a></dt>
+<dd><p>Take the output data and get r_edges, ms, vcs, and stats to pass to inference
+machinery. <code class="docutils literal notranslate"><span class="pre">pops_to</span></code> are the subset of the populations to marginalize the data
+to. <code class="docutils literal notranslate"><span class="pre">r_min</span></code> and <code class="docutils literal notranslate"><span class="pre">r_max</span></code> trim bins that fall outside of this range, and
+<code class="docutils literal notranslate"><span class="pre">remove_Dz</span></code> allows us to remove all <span class="math notranslate nohighlight">\(\sigma_{Dz}\)</span> statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – The output of <code class="docutils literal notranslate"><span class="pre">bootstrap_data</span></code>, which contains
+bins, statistics, populations, means, and variance-covariance matrices.</p></li>
+<li><p><strong>pops_to</strong> – A list of populations to subset to.</p></li>
+<li><p><strong>normalization</strong> – The population index that the original data was
+normalized by.</p></li>
+<li><p><strong>r_min</strong> – The minimum recombination distance to keep.</p></li>
+<li><p><strong>r_max</strong> – The maximum recombination distance to keep.</p></li>
+<li><p><strong>remove_Dz</strong> – If True, remove all Dz statistics. Otherwise keep them.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="inference-and-computing-confidence-intervals">
+<h2>Inference and computing confidence intervals<a class="headerlink" href="#inference-and-computing-confidence-intervals" title="Link to this heading"></a></h2>
+<section id="module-moments.LD.Inference">
+<span id="inference-methods"></span><h3>Inference methods<a class="headerlink" href="#module-moments.LD.Inference" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.bin_stats">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">bin_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#bin_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.bin_stats" title="Link to this definition"></a></dt>
+<dd><p>Computes LD statist for a given model function over bins defined by <code class="docutils literal notranslate"><span class="pre">rho</span></code>.
+Here, <code class="docutils literal notranslate"><span class="pre">rho</span></code> gives the bin edges, and we assume no spaces between bins. That
+is, if the length of the input recombination rates is <span class="math notranslate nohighlight">\(l\)</span>, the number of
+bins is <span class="math notranslate nohighlight">\(l-1\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_func</strong> – The model function that takes parameters in the form
+<code class="docutils literal notranslate"><span class="pre">model_func(params,</span> <span class="pre">rho=rho,</span> <span class="pre">theta=theta,</span> <span class="pre">**kwargs)</span></code>.</p></li>
+<li><p><strong>params</strong> (<em>list</em><em> of </em><em>floats</em>) – The parameters to evaluate the model at.</p></li>
+<li><p><strong>rho</strong> (<em>list</em><em> of </em><em>floats</em>) – The scaled recombination rate bin edges.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – The mutation rate</p></li>
+<li><p><strong>spread</strong> (<em>list</em><em> of </em><em>arrays</em>) – A list of length rho-1 (number of bins), where each entry is an
+array of length rho+1 (number of bins plus amount outside bin range to each
+side). Each array must sum to one.</p></li>
+<li><p><strong>kwargs</strong> – Extra keyword arguments to pass to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.ll_over_bins">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">ll_over_bins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sigmas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#ll_over_bins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.ll_over_bins" title="Link to this definition"></a></dt>
+<dd><p>Compute the composite log-likelihood over LD and heterozygosity statistics, given
+data and expectations. Inputs must be in the same order, and we assume each bin
+is independent, so we sum _ll(x, mu, Sigma) over each bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> – A list of data arrays.</p></li>
+<li><p><strong>mus</strong> – A list of model function output arrays, same length as <code class="docutils literal notranslate"><span class="pre">xs</span></code>.</p></li>
+<li><p><strong>Sigmas</strong> – A list of var-cov matrices, same length as <code class="docutils literal notranslate"><span class="pre">xs</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.optimize_log_fmin">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">optimize_log_fmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flush_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_afs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Leff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multinom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxfun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#optimize_log_fmin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.optimize_log_fmin" title="Link to this definition"></a></dt>
+<dd><p>Optimize (using the log of) the parameters using a downhill simplex
+algorithm. Initial parameters <code class="docutils literal notranslate"><span class="pre">p0</span></code>, the data <code class="docutils literal notranslate"><span class="pre">[means,</span> <span class="pre">varcovs]</span></code>,
+the demographic <code class="docutils literal notranslate"><span class="pre">model_func</span></code>, and <code class="docutils literal notranslate"><span class="pre">rs</span></code> to specify recombination
+bin edges are required. <code class="docutils literal notranslate"><span class="pre">Ne</span></code> must either be specified as a keyword
+argument or is included as the <em>last</em> parameter in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p0</strong> (<em>list</em>) – The initial guess for demographic parameters,
+demography parameters plus (optionally) Ne.</p></li>
+<li><p><strong>data</strong> (<em>list</em>) – <p>The parsed data[means, varcovs, fs]. The frequency spectrum
+fs is optional, and used only if use_afs=True.</p>
+<ul>
+<li><p>Means: The list of mean statistics within each bin
+(has length <code class="docutils literal notranslate"><span class="pre">len(rs)</span></code> or <code class="docutils literal notranslate"><span class="pre">len(rs)</span> <span class="pre">-</span> <span class="pre">1</span></code> if using AFS). If we are
+not using the AFS, which is typical, the heterozygosity statistics
+come last.</p></li>
+<li><p>varcovs: The list of varcov matrices matching the data in <code class="docutils literal notranslate"><span class="pre">means</span></code>.</p></li>
+</ul>
+</p></li>
+<li><p><strong>model_func</strong> (<em>list</em>) – The demographic model to compute statistics
+for a given rho. If we are using AFS, it’s a list of the two models
+[LD func, AFS func]. If we’re using LD stats alone, we pass a single LD
+model  as a list: [LD func].</p></li>
+<li><p><strong>rs</strong> (<em>list</em>) – The list of raw recombination rates defining bin edges.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – The population scaled per base mutation rate
+(4*Ne*mu, not 4*Ne*mu*L).</p></li>
+<li><p><strong>u</strong> (<em>float</em><em>, </em><em>optional</em>) – The raw per base mutation rate.
+Cannot be used with <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p></li>
+<li><p><strong>Ne</strong> (<em>float</em><em>, </em><em>optional</em>) – The fixed effective population size to scale
+u and r. If <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is a parameter to fit, it should be the last parameter
+in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p></li>
+<li><p><strong>lower_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+lower bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>upper_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+upper bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If an integer greater than 0, prints updates
+of the optimization procedure at intervals given by that spacing.</p></li>
+<li><p><strong>func_args</strong> (<em>list</em><em>, </em><em>optional</em>) – Additional arguments to be passed
+to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>func_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – Additional keyword arguments to be
+passed to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>fixed_params</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. To fix some
+parameters, this should be a list of equal length as <code class="docutils literal notranslate"><span class="pre">p0</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for parameters to be fit and fixed values at corresponding
+indexes.</p></li>
+<li><p><strong>use_afs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. We can pass a model
+to compute the frequency spectrum and use
+that instead of heterozygosity statistics for single-locus data.</p></li>
+<li><p><strong>Leff</strong> (<em>float</em><em>, </em><em>optional</em>) – The effective length of genome from which
+the fs was generated (only used if fitting to afs).</p></li>
+<li><p><strong>multinom</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only used if we are fitting the AFS.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the likelihood is computed for an optimally rescaled FS.
+If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the likelihood is computed for a fixed scaling of the FS
+found by theta=4*Ne*u and Leff</p></li>
+<li><p><strong>ns</strong> (<em>list</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – The sample size, which is only needed
+if we are using the frequency spectrum, as the sample size does not
+affect mean LD statistics.</p></li>
+<li><p><strong>statistics</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which assumes that
+all statistics are present and in the conventional default order. If
+the data is missing some statistics, we must specify which statistics
+are present using the subset of statistic names given by
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>.</p></li>
+<li><p><strong>pass_Ne</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the
+demographic model includes <code class="docutils literal notranslate"><span class="pre">Ne</span></code> as a parameter (in the final position
+of input parameters).</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>) – Defaults to None. Maximum number of iterations to perform.</p></li>
+<li><p><strong>maxfun</strong> (<em>int</em>) – Defaults to None. Maximum number of function evaluations to make.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.optimize_log_lbfgsb">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">optimize_log_lbfgsb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flush_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_afs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Leff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multinom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pgtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#optimize_log_lbfgsb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.optimize_log_lbfgsb" title="Link to this definition"></a></dt>
+<dd><p>Optimize (using the log of) the parameters using the modified Powell’s
+method, which optimizes slices of parameter space sequentially. Initial
+parameters <code class="docutils literal notranslate"><span class="pre">p0</span></code>, the data <code class="docutils literal notranslate"><span class="pre">[means,</span> <span class="pre">varcovs]</span></code>,
+the demographic <code class="docutils literal notranslate"><span class="pre">model_func</span></code>, and <code class="docutils literal notranslate"><span class="pre">rs</span></code> to specify recombination
+bin edges are required. <code class="docutils literal notranslate"><span class="pre">Ne</span></code> must either be specified as a keyword
+argument or is included as the <em>last</em> parameter in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p>
+<p>It is best at burrowing down a single minimum. This method is
+better than optimize_log if the optimum lies at one or more of the
+parameter bounds. However, if your optimum is not on the bounds, this
+method may be much slower.</p>
+<p>Because this works in log(params), it cannot explore values of params &lt; 0.
+It should also perform better when parameters range over scales.</p>
+<p>The L-BFGS-B method was developed by Ciyou Zhu, Richard Byrd, and Jorge
+Nocedal. The algorithm is described in:</p>
+<ul class="simple">
+<li><p>R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
+Constrained Optimization, (1995), SIAM Journal on Scientific and
+Statistical Computing , 16, 5, pp. 1190-1208.</p></li>
+<li><p>C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
+FORTRAN routines for large scale bound constrained optimization (1997),
+ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550-560.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p0</strong> (<em>list</em>) – The initial guess for demographic parameters,
+demography parameters plus (optionally) Ne.</p></li>
+<li><p><strong>data</strong> (<em>list</em>) – <p>The parsed data[means, varcovs, fs]. The frequency spectrum
+fs is optional, and used only if use_afs=True.</p>
+<ul>
+<li><p>Means: The list of mean statistics within each bin
+(has length <code class="docutils literal notranslate"><span class="pre">len(rs)</span></code> or <code class="docutils literal notranslate"><span class="pre">len(rs)</span> <span class="pre">-</span> <span class="pre">1</span></code> if using AFS). If we are
+not using the AFS, which is typical, the heterozygosity statistics
+come last.</p></li>
+<li><p>varcovs: The list of varcov matrices matching the data in <code class="docutils literal notranslate"><span class="pre">means</span></code>.</p></li>
+</ul>
+</p></li>
+<li><p><strong>model_func</strong> (<em>list</em>) – The demographic model to compute statistics
+for a given rho. If we are using AFS, it’s a list of the two models
+[LD func, AFS func]. If we’re using LD stats alone, we pass a single LD
+model  as a list: [LD func].</p></li>
+<li><p><strong>rs</strong> (<em>list</em>) – The list of raw recombination rates defining bin edges.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – The population scaled per base mutation rate
+(4*Ne*mu, not 4*Ne*mu*L).</p></li>
+<li><p><strong>u</strong> (<em>float</em><em>, </em><em>optional</em>) – The raw per base mutation rate.
+Cannot be used with <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p></li>
+<li><p><strong>Ne</strong> (<em>float</em><em>, </em><em>optional</em>) – The fixed effective population size to scale
+u and r. If <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is a parameter to fit, it should be the last parameter
+in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p></li>
+<li><p><strong>lower_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+lower bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>upper_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+upper bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If an integer greater than 0, prints updates
+of the optimization procedure at intervals given by that spacing.</p></li>
+<li><p><strong>func_args</strong> (<em>list</em><em>, </em><em>optional</em>) – Additional arguments to be passed
+to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>func_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – Additional keyword arguments to be
+passed to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>fixed_params</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. To fix some
+parameters, this should be a list of equal length as <code class="docutils literal notranslate"><span class="pre">p0</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for parameters to be fit and fixed values at corresponding
+indexes.</p></li>
+<li><p><strong>use_afs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. We can pass a model
+to compute the frequency spectrum and use
+that instead of heterozygosity statistics for single-locus data.</p></li>
+<li><p><strong>Leff</strong> (<em>float</em><em>, </em><em>optional</em>) – The effective length of genome from which
+the fs was generated (only used if fitting to afs).</p></li>
+<li><p><strong>multinom</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only used if we are fitting the AFS.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the likelihood is computed for an optimally rescaled FS.
+If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the likelihood is computed for a fixed scaling of the FS
+found by theta=4*Ne*u and Leff</p></li>
+<li><p><strong>ns</strong> (<em>list</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – The sample size, which is only needed
+if we are using the frequency spectrum, as the sample size does not
+affect mean LD statistics.</p></li>
+<li><p><strong>statistics</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which assumes that
+all statistics are present and in the conventional default order. If
+the data is missing some statistics, we must specify which statistics
+are present using the subset of statistic names given by
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>.</p></li>
+<li><p><strong>pass_Ne</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the
+demographic model includes <code class="docutils literal notranslate"><span class="pre">Ne</span></code> as a parameter (in the final position
+of input parameters).</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>) – Defaults to 40,000. Maximum number of iterations to perform.</p></li>
+<li><p><strong>epsilon</strong> – Step-size to use for finite-difference derivatives.</p></li>
+<li><p><strong>pgtol</strong> (<em>float</em>) – Convergence criterion for optimization. For more info,
+see help(scipy.optimize.fmin_l_bfgs_b)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.optimize_log_powell">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">optimize_log_powell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flush_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_afs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Leff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multinom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxfun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#optimize_log_powell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.optimize_log_powell" title="Link to this definition"></a></dt>
+<dd><p>Optimize (using the log of) the parameters using the modified Powell’s
+method, which optimizes slices of parameter space sequentially. Initial
+parameters <code class="docutils literal notranslate"><span class="pre">p0</span></code>, the data <code class="docutils literal notranslate"><span class="pre">[means,</span> <span class="pre">varcovs]</span></code>,
+the demographic <code class="docutils literal notranslate"><span class="pre">model_func</span></code>, and <code class="docutils literal notranslate"><span class="pre">rs</span></code> to specify recombination
+bin edges are required. <code class="docutils literal notranslate"><span class="pre">Ne</span></code> must either be specified as a keyword
+argument or is included as the <em>last</em> parameter in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p0</strong> (<em>list</em>) – The initial guess for demographic parameters,
+demography parameters plus (optionally) Ne.</p></li>
+<li><p><strong>data</strong> (<em>list</em>) – <p>The parsed data[means, varcovs, fs]. The frequency spectrum
+fs is optional, and used only if use_afs=True.</p>
+<ul>
+<li><p>Means: The list of mean statistics within each bin
+(has length <code class="docutils literal notranslate"><span class="pre">len(rs)</span></code> or <code class="docutils literal notranslate"><span class="pre">len(rs)</span> <span class="pre">-</span> <span class="pre">1</span></code> if using AFS). If we are
+not using the AFS, which is typical, the heterozygosity statistics
+come last.</p></li>
+<li><p>varcovs: The list of varcov matrices matching the data in <code class="docutils literal notranslate"><span class="pre">means</span></code>.</p></li>
+</ul>
+</p></li>
+<li><p><strong>model_func</strong> (<em>list</em>) – The demographic model to compute statistics
+for a given rho. If we are using AFS, it’s a list of the two models
+[LD func, AFS func]. If we’re using LD stats alone, we pass a single LD
+model  as a list: [LD func].</p></li>
+<li><p><strong>rs</strong> (<em>list</em>) – The list of raw recombination rates defining bin edges.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – The population scaled per base mutation rate
+(4*Ne*mu, not 4*Ne*mu*L).</p></li>
+<li><p><strong>u</strong> (<em>float</em><em>, </em><em>optional</em>) – The raw per base mutation rate.
+Cannot be used with <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p></li>
+<li><p><strong>Ne</strong> (<em>float</em><em>, </em><em>optional</em>) – The fixed effective population size to scale
+u and r. If <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is a parameter to fit, it should be the last parameter
+in <code class="docutils literal notranslate"><span class="pre">p0</span></code>.</p></li>
+<li><p><strong>lower_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+lower bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>upper_bound</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the
+upper bounds during optimization. These are given as lists of the same
+length of the parameters.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If an integer greater than 0, prints updates
+of the optimization procedure at intervals given by that spacing.</p></li>
+<li><p><strong>func_args</strong> (<em>list</em><em>, </em><em>optional</em>) – Additional arguments to be passed
+to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>func_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – Additional keyword arguments to be
+passed to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><strong>fixed_params</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. To fix some
+parameters, this should be a list of equal length as <code class="docutils literal notranslate"><span class="pre">p0</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for parameters to be fit and fixed values at corresponding
+indexes.</p></li>
+<li><p><strong>use_afs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. We can pass a model
+to compute the frequency spectrum and use
+that instead of heterozygosity statistics for single-locus data.</p></li>
+<li><p><strong>Leff</strong> (<em>float</em><em>, </em><em>optional</em>) – The effective length of genome from which
+the fs was generated (only used if fitting to afs).</p></li>
+<li><p><strong>multinom</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only used if we are fitting the AFS.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the likelihood is computed for an optimally rescaled FS.
+If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the likelihood is computed for a fixed scaling of the FS
+found by theta=4*Ne*u and Leff</p></li>
+<li><p><strong>ns</strong> (<em>list</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – The sample size, which is only needed
+if we are using the frequency spectrum, as the sample size does not
+affect mean LD statistics.</p></li>
+<li><p><strong>statistics</strong> (<em>list</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which assumes that
+all statistics are present and in the conventional default order. If
+the data is missing some statistics, we must specify which statistics
+are present using the subset of statistic names given by
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>.</p></li>
+<li><p><strong>pass_Ne</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the
+demographic model includes <code class="docutils literal notranslate"><span class="pre">Ne</span></code> as a parameter (in the final position
+of input parameters).</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>) – Defaults to None. Maximum number of iterations to perform.</p></li>
+<li><p><strong>maxfun</strong> (<em>int</em>) – Defaults to None. Maximum number of function evaluations to make.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.remove_nonpresent_statistics">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">remove_nonpresent_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[[],</span> <span class="pre">[]]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#remove_nonpresent_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.remove_nonpresent_statistics" title="Link to this definition"></a></dt>
+<dd><p>Removes data not found in the given set of statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">LDstats</span></code> object.) – LD statistics.</p></li>
+<li><p><strong>statistics</strong> – A list of lists for two and one locus statistics to keep.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.remove_normalized_data">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">remove_normalized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varcovs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#remove_normalized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.remove_normalized_data" title="Link to this definition"></a></dt>
+<dd><p>Returns data means and covariance matrices with the normalizing
+statistics removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>means</strong> (<em>list</em><em> of </em><em>arrays</em>) – List of means normalized statistics, where each entry is the
+full set of statistics for a given recombination distance.</p></li>
+<li><p><strong>varcovs</strong> (<em>list</em><em> of </em><em>arrays</em>) – List of the corresponding variance covariance matrices.</p></li>
+<li><p><strong>normalization</strong> (<em>int</em>) – The index of the normalizing population.</p></li>
+<li><p><strong>num_pops</strong> (<em>int</em>) – The number of populations in the data set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.remove_normalized_lds">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">remove_normalized_lds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#remove_normalized_lds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.remove_normalized_lds" title="Link to this definition"></a></dt>
+<dd><p>Returns LD statistics with the normalizing statistic removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">LDstats</span></code> object) – An LDstats object that has been normalized to get
+<span class="math notranslate nohighlight">\(\sigma_D^2\)</span>-formatted statistics.</p></li>
+<li><p><strong>normalization</strong> (<em>int</em>) – The index of the normalizing population.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.remove_normalized_stat_name">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">remove_normalized_stat_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#remove_normalized_stat_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.remove_normalized_stat_name" title="Link to this definition"></a></dt>
+<dd><p>Returns the set of statistic names with the normalizing statistic removed. Note that
+the normalizing statistics for LD and H must be present for this function to not
+fail.</p>
+<p>If the list of statistics are not provided, set the number of populations so that
+all statistics are present, aside from the removed normalizing statistic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>statistics</strong> – Tuple of lists, with length two, specifying the names of LD stats
+and H stats. See <code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names()</span></code>.</p></li>
+<li><p><strong>normalization</strong> – The index of the normalizing population.</p></li>
+<li><p><strong>num_pops</strong> – The number of populations to generate statistic names for. Cannot be
+used with <code class="docutils literal notranslate"><span class="pre">statistics</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of lists with statistic names, with normalizing statistics removed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Inference.sigmaD2">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Inference.</span></span><span class="sig-name descname"><span class="pre">sigmaD2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Inference.html#sigmaD2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Inference.sigmaD2" title="Link to this definition"></a></dt>
+<dd><p>Compute the <span class="math notranslate nohighlight">\(\sigma_D^2\)</span> statistics normalizing by the heterozygosities
+in a given population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">LDstats</span></code> object) – The input data.</p></li>
+<li><p><strong>normalization</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the normalizing population
+(normalized by pi2_i_i_i_i and H_i_i), default set to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-moments.LD.Godambe">
+<span id="confidence-intervals"></span><h3>Confidence intervals<a class="headerlink" href="#module-moments.LD.Godambe" title="Link to this heading"></a></h3>
+<p>Parameter uncertainties are computed using Godambe information, described in
+Coffman et al, MBE (2016). doi: <a class="reference external" href="https://doi.org/10.1093/molbev/msv255">https://doi.org/10.1093/molbev/msv255</a></p>
+<p>If you use moments.LD.Godambe to compute parameter uncertainties, please cite
+that paper. This was first developed by Alec Coffman for computing uncertainties
+from inferences performed with dadi, modified here to handle LD decay curves.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Godambe.FIM_uncert">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Godambe.</span></span><span class="sig-name descname"><span class="pre">FIM_uncert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Godambe.html#FIM_uncert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Godambe.FIM_uncert" title="Link to this definition"></a></dt>
+<dd><p>Parameter uncertainties from Fisher Information Matrix. This approach typically
+underestimates the size of the true confidence intervals, as it does not take
+into account linkage between loci that causes data to be non-independent.</p>
+<p>Returns standard deviations of parameter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_func</strong> – Model function</p></li>
+<li><p><strong>p0</strong> – Best-fit parameters for model_func, with inferred Ne in last entry of
+parameter list.</p></li>
+<li><p><strong>ms</strong> – See below..</p></li>
+<li><p><strong>vcs</strong> – Original means and covariances of statistics from data. If statistics
+are not give, we remove the normalizing statistics. Otherwise, these need
+to be pared down so that the normalizing statistics are removed.</p></li>
+<li><p><strong>eps</strong> – Fractional stepsize to use when taking finite-difference derivatives.
+Note that if eps*param is &lt; 1e-12, then the step size for that parameter
+will simply be eps, to avoid numerical issues with small parameter
+perturbations.</p></li>
+<li><p><strong>log</strong> – If True, assume log-normal distribution of parameters. Returned values
+are then the standard deviations of the <em>logs</em> of the parameter values,
+which can be interpreted as relative parameter uncertainties.</p></li>
+<li><p><strong>return_GIM</strong> – If true, also return the full GIM.</p></li>
+<li><p><strong>r_edges</strong> – The bin edges for LD statistics.</p></li>
+<li><p><strong>normalization</strong> – The index of the population that we normalized by.</p></li>
+<li><p><strong>pass_Ne</strong> – If True, Ne is a parameter in the model function, and by convention
+is the last entry in the parameters list. If False, Ne is only used to scale
+recombination rates.</p></li>
+<li><p><strong>statistics</strong> – Statistics that we have included given as a list of lists:
+[ld_stats, h_stats]. If statistics is not given, we assume all statistics
+are included except for the normalizing statistic in each bin</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If an integer greater than 0, prints updates
+of the number of function calls and tested parameters
+at intervals given by that spacing.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Godambe.GIM_uncert">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Godambe.</span></span><span class="sig-name descname"><span class="pre">GIM_uncert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_boot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_GIM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Godambe.html#GIM_uncert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Godambe.GIM_uncert" title="Link to this definition"></a></dt>
+<dd><p>Parameter uncertainties from Godambe Information Matrix (GIM). If you use this
+method, please cite
+<a class="reference external" href="https://doi.org/10.1093/molbev/msv255">Coffman et al., MBE (2016)</a>.</p>
+<p>Returns standard deviations of parameter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_func</strong> – Model function</p></li>
+<li><p><strong>all_boot</strong> – List of bootstrap LD stat means [m0, m1, m2, …]</p></li>
+<li><p><strong>p0</strong> – Best-fit parameters for model_func, with inferred Ne in last entry of
+parameter list.</p></li>
+<li><p><strong>ms</strong> – See below..</p></li>
+<li><p><strong>vcs</strong> – Original means and covariances of statistics from data. If statistics
+are not give, we remove the normalizing statistics. Otherwise, these need
+to be pared down so that the normalizing statistics are removed.</p></li>
+<li><p><strong>eps</strong> – Fractional stepsize to use when taking finite-difference derivatives.
+Note that if eps*param is &lt; 1e-12, then the step size for that parameter
+will simply be eps, to avoid numerical issues with small parameter
+perturbations.</p></li>
+<li><p><strong>log</strong> – If True, assume log-normal distribution of parameters. Returned values
+are then the standard deviations of the <em>logs</em> of the parameter values,
+which can be interpreted as relative parameter uncertainties.</p></li>
+<li><p><strong>return_GIM</strong> – If true, also return the full GIM.</p></li>
+<li><p><strong>r_edges</strong> – The bin edges for LD statistics.</p></li>
+<li><p><strong>normalization</strong> – The index of the population that we normalized by.</p></li>
+<li><p><strong>pass_Ne</strong> – If True, Ne is a parameter in the model function, and by convention
+is the last entry in the parameters list. If False, Ne is only used to scale
+recombination rates.</p></li>
+<li><p><strong>statistics</strong> – Statistics that we have included given as a list of lists:
+[ld_stats, h_stats]. If statistics is not given, we assume all statistics
+are included except for the normalizing statistic in each bin</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – If an integer greater than 0, prints updates
+of the number of function calls and tested parameters
+at intervals given by that spacing.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moments.LD.Godambe.LRT_adjust">
+<span class="sig-prename descclassname"><span class="pre">moments.LD.Godambe.</span></span><span class="sig-name descname"><span class="pre">LRT_adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_boot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nested_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pass_Ne</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/moments/LD/Godambe.html#LRT_adjust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moments.LD.Godambe.LRT_adjust" title="Link to this definition"></a></dt>
+<dd><p>Following <cite>moments.Godambe.LRT_adjust()</cite>, this function performs
+first-order moment matching to adjust the test statistic for the likelihood
+ratio test. Given log-likelihoods for a full and nested model (complex and
+simpler model, resp), the adjustment factor scales the difference in
+log-likelihoods, which can then be used in a chi-squared test, as
+implemented in <cite>moments.Godambe.sum_chi2_ppf()</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_func</strong></p></li>
+<li><p><strong>all_boot</strong></p></li>
+<li><p><strong>p0</strong></p></li>
+<li><p><strong>nested_indices</strong></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="plotting">
+<h2>Plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h2>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>These docs are still needed.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_moments.html" class="btn btn-neutral float-left" title="API for site frequency spectra" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_demes.html" class="btn btn-neutral float-right" title="API for demes functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
