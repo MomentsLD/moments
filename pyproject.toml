@@ -18,12 +18,14 @@ authors = [
     {name = "Simon Gravel", email = "simon.gravel@mcgill.ca"},
 ]
 license = {text = "MIT"}
-requires-python = ">=3.11, <3.14"
+requires-python = ">=3.11, <3.15"
 dynamic = ["version"]
 dependencies=[
     "numpy >=2.0, <3.0",
     "cython >=0.25",
     "scipy >=1.3, <1.17",
+    # As of Feb 2026, cibuildwheel was failing to find a wheel for scipy 1.17, so trying
+    # to build from source and failing due to not finding openblas
     "mpmath >=1.0, <1.4",
     # mpmath 1.4 introduced many DeprecationWarnings, which turn to errors in our CI
     # See here: https://github.com/mpmath/mpmath/issues/1015
