@@ -362,7 +362,7 @@ def _check_valid_genotype_matrix(G, genotypes):
         raise ValueError("Genotype matrix is too large, consider parallelizing LD calc")
 
 
-def compute_pairwise_stats(Gs, genotypes=True):
+def compute_pairwise_stats(Gs, genotypes=True, pos_array = None, distance_constrained = 0):
     """
     Computes :math:`D^2`, :math:`Dz`, :math:`\\pi_2`, and :math:`D` for every
     pair of loci within a block of SNPs, coded as a genotype matrix.
@@ -372,6 +372,11 @@ def compute_pairwise_stats(Gs, genotypes=True):
         Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
+    :param pos_array: The position array for the genotype matrix, 
+        of size n, and has dtype np.int32. 
+        Required when distance_constrained is larger than 0.
+    :param distance_constrained: Computes the stats only for pairs of loci 
+        larger than this given threshold. Default as 0.
     """
     if ld_extensions != 1:
         raise ValueError(
@@ -390,6 +395,19 @@ def compute_pairwise_stats(Gs, genotypes=True):
         G_dict, any_missing = _sparsify_haplotype_matrix(Gs)
         Counts = spt.count_haplotypes_sparse(G_dict, n, missing=any_missing)
 
+    if (distance_constrained > 0) and (pos_array is not None):
+        assert(len(pos_array) == len(G_dict))
+        ### assert dtype is np.int32 for input
+        assert pos_array.dtype == np.int32
+        Bools = spt.count_genotypes_distance_constrained(pos_array, distance_constrained)
+        assert(len(Bools) == len(Counts))
+        Counts = Counts[Bools]
+
+    if (distance_constrained > 0) and (pos_array is None):
+        raise ValueError(
+            f"Calculate LD for the distance constrained pairs, but the position array is not given."
+        )
+
     if genotypes:
         D = gcs.compute_D(Counts)
         D2 = gcs.compute_D2(Counts)
@@ -404,7 +422,7 @@ def compute_pairwise_stats(Gs, genotypes=True):
     return D2, Dz, pi2, D
 
 
-def compute_average_stats(Gs, genotypes=True):
+def compute_average_stats(Gs, genotypes=True, pos_array = None, distance_constrained = 0):
     """
     Takes the outputs of ``compute_pairwise_stats`` and returns
     the average value for each statistic.
@@ -414,8 +432,13 @@ def compute_average_stats(Gs, genotypes=True):
         Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
+    :param pos_array: The position array for the genotype matrix, 
+        of size n, and has dtype np.int32. 
+        Required when distance_constrained is larger than 0.
+    :param distance_constrained: Computes the stats only for pairs of loci 
+        larger than this given threshold. Default as 0.
     """
-    D2, Dz, pi2, D = compute_pairwise_stats(Gs, genotypes=True)
+    D2, Dz, pi2, D = compute_pairwise_stats(Gs, genotypes = genotypes, pos_array = pos_array, distance_constrained = distance_constrained)
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
 
 
