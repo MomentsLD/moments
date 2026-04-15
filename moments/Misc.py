@@ -11,6 +11,8 @@ from . import Numerics
 from . import Spectrum_mod
 import functools
 
+import warnings
+
 # Nucleotide order assumed in Q matrices.
 code = "CGTA"
 
@@ -83,7 +85,7 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
     """
     warnings.warn(
         "Functions relating to `ms` are deprecated in favor of `demes`, will be "
-        "removed in version 1.5",
+        "removed in a future version",
         category=DeprecationWarning,
     )   
 
@@ -164,7 +166,7 @@ def make_fux_table(fid, ts, Q, tri_freq):
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a futureversion, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )   
@@ -275,7 +277,7 @@ def make_data_dict(filename):
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )   
@@ -362,7 +364,7 @@ def count_data_dict(data_dict, pop_ids):
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )   
@@ -455,7 +457,7 @@ def make_data_dict_vcf(
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )   
@@ -627,7 +629,7 @@ def _get_popinfo(popinfo_file):
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )
@@ -723,7 +725,7 @@ def bootstrap(
     """
     warnings.warn(
         "Operations using the `data_dict` are deprecated and will be removed "
-        "in version 1.5, in favor of `from_vcf` and associated functions "
+        "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
     )   
