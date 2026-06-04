@@ -234,7 +234,7 @@ def _assign_r_pos(positions, rec_map):
     rs = np.zeros(len(positions))
     for ii, pos in enumerate(positions):
         if pos in np.array(rec_map[0]):
-            rs[ii] = np.asarray(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0]]
+            rs[ii] = np.asarray(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0][0]]
         else:
             ## for now, if outside rec map, assign to nearest point,
             ## but later want to drop these positions
