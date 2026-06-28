@@ -1446,6 +1446,21 @@ def _admix_fs(fs, parents, proportions, child, child_size):
     return fs
 
 
+def _pulse_migrate_into_new(fs, source_idx, dest_idx, keep_from, adjusted_proportion):
+    # This function mimics the pulse_migrate function, but uses admixe_into_new rather
+    # than admix_inplace. It assumes that the sample sizes are set up so that the
+    # correct number of source lineages matches the number of dest lineages.
+    new_id = fs.pop_ids[dest_idx]
+    new_ss = fs.sample_sizes[source_idx] - keep_from
+    fs = fs.admix(source_idx, dest_idx, new_ss, adjusted_proportion, new_id=new_id)
+    curr_idx = fs.pop_ids.index(new_id)
+    assert curr_idx >= dest_idx
+    while curr_idx > dest_idx:
+        fs = fs.swap_axes(curr_idx - 1, curr_idx)
+        curr_idx -= 1
+    return fs
+
+
 def _pulse_fs(fs, sources, dest, proportions):
     dest_idx = fs.pop_ids.index(dest)
     for ii, (source, proportion) in enumerate(zip(sources, proportions)):
@@ -1454,7 +1469,10 @@ def _pulse_fs(fs, sources, dest, proportions):
         # in the source deme, we keep that size minus the dest size
         keep_from = fs.sample_sizes[source_idx] - fs.sample_sizes[dest_idx]
         adjusted_proportion = proportion / (1 - sum(proportions[ii + 1 :]))
-        fs = fs.pulse_migrate(source_idx, dest_idx, keep_from, adjusted_proportion)
+        # fs = fs.pulse_migrate(source_idx, dest_idx, keep_from, adjusted_proportion)
+        fs = _pulse_migrate_into_new(
+            fs, source_idx, dest_idx, keep_from, adjusted_proportion
+        )
     return fs
 
 
