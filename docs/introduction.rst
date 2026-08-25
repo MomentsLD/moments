@@ -61,6 +61,26 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.6.1
+=====
+- Add ``region`` argument to ``moments.LD.Parsing.compute_ld_statistics``
+
+1.6.0
+=====
+- Change Demes SFS integration to use admix_into_new for pulses
+
+1.5.4
+=====
+- Fix index access in _assign_r_pos function (@mufernando)
+
+1.5.3
+=====
+- Fix sign error in pi2 (@andrewkern)
+
+1.5.2
+=====
+- Implement distance constraint in LD Parsing
+
 1.5.1
 =====
 - Drop python 3.10 support
