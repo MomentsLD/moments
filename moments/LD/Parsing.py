@@ -96,7 +96,7 @@ def _load_h5(vcf_file, report=True):
 
 
 def get_genotypes(
-    vcf_file, bed_file=None, chromosome=None, min_bp=None, use_h5=True, report=True
+    vcf_file, bed_file=None, chromosome=None, region=None, min_bp=None, use_h5=True, report=True
 ):
     """
     Given a vcf file, we extract the biallelic SNP genotypes. If bed_file is None,
@@ -122,6 +122,8 @@ def get_genotypes(
     :type min_bp: int, optional
     :param chromosome: Chromosome to compute LD statistics from.
     :type chromosome: int or str, optional
+    :param region: Option [start, end] interval that we can use to subset
+        a mask file.
     :param use_h5: If use_h5 is True, we try to load the h5 file, which has the
         same path/name as vcf_file, but with .h5 instead of .vcf or .vcf.gz extension.
         If the h5 file does not exist, we create it and save it with .h5 extension.
@@ -158,6 +160,11 @@ def get_genotypes(
                 "The `chromosome` must be specified."
             )
 
+    if type(chromosome) is str and chromosome.startswith("chr"):
+        raise ValueError("Specify chromosome without the 'chr' prefix")
+    # this is a fragile hack to protect against the chromosome label begin chr{chrom}
+    all_chromosomes = np.array([c if "chr" not in c else c[3:] for c in all_chromosomes])
+
     if str(chromosome) not in all_chromosomes:
         raise ValueError(
             f"The specified chromosome, {chromosome}, was not found among "
@@ -171,7 +178,11 @@ def get_genotypes(
 
     if bed_file is not None:
         bed_file_data = pandas.read_csv(bed_file, sep=r"\s+", header=None)
+        
         bed_chromosomes = np.array(bed_file_data[0])
+        # this is a fragile hack to protect against the chromosome label begin chr{chrom}
+        bed_chromosomes = np.array([c if "chr" not in c else c[3:] for c in bed_chromosomes])
+
         bed_lefts = np.array(bed_file_data[1])
         bed_rights = np.array(bed_file_data[2])
 
@@ -204,6 +215,12 @@ def get_genotypes(
 
         all_positions = all_positions.compress(in_bed)
         all_genotypes = all_genotypes.compress(in_bed)
+
+    if region is not None:
+        # only keep positions that are within the region
+        in_region = np.logical_and(all_positions >= region[0], all_positions < region[1])
+        all_positions = all_positions.compress(in_region)
+        all_genotypes = all_genotypes.compress(in_region)
 
     all_genotypes_012 = all_genotypes.to_n_alt(fill=-1)
 
@@ -1187,6 +1204,7 @@ def compute_ld_statistics(
     vcf_file,
     bed_file=None,
     chromosome=None,
+    region=None,
     rec_map_file=None,
     map_name=None,
     map_sep=None,
@@ -1225,6 +1243,11 @@ def compute_ld_statistics(
     :param str chromosome: If None, treats all positions in VCF as coming from same
         chromosome. If multiple chromosomes are reported in the same VCF, we need to
         specify which chromosome to keep variants from.
+    :param list region: Specifies the [start, end] of a region, and should be used with
+        chromosome argument. For example, if an accessibility mask is used that spans
+        an entire chromosome, but only a subset of the chromosome is desired, the
+        mask can be provided along with the region of interest. Statistics are only
+        computed for sites that pass the mask and fall within that region.
     :param str rec_map_file: The input recombination map. The format is
         {pos}\t{map (cM)}\t{additional maps}\n
     :param str map_name: If None, takes the first map column, otherwise takes the
@@ -1272,6 +1295,7 @@ def compute_ld_statistics(
         vcf_file,
         bed_file=bed_file,
         chromosome=chromosome,
+        region=region,
         min_bp=min_bp,
         use_h5=use_h5,
         report=report,
