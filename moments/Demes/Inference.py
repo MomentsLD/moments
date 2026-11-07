@@ -383,6 +383,29 @@ def _check_initial_constraints(p0, options, constraints):
         )
 
 
+def _get_sampled_demes_and_times(pop_ids, g):
+    """
+    Returns the deme names and sample times for the populations in ``pop_ids``.
+
+    Ancient samples are given by pop ids ``"{deme}_sampled_{gen}_{frac_gen}"``,
+    e.g. ``"A_sampled_50_5"`` for a sample from deme A at time 50.5. Other pop ids
+    are deme names, which are sampled at the end time of the deme.
+    """
+    end_times = {d.name: d.end_time for d in g.demes}
+    sampled_demes = []
+    sample_times = []
+    for pop_id in pop_ids:
+        if "_sampled_" in pop_id:
+            # split on the last "_sampled_", since deme names may contain "_"
+            deme, _, time = pop_id.rpartition("_sampled_")
+            sampled_demes.append(deme)
+            sample_times.append(float(time.replace("_", ".")))
+        else:
+            sampled_demes.append(pop_id)
+            sample_times.append(end_times[pop_id])
+    return sampled_demes, sample_times
+
+
 def _get_root(g):
     for deme_id, preds in g.predecessors().items():
         if len(preds) == 0:
@@ -450,20 +473,8 @@ def _object_func(
     sampled_demes = data.pop_ids
     sample_sizes = data.sample_sizes
 
-    end_times = {d.name: d.end_time for d in g.demes}
-    sample_times = []
-
-    # check for any ancient samples, which have pop id
-    # "{deme.name}_sampled_{gen}_{frac_gen}"
-    input_sampled_demes = [d for d in sampled_demes]
-    for ii, deme in enumerate(sampled_demes):
-        if "_sampled_" in deme:
-            d = deme.split("_")[0]
-            t = float(".".join(deme.split("_")[2:]))
-            input_sampled_demes[ii] = d
-            sample_times.append(t)
-        else:
-            sample_times.append(end_times[deme])
+    # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+    input_sampled_demes, sample_times = _get_sampled_demes_and_times(sampled_demes, g)
 
     model = moments.Demes.SFS(
         g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
@@ -863,8 +874,14 @@ def uncerts(
     if uL is None:
         multinom = True
         g = demes.load(deme_graph)
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
         model = moments.Demes.SFS(
-            g, sampled_demes=sampled_demes, sample_sizes=sample_sizes
+            g,
+            sampled_demes=input_sampled_demes,
+            sample_sizes=sample_sizes,
+            sample_times=sample_times,
         )
         uL = moments.Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [uL]
@@ -901,20 +918,10 @@ def uncerts(
         sampled_demes = data.pop_ids
         sample_sizes = data.sample_sizes
 
-        end_times = {d.name: d.end_time for d in g.demes}
-        sample_times = []
-
-        # check for any ancient samples, which have pop id
-        # "{deme.name}_sampled_{gen}_{frac_gen}"
-        input_sampled_demes = [d for d in sampled_demes]
-        for ii, deme in enumerate(sampled_demes):
-            if "_sampled_" in deme:
-                d = deme.split("_")[0]
-                t = float(".".join(deme.split("_")[2:]))
-                input_sampled_demes[ii] = d
-                sample_times.append(t)
-            else:
-                sample_times.append(end_times[deme])
+        # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
 
         model = moments.Demes.SFS(
             g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
@@ -1046,20 +1053,8 @@ def _object_func_LD(
     g = demes.Graph.fromdict(builder)
     sampled_demes = pop_ids
 
-    end_times = {d.name: d.end_time for d in g.demes}
-    sample_times = []
-
-    # check for any ancient samples, which have pop id
-    # "{deme.name}_sampled_{gen}_{frac_gen}"
-    input_sampled_demes = [d for d in sampled_demes]
-    for ii, deme in enumerate(sampled_demes):
-        if "_sampled_" in deme:
-            d = deme.split("_")[0]
-            t = float(".".join(deme.split("_")[2:]))
-            input_sampled_demes[ii] = d
-            sample_times.append(t)
-        else:
-            sample_times.append(end_times[deme])
+    # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+    input_sampled_demes, sample_times = _get_sampled_demes_and_times(sampled_demes, g)
 
     model = compute_bin_stats(g, input_sampled_demes, sample_times=sample_times, rs=rs)
 
@@ -1418,20 +1413,10 @@ def uncerts_LD(
         g = demes.Graph.fromdict(builder)
 
         sampled_demes = pop_ids
-        end_times = {d.name: d.end_time for d in g.demes}
-        sample_times = []
-
-        # check for any ancient samples, which have pop id
-        # "{deme.name}_sampled_{gen}_{frac_gen}"
-        input_sampled_demes = [d for d in sampled_demes]
-        for ii, deme in enumerate(sampled_demes):
-            if "_sampled_" in deme:
-                d = deme.split("_")[0]
-                t = float(".".join(deme.split("_")[2:]))
-                input_sampled_demes[ii] = d
-                sample_times.append(t)
-            else:
-                sample_times.append(end_times[deme])
+        # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
 
         model = compute_bin_stats(
             g, input_sampled_demes, sample_times=sample_times, rs=rs

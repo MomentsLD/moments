@@ -552,6 +552,67 @@ class TestInitialConstraints(TempFilesTestCase):
         self.assertGreater(popt[0], popt[1])
 
 
+# GRAPH with deme A renamed to pop_A, a name with an underscore
+GRAPH_UNDERSCORE = (
+    GRAPH.replace("name: A\n", "name: pop_A\n")
+    .replace("demes: [A, B]", "demes: [pop_A, B]")
+    .replace("sources: [A]", "sources: [pop_A]")
+)
+
+
+class TestAncientSamples(TempFilesTestCase):
+    """
+    Ancient samples are given by pop ids "{deme}_sampled_{gen}_{frac_gen}".
+    """
+
+    def test_parse_pop_ids(self):
+        # Plain pop ids are sampled at their deme's end time (0 here); ancient ones
+        # are split into deme and time, including deme names containing "_", and
+        # times with or without a fractional part.
+        g = demes.loads(GRAPH_UNDERSCORE)
+        pop_ids = ["B", "pop_A_sampled_50_5", "B_sampled_100"]
+        sampled_demes, sample_times = Inference._get_sampled_demes_and_times(pop_ids, g)
+        self.assertEqual(sampled_demes, ["B", "pop_A", "B"])
+        self.assertEqual(sample_times, [0, 50.5, 100.0])
+
+    def test_optimize_underscore_deme_name(self):
+        # Fit the size of pop_A, sampled 50.5 generations ago, starting from 1500.
+        # This used to fail parsing "pop_A_sampled_50_5". Recovers NA = 2000.
+        start = self.write(
+            "start.yaml",
+            GRAPH_UNDERSCORE.replace("start_size: 2000", "start_size: 1500"),
+        )
+        options = self.write("options.yaml", "parameters:" + size_param("NA", "pop_A"))
+        fs = moments.Demes.SFS(
+            demes.loads(GRAPH_UNDERSCORE),
+            sampled_demes=["pop_A", "B"],
+            sample_sizes=[6, 6],
+            sample_times=[50.5, 0],
+            theta=1000,
+        )
+        fs.pop_ids = ["pop_A_sampled_50_5", "B"]
+        names, popt, LL = Inference.optimize(start, options, fs)
+        self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
+
+    def test_uncerts_without_uL(self):
+        # uncerts() without uL first fits theta, which used to pass the raw pop id
+        # "A_sampled_50_5" to Demes.SFS and fail. Now gives finite, positive
+        # standard errors for NA and theta.
+        graph = self.write("graph.yaml", GRAPH)
+        options = self.write("options.yaml", "parameters:" + size_param("NA", "A"))
+        fs = moments.Demes.SFS(
+            demes.loads(GRAPH),
+            sampled_demes=["A", "B"],
+            sample_sizes=[6, 6],
+            sample_times=[50.5, 0],
+            theta=1000,
+        )
+        fs.pop_ids = ["A_sampled_50_5", "B"]
+        out = Inference.uncerts(graph, options, fs)
+        self.assertEqual(len(out), 2)
+        self.assertTrue(np.all(np.isfinite(out)) and np.all(out > 0))
+
+
 class TestUncerts(TempFilesTestCase):
     def setUp(self):
         super().setUp()
