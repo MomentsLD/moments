@@ -7,6 +7,7 @@ import ruamel.yaml
 import moments
 import numpy as np
 import scipy.optimize
+import copy
 import sys, os
 import warnings
 import time
@@ -406,6 +407,34 @@ def _get_sampled_demes_and_times(pop_ids, g):
     return sampled_demes, sample_times
 
 
+def _check_initial_graph(builder, options, p0):
+    """
+    Raises an error if the initial parameters don't give a valid demes graph.
+    During optimization, invalid graphs are treated as out of bounds (see
+    ``_warn_invalid_graph``), so this makes sure that errors in the input graph or
+    options file are reported instead of hidden.
+    """
+    # p0 may have extra parameters (e.g. p_misid) after the graph parameters, which
+    # _update_builder ignores
+    demes.Graph.fromdict(_update_builder(copy.deepcopy(builder), options, p0))
+
+
+def _warn_invalid_graph(run_state, err):
+    """
+    Warns that parameter values during optimization gave an invalid demes graph,
+    once per optimization run. ``run_state`` is a dict shared by the calls to the
+    objective function within one run.
+    """
+    if not run_state.get("warned_invalid_graph", False):
+        warnings.warn(
+            "Some parameter values during optimization gave an invalid demes graph "
+            f"and were treated as out of bounds (first error: {err}). If this happens "
+            "often, consider adding constraints between parameters in the options "
+            "file."
+        )
+        run_state["warned_invalid_graph"] = True
+
+
 def _get_root(g):
     for deme_id, preds in g.predecessors().items():
         if len(preds) == 0:
@@ -451,6 +480,7 @@ def _object_func(
     uL=None,
     fit_ancestral_misid=False,
     output_stream=sys.stdout,
+    run_state=None,
 ):
     # check bounds
     if lower_bound is not None and np.any(params < lower_bound):
@@ -464,12 +494,16 @@ def _object_func(
     global _counter
     _counter += 1
 
-    # update builder
+    # update builder and build graph, treating an invalid graph as out of bounds
     demo_params = params[: len(params) - fit_ancestral_misid]
-    builder = _update_builder(builder, options, demo_params)
+    try:
+        builder = _update_builder(builder, options, demo_params)
+        g = demes.Graph.fromdict(builder)
+    except ValueError as err:
+        _warn_invalid_graph(run_state if run_state is not None else {}, err)
+        return -_out_of_bounds_val
 
-    # build graph and compute SFS
-    g = demes.Graph.fromdict(builder)
+    # compute SFS
     sampled_demes = data.pop_ids
     sample_sizes = data.sample_sizes
 
@@ -595,6 +629,8 @@ def optimize(
         lower_bound = np.concatenate((lower_bound, [0]))
         upper_bound = np.concatenate((upper_bound, [1]))
 
+    _check_initial_graph(builder, options, p0)
+
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
         raise ValueError("perturb must be a non-negative number")
     if perturb < 0:
@@ -629,6 +665,7 @@ def optimize(
         uL,
         fit_ancestral_misid,
         output_stream,
+        {},  # run_state
     )
 
     # run optimization
@@ -1033,6 +1070,7 @@ def _object_func_LD(
     cons=None,
     verbose=0,
     output_stream=sys.stdout,
+    run_state=None,
 ):
     # check bounds
     if lower_bound is not None and np.any(params < lower_bound):
@@ -1046,11 +1084,15 @@ def _object_func_LD(
     global _counter
     _counter += 1
 
-    # update builder
-    builder = _update_builder(builder, options, params)
+    # update builder and build graph, treating an invalid graph as out of bounds
+    try:
+        builder = _update_builder(builder, options, params)
+        g = demes.Graph.fromdict(builder)
+    except ValueError as err:
+        _warn_invalid_graph(run_state if run_state is not None else {}, err)
+        return -_out_of_bounds_val
 
-    # build graph and compute LD stats
-    g = demes.Graph.fromdict(builder)
+    # compute LD stats
     sampled_demes = pop_ids
 
     # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
@@ -1172,6 +1214,8 @@ def optimize_LD(
     )
     constraints = _set_up_constraints(options, param_names)
 
+    _check_initial_graph(builder, options, p0)
+
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
         raise ValueError("perturb must be a non-negative number")
     if perturb < 0:
@@ -1209,6 +1253,7 @@ def optimize_LD(
         constraints,
         verbose,
         output_stream,
+        {},  # run_state
     )
 
     # run optimization

@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 import unittest.mock
+import warnings
 
 import demes
 import numpy as np
@@ -611,6 +612,120 @@ class TestAncientSamples(TempFilesTestCase):
         out = Inference.uncerts(graph, options, fs)
         self.assertEqual(len(out), 2)
         self.assertTrue(np.all(np.isfinite(out)) and np.all(out > 0))
+
+
+# A graph where deme C (a child of A) starts at time 400, so the split time T of A
+# and B from anc must be older than 400 for the graph to be valid.
+GRAPH_SPLIT = """
+time_units: generations
+demes:
+- name: anc
+  epochs: [{{end_time: {T}, start_size: 1000}}]
+- name: A
+  ancestors: [anc]
+  epochs: [{{end_time: 0, start_size: 2000}}]
+- name: B
+  ancestors: [anc]
+  epochs: [{{end_time: 0, start_size: 3000}}]
+- name: C
+  ancestors: [A]
+  start_time: 400
+  epochs: [{{end_time: 0, start_size: 500}}]
+"""
+
+OPTIONS_SPLIT = """
+parameters:
+- name: T
+  values:
+  - demes:
+      anc:
+        epochs:
+          0: end_time
+"""
+
+
+class TestInvalidGraphs(TempFilesTestCase):
+    """
+    Parameter values during optimization that give an invalid demes graph are
+    treated as out of bounds, with one warning per optimization run.
+    """
+
+    def count_invalid_graph_warnings(self, func, *args, **kwargs):
+        # run func, returning its output and the number of invalid-graph warnings
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            out = func(*args, **kwargs)
+        return out, sum("invalid demes graph" in str(w.message) for w in record)
+
+    def test_optimize_with_invalid_graphs(self):
+        # Fit T (true value 450) starting from 600. The optimizer tries values of
+        # T below 400, which used to crash. Now it warns once and still finds T,
+        # and running it again warns again (once per run).
+        start = self.write("start.yaml", GRAPH_SPLIT.format(T=600))
+        options = self.write("options.yaml", OPTIONS_SPLIT)
+        fs = moments.Demes.SFS(
+            demes.loads(GRAPH_SPLIT.format(T=450)), samples={"A": 6, "B": 6}, theta=1000
+        )
+        for _ in range(2):
+            (names, popt, LL), n_warnings = self.count_invalid_graph_warnings(
+                Inference.optimize, start, options, fs
+            )
+            self.assertEqual(n_warnings, 1)
+            self.assertTrue(np.isclose(popt[0], 450, rtol=1e-2))
+
+    def test_optimize_LD_with_invalid_graphs(self):
+        # Same as test_optimize_with_invalid_graphs, for optimize_LD, fitting T to
+        # expected LD statistics (with made-up variances).
+        start = self.write("start.yaml", GRAPH_SPLIT.format(T=600))
+        options = self.write("options.yaml", OPTIONS_SPLIT)
+        rs = [0, 1e-5, 1e-4]
+        y = Inference.compute_bin_stats(
+            demes.loads(GRAPH_SPLIT.format(T=450)), ["A", "B"], rs=rs
+        )
+        y = moments.LD.Inference.remove_normalized_lds(moments.LD.Inference.sigmaD2(y))
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+        (names, popt, LL), n_warnings = self.count_invalid_graph_warnings(
+            Inference.optimize_LD,
+            start,
+            options,
+            means,
+            varcovs,
+            pop_ids=["A", "B"],
+            rs=rs,
+            normalization="A",
+        )
+        self.assertEqual(n_warnings, 1)
+        self.assertTrue(np.isclose(popt[0], 450, rtol=1e-2))
+
+    def test_invalid_initial_graph_raises(self):
+        # Errors that the initial parameters already cause (here, an options file
+        # that fits the last ancestry proportion, which is set from the others)
+        # raise before optimizing, instead of being treated as out of bounds.
+        graph = self.write(
+            "graph.yaml",
+            """
+time_units: generations
+demes:
+- name: A
+  epochs: [{end_time: 100, start_size: 1000}]
+- name: B
+  epochs: [{end_time: 100, start_size: 1000}]
+- name: C
+  ancestors: [A, B]
+  proportions: [0.3, 0.7]
+  start_time: 100
+  epochs: [{end_time: 0, start_size: 1000}]
+""",
+        )
+        options = self.write(
+            "options.yaml",
+            "parameters:\n- name: f\n  values:\n  - demes:\n      C:\n"
+            "        proportions: 1\n",
+        )
+        fs = moments.Spectrum(np.ones((7,)), pop_ids=["C"])
+        with self.assertRaises(ValueError):
+            Inference.optimize(graph, options, fs)
 
 
 class TestUncerts(TempFilesTestCase):
