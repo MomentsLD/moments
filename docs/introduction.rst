@@ -61,6 +61,13 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.7.0
+=====
+- Add python 3.15 support
+- Fix bug in TwoLocus integration with negative selection (gamma < 0)
+- Remove upper bound on scipy version
+- Update pinned versions in requirements.txt (cython >= 3.1, demesdraw >= 0.4)
+
 1.6.1
 =====
 - Add ``region`` argument to ``moments.LD.Parsing.compute_ld_statistics``
