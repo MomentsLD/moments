@@ -4,13 +4,8 @@ import warnings
 from . import ModelPlot
 from . import Spectrum_mod
 
-try:
-    from scipy.optimize import __nnls as _nnls
-except ImportError:
-    from scipy.optimize import _nnls
-import scipy as sp
 from scipy import stats
-from numpy import asarray_chkfinite, zeros, double
+from scipy.optimize import lsq_linear, nnls
 import copy
 from scipy.special import gammaln
 
@@ -609,75 +604,33 @@ def __migrate_1__(sfs, source_population_index, target_population_index):
 
 def __nnls_mod__(A, b):
     """
-    SG: I modified the scipy.optimize.nnls function to return the best-found parameters
-    even if the nnls algorithm has not converged, and issue a warning rather than crash.
-    The instructions below are from the original function
+    Solve ``argmin_x || Ax - b ||_2`` for ``x >= 0`` (non-negative least squares),
+    without failing if the solver does not converge.
 
+    This uses ``scipy.optimize.nnls``, with a larger maximum number of iterations
+    than scipy's default (``3 * n``), which is too few for some of the problems
+    built by ``admix_inplace``. If ``nnls`` still does not converge, we issue a
+    warning and instead solve the same problem using the bounded-variable least
+    squares method of ``scipy.optimize.lsq_linear``, which always returns a
+    solution.
 
-    Solve ``argmin_x || Ax - b ||_2`` for ``x>=0``. This is a wrapper
-    for a FORTAN non-negative least squares solver.
-
-    Parameters
-    ----------
-    A : ndarray
-        Matrix ``A`` as shown above.
-    b : ndarray
-        Right-hand side vector.
-
-    Returns
-    -------
-    x : ndarray
-        Solution vector.
-    rnorm : float
-        The residual, ``|| Ax-b ||_2``.
-
-    Notes
-    -----
-    The FORTRAN code was published in the book below. The algorithm
-    is an active set method. It solves the KKT (Karush-Kuhn-Tucker)
-    conditions for the non-negative least squares problem.
-
-    References
-    ----------
-    Lawson C., Hanson R.J., (1987) Solving Least Squares Problems, SIAM
-
+    :param A: Matrix ``A``, with shape (m, n).
+    :param b: Right-hand side vector, with length m.
+    :return: The solution vector ``x`` and the residual ``|| Ax - b ||_2``.
     """
-
-    A, b = map(asarray_chkfinite, (A, b))
-
-    if len(A.shape) != 2:
-        raise ValueError("expected matrix")
-    if len(b.shape) != 1:
-        raise ValueError("expected vector")
-
-    m, n = A.shape
-
-    if m != b.shape[0]:
-        raise ValueError("incompatible dimensions")
-
-    w = zeros((n,), dtype=double)
-    zz = zeros((m,), dtype=double)
-    index = zeros((n,), dtype=int)
-
-    # It's unclear to me (APR) what is going on
-    # as far as which nnls function gets called
-    if sp.__version__ < "1.12":
-        try:
-            x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index, -1)
-        except:
-            x, rnorm, mode = _nnls.nnls(A, m, n, b, w, zz, index)
-    else:
-        x, rnorm = _nnls.nnls(A, b)
-        mode = 1
-
-    if mode != 1:
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float)
+    try:
+        return nnls(A, b, maxiter=100 * A.shape[1])
+    except RuntimeError:
         warnings.warn(
-            "Too many iterations in nnls. This usually occurs under "
-            "strong migration models, and is often fixed by increasing "
-            "the sample size prior to a large pulse migration event."
+            "Non-negative least squares (nnls) did not converge when approximating "
+            "the admixture, so we use bounded least squares (lsq_linear) instead. "
+            "This usually occurs under strong migration models, and is often fixed "
+            "by increasing the sample size prior to a large pulse migration event."
         )
-
-    return x, rnorm
+        x = lsq_linear(A, b, bounds=(0, np.inf), method="bvls").x
+        return x, np.linalg.norm(A @ x - b)
 
 
 def __Gamma__(n_draws, n_lineages):

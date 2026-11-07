@@ -69,6 +69,7 @@ Change log
 - Fix bug in TwoLocus integration with negative selection (gamma < 0)
 - Remove upper bound on scipy version
 - Update pinned versions in requirements.txt (cython >= 3.1, demesdraw >= 0.4)
+- Fix crash in pulse_migrate / admix_inplace from non-converging nnls with newer scipy
 - Raise an error when two Demes inference parameters map to the same graph value
 
 1.6.1
