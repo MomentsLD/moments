@@ -264,9 +264,5 @@ class TestLowOrderStats(unittest.TestCase):
             self.assertTrue(np.isclose(pi2_1, pi2_2))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusMethods)
-suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusResults)
-suite = unittest.TestLoader().loadTestsFromTestCase(TestLowOrderStats)
-
 if __name__ == "__main__":
     unittest.main()

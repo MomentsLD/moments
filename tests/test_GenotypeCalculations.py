@@ -149,6 +149,5 @@ def main():
     print(compute_D(test_array), geno_calc.compute_D(test_array))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(GenoCalcTestCase)
 if __name__ == "__main__":
     unittest.main()

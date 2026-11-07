@@ -93,7 +93,5 @@ class TrialleleTestCase(unittest.TestCase):
         )
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TrialleleTestCase)
-
 if __name__ == "__main__":
     unittest.main()

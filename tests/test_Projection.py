@@ -29,6 +29,5 @@ class ProjectionTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(params_up, [0.1, 0.2, 0.3]))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(ProjectionTestCase)
 if __name__ == "__main__":
     unittest.main()

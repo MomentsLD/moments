@@ -144,6 +144,3 @@ class ManipsTestCase(unittest.TestCase):
         fs = moments.Spectrum(numpy.random.rand(11 * 7 * 9 * 5).reshape((7, 11, 9, 5)))
         fs = moments.Manips.split_4D_to_5D_2(fs, 3, 7)
         self.assertTrue(numpy.all(fs.sample_sizes == [6, 3, 8, 4, 7]))
-
-
-suite = unittest.TestLoader().loadTestsFromTestCase(ManipsTestCase)

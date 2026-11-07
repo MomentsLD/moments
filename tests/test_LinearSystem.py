@@ -119,6 +119,5 @@ class LinearSystemTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(steady, after))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(LinearSystemTestCase)
 if __name__ == "__main__":
     unittest.main()
