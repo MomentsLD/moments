@@ -1,7 +1,11 @@
 import unittest
 import warnings
 
-import matplotlib
+import pytest
+
+# matplotlib is an optional dependency of moments, and is not installed in every
+# test environment (e.g. cibuildwheel's wheel tests), so skip if it's missing.
+matplotlib = pytest.importorskip("matplotlib")
 
 # Use a non-interactive backend so tests run headless and never block on show().
 matplotlib.use("Agg")
