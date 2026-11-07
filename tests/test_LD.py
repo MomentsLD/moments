@@ -701,3 +701,29 @@ class FromDemes(unittest.TestCase):
         b.add_deme("A", epochs=[dict(start_size=1000, end_time=0)])
         g = b.resolve()
         y = moments.LD.LDstats.from_demes(g, sampled_demes=["A"], rho=0)
+
+
+class GodambeCache(unittest.TestCase):
+    def test_cache_is_not_shared_between_calls(self):
+        # Compute the hessian twice for the same data and parameter values, but with
+        # two different model functions, which depend differently on the parameter.
+        # LD statistics used to be cached between calls by parameter values only, so
+        # the second call reused the first model's statistics and gave the same
+        # hessian.
+        means = [np.array([1.0, 2.0]), np.array([3.0])]
+        varcovs = [np.eye(2), np.eye(1)]
+
+        def model_1(params, statistics):
+            return [params[0] * m for m in means]
+
+        def model_2(params, statistics):
+            return [params[0] ** 2 / 0.5 * m for m in means]
+
+        p0 = np.array([0.5])
+        H1 = moments.LD.Godambe._get_godambe(
+            model_1, [], p0, means, varcovs, 0.01, None, just_hess=True
+        )
+        H2 = moments.LD.Godambe._get_godambe(
+            model_2, [], p0, means, varcovs, 0.01, None, just_hess=True
+        )
+        self.assertFalse(np.allclose(H1, H2))

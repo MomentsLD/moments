@@ -7,6 +7,7 @@ import ruamel.yaml
 import moments
 import numpy as np
 import scipy.optimize
+import copy
 import sys, os
 import warnings
 import time
@@ -355,10 +356,102 @@ def _perturb_params_constrained(
         # check that our constraints are satisfied
         conditions_satisfied = True
         if cons is not None:
-            if np.any(cons(p_guess) < 0):
+            # constraints must be strictly satisfied, as in the objective functions
+            if np.any(cons(p_guess) <= 0):
                 conditions_satisfied = False
         tries += 1
     return p_guess
+
+
+def _check_initial_constraints(p0, options, constraints):
+    """
+    Raises a ValueError if the initial parameters don't satisfy the constraints.
+    Otherwise, every evaluation of the objective function would be out of bounds,
+    and the optimization would silently return the initial parameters.
+    """
+    if constraints is None:
+        return
+    violated = [
+        f"{c['params'][0]} {c['constraint']} {c['params'][1]}"
+        for c, val in zip(options["constraints"], constraints(p0))
+        if val <= 0
+    ]
+    if len(violated) > 0:
+        raise ValueError(
+            "The initial parameter values don't satisfy the constraints: "
+            + ", ".join(violated)
+            + ". Check the values in the input deme graph."
+        )
+
+
+def _get_sampled_demes_and_times(pop_ids, g):
+    """
+    Returns the deme names and sample times for the populations in ``pop_ids``.
+
+    Ancient samples are given by pop ids ``"{deme}_sampled_{gen}_{frac_gen}"``,
+    e.g. ``"A_sampled_50_5"`` for a sample from deme A at time 50.5. Other pop ids
+    are deme names, which are sampled at the end time of the deme.
+    """
+    end_times = {d.name: d.end_time for d in g.demes}
+    sampled_demes = []
+    sample_times = []
+    for pop_id in pop_ids:
+        if "_sampled_" in pop_id:
+            # split on the last "_sampled_", since deme names may contain "_"
+            deme, _, time = pop_id.rpartition("_sampled_")
+            sampled_demes.append(deme)
+            sample_times.append(float(time.replace("_", ".")))
+        else:
+            sampled_demes.append(pop_id)
+            sample_times.append(end_times[pop_id])
+    return sampled_demes, sample_times
+
+
+def _check_initial_graph(builder, options, p0):
+    """
+    Raises an error if the initial parameters don't give a valid demes graph.
+    During optimization, invalid graphs are treated as out of bounds (see
+    ``_warn_invalid_graph``), so this makes sure that errors in the input graph or
+    options file are reported instead of hidden.
+    """
+    # p0 may have extra parameters (e.g. p_misid) after the graph parameters, which
+    # _update_builder ignores
+    demes.Graph.fromdict(_update_builder(copy.deepcopy(builder), options, p0))
+
+
+def _warn_invalid_graph(run_state, err):
+    """
+    Warns that parameter values during optimization gave an invalid demes graph,
+    once per optimization run. ``run_state`` is a dict shared by the calls to the
+    objective function within one run.
+    """
+    if not run_state.get("warned_invalid_graph", False):
+        warnings.warn(
+            "Some parameter values during optimization gave an invalid demes graph "
+            f"and were treated as out of bounds (first error: {err}). If this happens "
+            "often, consider adding constraints between parameters in the options "
+            "file."
+        )
+        run_state["warned_invalid_graph"] = True
+
+
+def _build_graph_for_uncerts(builder, options, params):
+    """
+    Updates the graph with the parameter values used for the finite-difference
+    derivatives in uncerts() and uncerts_LD(), raising a clearer error if they give
+    an invalid graph. This happens when the best fit is near the edge of the valid
+    parameter values, as derivatives use values within a fraction eps of it.
+    """
+    try:
+        builder = _update_builder(builder, options, params)
+        return builder, demes.Graph.fromdict(builder)
+    except ValueError as err:
+        raise ValueError(
+            "Parameter values used to compute derivatives for the uncertainties "
+            f"give an invalid demes graph ({err}). This can happen when the best fit "
+            "is close to an edge of the valid parameter values, such as a split time "
+            "just older than a later event. Try a smaller eps."
+        ) from err
 
 
 def _get_root(g):
@@ -406,6 +499,7 @@ def _object_func(
     uL=None,
     fit_ancestral_misid=False,
     output_stream=sys.stdout,
+    run_state=None,
 ):
     # check bounds
     if lower_bound is not None and np.any(params < lower_bound):
@@ -419,29 +513,21 @@ def _object_func(
     global _counter
     _counter += 1
 
-    # update builder
+    # update builder and build graph, treating an invalid graph as out of bounds
     demo_params = params[: len(params) - fit_ancestral_misid]
-    builder = _update_builder(builder, options, demo_params)
+    try:
+        builder = _update_builder(builder, options, demo_params)
+        g = demes.Graph.fromdict(builder)
+    except ValueError as err:
+        _warn_invalid_graph(run_state if run_state is not None else {}, err)
+        return -_out_of_bounds_val
 
-    # build graph and compute SFS
-    g = demes.Graph.fromdict(builder)
+    # compute SFS
     sampled_demes = data.pop_ids
     sample_sizes = data.sample_sizes
 
-    end_times = {d.name: d.end_time for d in g.demes}
-    sample_times = []
-
-    # check for any ancient samples, which have pop id
-    # "{deme.name}_sampled_{gen}_{frac_gen}"
-    input_sampled_demes = [d for d in sampled_demes]
-    for ii, deme in enumerate(sampled_demes):
-        if "_sampled_" in deme:
-            d = deme.split("_")[0]
-            t = float(".".join(deme.split("_")[2:]))
-            input_sampled_demes[ii] = d
-            sample_times.append(t)
-        else:
-            sample_times.append(end_times[deme])
+    # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+    input_sampled_demes, sample_times = _get_sampled_demes_and_times(sampled_demes, g)
 
     model = moments.Demes.SFS(
         g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
@@ -519,11 +605,12 @@ def optimize(
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb".
     :param fit_ancestral_misid: If True, we fit the probability that the ancestral
-        state of a given SNP is misidenitified, resulting in ancestral/derived
+        state of a given SNP is misidentified, resulting in ancestral/derived
         labels being flipped. Note: this is only allowed with *unfolded* spectra.
         Defaults to False.
-    :param misid_guess: Defaults to 0.01.
-    :output_stream: Defaults to standard output. Can be given an open file stream
+    :param misid_guess: The initial value for the ancestral misidentification
+        probability, if ``fit_ancestral_misid`` is True. Defaults to 0.02.
+    :param output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
@@ -561,6 +648,8 @@ def optimize(
         lower_bound = np.concatenate((lower_bound, [0]))
         upper_bound = np.concatenate((upper_bound, [1]))
 
+    _check_initial_graph(builder, options, p0)
+
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
         raise ValueError("perturb must be a non-negative number")
     if perturb < 0:
@@ -569,6 +658,7 @@ def optimize(
         p0 = _perturb_params_constrained(
             p0, perturb, lower_bound, upper_bound, constraints
         )
+    _check_initial_constraints(p0, options, constraints)
 
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
@@ -594,6 +684,7 @@ def optimize(
         uL,
         fit_ancestral_misid,
         output_stream,
+        {},  # run_state
     )
 
     # run optimization
@@ -620,7 +711,11 @@ def optimize(
         )
         xopt, fopt, direc, iter, funcalls, warnflag = outputs
     elif method == "lbfgsb":
-        bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        # bounds must be on the same scale as the parameters being optimized
+        if log:
+            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        else:
+            bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
             obj_fun,
             p0,
@@ -657,11 +752,6 @@ def optimize(
 # Methods for computing confidence intervals from SFS inference #
 #################################################################
 
-# Cache evaluations of the frequency spectrum inside our hessian/J
-# evaluation function
-
-_sfs_cache = {}
-
 
 def _get_godambe(
     func_ex,
@@ -677,11 +767,16 @@ def _get_godambe(
     # taken and adapted from moments.Godambe, to include bootstraps over uL
     ns = data.sample_sizes
 
+    # Cache the spectra computed for the hessian and J, which reuse parameter
+    # values. The cache is local to this call, since the spectra also depend on
+    # the model in func_ex, which isn't part of the key.
+    sfs_cache = {}
+
     def func(params, data, uL=None):
         key = (tuple(params), tuple(ns), tuple([uL]))
-        if key not in _sfs_cache:
-            _sfs_cache[key] = func_ex(params, ns, uL=uL)
-        fs = _sfs_cache[key]
+        if key not in sfs_cache:
+            sfs_cache[key] = func_ex(params, ns, uL=uL)
+        fs = sfs_cache[key]
         return moments.Inference.ll(fs, data)
 
     def log_func(logparams, data, uL=None):
@@ -835,8 +930,14 @@ def uncerts(
     if uL is None:
         multinom = True
         g = demes.load(deme_graph)
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
         model = moments.Demes.SFS(
-            g, sampled_demes=sampled_demes, sample_sizes=sample_sizes
+            g,
+            sampled_demes=input_sampled_demes,
+            sample_sizes=sample_sizes,
+            sample_times=sample_times,
         )
         uL = moments.Inference.optimal_sfs_scaling(model, data)
         p0 = list(p0) + [uL]
@@ -867,26 +968,15 @@ def uncerts(
             p_misid = 0
 
         # update the builder dict, then compute SFS
-        builder = _update_builder(builder, options, demo_params)
-        g = demes.Graph.fromdict(builder)
+        builder, g = _build_graph_for_uncerts(builder, options, demo_params)
 
         sampled_demes = data.pop_ids
         sample_sizes = data.sample_sizes
 
-        end_times = {d.name: d.end_time for d in g.demes}
-        sample_times = []
-
-        # check for any ancient samples, which have pop id
-        # "{deme.name}_sampled_{gen}_{frac_gen}"
-        input_sampled_demes = [d for d in sampled_demes]
-        for ii, deme in enumerate(sampled_demes):
-            if "_sampled_" in deme:
-                d = deme.split("_")[0]
-                t = float(".".join(deme.split("_")[2:]))
-                input_sampled_demes[ii] = d
-                sample_times.append(t)
-            else:
-                sample_times.append(end_times[deme])
+        # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
 
         model = moments.Demes.SFS(
             g, input_sampled_demes, sample_sizes, sample_times=sample_times, u=uL
@@ -998,6 +1088,7 @@ def _object_func_LD(
     cons=None,
     verbose=0,
     output_stream=sys.stdout,
+    run_state=None,
 ):
     # check bounds
     if lower_bound is not None and np.any(params < lower_bound):
@@ -1011,27 +1102,19 @@ def _object_func_LD(
     global _counter
     _counter += 1
 
-    # update builder
-    builder = _update_builder(builder, options, params)
+    # update builder and build graph, treating an invalid graph as out of bounds
+    try:
+        builder = _update_builder(builder, options, params)
+        g = demes.Graph.fromdict(builder)
+    except ValueError as err:
+        _warn_invalid_graph(run_state if run_state is not None else {}, err)
+        return -_out_of_bounds_val
 
-    # build graph and compute LD stats
-    g = demes.Graph.fromdict(builder)
+    # compute LD stats
     sampled_demes = pop_ids
 
-    end_times = {d.name: d.end_time for d in g.demes}
-    sample_times = []
-
-    # check for any ancient samples, which have pop id
-    # "{deme.name}_sampled_{gen}_{frac_gen}"
-    input_sampled_demes = [d for d in sampled_demes]
-    for ii, deme in enumerate(sampled_demes):
-        if "_sampled_" in deme:
-            d = deme.split("_")[0]
-            t = float(".".join(deme.split("_")[2:]))
-            input_sampled_demes[ii] = d
-            sample_times.append(t)
-        else:
-            sample_times.append(end_times[deme])
+    # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+    input_sampled_demes, sample_times = _get_sampled_demes_and_times(sampled_demes, g)
 
     model = compute_bin_stats(g, input_sampled_demes, sample_times=sample_times, rs=rs)
 
@@ -1049,9 +1132,10 @@ def _object_func_LD(
 
     LL = moments.LD.Inference.ll_over_bins(means, model, varcovs)
 
+    # treat a failed likelihood evaluation like an out-of-bounds parameter, so the
+    # optimizer moves away from it instead of receiving nan
     if np.isnan(LL):
-        print("God bad result: LL = nan")
-        result = _out_of_bounds_val
+        return -_out_of_bounds_val
 
     # print outputs if verbose > 0
     if verbose > 0 and _counter % verbose == 0:
@@ -1126,7 +1210,7 @@ def optimize_LD(
     :param log: If True, optimize over log of the parameters.
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb".
-    :output_stream: Defaults to standard output. Can be given an open file stream
+    :param output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
@@ -1141,12 +1225,14 @@ def optimize_LD(
     if normalization is None:
         raise ValueError("Normalization deme must be provided")
     elif normalization not in pop_ids:
-        raise ValueError("Normalizatino deme must be in pop_ids")
+        raise ValueError("Normalization deme must be in pop_ids")
 
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
     )
     constraints = _set_up_constraints(options, param_names)
+
+    _check_initial_graph(builder, options, p0)
 
     if not (isinstance(perturb, float) or isinstance(perturb, int)):
         raise ValueError("perturb must be a non-negative number")
@@ -1156,6 +1242,7 @@ def optimize_LD(
         p0 = _perturb_params_constrained(
             p0, perturb, lower_bound, upper_bound, constraints
         )
+    _check_initial_constraints(p0, options, constraints)
 
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
@@ -1184,6 +1271,7 @@ def optimize_LD(
         constraints,
         verbose,
         output_stream,
+        {},  # run_state
     )
 
     # run optimization
@@ -1210,7 +1298,11 @@ def optimize_LD(
         )
         xopt, fopt, direc, iter, funcalls, warnflag = outputs
     elif method == "lbfgsb":
-        bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        # bounds must be on the same scale as the parameters being optimized
+        if log:
+            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        else:
+            bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
             obj_fun,
             p0,
@@ -1246,10 +1338,6 @@ def optimize_LD(
 # Methods for computing confidence intervals from LD inference #
 ################################################################
 
-# Cache evaluations of the frequency spectrum inside our hessian/J
-# evaluation function
-_ld_cache = {}
-
 
 def _get_godambe_LD(
     func_ex,
@@ -1261,11 +1349,16 @@ def _get_godambe_LD(
     log=False,
     just_hess=False,
 ):
+    # Cache the LD statistics computed for the hessian and J, which reuse
+    # parameter values. The cache is local to this call, since the statistics
+    # also depend on the model in func_ex, which isn't part of the key.
+    ld_cache = {}
+
     def func(params, means, varcovs):
         key = tuple(params)
-        if key not in _ld_cache:
-            _ld_cache[key] = func_ex(params)
-        y = _ld_cache[key]
+        if key not in ld_cache:
+            ld_cache[key] = func_ex(params)
+        y = ld_cache[key]
         return moments.LD.Inference.ll_over_bins(means, y, varcovs)
 
     def log_func(logparams, means, varcovs):
@@ -1341,7 +1434,7 @@ def uncerts_LD(
     if normalization is None:
         raise ValueError("Normalization deme must be provided")
     elif normalization not in pop_ids:
-        raise ValueError("Normalizatino deme must be in pop_ids")
+        raise ValueError("Normalization deme must be in pop_ids")
 
     # when statistics is None, we assume all statistics are present, and
     # we need to remove the normalizing statistic
@@ -1379,24 +1472,13 @@ def uncerts_LD(
         func_calls += 1
 
         # update the builder dict, then compute LD
-        builder = _update_builder(builder, options, params)
-        g = demes.Graph.fromdict(builder)
+        builder, g = _build_graph_for_uncerts(builder, options, params)
 
         sampled_demes = pop_ids
-        end_times = {d.name: d.end_time for d in g.demes}
-        sample_times = []
-
-        # check for any ancient samples, which have pop id
-        # "{deme.name}_sampled_{gen}_{frac_gen}"
-        input_sampled_demes = [d for d in sampled_demes]
-        for ii, deme in enumerate(sampled_demes):
-            if "_sampled_" in deme:
-                d = deme.split("_")[0]
-                t = float(".".join(deme.split("_")[2:]))
-                input_sampled_demes[ii] = d
-                sample_times.append(t)
-            else:
-                sample_times.append(end_times[deme])
+        # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
+        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
+            sampled_demes, g
+        )
 
         model = compute_bin_stats(
             g, input_sampled_demes, sample_times=sample_times, rs=rs
