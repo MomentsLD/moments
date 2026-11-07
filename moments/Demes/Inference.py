@@ -435,6 +435,25 @@ def _warn_invalid_graph(run_state, err):
         run_state["warned_invalid_graph"] = True
 
 
+def _build_graph_for_uncerts(builder, options, params):
+    """
+    Updates the graph with the parameter values used for the finite-difference
+    derivatives in uncerts() and uncerts_LD(), raising a clearer error if they give
+    an invalid graph. This happens when the best fit is near the edge of the valid
+    parameter values, as derivatives use values within a fraction eps of it.
+    """
+    try:
+        builder = _update_builder(builder, options, params)
+        return builder, demes.Graph.fromdict(builder)
+    except ValueError as err:
+        raise ValueError(
+            "Parameter values used to compute derivatives for the uncertainties "
+            f"give an invalid demes graph ({err}). This can happen when the best fit "
+            "is close to an edge of the valid parameter values, such as a split time "
+            "just older than a later event. Try a smaller eps."
+        ) from err
+
+
 def _get_root(g):
     for deme_id, preds in g.predecessors().items():
         if len(preds) == 0:
@@ -949,8 +968,7 @@ def uncerts(
             p_misid = 0
 
         # update the builder dict, then compute SFS
-        builder = _update_builder(builder, options, demo_params)
-        g = demes.Graph.fromdict(builder)
+        builder, g = _build_graph_for_uncerts(builder, options, demo_params)
 
         sampled_demes = data.pop_ids
         sample_sizes = data.sample_sizes
@@ -1454,8 +1472,7 @@ def uncerts_LD(
         func_calls += 1
 
         # update the builder dict, then compute LD
-        builder = _update_builder(builder, options, params)
-        g = demes.Graph.fromdict(builder)
+        builder, g = _build_graph_for_uncerts(builder, options, params)
 
         sampled_demes = pop_ids
         # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"

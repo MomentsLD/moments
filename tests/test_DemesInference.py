@@ -728,6 +728,52 @@ demes:
             Inference.optimize(graph, options, fs)
 
 
+class TestUncertsNearInvalidGraph(TempFilesTestCase):
+    """
+    Uncertainties use parameter values within a fraction eps of the best fit, which
+    can give an invalid graph if the fit is near the edge of the valid values.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # T = 402 is just older than C's start time (400), so T * (1 - 0.01) is not
+        self.graph = self.write("graph.yaml", GRAPH_SPLIT.format(T=402))
+        self.options = self.write("options.yaml", OPTIONS_SPLIT)
+        self.g = demes.loads(GRAPH_SPLIT.format(T=402))
+
+    def test_uncerts(self):
+        # With the default eps = 0.01, uncerts() raises an error suggesting a smaller
+        # eps. With eps = 0.001, it gives a finite, positive standard error.
+        fs = moments.Demes.SFS(self.g, samples={"A": 6, "B": 6}, theta=1000)
+        with self.assertRaises(ValueError) as err:
+            Inference.uncerts(self.graph, self.options, fs, uL=0.25)
+        self.assertIn("eps", str(err.exception))
+        out = Inference.uncerts(self.graph, self.options, fs, uL=0.25, eps=0.001)
+        self.assertTrue(np.isfinite(out[0]) and out[0] > 0)
+
+    def test_uncerts_LD(self):
+        # Same as test_uncerts, for uncerts_LD, using expected LD statistics (with
+        # made-up variances) as the data.
+        rs = [0, 1e-5, 1e-4]
+
+        def data():
+            # fresh data for each call, since uncerts_LD modifies the data it's given
+            y = Inference.compute_bin_stats(self.g, ["A", "B"], rs=rs)
+            y = moments.LD.Inference.sigmaD2(y)
+            means = [np.array(m) for m in y]
+            varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+            return means, varcovs
+
+        kwargs = dict(pop_ids=["A", "B"], rs=rs, normalization="A")
+        with self.assertRaises(ValueError) as err:
+            Inference.uncerts_LD(self.graph, self.options, *data(), **kwargs)
+        self.assertIn("eps", str(err.exception))
+        out = Inference.uncerts_LD(
+            self.graph, self.options, *data(), eps=0.001, **kwargs
+        )
+        self.assertTrue(np.isfinite(out[0]) and out[0] > 0)
+
+
 class TestUncerts(TempFilesTestCase):
     def setUp(self):
         super().setUp()
