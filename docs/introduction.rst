@@ -72,6 +72,7 @@ Change log
 - Fix crash in pulse_migrate / admix_inplace from non-converging nnls with newer scipy
 - Raise an error when two Demes inference parameters map to the same graph value
 - Fix several bugs in ``moments.Demes.Inference`` (#276)
+- Fix LD uncertainty functions failing with bootstraps from ``get_bootstrap_sets`` (#192)
 
 1.6.1
 =====

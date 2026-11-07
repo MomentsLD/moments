@@ -727,3 +727,92 @@ class GodambeCache(unittest.TestCase):
             model_2, [], p0, means, varcovs, 0.01, None, just_hess=True
         )
         self.assertFalse(np.allclose(H1, H2))
+
+
+class GodambeNormalizedData(unittest.TestCase):
+    """
+    The normalizing statistics are removed from the data and bootstraps before
+    computing uncertainties. Bootstrap means from get_bootstrap_sets already have
+    them removed by default, while data means from bootstrap_data don't (#192).
+    """
+
+    def setUp(self):
+        # expected statistics of a one-population model as the data, with made-up
+        # variances, and noisy copies of the data as bootstrap replicates
+        self.model_func = moments.LD.Demographics1D.two_epoch
+        self.r_edges = np.array([0, 1e-6, 1e-5, 1e-4])
+        self.p0 = [2.0, 0.1, 10000]
+        y = moments.LD.Inference.bin_stats(
+            self.model_func, self.p0[:-1], rho=4 * self.p0[-1] * self.r_edges
+        )
+        y = moments.LD.Inference.sigmaD2(y)
+        self.means = [np.array(m) for m in y]
+        self.varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in self.means]
+        rng = np.random.default_rng(1)
+        self.boots = [
+            [m * (1 + 0.01 * rng.normal(size=m.shape)) for m in self.means]
+            for _ in range(5)
+        ]
+        self.stats = moments.LD.Util.moment_names(1)
+
+    def remove(self, means, varcovs, boots):
+        return moments.LD.Godambe._remove_normalized_data(
+            self.stats, 0, means, varcovs, boots
+        )
+
+    def test_inputs_not_modified(self):
+        # Removing the normalizing statistics returns new data, and leaves the
+        # statistics, means, varcovs, and bootstraps passed in unchanged.
+        means = copy.deepcopy(self.means)
+        varcovs = copy.deepcopy(self.varcovs)
+        boots = copy.deepcopy(self.boots)
+        stats, means_out, varcovs_out, boots_out = self.remove(means, varcovs, boots)
+        self.assertEqual(len(means_out[0]), len(means[0]) - 1)
+        self.assertEqual(self.stats, moments.LD.Util.moment_names(1))
+        for a, b in zip(means, self.means):
+            self.assertTrue(np.array_equal(a, b))
+        for a, b in zip(varcovs, self.varcovs):
+            self.assertTrue(np.array_equal(a, b))
+        for boot, boot_orig in zip(boots, self.boots):
+            for a, b in zip(boot, boot_orig):
+                self.assertTrue(np.array_equal(a, b))
+
+    def test_bootstraps_with_or_without_normalizing_stats(self):
+        # Bootstraps with the normalizing statistics removed beforehand (as from
+        # get_bootstrap_sets) give the same result as bootstraps with all
+        # statistics.
+        _, _, _, boots_removed = self.remove(self.means, self.varcovs, self.boots)
+        out_full = self.remove(self.means, self.varcovs, self.boots)
+        out_removed = self.remove(self.means, self.varcovs, boots_removed)
+        for boot_a, boot_b in zip(out_full[3], out_removed[3]):
+            for a, b in zip(boot_a, boot_b):
+                self.assertTrue(np.array_equal(a, b))
+
+    def test_wrong_number_of_statistics(self):
+        # Data with the statistics for a different number of populations raises.
+        stats_2pop = moments.LD.Util.moment_names(2)
+        with self.assertRaises(ValueError):
+            moments.LD.Godambe._remove_normalized_data(
+                stats_2pop, 0, self.means, self.varcovs, []
+            )
+
+    def test_GIM_uncert_with_get_bootstrap_sets_format(self):
+        # Regression test for #192: GIM_uncert with full data means and bootstraps
+        # without the normalizing statistics (the default outputs of bootstrap_data
+        # and get_bootstrap_sets) used to fail with mismatched shapes. Now it gives
+        # the same uncertainties as bootstraps with all statistics.
+        _, _, _, boots_removed = self.remove(self.means, self.varcovs, self.boots)
+        uncerts = []
+        for boots in [self.boots, boots_removed]:
+            uncerts.append(
+                moments.LD.Godambe.GIM_uncert(
+                    self.model_func,
+                    boots,
+                    self.p0,
+                    self.means,
+                    self.varcovs,
+                    r_edges=self.r_edges,
+                )
+            )
+        self.assertTrue(np.all(np.isfinite(uncerts[0])))
+        self.assertTrue(np.allclose(uncerts[0], uncerts[1]))

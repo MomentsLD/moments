@@ -755,21 +755,16 @@ class TestUncertsNearInvalidGraph(TempFilesTestCase):
         # Same as test_uncerts, for uncerts_LD, using expected LD statistics (with
         # made-up variances) as the data.
         rs = [0, 1e-5, 1e-4]
-
-        def data():
-            # fresh data for each call, since uncerts_LD modifies the data it's given
-            y = Inference.compute_bin_stats(self.g, ["A", "B"], rs=rs)
-            y = moments.LD.Inference.sigmaD2(y)
-            means = [np.array(m) for m in y]
-            varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
-            return means, varcovs
-
+        y = Inference.compute_bin_stats(self.g, ["A", "B"], rs=rs)
+        y = moments.LD.Inference.sigmaD2(y)
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
         kwargs = dict(pop_ids=["A", "B"], rs=rs, normalization="A")
         with self.assertRaises(ValueError) as err:
-            Inference.uncerts_LD(self.graph, self.options, *data(), **kwargs)
+            Inference.uncerts_LD(self.graph, self.options, means, varcovs, **kwargs)
         self.assertIn("eps", str(err.exception))
         out = Inference.uncerts_LD(
-            self.graph, self.options, *data(), eps=0.001, **kwargs
+            self.graph, self.options, means, varcovs, eps=0.001, **kwargs
         )
         self.assertTrue(np.isfinite(out[0]) and out[0] > 0)
 
@@ -820,6 +815,45 @@ class TestUncerts(TempFilesTestCase):
         self.assertEqual(name, "NA")
         self.assertEqual(float(value), 2000)
         self.assertTrue(np.isclose(float(std_err), out[0]))
+
+    def test_LD_gim_bootstrap_formats(self):
+        # uncerts_LD with GIM, given full data means and bootstraps either with all
+        # statistics or with the normalizing statistics removed (as returned by
+        # get_bootstrap_sets): both give the same finite, positive uncertainties.
+        # It used to fail with bootstraps from get_bootstrap_sets (#192), and to
+        # modify the data passed in, which is checked to be unchanged here.
+        rs = [0, 1e-5, 1e-4]
+        y = Inference.compute_bin_stats(demes.loads(GRAPH), ["A", "B"], rs=rs)
+        y = moments.LD.Inference.sigmaD2(y)
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+        rng = np.random.default_rng(1)
+        boots = [
+            [m * (1 + 0.01 * rng.normal(size=m.shape)) for m in means] for _ in range(5)
+        ]
+        stats = moments.LD.Util.moment_names(2)
+        _, _, _, boots_removed = moments.LD.Godambe._remove_normalized_data(
+            stats, 0, means, varcovs, boots
+        )
+        lengths = [len(m) for m in means]
+        out = []
+        for bootstraps in [boots, boots_removed]:
+            out.append(
+                Inference.uncerts_LD(
+                    self.graph,
+                    self.options,
+                    means,
+                    varcovs,
+                    bootstraps=bootstraps,
+                    pop_ids=["A", "B"],
+                    rs=rs,
+                    normalization="A",
+                    method="GIM",
+                )
+            )
+        self.assertTrue(np.all(np.isfinite(out[0])) and np.all(out[0] > 0))
+        self.assertTrue(np.allclose(out[0], out[1]))
+        self.assertEqual([len(m) for m in means], lengths)
 
     def test_invalid_inputs(self):
         # Each raises: GIM without bootstraps, unknown method, and fitting ancestral

@@ -205,24 +205,16 @@ if __name__ == "__main__":
 
     print("computing confidence intervals for parameters")
 
-    # This is somewhat ugly and poor API in moments, and we prefer to use
-    # demes for inference and CI calculations in any case. But this at
-    # least gets this example to work.
-    means, varcovs = moments.LD.Inference.remove_normalized_data(
-        mv["means"], mv["varcovs"], num_pops=2
-    )
-    stats = mv["stats"]
-    stats[0].pop(stats[0].index("pi2_0_0_0_0"))
-    stats[1].pop(stats[1].index("H_0_0"))
-
+    # The data means and varcovs (from bootstrap_data) include the normalizing
+    # statistics, while the bootstrap sets (from get_bootstrap_sets) have them
+    # removed. GIM_uncert removes them where needed.
     uncerts = moments.LD.Godambe.GIM_uncert(
         demo_func,
         all_boot,
         opt_params,
-        means,
-        varcovs,
+        mv["means"],
+        mv["varcovs"],
         r_edges=r_bins,
-        statistics=stats,
     )
 
     lower = opt_params - 1.96 * uncerts
@@ -265,7 +257,7 @@ if __name__ == "__main__":
 
     p0 = np.concatenate((opt_params_nomig[:-1], [0], [opt_params_nomig[-1]]))
     adj = moments.LD.Godambe.LRT_adjust(
-        demo_func, all_boot, p0, [3], means, varcovs, r_edges=r_bins, statistics=stats
+        demo_func, all_boot, p0, [3], mv["means"], mv["varcovs"], r_edges=r_bins
     )
 
     D = LL_nomig - LL

@@ -262,35 +262,69 @@ def _get_godambe(
 
 
 def _remove_normalized_data(statistics, normalization, means, varcovs, all_boot):
-    # get indexes to remove
-    pi2_idx_to_del = statistics[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
-    H_idx_to_del = statistics[1].index("H_{0}_{0}".format(normalization))
-    # remove from means
-    for ii in range(len(means) - 1):
-        means[ii] = np.delete(means[ii], pi2_idx_to_del)
-    means[-1] = np.delete(means[-1], H_idx_to_del)
-    # remove from varcovs
-    for ii in range(len(varcovs) - 1):
-        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=0)
-        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=1)
-    if varcovs[-1].size > 1:
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=0)
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=1)
-    else:
-        # Single poopulation data has 1D H array
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del)
-    # remove from all_boot
-    if len(all_boot) > 0:
-        for jj, boot in enumerate(all_boot):
-            for ii in range(len(boot) - 1):
-                all_boot[jj][ii] = np.delete(boot[ii], pi2_idx_to_del)
-            all_boot[jj][-1] = np.delete(boot[-1], H_idx_to_del)
-    else:
-        all_boot = []
-    # remove from statistics lists
-    statistics[0].pop(pi2_idx_to_del)
-    statistics[1].pop(H_idx_to_del)
-    return statistics, means, varcovs, all_boot
+    """
+    Removes the normalizing statistics (pi2 and H of the normalizing population) from
+    the statistic names, data means and varcovs, and bootstrap means.
+
+    The data and bootstrap means may each be given either with all statistics (as
+    returned by ``moments.LD.Parsing.bootstrap_data``) or with the normalizing
+    statistics already removed (as returned by
+    ``moments.LD.Parsing.get_bootstrap_sets`` by default). The inputs are not
+    modified.
+
+    :param statistics: The statistic names, [ld_stats, h_stats], including the
+        normalizing statistics.
+    :param normalization: The index of the normalizing population.
+    :param means: Data means, a list of arrays with the H statistics last.
+    :param varcovs: Data variance-covariance matrices, matching ``means``.
+    :param all_boot: List of bootstrap means, each formatted like ``means``.
+    :return: statistics, means, varcovs, and all_boot, with the normalizing
+        statistics removed.
+    """
+    pi2_stat = "pi2_{0}_{0}_{0}_{0}".format(normalization)
+    H_stat = "H_{0}_{0}".format(normalization)
+    pi2_idx = statistics[0].index(pi2_stat)
+    H_idx = statistics[1].index(H_stat)
+
+    def remove(x, idx, stats):
+        # Remove the normalizing statistic from x (along both axes, if x is a
+        # varcov matrix), unless it has already been removed.
+        x = np.asarray(x)
+        if len(stats) == 1 and x.size == 1:
+            # single-population H data, whose variance may be a scalar or 1x1
+            return np.delete(x, idx)
+        if x.shape[0] == len(stats) - 1:
+            return x
+        if x.shape[0] != len(stats):
+            raise ValueError(
+                f"Expected data with {len(stats)} statistics ({len(stats) - 1} if "
+                f"the normalizing statistic {stats[idx]} is removed), but found "
+                f"{x.shape[0]}. Check that the data and bootstrap means match the "
+                "statistics for the number of populations in the model."
+            )
+        for axis in range(x.ndim):
+            x = np.delete(x, idx, axis=axis)
+        return x
+
+    def remove_all(xs):
+        # xs is a list of LD statistics for each bin, with the H statistics last
+        return [remove(x, pi2_idx, statistics[0]) for x in xs[:-1]] + [
+            remove(xs[-1], H_idx, statistics[1])
+        ]
+
+    # same container type (list or tuple) as the input statistics
+    new_statistics = type(statistics)(
+        [
+            [s for s in statistics[0] if s != pi2_stat],
+            [s for s in statistics[1] if s != H_stat],
+        ]
+    )
+    return (
+        new_statistics,
+        remove_all(means),
+        remove_all(varcovs),
+        [remove_all(boot) for boot in all_boot],
+    )
 
 
 _func_calls = 0
@@ -310,20 +344,7 @@ def _get_statistics_and_remove_normalization(
     else:
         y = model_func(p0[:-1])
     statistics = y.names()
-    if (
-        len(means[0]) != len(statistics[0]) or len(means[-1]) != len(statistics[-1])
-    ) or (
-        len(all_boots) > 0
-        and (
-            len(all_boots[0][0]) != len(statistics[0])
-            or len(all_boots[0][-1]) != len(statistics[-1])
-        )
-    ):
-        raise ValueError(
-            "If 'statistics' is not given, then means, varcovs, and "
-            "all_boots must have consistent sizes and be equal to the "
-            "number of stats for the number of populations in the model."
-        )
+    # checks that the data sizes match the model's statistics
     # returns (statistics, means, varcovs, all_boots)
     return _remove_normalized_data(statistics, normalization, means, varcovs, all_boots)
 
@@ -351,7 +372,9 @@ def GIM_uncert(
     Returns standard deviations of parameter values.
 
     :param model_func: Model function
-    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]. These may
+        include the normalizing statistics or have them removed (as returned by
+        ``moments.LD.Parsing.get_bootstrap_sets`` by default).
     :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
     :param ms: See below..
@@ -552,8 +575,10 @@ def LRT_adjust(
 
     :param model_func:
     :type model_func:
-    :param all_boot:
-    :type all_boot:
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]. These may
+        include the normalizing statistics or have them removed (as returned by
+        ``moments.LD.Parsing.get_bootstrap_sets`` by default).
+    :type all_boot: list
     :param p0:
     :type p0:
     :param nested_indices:

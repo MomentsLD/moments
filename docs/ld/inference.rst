@@ -247,6 +247,10 @@ regions, where ``rep_data = {0: ld_stats_0, 1: ld_stats_1, ...}``, e.g., we use
     bootstrap_sets = moments.LD.Parsing.get_bootstrap_sets(
         rep_data, num_bootstraps=num_boots, normalization=norm_idx)
 
+By default, the bootstrap sets have the normalizing statistics removed, while the
+means and varcovs from ``bootstrap_data`` include them. The ``moments.LD.Godambe``
+methods handle either, so they can be passed as is.
+
 These bootstrap sets can then be used as the inputs to the ``moments.LD.Godambe``
 methods. The two CI estimation methods are
 

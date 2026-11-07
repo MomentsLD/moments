@@ -362,7 +362,7 @@ dictionary can then be used to compute means and covariances of statistics.
 
 .. code-block:: python
 
-    mv = moments.LD.Parsing.bootstrap_data(ld_stats)
+    mv = moments.LD.Parsing.bootstrap_data(rep_stats)
 
 .. jupyter-execute::
     :hide-code:
