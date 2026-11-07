@@ -621,7 +621,11 @@ def optimize(
         )
         xopt, fopt, direc, iter, funcalls, warnflag = outputs
     elif method == "lbfgsb":
-        bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        # bounds must be on the same scale as the parameters being optimized
+        if log:
+            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        else:
+            bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
             obj_fun,
             p0,
@@ -1212,7 +1216,11 @@ def optimize_LD(
         )
         xopt, fopt, direc, iter, funcalls, warnflag = outputs
     elif method == "lbfgsb":
-        bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        # bounds must be on the same scale as the parameters being optimized
+        if log:
+            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+        else:
+            bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
             obj_fun,
             p0,

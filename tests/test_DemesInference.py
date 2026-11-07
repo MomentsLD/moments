@@ -388,6 +388,46 @@ class TestOptimize(TempFilesTestCase):
         )
         self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
 
+    def test_lbfgsb_without_log(self):
+        # L-BFGS-B fitting the parameter directly (log=False), which used to put the
+        # bounds on the log scale and return nonsense. Should recover NA = 2000.
+        names, popt, LL = Inference.optimize(
+            self.start_graph, self.options, self.fs, method="lbfgsb", log=False
+        )
+        self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
+
+    def test_lbfgsb_default_bounds(self):
+        # L-BFGS-B in log space with no bounds given, so the lower bound of 0 is -inf
+        # on the log scale: still recovers NA = 2000.
+        options = self.write(
+            "default_bounds.yaml", "parameters:" + size_param("NA", "A")
+        )
+        names, popt, LL = Inference.optimize(
+            self.start_graph, options, self.fs, method="lbfgsb"
+        )
+        self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
+
+    def test_LD_lbfgsb_without_log(self):
+        # Same as test_lbfgsb_without_log, for optimize_LD: fit NA to expected LD
+        # statistics (with made-up variances) using L-BFGS-B with log=False.
+        rs = [0, 1e-5, 1e-4]
+        y = Inference.compute_bin_stats(demes.loads(GRAPH), ["A", "B"], rs=rs)
+        y = moments.LD.Inference.remove_normalized_lds(moments.LD.Inference.sigmaD2(y))
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+        names, popt, LL = Inference.optimize_LD(
+            self.start_graph,
+            self.options,
+            means,
+            varcovs,
+            pop_ids=["A", "B"],
+            rs=rs,
+            normalization="A",
+            method="lbfgsb",
+            log=False,
+        )
+        self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
+
     def test_ancient_sample(self):
         # Same fit, with A sampled 50.5 generations ago. Ancient samples are given by
         # pop ids "{deme}_sampled_{gen}_{frac_gen}", here "A_sampled_50_5".
