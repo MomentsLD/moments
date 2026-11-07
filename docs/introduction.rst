@@ -69,6 +69,7 @@ Change log
 - Fix bug in TwoLocus integration with negative selection (gamma < 0)
 - Remove upper bound on scipy version
 - Update pinned versions in requirements.txt (cython >= 3.1, demesdraw >= 0.4)
+- Raise an error when two Demes inference parameters map to the same graph value
 
 1.6.1
 =====

@@ -531,6 +531,10 @@ the ``values`` entry:
       lower_bound: 100
       upper_bound: 100000
 
+The reverse is not allowed: each value in the Demes graph can be assigned to
+at most one parameter. If two parameters map to the same value, ``moments``
+raises an error when loading the options file.
+
 Migration rates can be specified to be fit as well. Note that the index of the
 migration is given, pointing to the migrations in the order they are specified
 in the demes file.
