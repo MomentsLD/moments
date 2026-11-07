@@ -15,8 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   build_sdist:
     name: Build source distribution
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
@@ -51,6 +55,7 @@ jobs:
 
   macos-wheels:
     name: Build and test macOS wheels
+    needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -77,6 +82,7 @@ jobs:
 
   manylinux2_28:
     name: Build and test Linux wheels
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs

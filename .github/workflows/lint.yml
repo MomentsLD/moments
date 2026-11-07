@@ -1,0 +1,29 @@
+name: lint
+
+# Reusable workflow that checks code formatting with black. It is called as the
+# first job of the tests, docs, and wheels workflows, whose other jobs wait for
+# it to pass, so formatting errors fail early before longer jobs start.
+on:
+  workflow_call:
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install black
+        run: |
+          pip install -r requirements/lint.txt
+
+      # Uses the [tool.black] settings in pyproject.toml. To fix failures
+      # locally, run `black .` from the repository root.
+      - name: Check formatting with black
+        run: |
+          black --check --diff .
