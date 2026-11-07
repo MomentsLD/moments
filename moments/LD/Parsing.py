@@ -96,7 +96,13 @@ def _load_h5(vcf_file, report=True):
 
 
 def get_genotypes(
-    vcf_file, bed_file=None, chromosome=None, region=None, min_bp=None, use_h5=True, report=True
+    vcf_file,
+    bed_file=None,
+    chromosome=None,
+    region=None,
+    min_bp=None,
+    use_h5=True,
+    report=True,
 ):
     """
     Given a vcf file, we extract the biallelic SNP genotypes. If bed_file is None,
@@ -163,7 +169,9 @@ def get_genotypes(
     if type(chromosome) is str and chromosome.startswith("chr"):
         raise ValueError("Specify chromosome without the 'chr' prefix")
     # this is a fragile hack to protect against the chromosome label begin chr{chrom}
-    all_chromosomes = np.array([c if "chr" not in c else c[3:] for c in all_chromosomes])
+    all_chromosomes = np.array(
+        [c if "chr" not in c else c[3:] for c in all_chromosomes]
+    )
 
     if str(chromosome) not in all_chromosomes:
         raise ValueError(
@@ -178,10 +186,12 @@ def get_genotypes(
 
     if bed_file is not None:
         bed_file_data = pandas.read_csv(bed_file, sep=r"\s+", header=None)
-        
+
         bed_chromosomes = np.array(bed_file_data[0])
         # this is a fragile hack to protect against the chromosome label begin chr{chrom}
-        bed_chromosomes = np.array([c if "chr" not in c else c[3:] for c in bed_chromosomes])
+        bed_chromosomes = np.array(
+            [c if "chr" not in c else c[3:] for c in bed_chromosomes]
+        )
 
         bed_lefts = np.array(bed_file_data[1])
         bed_rights = np.array(bed_file_data[2])
@@ -218,7 +228,9 @@ def get_genotypes(
 
     if region is not None:
         # only keep positions that are within the region
-        in_region = np.logical_and(all_positions >= region[0], all_positions < region[1])
+        in_region = np.logical_and(
+            all_positions >= region[0], all_positions < region[1]
+        )
         all_positions = all_positions.compress(in_region)
         all_genotypes = all_genotypes.compress(in_region)
 
@@ -251,7 +263,9 @@ def _assign_r_pos(positions, rec_map):
     rs = np.zeros(len(positions))
     for ii, pos in enumerate(positions):
         if pos in np.array(rec_map[0]):
-            rs[ii] = np.asarray(rec_map[1])[np.argwhere(pos == np.array(rec_map[0]))[0][0]]
+            rs[ii] = np.asarray(rec_map[1])[
+                np.argwhere(pos == np.array(rec_map[0]))[0][0]
+            ]
         else:
             ## for now, if outside rec map, assign to nearest point,
             ## but later want to drop these positions
@@ -379,7 +393,7 @@ def _check_valid_genotype_matrix(G, genotypes):
         raise ValueError("Genotype matrix is too large, consider parallelizing LD calc")
 
 
-def compute_pairwise_stats(Gs, genotypes=True, pos_array = None, distance_constrained = 0):
+def compute_pairwise_stats(Gs, genotypes=True, pos_array=None, distance_constrained=0):
     """
     Computes :math:`D^2`, :math:`Dz`, :math:`\\pi_2`, and :math:`D` for every
     pair of loci within a block of SNPs, coded as a genotype matrix.
@@ -389,10 +403,10 @@ def compute_pairwise_stats(Gs, genotypes=True, pos_array = None, distance_constr
         Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
-    :param pos_array: The position array for the genotype matrix, 
-        of size n, and has dtype np.int32. 
+    :param pos_array: The position array for the genotype matrix,
+        of size n, and has dtype np.int32.
         Required when distance_constrained is larger than 0.
-    :param distance_constrained: Computes the stats only for pairs of loci 
+    :param distance_constrained: Computes the stats only for pairs of loci
         larger than this given threshold. Default as 0.
     """
     if ld_extensions != 1:
@@ -413,11 +427,13 @@ def compute_pairwise_stats(Gs, genotypes=True, pos_array = None, distance_constr
         Counts = spt.count_haplotypes_sparse(G_dict, n, missing=any_missing)
 
     if (distance_constrained > 0) and (pos_array is not None):
-        assert(len(pos_array) == len(G_dict))
+        assert len(pos_array) == len(G_dict)
         ### assert dtype is np.int32 for input
         assert pos_array.dtype == np.int32
-        Bools = spt.count_genotypes_distance_constrained(pos_array, distance_constrained)
-        assert(len(Bools) == len(Counts))
+        Bools = spt.count_genotypes_distance_constrained(
+            pos_array, distance_constrained
+        )
+        assert len(Bools) == len(Counts)
         Counts = Counts[Bools]
 
     if (distance_constrained > 0) and (pos_array is None):
@@ -439,7 +455,7 @@ def compute_pairwise_stats(Gs, genotypes=True, pos_array = None, distance_constr
     return D2, Dz, pi2, D
 
 
-def compute_average_stats(Gs, genotypes=True, pos_array = None, distance_constrained = 0):
+def compute_average_stats(Gs, genotypes=True, pos_array=None, distance_constrained=0):
     """
     Takes the outputs of ``compute_pairwise_stats`` and returns
     the average value for each statistic.
@@ -449,13 +465,18 @@ def compute_average_stats(Gs, genotypes=True, pos_array = None, distance_constra
         Missing data is encoded as -1.
     :param genotypes: If True, use 0, 1, 2 genotypes. If False,
         use 0, 1 phased haplotypes.
-    :param pos_array: The position array for the genotype matrix, 
-        of size n, and has dtype np.int32. 
+    :param pos_array: The position array for the genotype matrix,
+        of size n, and has dtype np.int32.
         Required when distance_constrained is larger than 0.
-    :param distance_constrained: Computes the stats only for pairs of loci 
+    :param distance_constrained: Computes the stats only for pairs of loci
         larger than this given threshold. Default as 0.
     """
-    D2, Dz, pi2, D = compute_pairwise_stats(Gs, genotypes = genotypes, pos_array = pos_array, distance_constrained = distance_constrained)
+    D2, Dz, pi2, D = compute_pairwise_stats(
+        Gs,
+        genotypes=genotypes,
+        pos_array=pos_array,
+        distance_constrained=distance_constrained,
+    )
     return np.mean(D2), np.mean(Dz), np.mean(pi2), np.mean(D)
 
 

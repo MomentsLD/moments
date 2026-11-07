@@ -180,7 +180,7 @@ class Overdominance(unittest.TestCase):
         fs.integrate([1, 1], 0.2, m=m, overdominance=-1)
         self.assertTrue(np.allclose(fs0, fs.marginalize([0]), rtol=0.001))
         self.assertTrue(np.allclose(fs0, fs.marginalize([1]), rtol=0.001))
-    
+
     def test_two_pop_with_migration(self):
         n = 50
         fs = moments.Spectrum(

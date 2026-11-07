@@ -15,6 +15,7 @@ Here, there are functions to find the six closest points to use for the extrapol
                           and to compute the J matrices for each extrapolation
 """
 
+
 ### get closest six points for jackknife, (i/(n+1),j/(n+1))
 def closest_ij_1(i, j, n):
     # sort by closest to farthest

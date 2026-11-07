@@ -1,6 +1,7 @@
 """
 Contains two locus spectrum object
 """
+
 import logging
 
 logging.basicConfig()
@@ -201,7 +202,7 @@ class TLSpectrum(np.ma.masked_array):
                     # right misid, left correct
                     F_new.data[jj, ii, ll] += (1 - p) * p * self.data[ii, jj, kk]
                     # both misid
-                    F_new.data[ll, kk, jj] += p ** 2 * self.data[ii, jj, kk]
+                    F_new.data[ll, kk, jj] += p**2 * self.data[ii, jj, kk]
         return F_new
 
     # statistics, called from Util
@@ -450,8 +451,7 @@ class TLSpectrum(np.ma.masked_array):
         "__rpow__",
         "__pow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, np.ma.masked_array):
@@ -464,9 +464,7 @@ def %(method)s(self, other):
                                    mask_infeasible=False, 
                                    data_folded=self.folded)
     return outfs
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     # Methods that modify the Spectrum in-place.
     for method in [
@@ -478,8 +476,7 @@ def %(method)s(self, other):
         "__ifloordiv__",
         "__ipow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, np.ma.masked_array):
@@ -488,9 +485,7 @@ def %(method)s(self, other):
     else:
         self.data.%(method)s (other)
     return self
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     def _check_other_folding(self, other):
         """

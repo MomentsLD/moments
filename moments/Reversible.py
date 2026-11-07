@@ -3,10 +3,10 @@ from scipy.sparse import coo_matrix
 import LinearSystem_1D as ls1
 import LinearSystem_2D as ls2
 
-
 """
 Mutation matrices for reversible mutations, given spectrum dimension, u and v
 """
+
 
 # Finite genome mutation model
 def _calcB_FB(dims, theta_fd, theta_bd):

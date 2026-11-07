@@ -141,7 +141,7 @@ def _compute_D(F, proj, nA, nB):
                     if proj is True:
                         DD += F.data[ii, jj, kk] * ((ii * ll - jj * kk) / (n * (n - 1)))
                     else:
-                        DD += F.data[ii, jj, kk] * (ii * ll - jj * kk) / n ** 2
+                        DD += F.data[ii, jj, kk] * (ii * ll - jj * kk) / n**2
     else:
         nAB, ps = pAB(F, nA, nB)
         for ii, p in zip(nAB, ps):
@@ -152,7 +152,7 @@ def _compute_D(F, proj, nA, nB):
             if proj is True:
                 DD += p * (ii * ll - jj * kk) / (n * (n - 1))
             else:
-                DD += p * (ii * ll - jj * kk) / n ** 2
+                DD += p * (ii * ll - jj * kk) / n**2
     return DD
 
 
@@ -185,12 +185,8 @@ def _compute_D2(F, proj, nA, nB):
                     else:
                         DD2 += (
                             F.data[ii, jj, kk]
-                            * (
-                                ii ** 2 * ll ** 2
-                                + jj ** 2 * kk ** 2
-                                - 2 * ii * jj * kk * ll
-                            )
-                            / n ** 4
+                            * (ii**2 * ll**2 + jj**2 * kk**2 - 2 * ii * jj * kk * ll)
+                            / n**4
                         )
     else:
         nAB, ps = pAB(F, nA, nB)
@@ -211,9 +207,7 @@ def _compute_D2(F, proj, nA, nB):
                 )
             else:
                 DD2 += (
-                    p
-                    * (ii ** 2 * ll ** 2 + jj ** 2 * kk ** 2 - 2 * ii * jj * kk * ll)
-                    / n ** 4
+                    p * (ii**2 * ll**2 + jj**2 * kk**2 - 2 * ii * jj * kk * ll) / n**4
                 )
 
     return DD2
@@ -257,19 +251,19 @@ def _compute_Dz(F, proj, nA, nB):
                         stat += (
                             F.data[ii, jj, kk]
                             * (
-                                -(ii ** 2) * jj * kk
-                                + jj ** 3 * kk
-                                - 2 * jj ** 2 * kk ** 2
-                                + jj * kk ** 3
-                                + ii ** 3 * ll
-                                - ii * jj ** 2 * ll
+                                -(ii**2) * jj * kk
+                                + jj**3 * kk
+                                - 2 * jj**2 * kk**2
+                                + jj * kk**3
+                                + ii**3 * ll
+                                - ii * jj**2 * ll
                                 + 4 * ii * jj * kk * ll
-                                - ii * kk ** 2 * ll
-                                - 2 * ii ** 2 * ll ** 2
-                                - jj * kk * ll ** 2
-                                + ii * ll ** 3
+                                - ii * kk**2 * ll
+                                - 2 * ii**2 * ll**2
+                                - jj * kk * ll**2
+                                + ii * ll**3
                             )
-                            / n ** 4
+                            / n**4
                         )
     else:
         nAB, ps = pAB(F, nA, nB)
@@ -300,19 +294,19 @@ def _compute_Dz(F, proj, nA, nB):
                 stat += (
                     p
                     * (
-                        -(ii ** 2) * jj * kk
-                        + jj ** 3 * kk
-                        - 2 * jj ** 2 * kk ** 2
-                        + jj * kk ** 3
-                        + ii ** 3 * ll
-                        - ii * jj ** 2 * ll
+                        -(ii**2) * jj * kk
+                        + jj**3 * kk
+                        - 2 * jj**2 * kk**2
+                        + jj * kk**3
+                        + ii**3 * ll
+                        - ii * jj**2 * ll
                         + 4 * ii * jj * kk * ll
-                        - ii * kk ** 2 * ll
-                        - 2 * ii ** 2 * ll ** 2
-                        - jj * kk * ll ** 2
-                        + ii * ll ** 3
+                        - ii * kk**2 * ll
+                        - 2 * ii**2 * ll**2
+                        - jj * kk * ll**2
+                        + ii * ll**3
                     )
-                    / n ** 4
+                    / n**4
                 )
 
     return stat
@@ -360,23 +354,23 @@ def _compute_pi2(F, proj, nA, nB):
                         stat += (
                             F.data[ii, jj, kk]
                             * (
-                                ii ** 2 * jj * kk
-                                + ii * jj ** 2 * kk
-                                + ii * jj * kk ** 2
-                                + jj ** 2 * kk ** 2
-                                + ii ** 2 * jj * ll
-                                + ii * jj ** 2 * ll
-                                + ii ** 2 * kk * ll
+                                ii**2 * jj * kk
+                                + ii * jj**2 * kk
+                                + ii * jj * kk**2
+                                + jj**2 * kk**2
+                                + ii**2 * jj * ll
+                                + ii * jj**2 * ll
+                                + ii**2 * kk * ll
                                 + 2 * ii * jj * kk * ll
-                                + jj ** 2 * kk * ll
-                                + ii * kk ** 2 * ll
-                                + jj * kk ** 2 * ll
-                                + ii ** 2 * ll ** 2
-                                + ii * jj * ll ** 2
-                                + ii * kk * ll ** 2
-                                + jj * kk * ll ** 2
+                                + jj**2 * kk * ll
+                                + ii * kk**2 * ll
+                                + jj * kk**2 * ll
+                                + ii**2 * ll**2
+                                + ii * jj * ll**2
+                                + ii * kk * ll**2
+                                + jj * kk * ll**2
                             )
-                            / n ** 4
+                            / n**4
                         )
     else:
         nAB, ps = pAB(F, nA, nB)
@@ -411,23 +405,23 @@ def _compute_pi2(F, proj, nA, nB):
                 stat += (
                     p
                     * (
-                        ii ** 2 * jj * kk
-                        + ii * jj ** 2 * kk
-                        + ii * jj * kk ** 2
-                        + jj ** 2 * kk ** 2
-                        + ii ** 2 * jj * ll
-                        + ii * jj ** 2 * ll
-                        + ii ** 2 * kk * ll
+                        ii**2 * jj * kk
+                        + ii * jj**2 * kk
+                        + ii * jj * kk**2
+                        + jj**2 * kk**2
+                        + ii**2 * jj * ll
+                        + ii * jj**2 * ll
+                        + ii**2 * kk * ll
                         + 2 * ii * jj * kk * ll
-                        + jj ** 2 * kk * ll
-                        + ii * kk ** 2 * ll
-                        + jj * kk ** 2 * ll
-                        + ii ** 2 * ll ** 2
-                        + ii * jj * ll ** 2
-                        + ii * kk * ll ** 2
-                        + jj * kk * ll ** 2
+                        + jj**2 * kk * ll
+                        + ii * kk**2 * ll
+                        + jj * kk**2 * ll
+                        + ii**2 * ll**2
+                        + ii * jj * ll**2
+                        + ii * kk * ll**2
+                        + jj * kk * ll**2
                     )
-                    / n ** 4
+                    / n**4
                 )
 
     return stat

@@ -27,7 +27,7 @@ We use a Crank-Nicolson scheme to integrate the fs forward in time:
 
 
 def integrate_cn(
-    F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2 ** -6, gammas=None, theta=1.0
+    F, nu, tf, dt=0.001, adapt_dt=True, dt_adjust_factor=2**-6, gammas=None, theta=1.0
 ):
     if tf <= 0:
         print("Integration time should be positive.")

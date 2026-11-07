@@ -1997,7 +1997,7 @@ class Spectrum(np.ma.masked_array):
         The parameter ``filters`` allows filtering by quality and/or annotation
         at the site and sample level. It should be a flat dictionary with str
         keys. Key-value pairs may have the following forms:
-        
+
         - 'QUAL' should map to a single number (float or int), imposing a minimum
           value for site ``QUAL`` fields.
         - 'FILTER' should map to a string or a set, tuple or list of strings. For
@@ -2308,8 +2308,7 @@ class Spectrum(np.ma.masked_array):
         "__rpow__",
         "__pow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, np.ma.masked_array):
@@ -2331,9 +2330,7 @@ def %(method)s(self, other):
                                    mask_corners=False, data_folded=self.folded,
                                    check_folding=False, pop_ids=newpop_ids)
     return outfs
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     # Methods that modify the Spectrum in-place.
     for method in [
@@ -2345,8 +2342,7 @@ def %(method)s(self, other):
         "__ifloordiv__",
         "__ipow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, np.ma.masked_array):
@@ -2359,9 +2355,7 @@ def %(method)s(self, other):
         logger.warn('Arithmetic between Spectra with different pop_ids. '
                     'Resulting pop_id may not be correct.')
     return self
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     def _check_other_folding(self, other):
         """

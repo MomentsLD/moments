@@ -70,7 +70,7 @@ def set_font_sizes():
             "sans-serif": ["Helvetica"],
             "style": "normal",
             "size": 8,
-        }
+        },
     )
     # Set label tick sizes
     matplotlib.rc("xtick", labelsize=7)
@@ -86,9 +86,7 @@ def plot_fs(fs):
     the resulting frequency spetrum to ensure that everything looks
     resonable.
     """
-    assert (
-        moments.__version__ >= "1.0.3"
-    ), "Plotting function relies on changes made in\
+    assert moments.__version__ >= "1.0.3", "Plotting function relies on changes made in\
 moments version 1.0.3"
     import matplotlib.pylab as plt
 

@@ -801,8 +801,8 @@ def cached_projection(proj_to, proj_from, indexes, cache=True):
     except KeyError:
         X1, X2, X3 = indexes
         X4 = proj_from - X1 - X2 - X3
-        #proj_weights = np.zeros((proj_to + 1, proj_to + 1, proj_to + 1))
-        #proj_weights = np.zeros(int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6))
+        # proj_weights = np.zeros((proj_to + 1, proj_to + 1, proj_to + 1))
+        # proj_weights = np.zeros(int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6))
         cols = []
         data = []
         for ii in range(X1 + 1):
@@ -818,11 +818,11 @@ def cached_projection(proj_to, proj_from, indexes, cache=True):
                         + ln_binomial(X4, ll)
                         - ln_binomial(proj_from, proj_to)
                     )
-                    #proj_weights[index_n(ii, jj, kk] = np.exp(f)
-                    #proj_weights[index_n(proj_to, ii, jj, kk)] = np.exp(f)
+                    # proj_weights[index_n(ii, jj, kk] = np.exp(f)
+                    # proj_weights[index_n(proj_to, ii, jj, kk)] = np.exp(f)
                     cols.append(index_n(proj_to, ii, jj, kk))
                     data.append(np.exp(f))
-        
+
         rows = [0] * len(cols)
         size = int((proj_to + 1) * (proj_to + 2) * (proj_to + 3) / 6)
         proj_weights = csr_matrix((data, (rows, cols)), shape=(1, size))
@@ -872,7 +872,7 @@ def project(F_from, proj_to, cache=True):
             hits = (0, 0, X3)
             proj_weights = cached_projection(proj_to, proj_from, hits, cache=cache)
             Phi_proj_B += proj_weights * F_from[0, 0, X3]
-        
+
         F_proj_A = Phi_to_array(Phi_proj_A.toarray()[0], proj_to)
         F_proj_B = Phi_to_array(Phi_proj_B.toarray()[0], proj_to)
 

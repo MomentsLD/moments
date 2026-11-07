@@ -11,7 +11,7 @@ model = ModelPlot.generate_model(demographic_model_func, params, ns)
 ModelPlot.plot_model(model)
 
 Additional options for customizing the model are described in the documentation
-of these two functions. The module is currently compatible with the following 
+of these two functions. The module is currently compatible with the following
 methods in moments:
 
 LinearSystem_1D.steady_state_1D
@@ -19,6 +19,7 @@ LinearSystem.steady_state
 Manips.split_{1D_to_2D,2D_to_3D_2,2D_to_3D_1,3D_to_4D_3,4D_to_5D_4}
 Spectrum_mod.Spectrum.integrate
 """
+
 try:
     import matplotlib.colors as mcolors
     import matplotlib.offsetbox as mbox
@@ -40,6 +41,7 @@ def _check_mpl_imported():
 
 
 import numpy as np
+
 
 ## USER FUNCTIONS ##
 def generate_model(model_func, params, ns, precision=100):

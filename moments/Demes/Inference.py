@@ -11,7 +11,6 @@ import sys, os
 import warnings
 import time
 
-
 ################################################
 # Functions shared for SFS and LD optimization #
 ################################################
@@ -264,11 +263,13 @@ def _set_up_constraints(options, param_names):
         # set up constraints function
         constraints = lambda x: np.array(
             [
-                x[param_names.index(cons["params"][0])]
-                - x[param_names.index(cons["params"][1])]
-                if cons["constraint"] == "greater_than"
-                else x[param_names.index(cons["params"][1])]
-                - x[param_names.index(cons["params"][0])]
+                (
+                    x[param_names.index(cons["params"][0])]
+                    - x[param_names.index(cons["params"][1])]
+                    if cons["constraint"] == "greater_than"
+                    else x[param_names.index(cons["params"][1])]
+                    - x[param_names.index(cons["params"][0])]
+                )
                 for cons in options["constraints"]
             ]
         )

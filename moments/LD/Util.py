@@ -1,6 +1,5 @@
 import numpy as np
 
-
 """
 Heterozygosity and LD stat names
 """

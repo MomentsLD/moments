@@ -1,6 +1,7 @@
 # Isolation-with-migration model with constant proportion of source demes
 # that send migrants to destination demes
 
+
 def IM_G(params, ns):
     """
     params = (nu10, nu20, nu1, nu2, T, m12, m21)

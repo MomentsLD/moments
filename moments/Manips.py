@@ -858,13 +858,8 @@ def admix_inplace(sfs, source_population_index, target_population_index, keep_1,
     target_dimensions[target_population_index] = target_N
 
     if keep_1 > M:
-        raise ValueError(
-            (
-                "Cannot keep more lineages than we started with, keep_1=%d,\
-    M=%d"
-                % (keep_1, M)
-            )
-        )
+        raise ValueError(("Cannot keep more lineages than we started with, keep_1=%d,\
+    M=%d" % (keep_1, M)))
 
     # Update ModelPlot if necessary
     model = ModelPlot._get_model()

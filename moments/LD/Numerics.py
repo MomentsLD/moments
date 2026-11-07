@@ -326,7 +326,7 @@ def _path_exists(m, i, j):
     """
     if i == j:
         return True
-    (n, _) = np.shape(m)
+    n, _ = np.shape(m)
     visited = [False for _ in range(n)]
     visited[i] = True
     traversal = []

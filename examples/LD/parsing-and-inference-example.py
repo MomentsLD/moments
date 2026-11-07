@@ -163,7 +163,7 @@ if __name__ == "__main__":
             [r"$\pi_{2;0,1,0,1}$"],
             [r"$\pi_{2;1,1,1,1}$"],
         ],
-        #statistics=stats,
+        # statistics=stats,
         rows=3,
         plot_vcs=True,
         show=False,
@@ -243,9 +243,10 @@ if __name__ == "__main__":
     def IM_nomig(params, rho=None, theta=0.001, pop_ids=None):
         full_params = np.concatenate((params, [0]))
         return moments.LD.Demographics2D.split_mig(
-            full_params, rho=rho, theta=theta, pop_ids=pop_ids)
+            full_params, rho=rho, theta=theta, pop_ids=pop_ids
+        )
 
-    p_guess_nomig = [1, 1, 0.1, 10000] # nu1, nu2, T, Ne
+    p_guess_nomig = [1, 1, 0.1, 10000]  # nu1, nu2, T, Ne
     p_guess_nomig = moments.LD.Util.perturb_params(p_guess_nomig)
 
     opt_params_nomig, LL_nomig = moments.LD.Inference.optimize_log_lbfgsb(
@@ -264,21 +265,14 @@ if __name__ == "__main__":
 
     p0 = np.concatenate((opt_params_nomig[:-1], [0], [opt_params_nomig[-1]]))
     adj = moments.LD.Godambe.LRT_adjust(
-        demo_func,
-        all_boot,
-        p0,
-        [3],
-        means,
-        varcovs,
-        r_edges=r_bins,
-        statistics=stats
+        demo_func, all_boot, p0, [3], means, varcovs, r_edges=r_bins, statistics=stats
     )
 
     D = LL_nomig - LL
     D_adj = D * adj
 
     p_val_nomig = moments.Godambe.sum_chi2_ppf(D_adj, weights=(0.5, 0.5))
-    
+
     print()
     print("Simple model with no migration")
     print("Log-likelihoods:")
@@ -288,4 +282,3 @@ if __name__ == "__main__":
     print(f"  No adjustment   :", D)
     print(f"  Bootstrap adj   :", D_adj)
     print(f"P value           :", p_val_nomig)
-
