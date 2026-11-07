@@ -1035,7 +1035,6 @@ def optimize_log_lbfgsb(
         bounds=bounds,
         epsilon=epsilon,
         args=args,
-        iprint=-1,
         pgtol=pgtol,
         maxiter=maxiter,
         approx_grad=True,
