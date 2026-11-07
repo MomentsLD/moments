@@ -5,6 +5,7 @@ Tests for moments.Demes.Inference.
 import os
 import tempfile
 import unittest
+import unittest.mock
 
 import demes
 import numpy as np
@@ -31,6 +32,10 @@ migrations:
 pulses:
 - {sources: [A], dest: B, time: 100, proportions: [0.1]}
 """
+
+
+# the options "values" entry for the start size of deme A
+SIZE_A = [{"demes": {"A": {"epochs": {0: "start_size"}}}}]
 
 
 def size_param(name, deme, epoch=0, attribute="start_size"):
@@ -499,6 +504,30 @@ class TestUncerts(TempFilesTestCase):
             Inference.uncerts(
                 self.graph, self.options, self.fs, fit_ancestral_misid=True
             )
+
+
+class TestObjectiveFunctions(unittest.TestCase):
+    """Behavior of the objective functions that the optimizers minimize."""
+
+    def test_LD_nan_likelihood(self):
+        # Mock the LD log-likelihood to return nan: the objective function returns
+        # the out-of-bounds penalty (a large positive value) instead of nan.
+        builder = demes.loads_asdict(GRAPH)
+        options = {"parameters": [{"name": "NA", "values": SIZE_A}]}
+        with unittest.mock.patch(
+            "moments.LD.Inference.ll_over_bins", return_value=np.nan
+        ):
+            val = Inference._object_func_LD(
+                np.array([2000.0]),
+                None,  # means and varcovs aren't used with the mocked likelihood
+                None,
+                builder,
+                options,
+                pop_ids=["A", "B"],
+                rs=[0, 1e-5],
+                normalization="A",
+            )
+        self.assertEqual(val, -Inference._out_of_bounds_val)
 
 
 if __name__ == "__main__":

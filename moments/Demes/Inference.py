@@ -519,11 +519,12 @@ def optimize(
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb".
     :param fit_ancestral_misid: If True, we fit the probability that the ancestral
-        state of a given SNP is misidenitified, resulting in ancestral/derived
+        state of a given SNP is misidentified, resulting in ancestral/derived
         labels being flipped. Note: this is only allowed with *unfolded* spectra.
         Defaults to False.
-    :param misid_guess: Defaults to 0.01.
-    :output_stream: Defaults to standard output. Can be given an open file stream
+    :param misid_guess: The initial value for the ancestral misidentification
+        probability, if ``fit_ancestral_misid`` is True. Defaults to 0.02.
+    :param output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
@@ -1049,9 +1050,10 @@ def _object_func_LD(
 
     LL = moments.LD.Inference.ll_over_bins(means, model, varcovs)
 
+    # treat a failed likelihood evaluation like an out-of-bounds parameter, so the
+    # optimizer moves away from it instead of receiving nan
     if np.isnan(LL):
-        print("God bad result: LL = nan")
-        result = _out_of_bounds_val
+        return -_out_of_bounds_val
 
     # print outputs if verbose > 0
     if verbose > 0 and _counter % verbose == 0:
@@ -1126,7 +1128,7 @@ def optimize_LD(
     :param log: If True, optimize over log of the parameters.
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb".
-    :output_stream: Defaults to standard output. Can be given an open file stream
+    :param output_stream: Defaults to standard output. Can be given an open file stream
         instead or other output stream.
     :param output: If given, the filename for the output best-fit model YAML.
     :param overwrite: If True, overwrites any existing file with the same output
@@ -1141,7 +1143,7 @@ def optimize_LD(
     if normalization is None:
         raise ValueError("Normalization deme must be provided")
     elif normalization not in pop_ids:
-        raise ValueError("Normalizatino deme must be in pop_ids")
+        raise ValueError("Normalization deme must be in pop_ids")
 
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
@@ -1341,7 +1343,7 @@ def uncerts_LD(
     if normalization is None:
         raise ValueError("Normalization deme must be provided")
     elif normalization not in pop_ids:
-        raise ValueError("Normalizatino deme must be in pop_ids")
+        raise ValueError("Normalization deme must be in pop_ids")
 
     # when statistics is None, we assume all statistics are present, and
     # we need to remove the normalizing statistic
