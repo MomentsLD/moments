@@ -194,9 +194,6 @@ def _get_grad(func, p0, eps, args=()):
     return grad
 
 
-_ld_cache = {}
-
-
 def _get_godambe(
     func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False, just_hess=False
 ):
@@ -217,13 +214,16 @@ def _get_godambe(
     :param just_hess: If True, only evaluate and return the Hessian matrix
     """
 
-    # Cache evaluations of the LDstats inside our hessian/J
-    # evaluation function
+    # Cache evaluations of the LDstats inside our hessian/J evaluation function,
+    # which reuse parameter values. The cache is local to this call, since the
+    # statistics also depend on the model in func_ex, which isn't part of the key.
+    ld_cache = {}
+
     def func(params, m, v):
         key = tuple(params)
-        if key not in _ld_cache:
-            _ld_cache[key] = func_ex(params, statistics)
-        y = _ld_cache[key]
+        if key not in ld_cache:
+            ld_cache[key] = func_ex(params, statistics)
+        y = ld_cache[key]
         ll = Inference.ll_over_bins(y, m, v)
         return -ll
 

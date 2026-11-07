@@ -486,9 +486,6 @@ class TestOptimize(TempFilesTestCase):
 class TestUncerts(TempFilesTestCase):
     def setUp(self):
         super().setUp()
-        # uncerts() caches spectra between calls, keyed only by parameter values,
-        # so clear it to keep tests independent of each other
-        Inference._sfs_cache.clear()
         self.graph = self.write("graph.yaml", GRAPH)
         self.options = self.write("options.yaml", "parameters:" + size_param("NA", "A"))
         self.fs = moments.Demes.SFS(
@@ -544,6 +541,46 @@ class TestUncerts(TempFilesTestCase):
             Inference.uncerts(
                 self.graph, self.options, self.fs, fit_ancestral_misid=True
             )
+
+    def test_cache_is_not_shared_between_calls(self):
+        # Compute the hessian twice for the same data and parameter values, but with
+        # two different model functions, which depend differently on the parameter.
+        # Spectra used to be cached between calls by parameter values only, so the
+        # second call reused the first model's spectra and gave the same hessian.
+        base = self.fs / self.fs.S()
+
+        def model_1(params, ns, uL=None):
+            return params[0] * base
+
+        def model_2(params, ns, uL=None):
+            return params[0] ** 2 / 500 * base
+
+        p0 = np.array([500.0])
+        H1 = Inference._get_godambe(model_1, [], p0, self.fs, 0.01, just_hess=True)
+        H2 = Inference._get_godambe(model_2, [], p0, self.fs, 0.01, just_hess=True)
+        self.assertFalse(np.allclose(H1, H2))
+
+    def test_LD_cache_is_not_shared_between_calls(self):
+        # Same as test_cache_is_not_shared_between_calls, for the LD version: two
+        # model functions giving different statistics for the same parameter values
+        # should give different hessians.
+        means = [np.array([1.0, 2.0]), np.array([3.0])]
+        varcovs = [np.eye(2), np.eye(1)]
+
+        def model_1(params):
+            return [params[0] * m for m in means]
+
+        def model_2(params):
+            return [2 * params[0] * m for m in means]
+
+        p0 = np.array([0.5])
+        H1 = Inference._get_godambe_LD(
+            model_1, [], p0, means, varcovs, 0.01, just_hess=True
+        )
+        H2 = Inference._get_godambe_LD(
+            model_2, [], p0, means, varcovs, 0.01, just_hess=True
+        )
+        self.assertFalse(np.allclose(H1, H2))
 
 
 class TestObjectiveFunctions(unittest.TestCase):

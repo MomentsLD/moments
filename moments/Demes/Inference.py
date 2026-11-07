@@ -662,11 +662,6 @@ def optimize(
 # Methods for computing confidence intervals from SFS inference #
 #################################################################
 
-# Cache evaluations of the frequency spectrum inside our hessian/J
-# evaluation function
-
-_sfs_cache = {}
-
 
 def _get_godambe(
     func_ex,
@@ -682,11 +677,16 @@ def _get_godambe(
     # taken and adapted from moments.Godambe, to include bootstraps over uL
     ns = data.sample_sizes
 
+    # Cache the spectra computed for the hessian and J, which reuse parameter
+    # values. The cache is local to this call, since the spectra also depend on
+    # the model in func_ex, which isn't part of the key.
+    sfs_cache = {}
+
     def func(params, data, uL=None):
         key = (tuple(params), tuple(ns), tuple([uL]))
-        if key not in _sfs_cache:
-            _sfs_cache[key] = func_ex(params, ns, uL=uL)
-        fs = _sfs_cache[key]
+        if key not in sfs_cache:
+            sfs_cache[key] = func_ex(params, ns, uL=uL)
+        fs = sfs_cache[key]
         return moments.Inference.ll(fs, data)
 
     def log_func(logparams, data, uL=None):
@@ -1256,10 +1256,6 @@ def optimize_LD(
 # Methods for computing confidence intervals from LD inference #
 ################################################################
 
-# Cache evaluations of the frequency spectrum inside our hessian/J
-# evaluation function
-_ld_cache = {}
-
 
 def _get_godambe_LD(
     func_ex,
@@ -1271,11 +1267,16 @@ def _get_godambe_LD(
     log=False,
     just_hess=False,
 ):
+    # Cache the LD statistics computed for the hessian and J, which reuse
+    # parameter values. The cache is local to this call, since the statistics
+    # also depend on the model in func_ex, which isn't part of the key.
+    ld_cache = {}
+
     def func(params, means, varcovs):
         key = tuple(params)
-        if key not in _ld_cache:
-            _ld_cache[key] = func_ex(params)
-        y = _ld_cache[key]
+        if key not in ld_cache:
+            ld_cache[key] = func_ex(params)
+        y = ld_cache[key]
         return moments.LD.Inference.ll_over_bins(means, y, varcovs)
 
     def log_func(logparams, means, varcovs):
