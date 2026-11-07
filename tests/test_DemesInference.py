@@ -483,6 +483,75 @@ class TestOptimize(TempFilesTestCase):
             )
 
 
+class TestInitialConstraints(TempFilesTestCase):
+    """
+    The initial parameters must satisfy the constraints, or the optimization would
+    silently return the initial values (every evaluation being out of bounds).
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.fs = moments.Demes.SFS(
+            demes.loads(GRAPH), samples={"A": 6, "B": 6}, theta=1000
+        )
+
+    def write_files(self, graph, constraint):
+        # fit the sizes of A and B, with one constraint between them
+        graph = self.write("graph.yaml", graph)
+        options = self.write(
+            "options.yaml",
+            "parameters:"
+            + size_param("NA", "A")
+            + size_param("NB", "B")
+            + f"constraints:\n- params: [NA, NB]\n  constraint: {constraint}\n",
+        )
+        return graph, options
+
+    def test_violated_constraint_raises(self):
+        # In GRAPH, NA = 2000 < NB = 3000, so "NA greater_than NB" is violated:
+        # optimize() and optimize_LD() raise, naming the violated constraint.
+        graph, options = self.write_files(GRAPH, "greater_than")
+        with self.assertRaises(ValueError) as err:
+            Inference.optimize(graph, options, self.fs)
+        self.assertIn("NA greater_than NB", str(err.exception))
+        with self.assertRaises(ValueError):
+            Inference.optimize_LD(
+                graph,
+                options,
+                [],
+                [],
+                pop_ids=["A", "B"],
+                rs=[0, 1e-5],
+                normalization="A",
+            )
+
+    def test_equal_values_raise(self):
+        # Constraints are strict, as in the objective functions, so NA = NB doesn't
+        # satisfy "NA less_than NB" and raises.
+        graph, options = self.write_files(
+            GRAPH.replace("start_size: 3000", "start_size: 2000"), "less_than"
+        )
+        with self.assertRaises(ValueError):
+            Inference.optimize(graph, options, self.fs)
+
+    def test_satisfied_constraint(self):
+        # "NA less_than NB" holds in GRAPH: the optimization runs, and the fit
+        # still satisfies the constraint.
+        graph, options = self.write_files(GRAPH, "less_than")
+        names, popt, LL = Inference.optimize(graph, options, self.fs, maxiter=20)
+        self.assertLess(popt[0], popt[1])
+
+    def test_perturb_finds_valid_initial_values(self):
+        # The graph violates "NA greater_than NB", but perturbing by up to 2-fold
+        # (seeded) finds initial values that satisfy it, so optimize() runs.
+        np.random.seed(2)
+        graph, options = self.write_files(GRAPH, "greater_than")
+        names, popt, LL = Inference.optimize(
+            graph, options, self.fs, perturb=1, maxiter=20
+        )
+        self.assertGreater(popt[0], popt[1])
+
+
 class TestUncerts(TempFilesTestCase):
     def setUp(self):
         super().setUp()

@@ -355,10 +355,32 @@ def _perturb_params_constrained(
         # check that our constraints are satisfied
         conditions_satisfied = True
         if cons is not None:
-            if np.any(cons(p_guess) < 0):
+            # constraints must be strictly satisfied, as in the objective functions
+            if np.any(cons(p_guess) <= 0):
                 conditions_satisfied = False
         tries += 1
     return p_guess
+
+
+def _check_initial_constraints(p0, options, constraints):
+    """
+    Raises a ValueError if the initial parameters don't satisfy the constraints.
+    Otherwise, every evaluation of the objective function would be out of bounds,
+    and the optimization would silently return the initial parameters.
+    """
+    if constraints is None:
+        return
+    violated = [
+        f"{c['params'][0]} {c['constraint']} {c['params'][1]}"
+        for c, val in zip(options["constraints"], constraints(p0))
+        if val <= 0
+    ]
+    if len(violated) > 0:
+        raise ValueError(
+            "The initial parameter values don't satisfy the constraints: "
+            + ", ".join(violated)
+            + ". Check the values in the input deme graph."
+        )
 
 
 def _get_root(g):
@@ -570,6 +592,7 @@ def optimize(
         p0 = _perturb_params_constrained(
             p0, perturb, lower_bound, upper_bound, constraints
         )
+    _check_initial_constraints(p0, options, constraints)
 
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
@@ -1162,6 +1185,7 @@ def optimize_LD(
         p0 = _perturb_params_constrained(
             p0, perturb, lower_bound, upper_bound, constraints
         )
+    _check_initial_constraints(p0, options, constraints)
 
     available_methods = ["fmin", "powell", "lbfgsb"]
     if method not in available_methods:
