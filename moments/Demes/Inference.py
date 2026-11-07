@@ -48,7 +48,61 @@ def _get_params_dict(fname):
 
     if "parameters" not in options.keys():
         raise ValueError("parameters to fit must be specified")
+    _check_unique_param_values(options)
     return options
+
+
+def _get_value_locations(values):
+    """
+    Returns the locations in the deme graph referred to by a parameter's ``values``
+    entry in the options file, as a list of tuples, e.g.
+    ``("demes", "A", "epochs", 0, "start_size")``. This only reads the structure of
+    ``values``, and doesn't check that the locations exist in the graph.
+    """
+    locations = []
+    for value in values:
+        for deme, k0 in value.get("demes", {}).items():
+            if isinstance(k0, dict):
+                for k1, v1 in k0.items():
+                    if k1 == "epochs":
+                        for k2, attribute in v1.items():
+                            locations.append(("demes", deme, k1, k2, attribute))
+                    else:
+                        # proportions, where v1 is the index of the proportion
+                        locations.append(("demes", deme, k1, v1))
+            else:
+                # start_time
+                locations.append(("demes", deme, k0))
+        for mig_idx, attribute in value.get("migrations", {}).items():
+            locations.append(("migrations", mig_idx, attribute))
+        for pulse_idx, attribute in value.get("pulses", {}).items():
+            if isinstance(attribute, dict):
+                # e.g. {"proportions": 0}
+                for k, v in attribute.items():
+                    locations.append(("pulses", pulse_idx, k, v))
+            else:
+                locations.append(("pulses", pulse_idx, attribute))
+    return locations
+
+
+def _check_unique_param_values(options):
+    """
+    Raises a ValueError if more than one parameter in the options maps to the same
+    value in the deme graph. When updating the graph, each parameter would overwrite
+    the value set by the previous one, so only the last parameter would have any
+    effect. This is almost always a mistake in the options file.
+    """
+    location_to_param = {}
+    for param in options["parameters"]:
+        # dict.fromkeys removes repeats within a parameter, keeping their order
+        for location in dict.fromkeys(_get_value_locations(param.get("values", []))):
+            if location in location_to_param:
+                raise ValueError(
+                    f"parameters {location_to_param[location]} and {param['name']} "
+                    f"both map to the same value in the deme graph, {location}. Each "
+                    "value can be assigned to at most one parameter."
+                )
+            location_to_param[location] = param["name"]
 
 
 def _get_deme_map(builder):
