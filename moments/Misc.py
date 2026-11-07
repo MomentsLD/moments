@@ -87,7 +87,7 @@ def ms_command(theta, ns, core, iter, recomb=0, rsites=None, seeds=None):
         "Functions relating to `ms` are deprecated in favor of `demes`, will be "
         "removed in a future version",
         category=DeprecationWarning,
-    )   
+    )
 
     if len(ns) > 1:
         ms_command = (
@@ -169,7 +169,7 @@ def make_fux_table(fid, ts, Q, tri_freq):
         "in a futureversion, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
-    )   
+    )
 
     # Ensure that the *columns* of Q sum to zero.
     # That is the correct condition when Q_{i,j} is the rate from i to j.
@@ -280,7 +280,7 @@ def make_data_dict(filename):
         "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
-    )   
+    )
 
     if os.path.splitext(filename)[1] == ".gz":
         import gzip
@@ -367,7 +367,7 @@ def count_data_dict(data_dict, pop_ids):
         "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
-    )   
+    )
 
     count_dict = collections.defaultdict(int)
     for snp_key, snp_info in data_dict.items():
@@ -460,7 +460,7 @@ def make_data_dict_vcf(
         "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
-    )   
+    )
 
     if not skip_multiallelic:
         raise ValueError(
@@ -633,7 +633,7 @@ def _get_popinfo(popinfo_file):
         "in the `Parsing` module",
         category=DeprecationWarning,
     )
-    
+
     popinfo_dict = {}
     sample_col = 0
     pop_col = 1
@@ -728,7 +728,7 @@ def bootstrap(
         "in a future version, in favor of `from_vcf` and associated functions "
         "in the `Parsing` module",
         category=DeprecationWarning,
-    )   
+    )
 
     # Read in information from BED file if present and store by chromosome
     if bed_filename is not None:

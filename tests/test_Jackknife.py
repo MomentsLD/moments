@@ -29,6 +29,5 @@ class JackknifeTestCase(unittest.TestCase):
         self.assertTrue(numpy.allclose(zz, yy, atol=8e-04))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(JackknifeTestCase)
 if __name__ == "__main__":
     unittest.main()

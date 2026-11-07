@@ -58,3 +58,8 @@ skip = "cp3*t-*"
 filterwarnings = [
     "error",
 ]
+
+[tool.black]
+# Black only changes its stable style in the first release of each year, so
+# require the same major (year) version that CI installs (requirements/lint.txt).
+required-version = "26"

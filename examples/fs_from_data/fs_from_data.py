@@ -1,6 +1,7 @@
 """
 Simple example of extracting a frequency spectrum from a SNP data file.
 """
+
 import moments
 
 # Parse the data file to generate the data dictionary

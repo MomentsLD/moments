@@ -82,7 +82,7 @@ if __name__ == "__main__":
     graph_init = "model.yaml"
 
     uL = nreps * L * u
-    
+
     print("running inference")
     ret = moments.Demes.Inference.optimize(
         graph_init,
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         uL=uL,
         method="GIM",
     )
-    
+
     print("param\tvalue\tstd err")
     for p, v, u in zip(ret[0], ret[1], uncerts):
         print(f"{p}\t{int(v):,}\t{int(u):,}")

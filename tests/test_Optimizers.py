@@ -17,7 +17,6 @@ import numpy as np
 import moments
 import moments.LD
 
-
 # A single deme with a size change, in which we fit the recent size.
 GRAPH = """
 time_units: generations
@@ -48,9 +47,7 @@ class SFSLBFGSBTestCase(unittest.TestCase):
         model = self.model_func(self.true_params, [20])
         self.data = moments.Spectrum(1000 * model.data, mask=model.mask)
         self.p0 = [1.5, 0.15]
-        self.kwargs = dict(
-            lower_bound=[1e-2, 1e-3], upper_bound=[10, 1], maxiter=3
-        )
+        self.kwargs = dict(lower_bound=[1e-2, 1e-3], upper_bound=[10, 1], maxiter=3)
 
     def test_optimize_log_lbfgsb(self):
         popt = moments.Inference.optimize_log_lbfgsb(

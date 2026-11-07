@@ -261,7 +261,10 @@ def plot_single_2d_sfs(
         )
         format = None
     mappable = axes.pcolor(
-        np.ma.masked_where(sfs_plot < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
+        np.ma.masked_where(sfs_plot < vmin, sfs),
+        cmap=cmap,
+        edgecolors="none",
+        norm=norm,
     )
     cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:

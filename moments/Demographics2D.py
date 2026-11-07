@@ -1,6 +1,7 @@
 """
 Two-population demographic models.
 """
+
 import numpy
 
 import moments

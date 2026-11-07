@@ -1,6 +1,7 @@
 """
 Comparison and optimization of model spectra to data.
 """
+
 import logging
 
 logger = logging.getLogger("Inference")

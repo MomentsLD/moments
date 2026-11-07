@@ -195,7 +195,5 @@ class FiniteGenomeTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(fs_ss, fs.marginalize([1, 2]), rtol=2e-3))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(FiniteGenomeTestCase)
-
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,7 @@
 """
 Contains triallele spectrum object
 """
+
 import logging
 
 logging.basicConfig()
@@ -15,7 +16,7 @@ import moments.Triallele.Integration
 class TriSpectrum(numpy.ma.masked_array):
     """
     Represents a triallelic frequency spectrum.
-    
+
     The triallelic spectrum is represented as a square numpy masked array in which
     the (i, j)-th element stores the count or density of loci in which there are i
     copies of the first derived allele and j copies of the second derived allele.
@@ -28,7 +29,7 @@ class TriSpectrum(numpy.ma.masked_array):
     :param bool mask_infeasible: If True, mask all bins for frequencies that cannot
         occur, e.g. i + j > n. Defaults to True.
     :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.
-    :param bool data_folded_major: If True, it is assumed that the input data is folded 
+    :param bool data_folded_major: If True, it is assumed that the input data is folded
         for the major and minor derived alleles.
     :param bool data_folded_ancestral: If True, it is assumed that the input data is
         folded to account for uncertainty in the ancestral state. Note
@@ -251,14 +252,14 @@ class TriSpectrum(numpy.ma.masked_array):
         Write frequency spectrum to file.
 
         The file format is:
-        
+
         - # Any number of comment lines beginning with a '#'
         - A single line containing the sample size.
-          On the *same line*, the string 'folded_major' or 'unfolded_major' 
+          On the *same line*, the string 'folded_major' or 'unfolded_major'
           denoting the folding status of the array.
-          And on the *same line*, the string 'folded_ancestral' or 'unfolded_ancestral' 
+          And on the *same line*, the string 'folded_ancestral' or 'unfolded_ancestral'
           denoting the folding status of the array.
-        - A single line giving the array elements. The order of elements is 
+        - A single line giving the array elements. The order of elements is
           e.g.: fs[0, 0] fs[0, 1] fs[0, 2] ... fs[1, 0] fs[1, 1] ...
         - A single line giving the elements of the mask in the same order as
           the data line. '1' indicates masked, '0' indicates unmasked.
@@ -436,8 +437,7 @@ class TriSpectrum(numpy.ma.masked_array):
         "__rpow__",
         "__pow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, numpy.ma.masked_array):
@@ -451,9 +451,7 @@ def %(method)s(self, other):
                                    data_folded_major=self.folded_major,
                                    data_folded_ancestral=self.folded_ancestral)
     return outfs
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     # Methods that modify the Spectrum in-place.
     for method in [
@@ -465,8 +463,7 @@ def %(method)s(self, other):
         "__ifloordiv__",
         "__ipow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, numpy.ma.masked_array):
@@ -475,9 +472,7 @@ def %(method)s(self, other):
     else:
         self.data.%(method)s (other)
     return self
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     def _check_other_folding(self, other):
         """
@@ -495,7 +490,7 @@ def %(method)s(self, other):
         """
         Method to simulate the triallelic fs forward in time.
         This integration scheme takes advantage of scipy's sparse methods.
-        
+
         :param nu: The population effective size as positive value or callable function.
         :param float tf: The integration time in genetics units.
         :param float dt_fac: time step for integration

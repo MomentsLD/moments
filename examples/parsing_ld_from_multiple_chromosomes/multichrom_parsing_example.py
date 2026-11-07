@@ -4,6 +4,7 @@
 # compared to filtering by chromosome in the combined VCF.
 
 import msprime
+
 assert msprime.__version__ > "1.0", "Install msprime 1.0 or higher"
 
 import moments
@@ -58,7 +59,7 @@ print("num muts:", ts.num_mutations)
 
 ts_chroms = []
 for j in range(len(chrom_pos) - 1):
-    start, end = chrom_pos[j: j + 2]
+    start, end = chrom_pos[j : j + 2]
     chrom_ts = ts.keep_intervals([[start, end]], simplify=False).trim()
     ts_chroms.append(chrom_ts)
 

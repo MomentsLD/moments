@@ -383,7 +383,5 @@ class TimeDependentSelection(unittest.TestCase):
         self.assertTrue(np.allclose(fs, fs2, rtol=0.002))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(ResultsTestCase)
-
 if __name__ == "__main__":
     unittest.main()

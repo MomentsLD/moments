@@ -65,4 +65,3 @@ class ValidGenotypeMatrices(unittest.TestCase):
         stats = moments.LD.Parsing.compute_pairwise_stats_between(
             data1, data2, genotypes=True
         )
-

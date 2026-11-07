@@ -10,13 +10,12 @@ import matplotlib.pylab as plt, matplotlib
 import numpy as np
 import sys, os
 
-
 FONT_SETTINGS = {
-    'xtick.labelsize': 7,
-    'ytick.labelsize': 7,
-    'font.size': 8,
-    'font.style': 'normal',
-    'font.family': 'sans-serif',
+    "xtick.labelsize": 7,
+    "ytick.labelsize": 7,
+    "font.size": 8,
+    "font.style": "normal",
+    "font.family": "sans-serif",
 }
 
 

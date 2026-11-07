@@ -88,12 +88,8 @@ class TrialleleTestCase(unittest.TestCase):
         gammas = (2 * sA, 2 * sA * hA, 2 * sB, 2 * sB * hB, 2 * sA * hA + 2 * sB * hB)
         fs = copy.deepcopy(cached)
         fs.integrate(1.0, 1.0, gammas=gammas)
-        self.assertTrue(
-            numpy.allclose(fs, cached, rtol=5e-4)
-        )
+        self.assertTrue(numpy.allclose(fs, cached, rtol=5e-4))
 
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TrialleleTestCase)
 
 if __name__ == "__main__":
     unittest.main()

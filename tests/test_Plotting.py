@@ -48,9 +48,7 @@ class Plot2DSFSTestCase(unittest.TestCase):
     def test_user_colormap_not_modified(self):
         cmap = matplotlib.colormaps["viridis"]
         under_before = cmap.get_under()
-        moments.Plotting.plot_single_2d_sfs(
-            self.fs, ax=self.ax, cmap=cmap, show=False
-        )
+        moments.Plotting.plot_single_2d_sfs(self.fs, ax=self.ax, cmap=cmap, show=False)
         self.assertTrue(np.array_equal(cmap.get_under(), under_before))
         self.assertEqual(self._plotted_cmap().name, "viridis")
 

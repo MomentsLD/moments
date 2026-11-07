@@ -3,7 +3,11 @@ on: [push, pull_request, workflow_dispatch]
 permissions:
     contents: write
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   docs:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

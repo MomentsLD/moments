@@ -448,8 +448,8 @@ class DplusStatistic(unittest.TestCase):
         theta = 0.001
         y = moments.LD.Demographics1D.snm(theta=theta, rho=[0, 1000])
         H2 = y.H2(0)
-        self.assertTrue(np.isclose(H2[0], 2 * theta ** 2))
-        self.assertTrue(np.isclose(H2[1], theta ** 2))
+        self.assertTrue(np.isclose(H2[0], 2 * theta**2))
+        self.assertTrue(np.isclose(H2[1], theta**2))
 
 
 # Older steady state functions

@@ -10,7 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   tests:
+    needs: lint
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -39,8 +43,7 @@ jobs:
           # pip install -r requirements/development.txt
           ## can we get rid of requirements.txt?
           pip install -r requirements/tests.txt
-          pip install -r requirements/lint.txt
-      
+
       # Check that moments installs as expected.
       - name: Install moments
         run: |

@@ -52,6 +52,3 @@ class SpectrumTestCase(unittest.TestCase):
 
         fs2.integrate([1, 1], 0.3, m=mig_mat)
         self.assertTrue(np.allclose(fs.data, fs2.data, rtol=0.02, atol=1e-5))
-
-
-suite = unittest.TestLoader().loadTestsFromTestCase(SpectrumTestCase)
