@@ -57,6 +57,8 @@ If you use ``moments.TwoLocus`` in your research, please cite:
   221(4), iyac097.
 
 
+.. _sec_changelog:
+
 **********
 Change log
 **********

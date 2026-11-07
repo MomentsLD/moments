@@ -16,6 +16,7 @@ Welcome to moments's documentation!
 
    introduction
    installation
+   contributing
 
 .. toctree::
    :caption: SFS
