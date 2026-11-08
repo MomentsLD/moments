@@ -152,15 +152,71 @@ Other commonly used options include
   optimization. These are given as lists of the same length of the parameters.
 - ``upper_bound``: Defaults to ``None``. Constraints on the upper bounds during
   optimization. These are given as lists of the same length of the parameters.
-- ``statistics``: Defaults to ``None``, which assumes that all statistics are
-  present and in the conventional default order. If the data is missing some
-  statistics, we must specify which statistics are present using the subset of
-  statistic names given by ``moments.LD.Util.moment_names(num_pops)``.
+- ``statistics``: Defaults to ``None``, which assumes that the data contain the
+  full set of statistics for the number of populations in the model, as returned
+  by the parsing functions. If the data contain a subset of statistics, we list
+  them here. See :ref:`below <sec_ld_inference_normalization>`.
 - ``normalization``: Defaults to ``0``. The index of the population to
   normalize by, which should match the population index that we normalized by
   when parsing the data.
 - ``verbose``: If an integer greater than 0, prints updates of the optimization
   procedure at intervals given by that spacing.
+
+.. _sec_ld_inference_normalization:
+
+Normalizing statistics and the ``statistics`` option
+----------------------------------------------------
+
+The data are normalized by :math:`\pi_2` and :math:`H` in the normalizing
+population ``k`` (see :ref:`Parsing <sec_ld_parsing_normalization>`), so the
+normalizing statistics ``pi2_k_k_k_k`` and ``H_k_k`` equal 1 in both the data and
+the model, and have zero variance. They carry no information, so they are left out
+when computing likelihoods. This is handled the same way by all LD inference,
+uncertainty, and plotting functions, in both ``moments.LD`` and ``moments.Demes``:
+
+- The data passed to these functions should include the normalizing statistics,
+  as returned by the parsing functions. They are removed internally, and the data
+  passed in are not modified.
+- If ``statistics`` is not given (the default), the data must contain the full set
+  of statistics for the number of populations, in the order given by
+  ``moments.LD.Util.moment_names(num_pops)``. Data with any other number of
+  statistics raise an error.
+- If the data contain a subset of statistics, ``statistics`` must list exactly
+  those statistics, as ``[ld_stats, h_stats]``, in the same order as the data.
+  This must be the standard order of ``moments.LD.Util.moment_names(num_pops)``,
+  which is the order returned by the parsing functions. For example,
+  ``moments.LD.Parsing.subset_data`` returns the list of statistics along with the
+  subset data. If the normalizing statistics are in the list, they are removed
+  along with the data.
+- The normalizing statistics in the data must equal 1. If they don't, the data
+  were normalized by a different population than ``normalization`` (for example,
+  if the normalizing population was left out with ``subset_data``), and an error
+  is raised.
+- In ``moments.LD`` functions, ``normalization`` is the *index* of the normalizing
+  population. In ``moments.Demes`` functions, it is the population's *name*.
+
+For example, with the data ``mv`` returned by ``bootstrap_data``:
+
+.. code-block:: python
+
+    # all statistics, as returned by bootstrap_data, so statistics isn't needed
+    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+        p_guess, [mv["means"], mv["varcovs"]], [model_func], rs=r_bins
+    )
+
+    # a subset of the statistics, without Dz, so we pass their names
+    r_edges, means, varcovs, stats = moments.LD.Parsing.subset_data(
+        mv, ["deme0", "deme1"], remove_Dz=True
+    )
+    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+        p_guess, [means, varcovs], [model_func], rs=r_edges, statistics=stats
+    )
+
+.. note::
+    Before version 1.7.0, ``get_bootstrap_sets`` and ``subset_data`` removed the
+    normalizing statistics from their outputs. Data saved from those versions need
+    to be recomputed, or have the normalizing statistics added back in their
+    positions (they equal 1, with zero variance).
 
 Example
 -------
@@ -238,18 +294,18 @@ job at estimating the true underlying CIs [Coffman2016]_.
     and ``moments`` has more-or-less used this same implementation here.
 
 To create bootstrap replicates from the dictionary of data sums computed over
-regions, where ``rep_data = {0: ld_stats_0, 1: ld_stats_1, ...}``, e.g., we use
+regions, where ``region_stats = {0: ld_stats_0, 1: ld_stats_1, ...}``, e.g., we use
 
 .. code-block:: python
 
     num_boots = 100
     norm_idx = 0
     bootstrap_sets = moments.LD.Parsing.get_bootstrap_sets(
-        rep_data, num_bootstraps=num_boots, normalization=norm_idx)
+        region_stats, num_bootstraps=num_boots, normalization=norm_idx)
 
-By default, the bootstrap sets have the normalizing statistics removed, while the
-means and varcovs from ``bootstrap_data`` include them. The ``moments.LD.Godambe``
-methods handle either, so they can be passed as is.
+The bootstrap sets have the same statistics as the means and varcovs from
+``bootstrap_data``, including the normalizing statistics, which are removed when
+computing uncertainties (see :ref:`above <sec_ld_inference_normalization>`).
 
 These bootstrap sets can then be used as the inputs to the ``moments.LD.Godambe``
 methods. The two CI estimation methods are

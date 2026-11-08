@@ -205,9 +205,9 @@ if __name__ == "__main__":
 
     print("computing confidence intervals for parameters")
 
-    # The data means and varcovs (from bootstrap_data) include the normalizing
-    # statistics, while the bootstrap sets (from get_bootstrap_sets) have them
-    # removed. GIM_uncert removes them where needed.
+    # The data means and varcovs (from bootstrap_data) and the bootstrap sets (from
+    # get_bootstrap_sets) include the normalizing statistics, which GIM_uncert
+    # removes when computing uncertainties.
     uncerts = moments.LD.Godambe.GIM_uncert(
         demo_func,
         all_boot,

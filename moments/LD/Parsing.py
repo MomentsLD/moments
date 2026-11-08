@@ -1290,8 +1290,12 @@ def compute_ld_statistics(
     :param bool use_genotypes: If True, we assume the data in the VCF is unphased.
         Otherwise, we use phased information.
     :param bool use_h5: If True, we use the h5 format.
-    :param list stats_to_compute: If given, we compute only the statistics specified.
-        Otherwise, we compute all possible statistics for the populations given.
+    :param list stats_to_compute: If given, we compute only the statistics specified,
+        as [ld_stats, h_stats]. Otherwise, we compute all possible statistics for the
+        populations given. A subset must include the normalizing statistics
+        (``pi2_k_k_k_k`` and ``H_k_k``) of the population used to normalize the data,
+        and the returned ``stats`` should be passed as ``statistics`` to the
+        inference and uncertainty functions.
     :param ac_filter: Ensure at least two samples are present per population. This
         prevents computed heterozygosity statistics from returning NaN when some
         loci have too few called samples.
@@ -1370,13 +1374,20 @@ def compute_ld_statistics(
 
 def means_from_region_data(all_data, stats, norm_idx=0):
     """
-    Get means over all parsed regions.
+    Get means over all parsed regions, normalized by the normalizing population.
+
+    The sums of each statistic are added over regions, and then the LD statistics
+    in each bin are divided by ``pi2_k_k_k_k`` and the heterozygosity statistics by
+    ``H_k_k``, where ``k`` is ``norm_idx``. The normalizing statistics are kept, and
+    equal 1.
 
     :param dict all_data: A dictionary with keys as unique identifiers of the
         regions and values as reported stats from ``compute_ld_statistics``.
     :param list of lists stats: The list of LD and H statistics that are present
-        in the data replicates.
+        in the data replicates. These must include the normalizing statistics.
     :param int, optional norm_idx: The index of the population to normalize by.
+    :return: A list with an array of mean statistics for each recombination bin,
+        followed by an array of heterozygosity statistics.
     """
     norm_stats = ["pi2_{0}_{0}_{0}_{0}".format(norm_idx), "H_{0}_{0}".format(norm_idx)]
     means = [0 * sums for sums in all_data[list(all_data.keys())[0]]["sums"]]
@@ -1390,28 +1401,28 @@ def means_from_region_data(all_data, stats, norm_idx=0):
     return means
 
 
-def get_bootstrap_sets(
-    all_data,
-    num_bootstraps=None,
-    normalization=0,
-    remove_norm_stats=True,
-    remove_Dz=False,
-):
+def get_bootstrap_sets(all_data, num_bootstraps=None, normalization=0):
     """
     From a dictionary of all the regional data, resample with replacement
     to construct bootstrap data.
 
-    Returns a list of bootstrapped datasets of mean statistics.
+    Returns a list of bootstrapped datasets of mean statistics. Each has the same
+    statistics as the regional data (``all_data[region]["stats"]``), including the
+    normalizing statistics, which are removed by the inference and uncertainty
+    functions. Like ``bootstrap_data``, this means the bootstrap sets match the
+    ``means`` returned by ``bootstrap_data``.
+
+    Note: before version 1.7.0, the normalizing statistics were removed from the
+    bootstrap sets by default, and the ``remove_norm_stats`` and ``remove_Dz``
+    options have been removed. To use a subset of statistics, see ``subset_data``.
 
     :param dict all_data: Dictionary of regional LD statistics. Keys are region
         identifiers and must be unique, and the items are the outputs of
         ``compute_ld_statistics``.
     :param int num_bootstraps: The number of bootstrap replicates to compute. If
-        None, it computes the same number as the nubmer of regions in ``all_data``.
+        None, it computes the same number as the number of regions in ``all_data``.
     :param int normalization: The index of the population to normalize by. Defaults
         to 0.
-    :param bool remove_norm_stats: If we should remove the stat used for normalization.
-    :param bool remove_Dz: If we should remove Dz statistics.
     """
     regions = list(all_data.keys())
     reg = regions[0]
@@ -1428,41 +1439,25 @@ def get_bootstrap_sets(
         choices = np.random.choice(regions, num_regions, replace=True)
         for i, c in enumerate(choices):
             temp_data[i] = all_data[c]
-        boot_means = means_from_region_data(temp_data, stats, normalization)
-
-        delete_ld = []
-        delete_h = []
-        if remove_norm_stats:
-            delete_ld.append(
-                stats[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
-            )
-            delete_h.append(stats[1].index("H_{0}_{0}".format(normalization)))
-        if remove_Dz:
-            for i, stat in enumerate(stats[0]):
-                if stat.split("_")[0] == "Dz":
-                    delete_ld.append(i)
-        if len(delete_ld) > 0:
-            for ii in range(len(boot_means) - 1):
-                boot_means[ii] = np.delete(boot_means[ii], delete_ld)
-        if len(delete_h) > 0:
-            boot_means[-1] = np.delete(boot_means[-1], delete_h)
-
-        all_boot.append(boot_means)
+        all_boot.append(means_from_region_data(temp_data, stats, normalization))
 
     return all_boot
 
 
 def bootstrap_data(all_data, normalization=0):
     """
-    Returns bootstrapped variances for LD statistics. This function operates
-    on data that is sums (i.e. the direct output of ``compute_ld_statistics()``),
+    Returns the mean statistics over all regions, and their variance-covariance
+    matrices estimated by bootstrapping over regions. This function operates on
+    data that is sums (i.e. the direct output of ``compute_ld_statistics()``),
     instead of mean statistics.
-
-    We first check that all 'stats', 'bins', 'pops' (if present),
-    match across all regions
 
     If there are N total regions, we compute N bootstrap replicates
     by sampling N times with replacement and summing over all 'sums'.
+
+    The means are normalized as in ``means_from_region_data``, and include the
+    normalizing statistics (``pi2_k_k_k_k`` and ``H_k_k``), which equal 1 and have
+    zero variance. These are removed by the inference and uncertainty functions,
+    so the output can be passed to them directly.
 
     :param dict all_data: A dictionary (with arbitrary keys), where each value
         is LD statistics computed from a distinct region. all_data[reg]
@@ -1470,6 +1465,12 @@ def bootstrap_data(all_data, normalization=0):
         optional 'pops'.
     :param int normalization: we work with :math:`\\sigma_d^2` statistics,
         and by default we use population 0 to normalize stats
+    :return: A dictionary with keys "bins", "stats", "pops" (if present in the
+        regional data), "means", and "varcovs". "means" is a list with an array
+        of mean statistics for each recombination bin, followed by an array of
+        heterozygosity statistics, and "varcovs" has the matching
+        variance-covariance matrices. The statistics are given in "stats", as
+        [ld_stats, h_stats].
     """
     # check that var-cov matrix will be able to be computed
     k = list(all_data.keys())[0]
@@ -1522,20 +1523,30 @@ def bootstrap_data(all_data, normalization=0):
     return mv
 
 
-def subset_data(
-    data, pops_to, normalization=0, r_min=None, r_max=None, remove_Dz=False
-):
+def subset_data(data, pops_to, *, r_min=None, r_max=None, remove_Dz=False):
     """
     Take the output data and get r_edges, ms, vcs, and stats to pass to inference
     machinery. ``pops_to`` are the subset of the populations to marginalize the data
     to. ``r_min`` and ``r_max`` trim bins that fall outside of this range, and
     ``remove_Dz`` allows us to remove all :math:`\\sigma_{Dz}` statistics.
 
+    The populations in ``pops_to`` are renumbered, keeping their order in the data.
+    If ``pops_to`` is given in a different order, a warning is issued and they are
+    reordered to match the data. The normalizing population must be included, since
+    the data are still normalized by it (the inference and uncertainty functions
+    raise an error otherwise). The returned statistics include the
+    normalizing statistics, which are removed by the inference and uncertainty
+    functions. Pass the returned ``stats`` to those functions as ``statistics``,
+    with the index of the normalizing population in ``pops_to`` as
+    ``normalization``.
+
+    Note: before version 1.7.0, this function removed the normalizing statistics
+    and took a ``normalization`` argument, and options after ``pops_to`` must now
+    be given by keyword.
+
     :param data: The output of ``bootstrap_data``, which contains
         bins, statistics, populations, means, and variance-covariance matrices.
     :param pops_to: A list of populations to subset to.
-    :param normalization: The population index that the original data was
-        normalized by.
     :param r_min: The minimum recombination distance to keep.
     :param r_max: The maximum recombination distance to keep.
     :param remove_Dz: If True, remove all Dz statistics. Otherwise keep them.
@@ -1543,6 +1554,16 @@ def subset_data(
     pops_from = data["pops"]
     if not np.all([p in pops_from for p in pops_to]):
         raise ValueError("All pops in pops_to must be in data")
+
+    # Statistic names follow the order of populations, so keep the original order
+    in_order = [p for p in pops_from if p in pops_to]
+    if list(pops_to) != in_order:
+        warnings.warn(
+            f"pops_to {list(pops_to)} is not in the same order as the populations in "
+            f"the data, {list(pops_from)}. The populations are reordered to "
+            f"{in_order}, so that the statistic names are in the standard order."
+        )
+        pops_to = in_order
 
     new_pop_ids = {}
     for pop in pops_to:
@@ -1555,24 +1576,18 @@ def subset_data(
 
     for j in [0, 1]:
         for i, stat in enumerate(stats[j]):
-            if stat in [
-                "pi2_{0}_{0}_{0}_{0}".format(normalization),
-                "H_{0}_{0}".format(normalization),
-            ]:
-                to_remove[j].append(i)
-            else:
-                if remove_Dz == True:
-                    if stat.split("_")[0] == "Dz":
-                        to_remove[j].append(i)
-                        continue
-                p_inds = [int(x) for x in stat.split("_")[1:]]
-                if len(set(p_inds) - set(new_pop_ids)) == 0:
-                    new_stat = "_".join(
-                        [stat.split("_")[0]] + [str(new_pop_ids[x]) for x in p_inds]
-                    )
-                    new_stats[j].append(new_stat)
-                else:
+            if remove_Dz == True:
+                if stat.split("_")[0] == "Dz":
                     to_remove[j].append(i)
+                    continue
+            p_inds = [int(x) for x in stat.split("_")[1:]]
+            if len(set(p_inds) - set(new_pop_ids)) == 0:
+                new_stat = "_".join(
+                    [stat.split("_")[0]] + [str(new_pop_ids[x]) for x in p_inds]
+                )
+                new_stats[j].append(new_stat)
+            else:
+                to_remove[j].append(i)
 
     means = []
     varcovs = []
