@@ -162,6 +162,13 @@ Other commonly used options include
 - ``verbose``: If an integer greater than 0, prints updates of the optimization
   procedure at intervals given by that spacing.
 
+.. note::
+    ``verbose=1`` prints a line for every function evaluation, which can be many
+    lines per second. Displaying them in a visible terminal window can slow down
+    the optimization, because the program waits for the terminal to draw each
+    line (it may run much faster when the window is minimized). Use a larger
+    value, such as 10 to 100, to avoid this.
+
 .. _sec_ld_inference_normalization:
 
 Normalizing statistics and the ``statistics`` option
@@ -390,12 +397,3 @@ We can see above that the FIM uncertainties are considerably smaller (i.e. more
 constrained) than the GIM uncertainties. However, the GIM uncertainties are to
 be preferred here, as they more accurately estimate the underlying true
 uncertainty in the demographic inference.
-
-**********
-References
-**********
-
-.. [Coffman2016]
-    Coffman, Alec J., et al. "Computationally efficient composite likelihood
-    statistics for demographic inference."
-    *Molecular biology and evolution* 33.2 (2016): 591-593.

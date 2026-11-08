@@ -77,6 +77,10 @@ Change log
   statistics (their options to remove them are removed), which all LD inference,
   uncertainty, and plotting functions remove (see the LD parsing docs)
 - Fix Demes SFS and LD computation when all samples are ancient (#201)
+- ``import moments`` no longer turns off numpy's floating-point warnings for the
+  whole session. Spectrum arithmetic warns only about inf or nan in unmasked
+  entries (for numpy functions on spectra, use ``numpy.ma`` versions, such as
+  ``np.ma.log``, to avoid warnings from masked entries)
 
 1.6.1
 =====

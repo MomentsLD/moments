@@ -42,9 +42,13 @@ class TrialleleTestCase(unittest.TestCase):
     def test_projection(self):
         ns1 = 20
         ns2 = 40
-        xx1 = 1.0 / numpy.linspace(0, ns1, ns1 + 1)
+        # entry 0 is 1/0 = inf, which is replaced below
+        with numpy.errstate(divide="ignore"):
+            xx1 = 1.0 / numpy.linspace(0, ns1, ns1 + 1)
         xx1[0] = 1
-        xx2 = 1.0 / numpy.linspace(0, ns2, ns2 + 1)
+        # entry 0 is 1/0 = inf, which is masked or replaced
+        with numpy.errstate(divide="ignore"):
+            xx2 = 1.0 / numpy.linspace(0, ns2, ns2 + 1)
         xx2[0] = 1
         fs1 = moments.Triallele.TriSpectrum(numpy.outer(xx1, xx1))
         fs2 = moments.Triallele.TriSpectrum(numpy.outer(xx2, xx2))
@@ -54,9 +58,13 @@ class TrialleleTestCase(unittest.TestCase):
     def test_triallele_jackknife(self):
         ns1 = 40
         ns2 = 42
-        xx1 = 1.0 / numpy.linspace(0, ns1, ns1 + 1)
+        # entry 0 is 1/0 = inf, which is replaced below
+        with numpy.errstate(divide="ignore"):
+            xx1 = 1.0 / numpy.linspace(0, ns1, ns1 + 1)
         xx1[0] = 1
-        xx2 = 1.0 / numpy.linspace(0, ns2, ns2 + 1)
+        # entry 0 is 1/0 = inf, which is masked or replaced
+        with numpy.errstate(divide="ignore"):
+            xx2 = 1.0 / numpy.linspace(0, ns2, ns2 + 1)
         xx2[0] = 1
         fs1 = moments.Triallele.TriSpectrum(numpy.outer(xx1, xx1))
         fs2 = moments.Triallele.TriSpectrum(numpy.outer(xx2, xx2))
@@ -70,7 +78,9 @@ class TrialleleTestCase(unittest.TestCase):
 
     def test_neutral(self):
         ns = 30
-        xx = 1.0 / numpy.linspace(0, ns, ns + 1)
+        # entry 0 is 1/0 = inf, which is replaced below
+        with numpy.errstate(divide="ignore"):
+            xx = 1.0 / numpy.linspace(0, ns, ns + 1)
         xx[0] = 1.0
         exact = moments.Triallele.TriSpectrum(numpy.outer(xx, xx))
         fs = moments.Triallele.TriSpectrum(numpy.zeros((ns + 1, ns + 1)))

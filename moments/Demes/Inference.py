@@ -596,6 +596,10 @@ def optimize(
         demes YAML. If perturb is greater than zero, the initial parameters in the input
         YAML are randomly perturbed by up to `perturb`-fold.
     :param verbose: The frequency to print updates to `output_stream` if greater than 1.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or set
+        ``output_stream`` to an open file, to avoid this.
     :param uL: The mutuation rate scaled by number of callable sites, so that theta
         is the compound parameter 4*Ne*uL. If given, we optimize with `multinom=False`,
         and theta is determined by taking Ne as the ancestral or root population size,
@@ -713,7 +717,9 @@ def optimize(
     elif method == "lbfgsb":
         # bounds must be on the same scale as the parameters being optimized
         if log:
-            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+            # a lower bound of 0 is -inf on the log scale, which is valid
+            with np.errstate(divide="ignore"):
+                bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
         else:
             bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
@@ -880,6 +886,10 @@ def uncerts(
     :type misid_fit: float
     :param verbose: If greater than zero, print the progress of iterations needed
         to compute uncertainties. Prints every {verbose} number of iterations.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or set
+        ``output_stream`` to an open file, to avoid this.
     :type verbose: int
     :param output_stream: Default is sys.stdout, but can be changed using this
         option.
@@ -1210,6 +1220,10 @@ def optimize_LD(
         demes YAML. If perturb is greater than zero, the initial parameters in the input
         YAML are randomly perturbed by up to `perturb`-fold.
     :param verbose: The frequency to print updates to `output_stream` if greater than 1.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or set
+        ``output_stream`` to an open file, to avoid this.
     :param log: If True, optimize over log of the parameters.
     :param method: The optimization method. Available methods are "fmin", "powell",
         and "lbfgsb".
@@ -1318,7 +1332,9 @@ def optimize_LD(
     elif method == "lbfgsb":
         # bounds must be on the same scale as the parameters being optimized
         if log:
-            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+            # a lower bound of 0 is -inf on the log scale, which is valid
+            with np.errstate(divide="ignore"):
+                bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
         else:
             bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
@@ -1471,6 +1487,10 @@ def uncerts_LD(
     :param method: "FIM" (Fisher Information) or "GIM" (Godambe Information).
     :param verbose: If greater than zero, print progress every ``verbose`` function
         calls.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or set
+        ``output_stream`` to an open file, to avoid this.
     :param output_stream: Where to print progress. Defaults to standard output.
     :param output: If given, write the uncertainties to this file as a table.
     :param overwrite: If True, overwrite ``output`` if it already exists.

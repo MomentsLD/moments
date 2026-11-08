@@ -32,7 +32,7 @@ Demographic models specify the historical size changes, migrations, splits and
 mergers of related populations. Specifying demographic models using ``moments``
 or practically any other simulation engine can become very complicated and
 error prone, especially when we want to model more than one population (e.g.
-[Ragsdale2020]_). Even worse, every individual software has its own language and
+[Ragsdale2020b]_). Even worse, every individual software has its own language and
 methods for specifying a demographic model, so a user has to reimplement the
 same model across multiple software, which nobody enjoys. To resolve these
 issues of reproducibility, replication, and susceptibility to errors, ``demes``
@@ -613,7 +613,10 @@ arguments in the ``moments.Demes.Inference.optimize`` function. These include:
   stronger perturbation of initial guesses.
 - ``verbose``: Defaults to 0. If greater than zero, it prints an update to the
   specified ``output_stream`` (which defaults to ``sys.stdout``) every
-  ``verbose`` iterations.
+  ``verbose`` iterations. Note that ``verbose=1`` prints a line for every
+  function evaluation, which can be many lines per second, and displaying them in
+  a visible terminal window can slow down the optimization. Use a larger value,
+  such as 10 to 100, or set ``output_stream`` to an open file, to avoid this.
 - ``uL``: Defaults to None. If given, this is the product of the per-base
   mutation rate and the length of the callable genome used to compile the data
   SFS. If we don't give this scaled mutation rate, we optimize with theta as
@@ -660,7 +663,8 @@ spectrum.
     import moments
     import pickle
 
-    all_data = pickle.load(open("./data/msl_data.bp", "rb"))
+    with open("./data/msl_data.bp", "rb") as fin:
+        all_data = pickle.load(fin)
     data = all_data["spectra"]["syn"]
     data.pop_ids = ["MSL"]
     uL = all_data["rates"]["syn"]
@@ -968,6 +972,6 @@ References
     multiple populations from multidimensional SNP frequency data."
     *PLoS genet* 5.10 (2009): e1000695.
 
-.. [Ragsdale2020]
+.. [Ragsdale2020b]
     Ragsdale, Aaron P., et al. "Lessons learned from bugs in models of human
     history." *The American Journal of Human Genetics* 107.4 (2020): 583-588.
