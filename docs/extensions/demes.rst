@@ -32,7 +32,7 @@ Demographic models specify the historical size changes, migrations, splits and
 mergers of related populations. Specifying demographic models using ``moments``
 or practically any other simulation engine can become very complicated and
 error prone, especially when we want to model more than one population (e.g.
-[Ragsdale2020]_). Even worse, every individual software has its own language and
+[Ragsdale2020b]_). Even worse, every individual software has its own language and
 methods for specifying a demographic model, so a user has to reimplement the
 same model across multiple software, which nobody enjoys. To resolve these
 issues of reproducibility, replication, and susceptibility to errors, ``demes``
@@ -663,7 +663,8 @@ spectrum.
     import moments
     import pickle
 
-    all_data = pickle.load(open("./data/msl_data.bp", "rb"))
+    with open("./data/msl_data.bp", "rb") as fin:
+        all_data = pickle.load(fin)
     data = all_data["spectra"]["syn"]
     data.pop_ids = ["MSL"]
     uL = all_data["rates"]["syn"]
@@ -971,6 +972,6 @@ References
     multiple populations from multidimensional SNP frequency data."
     *PLoS genet* 5.10 (2009): e1000695.
 
-.. [Ragsdale2020]
+.. [Ragsdale2020b]
     Ragsdale, Aaron P., et al. "Lessons learned from bugs in models of human
     history." *The American Journal of Human Genetics* 107.4 (2020): 583-588.

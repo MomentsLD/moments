@@ -397,12 +397,3 @@ We can see above that the FIM uncertainties are considerably smaller (i.e. more
 constrained) than the GIM uncertainties. However, the GIM uncertainties are to
 be preferred here, as they more accurately estimate the underlying true
 uncertainty in the demographic inference.
-
-**********
-References
-**********
-
-.. [Coffman2016]
-    Coffman, Alec J., et al. "Computationally efficient composite likelihood
-    statistics for demographic inference."
-    *Molecular biology and evolution* 33.2 (2016): 591-593.
