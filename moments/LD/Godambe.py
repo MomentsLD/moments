@@ -261,38 +261,6 @@ def _get_godambe(
     return godambe, hess, J, cU
 
 
-def _remove_normalized_data(statistics, normalization, means, varcovs, all_boot):
-    # get indexes to remove
-    pi2_idx_to_del = statistics[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
-    H_idx_to_del = statistics[1].index("H_{0}_{0}".format(normalization))
-    # remove from means
-    for ii in range(len(means) - 1):
-        means[ii] = np.delete(means[ii], pi2_idx_to_del)
-    means[-1] = np.delete(means[-1], H_idx_to_del)
-    # remove from varcovs
-    for ii in range(len(varcovs) - 1):
-        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=0)
-        varcovs[ii] = np.delete(varcovs[ii], pi2_idx_to_del, axis=1)
-    if varcovs[-1].size > 1:
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=0)
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del, axis=1)
-    else:
-        # Single poopulation data has 1D H array
-        varcovs[-1] = np.delete(varcovs[-1], H_idx_to_del)
-    # remove from all_boot
-    if len(all_boot) > 0:
-        for jj, boot in enumerate(all_boot):
-            for ii in range(len(boot) - 1):
-                all_boot[jj][ii] = np.delete(boot[ii], pi2_idx_to_del)
-            all_boot[jj][-1] = np.delete(boot[-1], H_idx_to_del)
-    else:
-        all_boot = []
-    # remove from statistics lists
-    statistics[0].pop(pi2_idx_to_del)
-    statistics[1].pop(H_idx_to_del)
-    return statistics, means, varcovs, all_boot
-
-
 _func_calls = 0
 _output_stream = sys.stdout
 
@@ -302,30 +270,26 @@ def _expected_number_of_calls(params):
     return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 
-def _get_statistics_and_remove_normalization(
-    model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
+def _remove_normalizing_statistics(
+    model_func, p0, pass_Ne, means, varcovs, all_boots, normalization, statistics
 ):
-    if pass_Ne:
-        y = model_func(p0)
-    else:
-        y = model_func(p0[:-1])
-    statistics = y.names()
-    if (
-        len(means[0]) != len(statistics[0]) or len(means[-1]) != len(statistics[-1])
-    ) or (
-        len(all_boots) > 0
-        and (
-            len(all_boots[0][0]) != len(statistics[0])
-            or len(all_boots[0][-1]) != len(statistics[-1])
-        )
-    ):
-        raise ValueError(
-            "If 'statistics' is not given, then means, varcovs, and "
-            "all_boots must have consistent sizes and be equal to the "
-            "number of stats for the number of populations in the model."
-        )
-    # returns (statistics, means, varcovs, all_boots)
-    return _remove_normalized_data(statistics, normalization, means, varcovs, all_boots)
+    """
+    Returns statistics, means, varcovs, and bootstrap means with the normalizing
+    statistics removed, using ``moments.LD.Inference._remove_normalizing_statistics``.
+    If ``statistics`` is None, the number of populations is taken from the model.
+    """
+    num_pops = None
+    if statistics is None:
+        y = model_func(p0) if pass_Ne else model_func(p0[:-1])
+        num_pops = y.num_pops
+    return Inference._remove_normalizing_statistics(
+        means,
+        varcovs,
+        bootstraps=all_boots,
+        normalization=normalization,
+        num_pops=num_pops,
+        statistics=statistics,
+    )
 
 
 def GIM_uncert(
@@ -351,13 +315,15 @@ def GIM_uncert(
     Returns standard deviations of parameter values.
 
     :param model_func: Model function
-    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...]
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned
+        by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as
+        ``ms``.
     :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
-    :param ms: See below..
-    :param vcs: Original means and covariances of statistics from data. If statistics
-        are not give, we remove the normalizing statistics. Otherwise, these need
-        to be pared down so that the normalizing statistics are removed.
+    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,
+        with the statistics given by ``statistics``.
+    :param vcs: The data variance-covariance matrices, as returned by
+        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.
     :param eps: Fractional stepsize to use when taking finite-difference derivatives.
         Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
@@ -371,9 +337,14 @@ def GIM_uncert(
     :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
         is the last entry in the parameters list. If False, Ne is only used to scale
         recombination rates.
-    :param statistics: Statistics that we have included given as a list of lists:
-        [ld_stats, h_stats]. If statistics is not given, we assume all statistics
-        are included except for the normalizing statistic in each bin
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
@@ -392,17 +363,10 @@ def GIM_uncert(
         )
         Misc.delayed_flush(delay=0.5)
 
-    if statistics is None:
-        # get statistics and remove normalizing statistic - requires that all statistics
-        # in the input means and varcovs are present, including the normalizing stats
-        (
-            statistics,
-            means,
-            varcovs,
-            all_boots,
-        ) = _get_statistics_and_remove_normalization(
-            model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
-        )
+    # remove the normalizing statistics, and get the names of the remaining ones
+    statistics, means, varcovs, all_boots = _remove_normalizing_statistics(
+        model_func, p0, pass_Ne, means, varcovs, all_boots, normalization, statistics
+    )
 
     def pass_func(params, statistics):
         global _func_calls
@@ -457,10 +421,10 @@ def FIM_uncert(
     :param model_func: Model function
     :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
-    :param ms: See below..
-    :param vcs: Original means and covariances of statistics from data. If statistics
-        are not give, we remove the normalizing statistics. Otherwise, these need
-        to be pared down so that the normalizing statistics are removed.
+    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,
+        with the statistics given by ``statistics``.
+    :param vcs: The data variance-covariance matrices, as returned by
+        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.
     :param eps: Fractional stepsize to use when taking finite-difference derivatives.
         Note that if eps*param is < 1e-12, then the step size for that parameter
         will simply be eps, to avoid numerical issues with small parameter
@@ -474,9 +438,14 @@ def FIM_uncert(
     :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
         is the last entry in the parameters list. If False, Ne is only used to scale
         recombination rates.
-    :param statistics: Statistics that we have included given as a list of lists:
-        [ld_stats, h_stats]. If statistics is not given, we assume all statistics
-        are included except for the normalizing statistic in each bin
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
@@ -494,12 +463,10 @@ def FIM_uncert(
         )
         Misc.delayed_flush(delay=0.5)
 
-    if statistics is None:
-        # get statistics and remove normalizing statistic - requires that all statistics
-        # in the input means and varcovs are present, including the normalizing stats
-        statistics, means, varcovs, _ = _get_statistics_and_remove_normalization(
-            model_func, p0, means, varcovs, [], normalization, pass_Ne
-        )
+    # remove the normalizing statistics, and get the names of the remaining ones
+    statistics, means, varcovs, _ = _remove_normalizing_statistics(
+        model_func, p0, pass_Ne, means, varcovs, [], normalization, statistics
+    )
 
     def pass_func(params, statistics):
         global _func_calls
@@ -550,33 +517,44 @@ def LRT_adjust(
     log-likelihoods, which can then be used in a chi-squared test, as
     implemented in `moments.Godambe.sum_chi2_ppf()`.
 
-    :param model_func:
-    :type model_func:
-    :param all_boot:
-    :type all_boot:
-    :param p0:
-    :type p0:
-    :param nested_indices:
-    :type nested_indices:
-
+    :param model_func: The model function for the complex (full) model.
+    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned
+        by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as
+        ``ms``.
+    :param p0: Best-fit parameters for the simple (nested) model, given as
+        parameters of the complex model with the nested parameters set to their
+        fixed values, and with Ne in the last entry.
+    :param nested_indices: List of the positions of the nested parameters in the
+        complex model's parameters.
+    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,
+        with the statistics given by ``statistics``.
+    :param vcs: The data variance-covariance matrices, as returned by
+        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+    :param r_edges: The bin edges for LD statistics.
+    :param normalization: The index of the population that we normalized by.
+    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
+        is the last entry in the parameters list. If False, Ne is only used to scale
+        recombination rates.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
+    :return: The adjustment factor for the likelihood ratio test statistic.
     """
-    # TODO: complete docstring
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
     all_boots = copy.deepcopy(all_boot)
     rs = np.array(r_edges)
 
-    if statistics is None:
-        # get statistics and remove normalizing statistic - requires that all statistics
-        # in the input means and varcovs are present, including the normalizing stats
-        (
-            statistics,
-            means,
-            varcovs,
-            all_boots,
-        ) = _get_statistics_and_remove_normalization(
-            model_func, p0, means, varcovs, all_boots, normalization, pass_Ne
-        )
+    # remove the normalizing statistics, and get the names of the remaining ones
+    statistics, means, varcovs, all_boots = _remove_normalizing_statistics(
+        model_func, p0, pass_Ne, means, varcovs, all_boots, normalization, statistics
+    )
 
     def pass_func(params, statistics):
         rho = 4 * params[-1] * rs

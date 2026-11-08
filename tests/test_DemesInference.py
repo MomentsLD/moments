@@ -413,7 +413,7 @@ class TestOptimize(TempFilesTestCase):
         # statistics (with made-up variances) using L-BFGS-B with log=False.
         rs = [0, 1e-5, 1e-4]
         y = Inference.compute_bin_stats(demes.loads(GRAPH), ["A", "B"], rs=rs)
-        y = moments.LD.Inference.remove_normalized_lds(moments.LD.Inference.sigmaD2(y))
+        y = moments.LD.Inference.sigmaD2(y)
         means = [np.array(m) for m in y]
         varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
         names, popt, LL = Inference.optimize_LD(
@@ -515,16 +515,21 @@ class TestInitialConstraints(TempFilesTestCase):
         with self.assertRaises(ValueError) as err:
             Inference.optimize(graph, options, self.fs)
         self.assertIn("NA greater_than NB", str(err.exception))
-        with self.assertRaises(ValueError):
+        rs = [0, 1e-5]
+        y = Inference.compute_bin_stats(demes.loads(GRAPH), ["A", "B"], rs=rs)
+        means = [np.array(m) for m in moments.LD.Inference.sigmaD2(y)]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+        with self.assertRaises(ValueError) as err:
             Inference.optimize_LD(
                 graph,
                 options,
-                [],
-                [],
+                means,
+                varcovs,
                 pop_ids=["A", "B"],
-                rs=[0, 1e-5],
+                rs=rs,
                 normalization="A",
             )
+        self.assertIn("NA greater_than NB", str(err.exception))
 
     def test_equal_values_raise(self):
         # Constraints are strict, as in the objective functions, so NA = NB doesn't
@@ -682,7 +687,7 @@ class TestInvalidGraphs(TempFilesTestCase):
         y = Inference.compute_bin_stats(
             demes.loads(GRAPH_SPLIT.format(T=450)), ["A", "B"], rs=rs
         )
-        y = moments.LD.Inference.remove_normalized_lds(moments.LD.Inference.sigmaD2(y))
+        y = moments.LD.Inference.sigmaD2(y)
         means = [np.array(m) for m in y]
         varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
         (names, popt, LL), n_warnings = self.count_invalid_graph_warnings(
@@ -755,21 +760,16 @@ class TestUncertsNearInvalidGraph(TempFilesTestCase):
         # Same as test_uncerts, for uncerts_LD, using expected LD statistics (with
         # made-up variances) as the data.
         rs = [0, 1e-5, 1e-4]
-
-        def data():
-            # fresh data for each call, since uncerts_LD modifies the data it's given
-            y = Inference.compute_bin_stats(self.g, ["A", "B"], rs=rs)
-            y = moments.LD.Inference.sigmaD2(y)
-            means = [np.array(m) for m in y]
-            varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
-            return means, varcovs
-
+        y = Inference.compute_bin_stats(self.g, ["A", "B"], rs=rs)
+        y = moments.LD.Inference.sigmaD2(y)
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
         kwargs = dict(pop_ids=["A", "B"], rs=rs, normalization="A")
         with self.assertRaises(ValueError) as err:
-            Inference.uncerts_LD(self.graph, self.options, *data(), **kwargs)
+            Inference.uncerts_LD(self.graph, self.options, means, varcovs, **kwargs)
         self.assertIn("eps", str(err.exception))
         out = Inference.uncerts_LD(
-            self.graph, self.options, *data(), eps=0.001, **kwargs
+            self.graph, self.options, means, varcovs, eps=0.001, **kwargs
         )
         self.assertTrue(np.isfinite(out[0]) and out[0] > 0)
 
@@ -820,6 +820,70 @@ class TestUncerts(TempFilesTestCase):
         self.assertEqual(name, "NA")
         self.assertEqual(float(value), 2000)
         self.assertTrue(np.isclose(float(std_err), out[0]))
+
+    def test_LD_normalizing_statistics(self):
+        # Data from bootstrap_data and bootstraps from get_bootstrap_sets include
+        # the normalizing statistics (with zero variance), which optimize_LD and
+        # uncerts_LD (GIM) remove. Listing all statistics, including the
+        # normalizing ones, gives the same results instead of a singular matrix
+        # error; data saved before version 1.7 (normalizing statistics removed)
+        # raise an error; and the data passed in are not modified (#192).
+        rs = [0, 1e-5, 1e-4]
+        y = Inference.compute_bin_stats(demes.loads(GRAPH), ["A", "B"], rs=rs)
+        means = [np.array(m) for m in moments.LD.Inference.sigmaD2(y)]
+        names = moments.LD.Util.moment_names(2)
+        norm = [names[0].index("pi2_0_0_0_0"), names[1].index("H_0_0")]
+        varcovs = []
+        for i, m in enumerate(means):
+            v = (0.01 * m) ** 2
+            v[norm[0] if i < len(means) - 1 else norm[1]] = 0
+            varcovs.append(np.diag(v))
+        rng = np.random.default_rng(1)
+        boots = []
+        for _ in range(5):
+            boot = [m * (1 + 0.01 * rng.normal(size=m.shape)) for m in means]
+            for i, b in enumerate(boot):
+                b[norm[0] if i < len(boot) - 1 else norm[1]] = 1
+            boots.append(boot)
+        lengths = [len(m) for m in means]
+        kwargs = dict(pop_ids=["A", "B"], rs=rs, normalization="A")
+        all_names = [list(names[0]), list(names[1])]
+        out = []
+        for statistics in [None, all_names]:
+            fit = Inference.optimize_LD(
+                self.graph,
+                self.options,
+                means,
+                varcovs,
+                statistics=statistics,
+                maxiter=5,
+                **kwargs,
+            )
+            uncerts = Inference.uncerts_LD(
+                self.graph,
+                self.options,
+                means,
+                varcovs,
+                bootstraps=boots,
+                statistics=statistics,
+                method="GIM",
+                **kwargs,
+            )
+            out.append((fit[1], fit[2], uncerts))
+        self.assertTrue(np.all(np.isfinite(out[0][2])) and np.all(out[0][2] > 0))
+        for a, b in zip(out[0], out[1]):
+            self.assertTrue(np.allclose(a, b))
+        self.assertEqual([len(m) for m in means], lengths)
+        # data with the normalizing statistics removed, without statistics, raise
+        _, means_removed, varcovs_removed, _ = (
+            moments.LD.Inference._remove_normalizing_statistics(
+                means, varcovs, num_pops=2
+            )
+        )
+        with self.assertRaises(ValueError):
+            Inference.optimize_LD(
+                self.graph, self.options, means_removed, varcovs_removed, **kwargs
+            )
 
     def test_invalid_inputs(self):
         # Each raises: GIM without bootstraps, unknown method, and fitting ancestral

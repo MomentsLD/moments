@@ -144,7 +144,10 @@ def plot_ld_curves_comp(
         to plot in a given pane, and the list of lists are each pane
     rows and cols tells us how to arrange the panes, if there are more than one
         sets of statistics to plot
-    if statistics is None, we use the statistics as listed in ld_stats.names()
+    if statistics is None, we use the statistics as listed in ld_stats.names(), and
+        the data must include all of them, including the normalizing statistics (as
+        returned by the moments.LD.Parsing functions). Otherwise, statistics lists
+        the statistics in the data, as [ld_stats, h_stats].
 
     if binned_data is True, then rs defines the edges of bins, so that ld_stats,
         ms, and vcs have length of ld stats equal to rs-1, while if
@@ -175,6 +178,20 @@ def plot_ld_curves_comp(
     if labels is None:
         labels = stats_to_plot
 
+    if statistics == None:
+        statistics = ld_stats.names()
+    # Data statistics are found by their index in statistics, so the data must have
+    # the same number of statistics, or the wrong statistics would be plotted
+    num_bins = len(rs) - 1 if binned_data else len(rs)
+    for x in list(ms[:num_bins]) + list(vcs[:num_bins]):
+        if len(x) != len(statistics[0]):
+            raise ValueError(
+                f"The data have {len(x)} statistics in each recombination bin, but "
+                f"{len(statistics[0])} are listed in statistics (or in the model, if "
+                "statistics is not given). If statistics is not given, the data must "
+                "include the normalizing statistics, as returned by the "
+                "moments.LD.Parsing functions."
+            )
     # set up fig and axes
     if ax is None:
         num_axes = len(stats_to_plot)
@@ -198,9 +215,6 @@ def plot_ld_curves_comp(
 
     else:
         axes = [ax]
-
-    if statistics == None:
-        statistics = ld_stats.names()
 
     # make sure all stats are named properly
     rs = np.array(rs)

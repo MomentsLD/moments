@@ -117,10 +117,12 @@ class DemesLBFGSBTestCase(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(popt)))
 
     def test_optimize_LD(self):
+        # optimize_LD with L-BFGS-B runs for a few iterations on expected LD
+        # statistics (including the normalizing statistics, as from bootstrap_data)
+        # with made-up variances, and returns finite parameters.
         rs = [0, 1e-6, 1e-5, 1e-4]
         y = moments.Demes.Inference.compute_bin_stats(self.g, ["A"], rs=rs)
         y = moments.LD.Inference.sigmaD2(y)
-        y = moments.LD.Inference.remove_normalized_lds(y)
         means = [np.array(m) for m in y]
         varcovs = [np.diag(0.01 * np.abs(m) + 1e-6) for m in means]
         param_names, popt, LL = moments.Demes.Inference.optimize_LD(

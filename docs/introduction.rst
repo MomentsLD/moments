@@ -72,6 +72,10 @@ Change log
 - Fix crash in pulse_migrate / admix_inplace from non-converging nnls with newer scipy
 - Raise an error when two Demes inference parameters map to the same graph value
 - Fix several bugs in ``moments.Demes.Inference`` (#276)
+- Fix LD uncertainty functions failing with bootstraps from ``get_bootstrap_sets`` (#192)
+- **Breaking:** ``get_bootstrap_sets`` and ``subset_data`` keep the normalizing
+  statistics (their options to remove them are removed), which all LD inference,
+  uncertainty, and plotting functions remove (see the LD parsing docs)
 
 1.6.1
 =====

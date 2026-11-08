@@ -1183,22 +1183,25 @@ def optimize_LD(
         the documentation at
         https://momentsld.github.io/moments/extensions/demes.html#the-options-file
     :param means: The list of average normalized LD and H statistics, as produced by
-         the parsing function ``moments.LD.Parsing.bootstrap_data(region_data)``.
+        the parsing function ``moments.LD.Parsing.bootstrap_data(region_data)``, with
+        the statistics given by ``statistics``.
     :param varcovs: The list of variance-covariance matrices for data within each
         recombination bin, as produced by the parsing function
-        ``moments.LD.Parsing.bootstrap_data(region_data)``.
+        ``moments.LD.Parsing.bootstrap_data(region_data)``, matching ``means``.
     :param pop_ids: The list of population names corresponding to the data.
     :param rs: A list of recombination bin edges, defining the recombination
         distance bins.
-    :param statistics: A list of two lists, the first being the LD statistics
-        present in the data, and the second the list of single-locus statistics
-        present in the data.  **WARNING**: This option should *only* be used if
-        there are missing or masked statistics in your data, aside from the
-        normalizing pi2 statistic!  If there are no missing or removed
-        statistics other than the normalization statistic, this option should
-        not be used.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in ``pop_ids``, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :param normalization: The name of the population that was used to normalize
-        the data. See documentation for examples specifying each of these arguments.
+        the data. Note that this is the population's name, while ``moments.LD``
+        functions take its index.
     :param maxiter: The maximum number of iterations to run optimization. Defaults
         to 1000. Note: maxiter does not seem to work with the Powell method! This
         appears to be a bug within scipy.optimize.
@@ -1226,6 +1229,21 @@ def optimize_LD(
         raise ValueError("Normalization deme must be provided")
     elif normalization not in pop_ids:
         raise ValueError("Normalization deme must be in pop_ids")
+
+    # Remove the normalizing statistics from the data, and get the names of the
+    # remaining statistics, which the model statistics are matched to
+    (
+        statistics,
+        means,
+        varcovs,
+        _,
+    ) = moments.LD.Inference._remove_normalizing_statistics(
+        means,
+        varcovs,
+        normalization=pop_ids.index(normalization),
+        num_pops=len(pop_ids),
+        statistics=statistics,
+    )
 
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
@@ -1422,6 +1440,41 @@ def uncerts_LD(
     """
     Compute uncertainties for fitted parameters, using the output YAML from
     ``moments.Demes.Inference.optimize_LD()``.
+
+    :param deme_graph: The file path to the output demes graph from
+        ``optimize_LD()``.
+    :param inference_options: The same options file used in the optimization.
+    :param means: The same data means used in the optimization, as produced by
+        ``moments.LD.Parsing.bootstrap_data``, with the statistics given by
+        ``statistics``.
+    :param varcovs: The same variance-covariance matrices used in the optimization,
+        matching ``means``.
+    :param bootstraps: List of bootstrap means, as returned by
+        ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as
+        ``means``. Required if ``method`` is "GIM".
+    :param pop_ids: The list of population names corresponding to the data.
+    :param rs: The recombination bin edges used in the optimization.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in ``pop_ids``, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
+    :param normalization: The name of the population that was used to normalize
+        the data. Note that this is the population's name, while ``moments.LD``
+        functions take its index.
+    :param log: If True, return the standard deviations of the logs of the
+        parameters, which can be interpreted as relative uncertainties.
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+    :param method: "FIM" (Fisher Information) or "GIM" (Godambe Information).
+    :param verbose: If greater than zero, print progress every ``verbose`` function
+        calls.
+    :param output_stream: Where to print progress. Defaults to standard output.
+    :param output: If given, write the uncertainties to this file as a table.
+    :param overwrite: If True, overwrite ``output`` if it already exists.
+    :return: The standard errors of the fitted parameters.
     """
     func_calls = 0
 
@@ -1436,18 +1489,21 @@ def uncerts_LD(
     elif normalization not in pop_ids:
         raise ValueError("Normalization deme must be in pop_ids")
 
-    # when statistics is None, we assume all statistics are present, and
-    # we need to remove the normalizing statistic
-    if statistics is None:
-        statistics = moments.LD.Util.moment_names(len(pop_ids))
-        (
-            statistics,
-            means,
-            varcovs,
-            bootstraps,
-        ) = moments.LD.Godambe._remove_normalized_data(
-            statistics, pop_ids.index(normalization), means, varcovs, bootstraps
-        )
+    # Remove the normalizing statistics from the data, and get the names of the
+    # remaining statistics, which the model statistics are matched to
+    (
+        statistics,
+        means,
+        varcovs,
+        bootstraps,
+    ) = moments.LD.Inference._remove_normalizing_statistics(
+        means,
+        varcovs,
+        bootstraps=bootstraps,
+        normalization=pop_ids.index(normalization),
+        num_pops=len(pop_ids),
+        statistics=statistics,
+    )
 
     param_names, p0, lower_bound, upper_bound = _set_up_params_and_bounds(
         options, builder
