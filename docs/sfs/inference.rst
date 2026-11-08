@@ -110,6 +110,14 @@ Additionally, it is common to set the following:
 - ``verbose``: If an integer greater than 0, prints updates of the optimization
   procedure at intervals given by that spacing.
 
+.. note::
+    ``verbose=1`` prints a line for every function evaluation, which can be many
+    lines per second. Displaying them in a visible terminal window can slow down
+    the optimization, because the program waits for the terminal to draw each
+    line (it may run much faster when the window is minimized). Use a larger
+    value, such as 10 to 100, to avoid this, or write the output to a file
+    with ``output_file``.
+
 For a full description of the various inference functions, please see the
 :ref:`SFS inference API <sec_sfs_api>`.
 

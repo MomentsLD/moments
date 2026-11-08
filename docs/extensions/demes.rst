@@ -613,7 +613,10 @@ arguments in the ``moments.Demes.Inference.optimize`` function. These include:
   stronger perturbation of initial guesses.
 - ``verbose``: Defaults to 0. If greater than zero, it prints an update to the
   specified ``output_stream`` (which defaults to ``sys.stdout``) every
-  ``verbose`` iterations.
+  ``verbose`` iterations. Note that ``verbose=1`` prints a line for every
+  function evaluation, which can be many lines per second, and displaying them in
+  a visible terminal window can slow down the optimization. Use a larger value,
+  such as 10 to 100, or set ``output_stream`` to an open file, to avoid this.
 - ``uL``: Defaults to None. If given, this is the product of the per-base
   mutation rate and the length of the callable genome used to compile the data
   SFS. If we don't give this scaled mutation rate, we optimize with theta as

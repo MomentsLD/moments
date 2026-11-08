@@ -348,6 +348,9 @@ def GIM_uncert(
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     """
     means = copy.deepcopy(ms)
@@ -449,6 +452,9 @@ def FIM_uncert(
     :param verbose: If an integer greater than 0, prints updates
         of the number of function calls and tested parameters
         at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     """
     means = copy.deepcopy(ms)

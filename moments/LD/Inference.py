@@ -607,6 +607,9 @@ def optimize_log_fmin(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.
@@ -817,6 +820,9 @@ def optimize_log_powell(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.
@@ -1045,6 +1051,9 @@ def optimize_log_lbfgsb(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.

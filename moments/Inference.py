@@ -129,6 +129,10 @@ def optimize_log(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0.
     :param verbose: If > 0, print optimization status every ``verbose`` steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -269,6 +273,10 @@ def optimize_log_lbfgsb(
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
     :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -630,7 +638,11 @@ def optimize_log_fmin(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
-    :param verbose: If True, print optimization status every <verbose> steps.
+    :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -864,8 +876,12 @@ def optimize_log_powell(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
-    :param verbose: If True, print optimization status every <verbose> steps.
-        output_file: Stream verbose output into this filename. If None, stream to
+    :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
+    :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
         minutes. This is useful to avoid overloading I/O on clusters.
