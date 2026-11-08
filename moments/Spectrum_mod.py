@@ -1350,7 +1350,10 @@ class Spectrum(np.ma.masked_array):
         sample = np.random.multinomial(int(nsamples), pvals)
         sample = sample.reshape(self.shape)
         sample = moments.Spectrum(sample, mask=self.mask, pop_ids=self.pop_ids)
-        sample = sample.astype(int)
+        # The masked array fill value (nan) can't be cast to int, which some numpy
+        # versions warn about. The data are integer counts, so this is harmless.
+        with np.errstate(invalid="ignore"):
+            sample = sample.astype(int)
 
         return sample
 
@@ -1378,7 +1381,10 @@ class Spectrum(np.ma.masked_array):
         samp = Spectrum(
             samp, mask=bad_entries, data_folded=self.folded, pop_ids=self.pop_ids
         )
-        samp = samp.astype(int)
+        # The masked array fill value (nan) can't be cast to int, which some numpy
+        # versions warn about. The data are integer counts, so this is harmless.
+        with np.errstate(invalid="ignore"):
+            samp = samp.astype(int)
         return samp
 
     def genotype_matrix(
