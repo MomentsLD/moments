@@ -314,7 +314,8 @@ def GIM_uncert(
 
     Returns standard deviations of parameter values.
 
-    :param model_func: Model function
+    :param model_func: The demographic model function, called as
+        ``model_func(params, rho=rho)`` and returning an LDstats object.
     :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned
         by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as
         ``ms``.
@@ -331,7 +332,7 @@ def GIM_uncert(
     :param log: If True, assume log-normal distribution of parameters. Returned values
         are then the standard deviations of the *logs* of the parameter values,
         which can be interpreted as relative parameter uncertainties.
-    :param return_GIM: If true, also return the full GIM.
+    :param return_GIM: If True, also return the full GIM.
     :param r_edges: The bin edges for LD statistics.
     :param normalization: The index of the population that we normalized by.
     :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
@@ -352,6 +353,9 @@ def GIM_uncert(
         be many lines per second, and displaying them in a visible terminal window can
         slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
+    :return: The standard deviations of the parameters, and if ``return_GIM`` is
+        True, the GIM.
+    :rtype: numpy.ndarray, or tuple of numpy.ndarray
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
@@ -421,7 +425,8 @@ def FIM_uncert(
 
     Returns standard deviations of parameter values.
 
-    :param model_func: Model function
+    :param model_func: The demographic model function, called as
+        ``model_func(params, rho=rho)`` and returning an LDstats object.
     :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of
         parameter list.
     :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,
@@ -435,7 +440,6 @@ def FIM_uncert(
     :param log: If True, assume log-normal distribution of parameters. Returned values
         are then the standard deviations of the *logs* of the parameter values,
         which can be interpreted as relative parameter uncertainties.
-    :param return_GIM: If true, also return the full GIM.
     :param r_edges: The bin edges for LD statistics.
     :param normalization: The index of the population that we normalized by.
     :param pass_Ne: If True, Ne is a parameter in the model function, and by convention
@@ -456,6 +460,8 @@ def FIM_uncert(
         be many lines per second, and displaying them in a visible terminal window can
         slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
+    :return: The standard deviations of the parameters.
+    :rtype: numpy.ndarray
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
@@ -516,14 +522,16 @@ def LRT_adjust(
     statistics=None,
 ):
     """
-    Following `moments.Godambe.LRT_adjust()`, this function performs
+    Following ``moments.Godambe.LRT_adjust()``, this function performs
     first-order moment matching to adjust the test statistic for the likelihood
     ratio test. Given log-likelihoods for a full and nested model (complex and
-    simpler model, resp), the adjustment factor scales the difference in
-    log-likelihoods, which can then be used in a chi-squared test, as
-    implemented in `moments.Godambe.sum_chi2_ppf()`.
+    simpler model, resp), the adjustment factor ``adj`` scales the test statistic,
+    ``D_adj = adj * (ll_full - ll_nested)``, whose p-value is given by
+    ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization functions
+    return the negative log-likelihood.
 
-    :param model_func: The model function for the complex (full) model.
+    :param model_func: The demographic model function for the complex (full) model,
+        called as ``model_func(params, rho=rho)`` and returning an LDstats object.
     :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned
         by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as
         ``ms``.
@@ -551,6 +559,7 @@ def LRT_adjust(
         ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
         normalizing statistics are removed before computing likelihoods.
     :return: The adjustment factor for the likelihood ratio test statistic.
+    :rtype: float
     """
     means = copy.deepcopy(ms)
     varcovs = copy.deepcopy(vcs)
