@@ -4,9 +4,7 @@
 Installation
 ============
 
-``moments`` now supports Python 3. Because Python has discontinued support for
-Python 2, we do not actively ensure that moments remains fully compatible with
-Python 2, and strongly recommend using Python 3.
+``moments`` requires Python 3.11 or newer (up to 3.15).
 
 Using pip
 =========
@@ -27,18 +25,13 @@ from the development branch at Github:
 
    pip install git+https://github.com/MomentsLD/moments.git@devel
 
-Alternatively, you can clone the git repository
+Alternatively, you can clone the git repository and install from source (use
+``pip install -e .`` for an editable, development install):
 
 .. code-block:: bash
 
    git clone https://github.com/MomentsLD/moments.git
-
-
-and then from within the moments directory (``cd moments``), run
-
-.. code-block:: bash
-
-   pip install -r requirements.txt
+   cd moments
    pip install .
 
 Using conda
@@ -66,56 +59,38 @@ to include bioconda, which can be done by running
 Dependencies and details
 ========================
 
-If you are building ``moments`` from source, you will need to first install
-a handful of dependencies. Minimally, these include
+Installing with ``pip`` installs the required dependencies automatically:
 
-- numpy
+- ``numpy`` (>= 2.0, < 3.0)
+- ``scipy`` (>= 1.13)
+- ``cython`` (>= 3.1)
+- ``mpmath`` (>= 1.0, < 1.4)
+- ``demes`` (>= 0.2)
 
-- scipy
+Some features need additional packages:
 
-- cython
+- Plotting: ``matplotlib``
+- Parsing VCFs with ``moments.LD.Parsing``, which computes LD statistics to
+  compare to predictions from ``moments.LD``: ``scikit-allel``, ``h5py``, and
+  ``pandas``
 
-- mpmath
+We also strongly recommend installing ``ipython`` for interactive analyses.
 
-- demes
-
-
-All dependencies are listed in `requirements.txt`, and can be installed
-together using
+For development, ``requirements.txt`` lists the dependencies along with the
+packages needed to build the documentation. From the moments directory, these
+can be installed with
 
 .. code-block:: bash
 
    python -m pip install -r requirements.txt
 
-We also strongly recommend installing ``ipython`` for interactive analyses.
-
-If you are using conda, all dependencies can be installed by navigating to the
-moments directory and then running
+or, using conda,
 
 .. code-block:: bash
 
-   conda install --file requirements.txt
-
-Once dependencies are installed, to install ``moments``, run the following
-commands in the moments directory:
-
-.. code-block:: bash
-
-    python -m pip install -e .
-
-Note that you might need sudo privileges to install in this way.
+   conda install -c conda-forge --file requirements.txt
 
 You should then be able to import ``moments`` in your python scripts. Entering
 an ipython or python session, type ``import moments``. If, for any reason, you
 have trouble installing ``moments`` after following these steps, please submit
 an `Issue <https://github.com/MomentsLD/moments/issues>`_.
-
-If you use ``Parsing`` from ``moments.LD``, which reads VCF-formatted files and
-computes LD statistics to compare to predictions from ``moments.LD``, you will
-need to additionally install
-
-- hdf5
-
-- scikit-allel
-
-- pandas
