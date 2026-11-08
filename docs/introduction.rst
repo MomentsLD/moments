@@ -76,6 +76,7 @@ Change log
 - **Breaking:** ``get_bootstrap_sets`` and ``subset_data`` keep the normalizing
   statistics (their options to remove them are removed), which all LD inference,
   uncertainty, and plotting functions remove (see the LD parsing docs)
+- Fix Demes SFS and LD computation when all samples are ancient (#201)
 
 1.6.1
 =====

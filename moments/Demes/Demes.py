@@ -699,15 +699,14 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
     sample_times = [st - t for st in sample_times]
     # add frozen branches
     frozen_demes = []
+    # demes that are renamed, as {old name: new name}
+    renamed = {}
     b = demes.Builder.fromdict(g_new.asdict())
     for ii, (sd, st) in enumerate(zip(sampled_demes, sample_times)):
         if st > 0 or t > 0:
             sd_frozen = sd + f"_sampled_{'_'.join(str(float(st + t)).split('.'))}"
             # update names of sampled demes
             sampled_demes[ii] = sd_frozen
-            deme_sample_times = [
-                y for x, y in zip(sampled_demes, sample_times) if x == sd
-            ]
             if st > 0:
                 # add the frozen branch, as sample time is nonzero
                 frozen_demes.append(sd_frozen)
@@ -719,25 +718,28 @@ def _augment_with_ancient_samples(g, sampled_demes, sample_times):
                 )
             elif t > 0:
                 # change the name of the sampled branch, as we have all ancient samples
-                for ii, d in enumerate(b.data["demes"]):
-                    if d["name"] == sd:
-                        b.data["demes"][ii]["name"] = sd_frozen
-                # change migration and pulse demes involving this sampled deme
-                if "migrations" in b.data.keys():
-                    for ii, m in enumerate(b.data["migrations"]):
-                        if m["source"] == sd:
-                            m["source"] = sd_frozen
-                        if m["dest"] == sd:
-                            m["dest"] = sd_frozen
-                        b.data["migrations"][ii] = m
-                if "pulses" in b.data.keys():
-                    for ii, p in enumerate(b.data["pulses"]):
-                        for jj, source in enumerate(p["sources"]):
-                            if source == sd:
-                                p["sources"][jj] = sd_frozen
-                        if p["dest"] == sd:
-                            p["dest"] = sd_frozen
-                        b.data["pulses"][ii] = p
+                renamed[sd] = sd_frozen
+    # Rename demes everywhere they are referenced, including as ancestors of other
+    # demes and of the frozen branches added above. This is done after adding all
+    # frozen branches, so that a deme can be sampled at more than one time.
+    if len(renamed) > 0:
+
+        def rename(name):
+            return renamed.get(name, name)
+
+        for d in b.data["demes"]:
+            d["name"] = rename(d["name"])
+            if "ancestors" in d:
+                d["ancestors"] = [rename(a) for a in d["ancestors"]]
+        for m in b.data.get("migrations", []):
+            if "demes" in m:
+                m["demes"] = [rename(x) for x in m["demes"]]
+            else:
+                m["source"] = rename(m["source"])
+                m["dest"] = rename(m["dest"])
+        for p in b.data.get("pulses", []):
+            p["sources"] = [rename(x) for x in p["sources"]]
+            p["dest"] = rename(p["dest"])
     g_new = b.resolve()
     return g_new, sampled_demes, frozen_demes
 
