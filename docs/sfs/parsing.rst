@@ -1,8 +1,5 @@
  .. _sec_sfs_parsing:
 
-.. jupyter-execute::
-    :hide-code:
-
 ===============================
 Parsing the SFS from a VCF file
 ===============================

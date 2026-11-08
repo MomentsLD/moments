@@ -57,9 +57,30 @@ If you use ``moments.TwoLocus`` in your research, please cite:
   221(4), iyac097.
 
 
+.. _sec_changelog:
+
 **********
 Change log
 **********
+
+1.7.0
+=====
+- Add python 3.15 support
+- Fix bug in TwoLocus integration with negative selection (gamma < 0)
+- Remove upper bound on scipy version
+- Update pinned versions in requirements.txt (cython >= 3.1, demesdraw >= 0.4)
+- Fix crash in pulse_migrate / admix_inplace from non-converging nnls with newer scipy
+- Raise an error when two Demes inference parameters map to the same graph value
+- Fix several bugs in ``moments.Demes.Inference`` (#276)
+- Fix LD uncertainty functions failing with bootstraps from ``get_bootstrap_sets`` (#192)
+- **Breaking:** ``get_bootstrap_sets`` and ``subset_data`` keep the normalizing
+  statistics (their options to remove them are removed), which all LD inference,
+  uncertainty, and plotting functions remove (see the LD parsing docs)
+- Fix Demes SFS and LD computation when all samples are ancient (#201)
+- ``import moments`` no longer turns off numpy's floating-point warnings for the
+  whole session. Spectrum arithmetic warns only about inf or nan in unmasked
+  entries (for numpy functions on spectra, use ``numpy.ma`` versions, such as
+  ``np.ma.log``, to avoid warnings from masked entries)
 
 1.6.1
 =====

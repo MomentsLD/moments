@@ -96,14 +96,16 @@ def bin_stats(model_func, params, rho=[], theta=0.001, spread=None, kwargs={}):
 
 def remove_normalized_lds(y, normalization=0):
     """
-    Returns LD statistics with the normalizing statistic removed.
+    Returns a copy of model LD statistics with the normalizing statistics
+    (``pi2_k_k_k_k`` and ``H_k_k``) removed. The input is not modified.
 
     :param y: An LDstats object that has been normalized to get
-        :math:`\\sigma_D^2`-formatted statistics.
+        :math:`\\sigma_D^2`-formatted statistics, with all statistics present.
     :type y: :class:`LDstats` object
     :param normalization: The index of the normalizing population.
     :type normalization: int
     """
+    y = copy.deepcopy(y)
     to_delete_ld = y.names()[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
     to_delete_h = y.names()[1].index("H_{0}_{0}".format(normalization))
     for i in range(len(y) - 1):
@@ -116,15 +118,157 @@ def remove_normalized_lds(y, normalization=0):
     return y
 
 
+def _remove_normalizing_statistics(
+    means,
+    varcovs,
+    bootstraps=None,
+    normalization=0,
+    num_pops=None,
+    statistics=None,
+    has_H=True,
+):
+    """
+    Returns the statistic names, data means and varcovs, and bootstrap means, with
+    the normalizing statistics (``pi2_k_k_k_k`` and ``H_k_k`` for normalizing
+    population ``k``) removed. These equal 1 after normalization, so they carry no
+    information and are excluded from likelihoods. The inputs are not modified.
+
+    This is used by all LD inference and uncertainty functions, so that they handle
+    the normalizing statistics consistently.
+
+    :param means: Data means, a list with an array of statistics for each
+        recombination bin, followed by an array of heterozygosity statistics.
+    :param varcovs: Variance-covariance matrices matching ``means``.
+    :param bootstraps: Optional list of bootstrap means, each formatted like
+        ``means``.
+    :param normalization: The index of the normalizing population.
+    :param num_pops: The number of populations. Required if ``statistics`` is None.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order. If None, the data must contain the full set of statistics
+        for ``num_pops`` populations, as returned by the ``moments.LD.Parsing``
+        functions. If given, the normalizing statistics are removed if listed.
+        The normalizing statistics in the data means and bootstraps must equal 1,
+        or an error is raised, as the data were then normalized by a different
+        population.
+    :param has_H: If False, the data have only recombination bins, without a final
+        entry of heterozygosity statistics (used when fitting with the AFS).
+    :return: statistics, means, varcovs, bootstraps, with the normalizing
+        statistics removed.
+    """
+    if statistics is None:
+        if num_pops is None:
+            raise ValueError("num_pops must be given if statistics is not given")
+        statistics = Util.moment_names(num_pops)
+        full_set = True
+    else:
+        full_set = False
+    names = [list(statistics[0]), list(statistics[1])]
+    norm_names = [
+        "pi2_{0}_{0}_{0}_{0}".format(normalization),
+        "H_{0}_{0}".format(normalization),
+    ]
+    # indexes of the statistics to keep, for LD and heterozygosity statistics
+    keep = [[i for i, s in enumerate(names[j]) if s != norm_names[j]] for j in [0, 1]]
+    # indexes of the normalizing statistics in the data, if present
+    norm_idx = [
+        names[j].index(norm_names[j]) if norm_names[j] in names[j] else None
+        for j in [0, 1]
+    ]
+
+    def check_size(n, j):
+        if n == len(names[j]):
+            return
+        kind = ["LD", "heterozygosity"][j]
+        if full_set:
+            raise ValueError(
+                f"Expected the full set of {len(names[j])} {kind} statistics for "
+                f"{num_pops} population(s), as returned by the moments.LD.Parsing "
+                f"functions, but the data have {n}. If the data contain a subset of "
+                "statistics, pass `statistics` listing them. Note: since version "
+                "1.7.0, data must include the normalizing statistics. Data saved "
+                "from get_bootstrap_sets or subset_data in earlier versions have them "
+                "removed, so need to be recomputed (or have them added back, as they "
+                "equal 1 with zero variance)."
+            )
+        raise ValueError(
+            f"The data have {n} {kind} statistics, but `statistics` lists "
+            f"{len(names[j])}."
+        )
+
+    def remove(x, j):
+        # remove the normalizing statistic from a vector of means, or from the rows
+        # and columns of a varcov matrix
+        x = np.asarray(x)
+        if x.ndim == 0:
+            # a single statistic, e.g. the variance of H for one population
+            check_size(1, j)
+            return x if len(keep[j]) == 1 else np.array([])
+        check_size(x.shape[0], j)
+        if x.ndim == 2:
+            check_size(x.shape[1], j)
+            return x[np.ix_(keep[j], keep[j])]
+        return x[keep[j]]
+
+    def check_normalized(xs, name):
+        # The normalizing statistics in the data must equal 1. Otherwise, the data
+        # were normalized by another population, e.g. if the normalizing population
+        # was left out when subsetting the data. xs has an entry for each
+        # recombination bin, then (if has_H) for H, like in remove_all.
+        num_bins = len(xs) - 1 if has_H else len(xs)
+        entries = [(x, 0) for x in xs[:num_bins]]
+        if has_H:
+            entries.append((xs[-1], 1))
+        for x, j in entries:
+            if norm_idx[j] is None:
+                continue
+            value = np.asarray(x)[norm_idx[j]]
+            if not np.isclose(value, 1):
+                raise ValueError(
+                    f"The normalizing statistic {norm_names[j]} in the {name} "
+                    f"equals {value}, not 1, so the data were not normalized by "
+                    f"population {normalization}. Check that normalization is the "
+                    "population used to normalize the data, and that it was kept "
+                    "when subsetting the data."
+                )
+
+    def remove_all(xs):
+        # xs has an entry for each recombination bin, then (if has_H) for H
+        num_bins = len(xs) - 1 if has_H else len(xs)
+        out = [remove(x, 0) for x in xs[:num_bins]]
+        if has_H:
+            out.append(remove(xs[-1], 1))
+        return out
+
+    if len(means) == 0:
+        raise ValueError("The data means are empty")
+    if len(means) != len(varcovs):
+        raise ValueError("Different lengths of means and varcovs")
+    if bootstraps is None:
+        bootstraps = []
+    for boot in bootstraps:
+        if len(boot) != len(means):
+            raise ValueError("Different lengths of bootstrap means and data means")
+    new_statistics = [[names[j][i] for i in keep[j]] for j in [0, 1]]
+    means_out = remove_all(means)
+    varcovs_out = remove_all(varcovs)
+    bootstraps_out = [remove_all(boot) for boot in bootstraps]
+    # check after remove_all, which checks the numbers of statistics
+    check_normalized(means, "data means")
+    for boot in bootstraps:
+        check_normalized(boot, "bootstrap means")
+    return new_statistics, means_out, varcovs_out, bootstraps_out
+
+
 def remove_normalized_data(
     means, varcovs, normalization=0, num_pops=1, statistics=None
 ):
     """
     Returns data means and covariance matrices with the normalizing
-    statistics removed.
+    statistics removed. The inputs are not modified.
 
     :param means: List of means normalized statistics, where each entry is the
-        full set of statistics for a given recombination distance.
+        set of statistics for a given recombination distance, with heterozygosity
+        statistics last.
     :type means: list of arrays
     :param varcovs: List of the corresponding variance covariance matrices.
     :type varcovs: list of arrays
@@ -132,52 +276,31 @@ def remove_normalized_data(
     :type normalization: int
     :param num_pops: The number of populations in the data set.
     :type num_pops: int
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order. If None, the data must contain the full set of statistics
+        for ``num_pops`` populations, including the normalizing statistics.
+    :type statistics: list of lists, optional
+    :return: The means and varcovs, and if ``statistics`` is given, the statistics
+        with the normalizing statistics removed.
     """
-    if len(means) != len(varcovs):
-        raise ValueError("Different lengths of means and covariances")
-    if statistics is None:
-        stats = Util.moment_names(num_pops)
-    else:
-        stats = copy.copy(statistics)
-    to_delete_ld = stats[0].index("pi2_{0}_{0}_{0}_{0}".format(normalization))
-    to_delete_h = stats[1].index("H_{0}_{0}".format(normalization))
-    ms = []
-    vcs = []
-    for i in range(len(means) - 1):
-        if (
-            len(means[i]) != len(stats[0])
-            or varcovs[i].shape[0] != len(stats[0])
-            or varcovs[i].shape[1] != len(stats[0])
-        ):
-            raise ValueError(
-                "Data and statistics mismatch. Some statistics are missing "
-                "or the incorrect number of populations was given."
-            )
-        ms.append(np.delete(means[i], to_delete_ld))
-        vcs.append(
-            np.delete(np.delete(varcovs[i], to_delete_ld, axis=0), to_delete_ld, axis=1)
-        )
-    ms.append(np.delete(means[-1], to_delete_h))
-    # Single population data will have 1-D array for H
-    if varcovs[-1].size > 1:
-        vcs.append(
-            np.delete(np.delete(varcovs[-1], to_delete_h, axis=0), to_delete_h, axis=1)
-        )
-    else:
-        vcs.append(np.delete(varcovs[-1], to_delete_h))
+    stats, ms, vcs, _ = _remove_normalizing_statistics(
+        means,
+        varcovs,
+        normalization=normalization,
+        num_pops=num_pops,
+        statistics=statistics,
+    )
     if statistics is None:
         return ms, vcs
     else:
-        stats[0].pop(to_delete_ld)
-        stats[1].pop(to_delete_h)
         return ms, vcs, stats
 
 
 def remove_normalized_stat_name(statistics=None, normalization=0, num_pops=None):
     """
-    Returns the set of statistic names with the normalizing statistic removed. Note that
-    the normalizing statistics for LD and H must be present for this function to not
-    fail.
+    Returns the set of statistic names with the normalizing statistics (``pi2_k_k_k_k``
+    and ``H_k_k``) removed. Note that the normalizing statistics for LD and H must be
+    present for this function to not fail.
 
     If the list of statistics are not provided, set the number of populations so that
     all statistics are present, aside from the removed normalizing statistic.
@@ -206,12 +329,15 @@ def remove_normalized_stat_name(statistics=None, normalization=0, num_pops=None)
 
 def remove_nonpresent_statistics(y, statistics=[[], []]):
     """
-    Removes data not found in the given set of statistics.
+    Returns a copy of model LD statistics with only the given statistics, which are
+    kept in the order of ``y.names()`` (the standard order of
+    ``moments.LD.Util.moment_names``). The input is not modified.
 
     :param y: LD statistics.
     :type y: :class:`LDstats` object.
     :param statistics: A list of lists for two and one locus statistics to keep.
     """
+    y = copy.deepcopy(y)
     to_delete = [[], []]
     for j in range(2):
         for i, s in enumerate(y.names()[j]):
@@ -447,7 +573,10 @@ def optimize_log_fmin(
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
-          come last.
+          come last. These are typically the "means" returned by
+          ``moments.LD.Parsing.bootstrap_data``, including the normalizing
+          statistics, which are removed before computing the likelihood (see
+          ``statistics``).
         - varcovs: The list of varcov matrices matching the data in ``means``.
 
     :type data: list
@@ -478,6 +607,9 @@ def optimize_log_fmin(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.
@@ -506,11 +638,14 @@ def optimize_log_fmin(
         if we are using the frequency spectrum, as the sample size does not
         affect mean LD statistics.
     :type ns: list of ints, optional
-    :param statistics: Defaults to ``None``, which assumes that
-        all statistics are present and in the conventional default order. If
-        the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by
-        ``moments.LD.Util.moment_names(num_pops)``.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
         demographic model includes ``Ne`` as a parameter (in the final position
@@ -553,14 +688,16 @@ def optimize_log_fmin(
         y = model_func[0](p0)
     num_pops = y.num_pops
 
-    # remove normalized statisticsd
-    ms = copy.copy(means)
-    vcs = copy.copy(varcovs)
-    if statistics is None:
-        # if statistics is not None, assume we already filtered out the data
-        ms, vcs = remove_normalized_data(
-            ms, vcs, normalization=normalization, num_pops=num_pops
-        )
+    # Remove the normalizing statistics from the data, and get the names of the
+    # remaining statistics, which the model statistics are matched to
+    statistics, ms, vcs, _ = _remove_normalizing_statistics(
+        means,
+        varcovs,
+        normalization=normalization,
+        num_pops=num_pops,
+        statistics=statistics,
+        has_H=not use_afs,
+    )
 
     args = (
         model_func,
@@ -649,7 +786,10 @@ def optimize_log_powell(
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
-          come last.
+          come last. These are typically the "means" returned by
+          ``moments.LD.Parsing.bootstrap_data``, including the normalizing
+          statistics, which are removed before computing the likelihood (see
+          ``statistics``).
         - varcovs: The list of varcov matrices matching the data in ``means``.
 
     :type data: list
@@ -680,6 +820,9 @@ def optimize_log_powell(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.
@@ -708,11 +851,14 @@ def optimize_log_powell(
         if we are using the frequency spectrum, as the sample size does not
         affect mean LD statistics.
     :type ns: list of ints, optional
-    :param statistics: Defaults to ``None``, which assumes that
-        all statistics are present and in the conventional default order. If
-        the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by
-        ``moments.LD.Util.moment_names(num_pops)``.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
         demographic model includes ``Ne`` as a parameter (in the final position
@@ -754,14 +900,16 @@ def optimize_log_powell(
         y = model_func[0](p0)
     num_pops = y.num_pops
 
-    # remove normalized statistics
-    ms = copy.copy(means)
-    vcs = copy.copy(varcovs)
-    if statistics is None:
-        # if statistics is not None, assume we already filtered out the data
-        ms, vcs = remove_normalized_data(
-            ms, vcs, normalization=normalization, num_pops=num_pops
-        )
+    # Remove the normalizing statistics from the data, and get the names of the
+    # remaining statistics, which the model statistics are matched to
+    statistics, ms, vcs, _ = _remove_normalizing_statistics(
+        means,
+        varcovs,
+        normalization=normalization,
+        num_pops=num_pops,
+        statistics=statistics,
+        has_H=not use_afs,
+    )
 
     args = (
         model_func,
@@ -869,7 +1017,10 @@ def optimize_log_lbfgsb(
         - Means: The list of mean statistics within each bin
           (has length ``len(rs)`` or ``len(rs) - 1`` if using AFS). If we are
           not using the AFS, which is typical, the heterozygosity statistics
-          come last.
+          come last. These are typically the "means" returned by
+          ``moments.LD.Parsing.bootstrap_data``, including the normalizing
+          statistics, which are removed before computing the likelihood (see
+          ``statistics``).
         - varcovs: The list of varcov matrices matching the data in ``means``.
 
     :type data: list
@@ -900,6 +1051,9 @@ def optimize_log_lbfgsb(
     :type upper_bound: list, optional
     :param verbose: If an integer greater than 0, prints updates
         of the optimization procedure at intervals given by that spacing.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.
     :type verbose: int, optional
     :param func_args: Additional arguments to be passed
         to ``model_func``.
@@ -928,11 +1082,14 @@ def optimize_log_lbfgsb(
         if we are using the frequency spectrum, as the sample size does not
         affect mean LD statistics.
     :type ns: list of ints, optional
-    :param statistics: Defaults to ``None``, which assumes that
-        all statistics are present and in the conventional default order. If
-        the data is missing some statistics, we must specify which statistics
-        are present using the subset of statistic names given by
-        ``moments.LD.Util.moment_names(num_pops)``.
+    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the
+        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to
+        None, in which case the data must contain the full set of statistics for
+        the number of populations in the model, including the normalizing
+        statistics, as returned by the ``moments.LD.Parsing`` functions. If the
+        data contain a subset of statistics (e.g. from
+        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
+        normalizing statistics are removed before computing likelihoods.
     :type statistics: list, optional
     :param pass_Ne: Defaults to ``False``. If ``True``, the
         demographic model includes ``Ne`` as a parameter (in the final position
@@ -977,14 +1134,16 @@ def optimize_log_lbfgsb(
         y = model_func[0](p0)
     num_pops = y.num_pops
 
-    # remove normalized statistics
-    ms = copy.copy(means)
-    vcs = copy.copy(varcovs)
-    if statistics is None:
-        # if statistics is not None, assume we already filtered out the data
-        ms, vcs = remove_normalized_data(
-            ms, vcs, normalization=normalization, num_pops=num_pops
-        )
+    # Remove the normalizing statistics from the data, and get the names of the
+    # remaining statistics, which the model statistics are matched to
+    statistics, ms, vcs, _ = _remove_normalizing_statistics(
+        means,
+        varcovs,
+        normalization=normalization,
+        num_pops=num_pops,
+        statistics=statistics,
+        has_H=not use_afs,
+    )
 
     args = (
         model_func,
@@ -1017,13 +1176,16 @@ def optimize_log_lbfgsb(
     if lower_bound is None:
         lower_bound = [None] * len(p0)
     else:
-        lower_bound = np.log(lower_bound)
+        # a lower bound of 0 is -inf on the log scale, which is valid
+        with np.errstate(divide="ignore", invalid="ignore"):
+            lower_bound = np.log(lower_bound)
         lower_bound[np.isnan(lower_bound)] = None
     lower_bound = _project_params_down(lower_bound, fixed_params)
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     else:
-        upper_bound = np.log(upper_bound)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            upper_bound = np.log(upper_bound)
         upper_bound[np.isnan(upper_bound)] = None
     upper_bound = _project_params_down(upper_bound, fixed_params)
     bounds = list(zip(lower_bound, upper_bound))
@@ -1035,7 +1197,6 @@ def optimize_log_lbfgsb(
         bounds=bounds,
         epsilon=epsilon,
         args=args,
-        iprint=-1,
         pgtol=pgtol,
         maxiter=maxiter,
         approx_grad=True,

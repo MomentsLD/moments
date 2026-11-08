@@ -32,6 +32,44 @@ except ImportError:
     _plotting = False
 
 
+def _warn_if_new_nonfinite(result, mask, inputs, method):
+    """
+    Spectrum arithmetic is computed on all entries, including masked ones, with
+    numpy's floating-point warnings suppressed, since masked entries (often zeros)
+    commonly give inf or nan that don't matter. This warns if the operation gave
+    inf or nan in any *unmasked* entry from finite inputs, as numpy would.
+
+    :param result: The data of the result.
+    :param mask: The mask of the result.
+    :param inputs: The operands (arrays or scalars), used to ignore entries that
+        were already inf or nan.
+    :param method: The name of the arithmetic method, for the warning message.
+    """
+    result = np.asarray(result)
+    if not np.issubdtype(result.dtype, np.inexact):
+        return
+    nonfinite = ~np.isfinite(result)
+    # the common case, which is checked first as it's fast
+    if not nonfinite.any():
+        return
+    new_nonfinite = nonfinite & ~np.broadcast_to(
+        np.ma.getmaskarray(np.ma.masked_array(result, mask=mask)), result.shape
+    )
+    for x in inputs:
+        try:
+            new_nonfinite &= np.isfinite(np.asarray(x))
+        except TypeError:
+            # non-numeric operands are left to numpy to handle
+            pass
+    if np.any(new_nonfinite):
+        warnings.warn(
+            f"Spectrum arithmetic ({method}) gave inf or nan values in "
+            f"{np.count_nonzero(new_nonfinite)} unmasked entries.",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
+
 class Spectrum(np.ma.masked_array):
     """
     Represents a single-locus biallelic frequency spectrum.
@@ -1312,7 +1350,10 @@ class Spectrum(np.ma.masked_array):
         sample = np.random.multinomial(int(nsamples), pvals)
         sample = sample.reshape(self.shape)
         sample = moments.Spectrum(sample, mask=self.mask, pop_ids=self.pop_ids)
-        sample = sample.astype(int)
+        # The masked array fill value (nan) can't be cast to int, which some numpy
+        # versions warn about. The data are integer counts, so this is harmless.
+        with np.errstate(invalid="ignore"):
+            sample = sample.astype(int)
 
         return sample
 
@@ -1340,7 +1381,10 @@ class Spectrum(np.ma.masked_array):
         samp = Spectrum(
             samp, mask=bad_entries, data_folded=self.folded, pop_ids=self.pop_ids
         )
-        samp = samp.astype(int)
+        # The masked array fill value (nan) can't be cast to int, which some numpy
+        # versions warn about. The data are integer counts, so this is harmless.
+        with np.errstate(invalid="ignore"):
+            samp = samp.astype(int)
         return samp
 
     def genotype_matrix(
@@ -1997,7 +2041,7 @@ class Spectrum(np.ma.masked_array):
         The parameter ``filters`` allows filtering by quality and/or annotation
         at the site and sample level. It should be a flat dictionary with str
         keys. Key-value pairs may have the following forms:
-        
+
         - 'QUAL' should map to a single number (float or int), imposing a minimum
           value for site ``QUAL`` fields.
         - 'FILTER' should map to a string or a set, tuple or list of strings. For
@@ -2308,16 +2352,20 @@ class Spectrum(np.ma.masked_array):
         "__rpow__",
         "__pow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
     if isinstance(other, np.ma.masked_array):
-        newdata = self.data.%(method)s (other.data)
+        other_data = other.data
         newmask = np.ma.mask_or(self.mask, other.mask)
     else:
-        newdata = self.data.%(method)s (other)
+        other_data = other
         newmask = self.mask
+    # masked entries may give inf or nan, so we only warn about unmasked entries
+    with np.errstate(all="ignore"):
+        newdata = self.data.%(method)s (other_data)
+    if newdata is not NotImplemented:
+        _warn_if_new_nonfinite(newdata, newmask, [self.data, other_data], "%(method)s")
     newpop_ids = self.pop_ids
     if hasattr(other, 'pop_ids'):
         if other.pop_ids is None:
@@ -2331,9 +2379,7 @@ def %(method)s(self, other):
                                    mask_corners=False, data_folded=self.folded,
                                    check_folding=False, pop_ids=newpop_ids)
     return outfs
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     # Methods that modify the Spectrum in-place.
     for method in [
@@ -2345,23 +2391,23 @@ def %(method)s(self, other):
         "__ifloordiv__",
         "__ipow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     self._check_other_folding(other)
+    other_data = other.data if isinstance(other, np.ma.masked_array) else other
+    data_before = self.data.copy()
+    # masked entries may give inf or nan, so we only warn about unmasked entries
+    with np.errstate(all="ignore"):
+        self.data.%(method)s (other_data)
     if isinstance(other, np.ma.masked_array):
-        self.data.%(method)s (other.data)
         self.mask = np.ma.mask_or(self.mask, other.mask)
-    else:
-        self.data.%(method)s (other)
+    _warn_if_new_nonfinite(self.data, self.mask, [data_before, other_data], "%(method)s")
     if hasattr(other, 'pop_ids') and other.pop_ids is not None\
              and other.pop_ids != self.pop_ids:
         logger.warn('Arithmetic between Spectra with different pop_ids. '
                     'Resulting pop_id may not be correct.')
     return self
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     def _check_other_folding(self, other):
         """

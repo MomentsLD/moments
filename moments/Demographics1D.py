@@ -1,6 +1,7 @@
 """
 Single-population demographic models.
 """
+
 import numpy
 
 import moments

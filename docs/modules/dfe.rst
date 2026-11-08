@@ -99,7 +99,8 @@ synonymous mutations than nonsynonymous mutations:
 
     # note that these frequency spectra are saved in the docs directory of the moments
     # repository: https://github.com/MomentsLD/moments/tree/main/docs/data
-    data = pickle.load(open("./data/msl_data.bp", "rb"))
+    with open("./data/msl_data.bp", "rb") as fin:
+        data = pickle.load(fin)
 
     fs_syn = data["spectra"]["syn"]
     fs_mis = data["spectra"]["mis"]
@@ -276,7 +277,8 @@ the SFS. That SFS is then projected to the needed sample size and chached.
 .. jupyter-execute::
     :hide-code:
 
-    spectrum_cache = pickle.load(open("./data/msl_spectrum_cache.bp", "rb"))
+    with open("./data/msl_spectrum_cache.bp", "rb") as fin:
+        spectrum_cache = pickle.load(fin)
     gammas = np.array(sorted(list(spectrum_cache.keys())))[1:]
 
 Optimization of the DFE
@@ -526,7 +528,8 @@ variants:
 .. jupyter-execute::
     :hide-code:
 
-    spectrum_cache = pickle.load(open("./data/msl_spectrum_cache_two_epoch.bp", "rb"))
+    with open("./data/msl_spectrum_cache_two_epoch.bp", "rb") as fin:
+        spectrum_cache = pickle.load(fin)
     gammas = np.array(sorted(list(spectrum_cache.keys())))[1:]
 
 Set up the mutation rates and DFE functions:

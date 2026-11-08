@@ -225,7 +225,9 @@ def plot_single_2d_sfs(
     :param extend: Whether the colorbar should have 'extension' arrows. See
         help(pylab.colorbar) for more details.
     :param colorbar: Should we plot a colorbar?
-    :param cmap: Pylab colormap to use for plotting.
+    :param cmap: Matplotlib colormap, or the name of a registered colormap, to
+        use for plotting. Values below vmin are drawn in white. The colormap
+        passed in is not modified.
     :param out: Output filename to save figure, if given.
     :param show: If True, execute pylab.show command to make sure plot displays.
     """
@@ -245,7 +247,9 @@ def plot_single_2d_sfs(
     if vmax is None:
         vmax = sfs_plot.max()
 
-    pylab.cm.hsv.set_under("w")
+    # Draw values below vmin in white. with_extremes returns a modified copy, so
+    # neither the colormap passed in nor the globally registered one is changed.
+    cmap = matplotlib.colormaps.get_cmap(cmap).with_extremes(under="w")
     if vmax / vmin > 10:
         # Under matplotlib 1.0.1, default LogFormatter omits some tick lines.
         # This works more consistently.
@@ -257,7 +261,10 @@ def plot_single_2d_sfs(
         )
         format = None
     mappable = axes.pcolor(
-        np.ma.masked_where(sfs_plot < vmin, sfs), cmap=cmap, edgecolors="none", norm=norm
+        np.ma.masked_where(sfs_plot < vmin, sfs),
+        cmap=cmap,
+        edgecolors="none",
+        norm=norm,
     )
     cb = axes.figure.colorbar(mappable, extend=extend, format=format)
     if not colorbar:

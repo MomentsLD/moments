@@ -1,18 +1,24 @@
-Command line instructions
+Running the tests
 
-Only run fast test cases:
-python run_tests.py
+The test suite uses pytest. Install moments and the test requirements, then run
+the tests from the repository root:
 
-Run all test cases:
-python run_tests.py --run_all_tests
+    pip install .
+    pip install -r requirements/tests.txt
+    python -m pytest tests
 
-Add more tests:
-If any test case is slow, append the test name by '_slow'
-For example, if the test_case3 is slow, the name should be changed to test_case3_slow
-so that the script can ignore it in fast mode.
+To run tests in parallel (using pytest-xdist), as in CI:
 
-class TestExample(unittest.TestCase):
-    def test_case1(self): pass
-    def test_case2(self): pass
-    def test_case3_slow(self): pass
+    python -m pytest -n auto tests
 
+To run a single test file, or a single test:
+
+    python -m pytest tests/test_Spectrum.py
+    python -m pytest tests/test_Spectrum.py -k test_name
+
+Warnings are treated as errors (see `[tool.pytest.ini_options]` in
+pyproject.toml), so new deprecation warnings from dependencies will cause tests
+to fail.
+
+Tests that need optional dependencies, such as matplotlib, should skip when the
+dependency isn't installed, e.g. with `pytest.importorskip("matplotlib")`.

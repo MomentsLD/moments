@@ -19,7 +19,7 @@ def dog_demog(params, ns):
         T_present,  # time until the present
         m_wolf_gl,  # migration rate from wolf to GL dog
     ) = params
-    (n_gl, n_wolf, n_cn) = ns  # ordered to match data
+    n_gl, n_wolf, n_cn = ns  # ordered to match data
 
     sts = moments.LinearSystem_1D.steady_state_1D(sum(ns))
     fs = moments.Spectrum(sts)

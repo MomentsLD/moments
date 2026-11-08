@@ -1,6 +1,7 @@
 """
 Comparison and optimization of model spectra to data.
 """
+
 import logging
 
 logger = logging.getLogger("Inference")
@@ -128,6 +129,10 @@ def optimize_log(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0.
     :param verbose: If > 0, print optimization status every ``verbose`` steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -268,6 +273,10 @@ def optimize_log_lbfgsb(
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
     :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -326,12 +335,19 @@ def optimize_log_lbfgsb(
     if lower_bound is None:
         lower_bound = [None] * len(p0)
     else:
-        lower_bound = [numpy.log(lb) if lb is not None else None for lb in lower_bound]
+        # a lower bound of 0 is -inf on the log scale, which is valid
+        with numpy.errstate(divide="ignore"):
+            lower_bound = [
+                numpy.log(lb) if lb is not None else None for lb in lower_bound
+            ]
     lower_bound = _project_params_down(lower_bound, fixed_params)
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     else:
-        upper_bound = [numpy.log(ub) if ub is not None else None for ub in upper_bound]
+        with numpy.errstate(divide="ignore"):
+            upper_bound = [
+                numpy.log(ub) if ub is not None else None for ub in upper_bound
+            ]
     upper_bound = _project_params_down(upper_bound, fixed_params)
     bounds = list(zip(lower_bound, upper_bound))
 
@@ -343,7 +359,6 @@ def optimize_log_lbfgsb(
         bounds=bounds,
         epsilon=epsilon,
         args=args,
-        iprint=-1,
         pgtol=pgtol,
         maxiter=maxiter,
         approx_grad=True,
@@ -630,7 +645,11 @@ def optimize_log_fmin(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
-    :param verbose: If True, print optimization status every <verbose> steps.
+    :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
     :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
@@ -864,8 +883,12 @@ def optimize_log_powell(
     :param upper_bound: Upper bound on parameter values. If not None, must be of same
         length as p0. A parameter can be declared unbound by assigning
         a bound of None.
-    :param verbose: If True, print optimization status every <verbose> steps.
-        output_file: Stream verbose output into this filename. If None, stream to
+    :param verbose: If > 0, print optimization status every <verbose> steps.
+        Note that ``verbose=1`` prints a line for every function evaluation, which can
+        be many lines per second, and displaying them in a visible terminal window can
+        slow down the computation. Use a larger value (e.g. 10 to 100), or write the
+        output to a file with ``output_file``, to avoid this.
+    :param output_file: Stream verbose output into this filename. If None, stream to
         standard out.
     :param flush_delay: Standard output will be flushed once every <flush_delay>
         minutes. This is useful to avoid overloading I/O on clusters.
@@ -1171,7 +1194,6 @@ def optimize_lbfgsb(
         bounds=bounds,
         epsilon=epsilon,
         args=args,
-        iprint=-1,
         pgtol=pgtol,
         maxiter=maxiter,
         approx_grad=True,

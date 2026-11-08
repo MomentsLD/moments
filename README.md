@@ -6,8 +6,8 @@ for more details, examples, tutorials and API usage.
 `moments` provides a suite of methods for demographic history and selection
 inference from genetic data, based on diffusion approximations to the one- and
 two-locus allele frequency spectrum. `moments` is modeled after the
-[∂a∂i](https://bitbucket.org/gutenkunstlab/dadi/) open source package developed
-by [Ryan Gutenkunst](http://gutengroup.mcb.arizona.edu). For SFS-based methdos,
+[∂a∂i](https://github.com/RyanGutenkunst/dadi) open source package developed
+by [Ryan Gutenkunst](https://gutengroup.arizona.edu/). For SFS-based methods,
 we largely reuse `∂a∂i`'s API, but introduce a new simulation engine. This new
 method is based on the direct computation of the frequency spectrum without
 solving the diffusion system, removing the need for frequency grids as used in
@@ -17,8 +17,7 @@ demographic inference using patterns of LD.
 
 ## Getting started
 
-`moments` now supports Python 3, and we no longer guarantee compatibility with
-Python 2.
+`moments` requires Python 3.11 or newer (up to 3.15).
 
 The simplest way to install `moments` is using `pip`:
 
@@ -26,9 +25,17 @@ The simplest way to install `moments` is using `pip`:
 pip install moments-popgen
 ```
 
-`moments` can then be imported using `import moments`. <b>Important note:</b>
+`moments` can then be imported using `import moments`.
+
+<b>Important note:</b>
 `pip install moments` installs a different package named moments, and our
 pypi package is named `moments-popgen`.
+
+`moments` is also available from [Bioconda](https://anaconda.org/bioconda/moments):
+
+```
+conda install -c conda-forge -c bioconda moments
+```
 
 We can install the development branch directly from Github by running
 
@@ -36,26 +43,49 @@ We can install the development branch directly from Github by running
 pip install git+https://github.com/MomentsLD/moments.git@devel
 ```
 
-Alternatively, you can clone the git repository to make an editable or
-development build.
+Alternatively, you can clone the git repository and install from source (use
+`pip install -e .` for an editable, development install):
 
 ```
 git clone https://github.com/MomentsLD/moments.git
-```
-
-and then from within the moments directory (`cd moments`), run
-
-```
-pip install -r requirements.txt
+cd moments
 pip install .
 ```
 
-If you use `conda`, `moments` is available via `bioconda`:
+### Dependencies
+
+Installing with `pip` installs the required dependencies automatically:
+
+- `numpy` (>= 2.0, < 3.0)
+- `scipy` (>= 1.13)
+- `cython` (>= 3.1)
+- `mpmath` (>= 1.0, < 1.4)
+- `demes` (>= 0.2)
+
+Some features need additional packages:
+
+- Plotting: `matplotlib`
+- Parsing VCFs with `moments.LD.Parsing`: `scikit-allel`, `h5py`, and `pandas`
+
+We also recommend installing `ipython` for interactive analyses.
+
+For development, `requirements.txt` lists the dependencies along with the packages
+needed to build the documentation:
 
 ```
-conda config --add channels bioconda
-conda install moments
+pip install -r requirements.txt
 ```
+
+or, with `conda`:
+
+```
+conda install -c conda-forge --file requirements.txt
+```
+
+More details on installation can be found in the
+[documentation](https://momentsld.github.io/moments/installation.html). If you
+have trouble installing `moments`, please open an
+[issue](https://github.com/MomentsLD/moments/issues).
 
 ## Citing moments
 
@@ -75,73 +105,24 @@ If you use `moments.LD` in your research, please cite:
 
 If you use `moments.TwoLocus` in your research, please cite:
 
-- Ragsdale, A. P. (2021). Can we distinguish modes of selective interactions
-  from linkage disequilibrium? BioRxiv, doi: https://doi.org/10.1101/2021.03.25.437004
+- Ragsdale, A. P. (2022). Local fitness and epistatic effects lead to distinct
+  patterns of linkage disequilibrium in protein-coding genes. Genetics, 221(4),
+  iyac097.
+
+If you use the Godambe-based uncertainty methods (in `moments.Godambe` or `moments.LD.Godambe`), 
+please cite:
+
+- Coffman, A. J., Hsieh, P. H., Gravel, S., & Gutenkunst, R. N. (2016).
+  Computationally efficient composite likelihood statistics for demographic
+  inference. Molecular biology and evolution, 33(2), 591-593.
 
 `moments` is developed in the [Simon
-Gravel](http://simongravel.lab.mcgill.ca/Home.html) and [Aaron
+Gravel](https://gravellab.github.io/) and [Aaron
 Ragsdale](https://apragsdale.github.io/) research groups, at McGill University and
 UW-Madison, respectively. For any issues, questions or bug reports, please open
 an [issue on Github](https://github.com/MomentsLD/moments/issues).
 
-### Dependencies
-
-If you install `moments` from source (e.g., after cloning the repository), you
-will need to install the dependencies. These are all listed in
-`requirements.txt`, and can be installed via `pip` after navigating to the
-`moments` directory:
-
-```
-pip install -r requirements.txt
-```
-
-A few more details: `moments` and `moments.LD` requires a handful of
-dependencies. At a minimum, these include
-
-- `numpy`
-
-- `scipy`
-
-- `cython`
-
-- `mpmath`
-
-- `demes`
-
-We also strongly recommend installing `ipython`.
-
-If you are using `conda`, all dependencies can be installed by navigating to
-the moments directory and then running
-
-```
-conda install --file requirements.txt
-```
-
-Once dependencies are installed, to install `moments`, run the following command
-in the moments directory:
-
-```
-python -m pip install -e .
-```
-
-You should then be able to import `moments` in your python scripts. Entering an
-`ipython` or python session, try to `import moments`. More details on
-installation can be found in the
-[documentation](https://momentsld.github.io/moments/installation.html). If, for
-any reason, you have trouble installing moments after following these steps,
-please submit an [issue](https://github.com/MomentsLD/moments/issues).
-
-If you use `Parsing` from `moments.LD`, which reads VCF files and computes LD
-statistics to compare to predictions from `moments.LD`, you will need to
-additionally install
-
-- `hdf5`
-
-- `scikit-allel`
-
-- `pandas`
-
 ## Changelog
 
 All changes are detailed in the
-[documentation](https://moments.readthedocs.io/en/latest/introduction.html#change-log).
+[documentation](https://momentsld.github.io/moments/introduction.html#change-log).

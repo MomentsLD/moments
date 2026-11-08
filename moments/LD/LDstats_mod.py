@@ -725,10 +725,8 @@ class LDstats(list):
             all_correct_length = 0
 
         if all_correct_length == 0:
-            raise ValueError(
-                "Length of data arrays does not match expected \
-                              length of statistics."
-            )
+            raise ValueError("Length of data arrays does not match expected \
+                              length of statistics.")
 
         # Open the file object.
         newfile = False
@@ -919,8 +917,7 @@ class LDstats(list):
         "__rpow__",
         "__pow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     if isinstance(other, np.ma.masked_array):
         newdata = self.%(method)s (other.data)
@@ -931,9 +928,7 @@ def %(method)s(self, other):
     outLDstats = self.__class__.__new__(self.__class__, newdata, newmask, 
                                    num_pops=self.num_pops, pop_ids=self.pop_ids)
     return outLDstats
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     # Methods that modify the Spectrum in-place.
     for method in [
@@ -945,8 +940,7 @@ def %(method)s(self, other):
         "__ifloordiv__",
         "__ipow__",
     ]:
-        exec(
-            """
+        exec("""
 def %(method)s(self, other):
     if isinstance(other, np.ma.masked_array):
         self.%(method)s (other.data)
@@ -954,9 +948,7 @@ def %(method)s(self, other):
     else:
         self.%(method)s (other)
     return self
-"""
-            % {"method": method}
-        )
+""" % {"method": method})
 
     def integrate(
         self,

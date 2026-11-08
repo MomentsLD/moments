@@ -18,6 +18,7 @@ from . import ModelPlot
 #       S2n is the effect of h != 0.5
 # -------------------------------------------------------------------------------
 
+
 # Function that returns the 1D index corresponding to ind = [i1,...,ip] when using reshape
 # dims = numpy.array([n1,...np])
 def index_1D(ind, dims):

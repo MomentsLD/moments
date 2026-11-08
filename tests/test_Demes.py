@@ -2,6 +2,7 @@ import os
 import unittest
 import math
 import pathlib
+import re
 
 import numpy as np
 import moments
@@ -1844,6 +1845,128 @@ class TestAncientSamples(unittest.TestCase):
         sfs2 = moments.Demographics1D.snm([10])
         sfs2.integrate([2], 0.5)
         self.assertTrue(np.allclose(sfs.data, sfs2.data))
+
+    def shifted_graphs(self, yaml, shift):
+        # The graph in yaml, with times written as T{time} (e.g. T25), as given and
+        # with all times shifted closer to the present by shift generations.
+        g = demes.loads(re.sub(r"T(\d+)", lambda m: m.group(1), yaml))
+        g_shifted = demes.loads(
+            re.sub(r"T(\d+)", lambda m: str(int(m.group(1)) - shift), yaml)
+        )
+        return g, g_shifted
+
+    def assert_same_results(self, g, g_shifted, sampled_demes, times, shift):
+        # SFS and LD statistics are the same for samples from g at the given times,
+        # and from g_shifted at times - shift.
+        n = [4 for _ in sampled_demes]
+        times_shifted = [t - shift for t in times]
+        fs = Demes.SFS(g, sampled_demes, n, sample_times=times)
+        fs_shifted = Demes.SFS(g_shifted, sampled_demes, n, sample_times=times_shifted)
+        self.assertTrue(np.allclose(fs.data, fs_shifted.data))
+        y = Demes.LD(g, sampled_demes, sample_times=times, r=[0, 1e-5])
+        y_shifted = Demes.LD(
+            g_shifted, sampled_demes, sample_times=times_shifted, r=[0, 1e-5]
+        )
+        for a, b in zip(y, y_shifted):
+            self.assertTrue(np.allclose(a, b))
+
+    def test_all_ancient_with_descendants(self):
+        # Regression test for #201: all samples are ancient (A ends at 25), and the
+        # most recently sampled deme A is an ancestor of B and C. This used to fail
+        # with "ancestor deme 'A' not found". Results equal those from the same
+        # model shifted 25 generations later, where A is sampled at time 0.
+        yaml = """
+time_units: generations
+demes:
+- name: A
+  epochs: [{end_time: T25, start_size: 1000}]
+- name: B
+  start_time: T200
+  ancestors: [A]
+  epochs: [{end_time: T100, start_size: 2000}]
+- name: C
+  start_time: T150
+  ancestors: [A, B]
+  proportions: [0.5, 0.5]
+  epochs: [{end_time: T50, start_size: 500}]
+"""
+        g, g_shifted = self.shifted_graphs(yaml, 25)
+        self.assert_same_results(g, g_shifted, ["A", "B", "C"], [25, 100, 50], 25)
+
+    def test_issue_201_models(self):
+        # The two models from #201, which differ only in whether deme A ends at
+        # time 25 or continues to the present. Sampling A, B, and C at the end
+        # times of their demes in the first model (all samples ancient, which
+        # used to fail) gives the same LD statistics as the second model with A
+        # sampled at time 25, since history after a sample doesn't affect it.
+        yaml = """
+time_units: generations
+generation_time: 1
+demes:
+- name: A
+  epochs:
+  - {end_time: %d, start_size: 1000}
+- name: B
+  start_time: 200
+  ancestors: [A]
+  epochs:
+  - {end_time: 100, start_size: 1000}
+- name: C
+  start_time: 150
+  ancestors: [A, B]
+  proportions: [0.5, 0.5]
+  epochs:
+  - {end_time: 50, start_size: 1000}
+"""
+        g_ancient = demes.loads(yaml % 25)
+        g_present = demes.loads(yaml % 0)
+        r = [0, 1e-5, 1e-4]
+        # samples default to the end times of the demes: 25, 100, and 50
+        y_ancient = Demes.LD(g_ancient, ["A", "B", "C"], r=r)
+        y_present = Demes.LD(
+            g_present, ["A", "B", "C"], sample_times=[25, 100, 50], r=r
+        )
+        self.assertEqual(len(y_ancient), len(y_present))
+        for a, b in zip(y_ancient, y_present):
+            self.assertTrue(np.allclose(a, b))
+
+    def test_all_ancient_same_deme_sampled_twice(self):
+        # Deme A, which ends at 25, sampled at 25 and at 60, given in either order.
+        # Results equal those from the model shifted 25 generations later.
+        yaml = """
+time_units: generations
+demes:
+- name: A
+  epochs:
+  - {end_time: T100, start_size: 1000}
+  - {end_time: T25, start_size: 2000}
+"""
+        g, g_shifted = self.shifted_graphs(yaml, 25)
+        self.assert_same_results(g, g_shifted, ["A", "A"], [25, 60], 25)
+        self.assert_same_results(g, g_shifted, ["A", "A"], [60, 25], 25)
+
+    def test_all_ancient_with_migration_and_pulse(self):
+        # All samples ancient, where the most recently sampled deme (B, ending at
+        # 30) is involved in migration and a pulse, which must refer to its new
+        # name. Results equal those from the model shifted 30 generations later.
+        yaml = """
+time_units: generations
+demes:
+- name: anc
+  epochs: [{end_time: T300, start_size: 1000}]
+- name: A
+  ancestors: [anc]
+  epochs: [{end_time: T80, start_size: 1000}]
+- name: B
+  ancestors: [anc]
+  epochs: [{end_time: T30, start_size: 2000}]
+migrations:
+- {source: A, dest: B, rate: 1e-3, start_time: T200, end_time: T100}
+pulses:
+- {sources: [B], dest: A, time: T150, proportions: [0.1]}
+"""
+        g, g_shifted = self.shifted_graphs(yaml, 30)
+        self.assert_same_results(g, g_shifted, ["A", "B"], [80, 30], 30)
 
 
 class TestSFSScaling(unittest.TestCase):

@@ -1,6 +1,7 @@
 """
 Numerically useful functions, including extrapolation and default grid.
 """
+
 import logging
 
 logger = logging.getLogger("Numerics")

@@ -1,6 +1,7 @@
 """
 Custom demographic model for our example.
 """
+
 import moments
 import numpy
 

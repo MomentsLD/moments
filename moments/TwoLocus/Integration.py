@@ -123,7 +123,7 @@ def integrate(
                 Ab += R.dot(J1)
             if (
                 sel_params is not None and np.any([s != 0 for s in sel_params])
-            ) or gamma > 0:
+            ) or gamma != 0:
                 Ab += S.dot(J1)
             elif sel_params_general is not None:
                 Ab += S.dot(J2)

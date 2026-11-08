@@ -326,15 +326,15 @@ def recombination(num_pops, r, frozen=None, selfing=None):
 
     names = Util.ld_names(num_pops)
     row = list(
-        range(int(num_pops * (num_pops + 1) / 2 + num_pops ** 2 * (num_pops + 1) / 2))
+        range(int(num_pops * (num_pops + 1) / 2 + num_pops**2 * (num_pops + 1) / 2))
     )
     col = list(
-        range(int(num_pops * (num_pops + 1) / 2 + num_pops ** 2 * (num_pops + 1) / 2))
+        range(int(num_pops * (num_pops + 1) / 2 + num_pops**2 * (num_pops + 1) / 2))
     )
 
     if frozen is None and selfing is None:
         data = [-1.0 * r] * int(num_pops * (num_pops + 1) / 2) + [-r / 2.0] * int(
-            num_pops ** 2 * (num_pops + 1) / 2
+            num_pops**2 * (num_pops + 1) / 2
         )
     else:
         rs = [r for _ in range(num_pops)]
@@ -614,10 +614,16 @@ def migration_ld(num_pops, mig_mat, frozen=None):
                         M[ii, Y_indexes["Dz"][(pop1, pop2, pop3)]] -= mig_mat[pop2][ll]
                         M[ii, Y_indexes["Dz"][(pop1, ll, pop3)]] += mig_mat[pop2][ll]
                     if ll != pop3:
-                        M[ii, Y_indexes["Dz"][(pop1, pop2, pop3)],] -= mig_mat[
+                        M[
+                            ii,
+                            Y_indexes["Dz"][(pop1, pop2, pop3)],
+                        ] -= mig_mat[
                             pop3
                         ][ll]
-                        M[ii, Y_indexes["Dz"][(pop1, pop2, ll)],] += mig_mat[
+                        M[
+                            ii,
+                            Y_indexes["Dz"][(pop1, pop2, ll)],
+                        ] += mig_mat[
                             pop3
                         ][ll]
 
@@ -961,9 +967,7 @@ def admix_h(num_pops, pop1, pop2, f):
             if i2 != num_pops:
                 raise ValueError("This is unexpected... i2 should have been num_pops.")
             if i1 == i2 == num_pops:  # H_new_new
-                A[ii, moms_from.index(Util.map_moment("H_{0}_{0}".format(pop1)))] = (
-                    f ** 2
-                )
+                A[ii, moms_from.index(Util.map_moment("H_{0}_{0}".format(pop1)))] = f**2
                 A[
                     ii, moms_from.index(Util.map_moment("H_{0}_{1}".format(pop1, pop2)))
                 ] = (2 * f * (1 - f))
@@ -1012,7 +1016,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("DD_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1035,7 +1039,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        1.0 / 2 * f ** 2 * (1 - f)
+                        1.0 / 2 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1043,7 +1047,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        -1.0 / 2 * f ** 2 * (1 - f)
+                        -1.0 / 2 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1051,7 +1055,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        -1.0 / 2 * f ** 2 * (1 - f)
+                        -1.0 / 2 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1059,7 +1063,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        1.0 / 2 * f ** 2 * (1 - f)
+                        1.0 / 2 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1100,7 +1104,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1108,7 +1112,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        -2 * f ** 2 * (1 - f) ** 2
+                        -2 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1116,7 +1120,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1124,7 +1128,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        -2 * f ** 2 * (1 - f) ** 2
+                        -2 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1132,7 +1136,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f) ** 2
+                        4 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1140,7 +1144,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        -2 * f ** 2 * (1 - f) ** 2
+                        -2 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1148,7 +1152,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1156,7 +1160,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        -2 * f ** 2 * (1 - f) ** 2
+                        -2 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1164,7 +1168,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
 
                 elif i1 == pop1:  # DD_pop1_new
@@ -1326,20 +1330,20 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 3
+                        f**3
                     )
                     A[
                         ii,
                         moms_from.index(
                             Util.map_moment("Dz_{0}_{0}_{1}".format(pop1, pop2))
                         ),
-                    ] += f ** 2 * (1 - f)
+                    ] += f**2 * (1 - f)
                     A[
                         ii,
                         moms_from.index(
                             Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))
                         ),
-                    ] += f ** 2 * (1 - f)
+                    ] += f**2 * (1 - f)
                     A[
                         ii,
                         moms_from.index(
@@ -1353,7 +1357,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                         moms_from.index(
                             Util.map_moment("Dz_{1}_{0}_{0}".format(pop1, pop2))
                         ),
-                    ] += f ** 2 * (1 - f)
+                    ] += f**2 * (1 - f)
                     A[
                         ii,
                         moms_from.index(
@@ -1383,7 +1387,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 3 * (1 - f)
+                        4 * f**3 * (1 - f)
                     )
                     A[
                         ii,
@@ -1391,7 +1395,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f) * (1 - 2 * f)
+                        4 * f**2 * (1 - f) * (1 - 2 * f)
                     )
                     A[
                         ii,
@@ -1399,7 +1403,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        -4 * f ** 2 * (1 - f) ** 2
+                        -4 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1407,7 +1411,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f) * (1 - 2 * f)
+                        4 * f**2 * (1 - f) * (1 - 2 * f)
                     )
                     A[
                         ii,
@@ -1431,7 +1435,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        -4 * f ** 2 * (1 - f) ** 2
+                        -4 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -1457,7 +1461,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1485,7 +1489,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1513,7 +1517,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{2}_{0}_{0}".format(pop1, pop2, i1))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1541,7 +1545,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1568,7 +1572,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f)
+                        4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1592,7 +1596,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        -4 * f ** 2 * (1 - f)
+                        -4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1618,7 +1622,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{1}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1645,7 +1649,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f)
+                        4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1669,7 +1673,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        -4 * f ** 2 * (1 - f)
+                        -4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1695,7 +1699,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("Dz_{0}_{2}_{0}".format(pop1, pop2, i2))
                         ),
                     ] += (
-                        f ** 2
+                        f**2
                     )
                     A[
                         ii,
@@ -1724,7 +1728,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             )
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f)
+                        4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -1754,7 +1758,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             )
                         ),
                     ] += (
-                        -4 * f ** 2 * (1 - f)
+                        -4 * f**2 * (1 - f)
                     )
                     A[
                         ii,
@@ -2493,7 +2497,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 4
+                        f**4
                     )
                     A[
                         ii,
@@ -2501,7 +2505,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        2 * f ** 3 * (1 - f)
+                        2 * f**3 * (1 - f)
                     )
                     A[
                         ii,
@@ -2509,7 +2513,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{0}_{1}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -2517,7 +2521,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        2 * f ** 3 * (1 - f)
+                        2 * f**3 * (1 - f)
                     )
                     A[
                         ii,
@@ -2525,7 +2529,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{0}_{1}_{0}_{1}".format(pop1, pop2))
                         ),
                     ] += (
-                        4 * f ** 2 * (1 - f) ** 2
+                        4 * f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -2541,7 +2545,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                             Util.map_moment("pi2_{1}_{1}_{0}_{0}".format(pop1, pop2))
                         ),
                     ] += (
-                        f ** 2 * (1 - f) ** 2
+                        f**2 * (1 - f) ** 2
                     )
                     A[
                         ii,
@@ -2568,7 +2572,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 3
+                            f**3
                         )
                         A[
                             ii,
@@ -2578,7 +2582,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            2 * f ** 2 * (1 - f)
+                            2 * f**2 * (1 - f)
                         )
                         A[
                             ii,
@@ -2597,7 +2601,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                     "pi2_{0}_{1}_{0}_{0}".format(pop1, pop2)
                                 )
                             ),
-                        ] += f ** 2 * (1 - f)
+                        ] += f**2 * (1 - f)
                         A[
                             ii,
                             moms_from.index(
@@ -2626,7 +2630,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 3
+                            f**3
                         )
                         A[
                             ii,
@@ -2636,7 +2640,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            2 * f ** 2 * (1 - f)
+                            2 * f**2 * (1 - f)
                         )
                         A[
                             ii,
@@ -2655,7 +2659,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                     "pi2_{1}_{1}_{0}_{0}".format(pop1, pop2)
                                 )
                             ),
-                        ] += f ** 2 * (1 - f)
+                        ] += f**2 * (1 - f)
                         A[
                             ii,
                             moms_from.index(
@@ -2684,7 +2688,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 3
+                            f**3
                         )
                         A[
                             ii,
@@ -2694,7 +2698,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            2 * f ** 2 * (1 - f)
+                            2 * f**2 * (1 - f)
                         )
                         A[
                             ii,
@@ -2713,7 +2717,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                     "pi2_{1}_{2}_{0}_{0}".format(pop1, pop2, i1)
                                 )
                             ),
-                        ] += f ** 2 * (1 - f)
+                        ] += f**2 * (1 - f)
                         A[
                             ii,
                             moms_from.index(
@@ -2743,7 +2747,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2773,7 +2777,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2803,7 +2807,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2833,7 +2837,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2863,7 +2867,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2893,7 +2897,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2923,7 +2927,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2953,7 +2957,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -2983,7 +2987,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3013,7 +3017,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3044,7 +3048,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3080,7 +3084,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3116,7 +3120,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3152,7 +3156,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3188,7 +3192,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3224,7 +3228,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3260,7 +3264,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3296,7 +3300,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3332,7 +3336,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,
@@ -3368,7 +3372,7 @@ def admix_ld(num_pops, pop1, pop2, f):
                                 )
                             ),
                         ] += (
-                            f ** 2
+                            f**2
                         )
                         A[
                             ii,

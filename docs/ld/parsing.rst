@@ -15,7 +15,7 @@
 Parsing LD statistics
 =====================
 
-As described in the `multi-population LD section <sec_ld>`_, we are interested
+As described in the :ref:`multi-population LD section <sec_ld>`, we are interested
 in :math:`\sigma_d^2`-type statistics, which is the ratio of expectations of
 :math:`D^2` and :math:`\pi_2 = p(1-p)q(1-q)`. Again, :math:`p` and :math:`q`
 are the allele frequencies at the left and right loci.
@@ -26,7 +26,7 @@ and then divide by the observed :math:`\pi_2` in one of the populations (the
 "normalizing" population). As described below, we also use a block bootstrapping
 approach to estimate variances and covariances of observed statistics at each
 recombination distance, which is used in
-`inference and computing confidence intervals <sec_ld_inference>`_.
+:ref:`inference and computing confidence intervals <sec_ld_inference>`.
 
 ***************
 Binned LD decay
@@ -123,7 +123,7 @@ are dropped from the data.
 .. code-block:: python
 
     pops = ["pop_A", "pop_B"]
-    ld_stats = ld_stats = moments.LD.Parsing.compute_ld_statistics(
+    ld_stats = moments.LD.Parsing.compute_ld_statistics(
         vcf_path,
         r_bins=r_bins,
         rec_map_file=map_path,
@@ -151,6 +151,32 @@ is a list (of length 2) of lists. The first list are the LD statistics to return
 and the second list has the heterozygosity statistics to return. Statistic names
 follow the convention in ``moments.LD.Util.moment_names(num_pops)``, and should
 be formatted accordingly.
+
+.. code-block:: python
+
+    # all statistics for two populations, as [ld_stats, h_stats]
+    ld_names, h_names = moments.LD.Util.moment_names(2)
+
+    # compute only the D^2 and pi2 statistics, and all heterozygosity statistics
+    stats_to_compute = [
+        [s for s in ld_names if s.startswith("DD") or s.startswith("pi2")],
+        h_names,
+    ]
+    ld_stats = moments.LD.Parsing.compute_ld_statistics(
+        vcf_path,
+        r_bins=r_bins,
+        rec_map_file=map_path,
+        pop_file=pop_file_path,
+        pops=["pop_A", "pop_B"],
+        stats_to_compute=stats_to_compute,
+    )
+
+The subset must include the :ref:`normalizing statistics
+<sec_ld_parsing_normalization>` of the population we will normalize by (for
+population 0, ``pi2_0_0_0_0`` and ``H_0_0``), as they are needed to normalize the
+data. Since the data then have only some of the statistics, we pass their names,
+``ld_stats["stats"]``, as ``statistics`` to the inference and uncertainty
+functions.
 
 Phased vs unphased data
 -----------------------
@@ -190,7 +216,10 @@ For example:
         ...
     }
 
-Mean and variance-covariance matrices are computed by calling
+Means and variance-covariance matrices
+--------------------------------------
+
+Mean statistics and their variance-covariance matrices are computed by calling
 ``bootstrap_data``, passing the region statistics dictionary, and optionally
 the index of the population to normalize :math:`\sigma_d^2` statistics by. By
 default, the normalizing population is the first (index 0).
@@ -199,9 +228,166 @@ default, the normalizing population is the first (index 0).
 
     mv = moments.LD.Parsing.bootstrap_data(region_stats)
 
-``mv`` contains the bins, statistics, and populations, as well as lists of mean
-statistics and variance-covariance matrices. This data can then be directly
-compared to model expectations and used in inference.
+To see what this returns, we load the output of ``bootstrap_data`` for 100
+regions simulated under the isolation-with-migration model of the :ref:`example
+below <sec_ld_parsing_example>`, which we also use in :ref:`Inference
+<sec_ld_inference>`. ``mv`` is a dictionary:
+
+.. jupyter-execute::
+
+    import pickle
+
+    with open("data/means.varcovs.split_mig.100_reps.bp", "rb") as fin:
+        mv = pickle.load(fin)
+
+    print(mv.keys())
+    print("populations:", mv["pops"])
+    print("number of recombination bins:", len(mv["bins"]))
+    print("first bin:", mv["bins"][0])
+
+``mv["stats"]`` gives the names of the statistics as two lists: the two-locus
+(LD) statistics, and the single-locus heterozygosity statistics. Here, these are
+all the statistics for two populations, in the same order as
+``moments.LD.Util.moment_names(2)``:
+
+.. jupyter-execute::
+
+    ld_stat_names, h_stat_names = mv["stats"]
+    print(len(ld_stat_names), "LD statistics:", ld_stat_names)
+    print(len(h_stat_names), "heterozygosity statistics:", h_stat_names)
+
+``mv["means"]`` has one array of LD statistics for each recombination bin,
+followed by a final array of heterozygosity statistics. ``mv["varcovs"]`` has
+the matching variance-covariance matrices:
+
+.. jupyter-execute::
+
+    print("entries in means:", len(mv["means"]))  # 10 bins, plus 1 for H
+    print("LD means in each bin:", mv["means"][0].shape)
+    print("heterozygosity means:", mv["means"][-1].shape)
+    print("LD varcov in each bin:", mv["varcovs"][0].shape)
+    print("heterozygosity varcov:", mv["varcovs"][-1].shape)
+
+To get a particular statistic, we use its index in the list of names. For
+example, :math:`\sigma_d^2` in ``deme0`` (``DD_0_0``) in the first bin, and its
+standard error:
+
+.. jupyter-execute::
+
+    i = ld_stat_names.index("DD_0_0")
+    print("DD_0_0 in the first bin:", mv["means"][0][i])
+    print("standard error:", mv["varcovs"][0][i, i] ** 0.5)
+
+.. _sec_ld_parsing_normalization:
+
+Normalizing statistics
+----------------------
+
+The means are normalized by the normalizing population (here ``deme0``, with
+index 0): the LD statistics in each bin are divided by :math:`\pi_2` in that
+population (``pi2_0_0_0_0``), and the heterozygosity statistics by its
+heterozygosity (``H_0_0``). As a result, these two *normalizing statistics* equal
+1 in every bin, with zero variance:
+
+.. jupyter-execute::
+
+    i_pi2 = ld_stat_names.index("pi2_0_0_0_0")
+    i_H = h_stat_names.index("H_0_0")
+    print("pi2_0_0_0_0 in each bin:", [m[i_pi2] for m in mv["means"][:-1]])
+    print("H_0_0:", mv["means"][-1][i_H])
+    print("variance of pi2_0_0_0_0 in the first bin:", mv["varcovs"][0][i_pi2, i_pi2])
+
+Since they carry no information, the normalizing statistics are left out when
+computing likelihoods. ``moments`` handles them in the same way everywhere:
+
+- The parsing functions ``bootstrap_data``, ``get_bootstrap_sets``, and
+  ``subset_data`` always **keep** the normalizing statistics in their outputs, so
+  that the data always match their list of statistic names.
+- The inference, uncertainty, and plotting functions **remove** the normalizing
+  statistics internally, without modifying the data passed to them. So we pass
+  the parsed data to them exactly as returned, e.g. ``[mv["means"],
+  mv["varcovs"]]``.
+
+:ref:`Inference <sec_ld_inference_normalization>` describes how the inference
+functions match the data to the statistics of a model.
+
+.. note::
+    Before version 1.7.0, ``get_bootstrap_sets`` and ``subset_data`` removed the
+    normalizing statistics from their outputs, and their ``remove_norm_stats``,
+    ``remove_Dz`` (in ``get_bootstrap_sets``), and ``normalization`` (in
+    ``subset_data``) options have been removed. Data saved from those versions
+    need to be recomputed, or have the normalizing statistics added back in their
+    positions (they equal 1, with zero variance).
+
+Bootstrap replicates
+--------------------
+
+To compute confidence intervals with the Godambe method, we also need bootstrap
+replicates of the mean statistics, which resample regions with replacement:
+
+.. code-block:: python
+
+    bootstrap_sets = moments.LD.Parsing.get_bootstrap_sets(region_stats)
+
+This returns a list of bootstrap replicates (by default, as many as there are
+regions). Each replicate is formatted exactly like ``mv["means"]``, with the
+same statistics, including the normalizing statistics:
+
+.. jupyter-execute::
+
+    with open("data/bootstrap_sets.split_mig.100_reps.bp", "rb") as fin:
+        bootstrap_sets = pickle.load(fin)
+
+    print("bootstrap replicates:", len(bootstrap_sets))
+    print("entries in each replicate:", len(bootstrap_sets[0]))
+    print("LD means in each bin:", bootstrap_sets[0][0].shape)
+    print("pi2_0_0_0_0 in the first bin:", bootstrap_sets[0][0][i_pi2])
+
+Using a subset of the data
+--------------------------
+
+``subset_data`` takes the output of ``bootstrap_data`` and keeps a subset of the
+populations or recombination bins, and can also drop the :math:`\sigma_{Dz}`
+statistics. It returns the bin edges, means, varcovs, and the list of statistics
+that remain. For example, to keep the bins up to :math:`r = 10^{-4}` and drop
+the Dz statistics:
+
+.. jupyter-execute::
+
+    r_edges, means, varcovs, stats = moments.LD.Parsing.subset_data(
+        mv, ["deme0", "deme1"], r_max=1e-4, remove_Dz=True
+    )
+    print("bin edges:", r_edges)
+    print("entries in means:", len(means))
+    print(len(stats[0]), "LD statistics:", stats[0])
+    print("LD means in each bin:", means[0].shape)
+
+Since these data no longer have all the statistics for two populations, we pass
+the returned ``stats`` as ``statistics`` to the inference, uncertainty, and
+plotting functions, along with the new bin edges. For example:
+
+.. code-block:: python
+
+    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+        p_guess, [means, varcovs], [model_func], rs=r_edges, statistics=stats
+    )
+
+When keeping a subset of populations, the statistics for the other populations
+are dropped, and the remaining populations are renumbered, keeping their order in
+the data. (If ``pops_to`` lists them in a different order, ``subset_data`` warns
+and reorders them to match the data, so that the statistic names stay in the
+standard order.) The normalizing population must be kept, since the data are
+still normalized by it. If it isn't, the inference and uncertainty functions raise
+an error, as the remaining data's "normalizing" statistics don't equal 1. For
+example, keeping only ``deme0`` leaves the single-population statistics, with
+``pi2_0_0_0_0`` and ``H_0_0`` still the normalizing statistics:
+
+.. jupyter-execute::
+
+    r_edges, means, varcovs, stats = moments.LD.Parsing.subset_data(mv, ["deme0"])
+    print(stats)
+    print("LD means in each bin:", means[0].shape)
+    print("pi2_0_0_0_0 in the first bin:", means[0][stats[0].index("pi2_0_0_0_0")])
 
 .. _sec_ld_parsing_example:
 
@@ -290,10 +476,22 @@ With all this, we can now compute LD based on recombination distance bins:
 
     import pickle
     r_bins = np.array([0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3])
-    ld_stats = pickle.load(open("data/im-parsing-example.ld_stats.bp", "rb"))
+    with open("data/im-parsing-example.ld_stats.bp", "rb") as fin:
+        ld_stats = pickle.load(fin)
 
 The output, ``ld_stats``, is a dictionary with the keys ``bins``, ``stats``,
-``pops``, and ``sums``. To get the average statistics over multiple regions
+``pops``, and ``sums``. ``sums`` has the sum of each statistic over all pairs of
+SNPs in each recombination bin, followed by the sums of heterozygosity statistics:
+
+.. jupyter-execute::
+
+    print(ld_stats.keys())
+    print("populations:", ld_stats["pops"])
+    print("number of bins:", len(ld_stats["bins"]))
+    print("entries in sums:", len(ld_stats["sums"]))  # one per bin, plus 1 for H
+    print("LD sums in each bin:", ld_stats["sums"][0].shape)
+
+To get the average statistics over multiple regions
 (here, we only have a single region that we simulated), we use
 ``means_from_region_data``:
 
@@ -303,7 +501,7 @@ The output, ``ld_stats``, is a dictionary with the keys ``bins``, ``stats``,
         {0: ld_stats}, ld_stats["stats"], norm_idx=0
     )
     
-This provides :math:`\sigma_d^2`-type statistics relative to `\pi_2` in
+This provides :math:`\sigma_d^2`-type statistics relative to :math:`\pi_2` in
 ``deme0``, and relative heterozygosities (also relative to ``deme0``).
 These statistics were computed from only a single relatively small region,
 so they will be quite noisy. But we can still compare to expectations under
@@ -345,8 +543,8 @@ the input IM demographic model.
         ],
         plot_vcs=False,
         fig_size=(8, 3),
-        show=True,
-    )
+        show=False,
+    );
 
 Bootstrapping over multiple regions
 -----------------------------------
@@ -362,12 +560,13 @@ dictionary can then be used to compute means and covariances of statistics.
 
 .. code-block:: python
 
-    mv = moments.LD.Parsing.bootstrap_data(ld_stats)
+    mv = moments.LD.Parsing.bootstrap_data(rep_stats)
 
 .. jupyter-execute::
     :hide-code:
 
-    mv = pickle.load(open("data/means.varcovs.split_mig.100_reps.bp", "rb"))
+    with open("data/means.varcovs.split_mig.100_reps.bp", "rb") as fin:
+        mv = pickle.load(fin)
 
 By simulating more data, the LD decay curves are much less noisy, and by
 simulating multiple replicates, we also compute the variance-covariance
@@ -392,8 +591,8 @@ matrices for each bin and can include standard errors in the plots.
         ],
         plot_vcs=True,
         fig_size=(8, 3),
-        show=True,
-    )
+        show=False,
+    );
 
 .. note::
 

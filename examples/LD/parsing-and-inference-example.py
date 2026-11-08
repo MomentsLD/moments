@@ -163,7 +163,7 @@ if __name__ == "__main__":
             [r"$\pi_{2;0,1,0,1}$"],
             [r"$\pi_{2;1,1,1,1}$"],
         ],
-        #statistics=stats,
+        # statistics=stats,
         rows=3,
         plot_vcs=True,
         show=False,
@@ -181,9 +181,11 @@ if __name__ == "__main__":
     p_guess = [0.1, 2, 0.075, 2, 10000]
     p_guess = moments.LD.Util.perturb_params(p_guess, fold=0.1)
 
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    # The optimization functions return the minimized negative log-likelihood
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess, [mv["means"], mv["varcovs"]], [demo_func], rs=r_bins
     )
+    LL = -neg_LL
 
     physical_units = moments.LD.Util.rescale_params(
         opt_params, ["nu", "nu", "T", "m", "Ne"]
@@ -205,24 +207,16 @@ if __name__ == "__main__":
 
     print("computing confidence intervals for parameters")
 
-    # This is somewhat ugly and poor API in moments, and we prefer to use
-    # demes for inference and CI calculations in any case. But this at
-    # least gets this example to work.
-    means, varcovs = moments.LD.Inference.remove_normalized_data(
-        mv["means"], mv["varcovs"], num_pops=2
-    )
-    stats = mv["stats"]
-    stats[0].pop(stats[0].index("pi2_0_0_0_0"))
-    stats[1].pop(stats[1].index("H_0_0"))
-
+    # The data means and varcovs (from bootstrap_data) and the bootstrap sets (from
+    # get_bootstrap_sets) include the normalizing statistics, which GIM_uncert
+    # removes when computing uncertainties.
     uncerts = moments.LD.Godambe.GIM_uncert(
         demo_func,
         all_boot,
         opt_params,
-        means,
-        varcovs,
+        mv["means"],
+        mv["varcovs"],
         r_edges=r_bins,
-        statistics=stats,
     )
 
     lower = opt_params - 1.96 * uncerts
@@ -243,14 +237,16 @@ if __name__ == "__main__":
     def IM_nomig(params, rho=None, theta=0.001, pop_ids=None):
         full_params = np.concatenate((params, [0]))
         return moments.LD.Demographics2D.split_mig(
-            full_params, rho=rho, theta=theta, pop_ids=pop_ids)
+            full_params, rho=rho, theta=theta, pop_ids=pop_ids
+        )
 
-    p_guess_nomig = [1, 1, 0.1, 10000] # nu1, nu2, T, Ne
+    p_guess_nomig = [1, 1, 0.1, 10000]  # nu1, nu2, T, Ne
     p_guess_nomig = moments.LD.Util.perturb_params(p_guess_nomig)
 
-    opt_params_nomig, LL_nomig = moments.LD.Inference.optimize_log_lbfgsb(
+    opt_params_nomig, neg_LL_nomig = moments.LD.Inference.optimize_log_lbfgsb(
         p_guess_nomig, [mv["means"], mv["varcovs"]], [IM_nomig], rs=r_bins
     )
+    LL_nomig = -neg_LL_nomig
 
     physical_units = moments.LD.Util.rescale_params(
         opt_params_nomig, ["nu", "nu", "T", "Ne"]
@@ -264,21 +260,19 @@ if __name__ == "__main__":
 
     p0 = np.concatenate((opt_params_nomig[:-1], [0], [opt_params_nomig[-1]]))
     adj = moments.LD.Godambe.LRT_adjust(
-        demo_func,
-        all_boot,
-        p0,
-        [3],
-        means,
-        varcovs,
-        r_edges=r_bins,
-        statistics=stats
+        demo_func, all_boot, p0, [3], mv["means"], mv["varcovs"], r_edges=r_bins
     )
 
-    D = LL_nomig - LL
+    # The test statistic is the difference in log-likelihoods between the full and
+    # nested models, which the Godambe adjustment scales (Coffman et al., 2016).
+    # The migration rate is fixed at the boundary of its range (zero) in the nested
+    # model, so the statistic follows an equal mixture of chi^2 distributions with 0
+    # and 1 degrees of freedom.
+    D = LL - LL_nomig
     D_adj = D * adj
 
     p_val_nomig = moments.Godambe.sum_chi2_ppf(D_adj, weights=(0.5, 0.5))
-    
+
     print()
     print("Simple model with no migration")
     print("Log-likelihoods:")
@@ -288,4 +282,3 @@ if __name__ == "__main__":
     print(f"  No adjustment   :", D)
     print(f"  Bootstrap adj   :", D_adj)
     print(f"P value           :", p_val_nomig)
-

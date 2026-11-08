@@ -448,8 +448,8 @@ class DplusStatistic(unittest.TestCase):
         theta = 0.001
         y = moments.LD.Demographics1D.snm(theta=theta, rho=[0, 1000])
         H2 = y.H2(0)
-        self.assertTrue(np.isclose(H2[0], 2 * theta ** 2))
-        self.assertTrue(np.isclose(H2[1], theta ** 2))
+        self.assertTrue(np.isclose(H2[0], 2 * theta**2))
+        self.assertTrue(np.isclose(H2[1], theta**2))
 
 
 # Older steady state functions
@@ -701,3 +701,291 @@ class FromDemes(unittest.TestCase):
         b.add_deme("A", epochs=[dict(start_size=1000, end_time=0)])
         g = b.resolve()
         y = moments.LD.LDstats.from_demes(g, sampled_demes=["A"], rho=0)
+
+
+class GodambeCache(unittest.TestCase):
+    def test_cache_is_not_shared_between_calls(self):
+        # Compute the hessian twice for the same data and parameter values, but with
+        # two different model functions, which depend differently on the parameter.
+        # LD statistics used to be cached between calls by parameter values only, so
+        # the second call reused the first model's statistics and gave the same
+        # hessian.
+        means = [np.array([1.0, 2.0]), np.array([3.0])]
+        varcovs = [np.eye(2), np.eye(1)]
+
+        def model_1(params, statistics):
+            return [params[0] * m for m in means]
+
+        def model_2(params, statistics):
+            return [params[0] ** 2 / 0.5 * m for m in means]
+
+        p0 = np.array([0.5])
+        H1 = moments.LD.Godambe._get_godambe(
+            model_1, [], p0, means, varcovs, 0.01, None, just_hess=True
+        )
+        H2 = moments.LD.Godambe._get_godambe(
+            model_2, [], p0, means, varcovs, 0.01, None, just_hess=True
+        )
+        self.assertFalse(np.allclose(H1, H2))
+
+
+class NormalizingStatistics(unittest.TestCase):
+    """
+    The normalizing statistics (pi2_0_0_0_0 and H_0_0) are kept in parsed data and
+    removed by the inference, uncertainty, and plotting functions (#192).
+    """
+
+    def setUp(self):
+        # Expected statistics of a two-population model as the data, formatted like
+        # the output of bootstrap_data: all statistics, with the normalizing
+        # statistics equal to 1 with zero variance. Bootstrap replicates are noisy
+        # copies of the data, also with all statistics.
+        self.model_func = moments.LD.Demographics2D.split_mig
+        self.r_edges = np.array([0, 1e-6, 1e-5])
+        self.p0 = [2.0, 3.0, 0.1, 1.0, 10000]
+        self.names = moments.LD.Util.moment_names(2)
+        y = moments.LD.Inference.bin_stats(
+            self.model_func, self.p0[:-1], rho=4 * self.p0[-1] * self.r_edges
+        )
+        y = moments.LD.Inference.sigmaD2(y)
+        self.means = [np.array(m) for m in y]
+        norm_idx = [
+            self.names[0].index("pi2_0_0_0_0"),
+            self.names[1].index("H_0_0"),
+        ]
+        self.varcovs = []
+        for i, m in enumerate(self.means):
+            v = (0.01 * m) ** 2
+            v[norm_idx[0] if i < len(self.means) - 1 else norm_idx[1]] = 0
+            self.varcovs.append(np.diag(v))
+        rng = np.random.default_rng(1)
+        self.boots = []
+        for _ in range(5):
+            boot = [m * (1 + 0.01 * rng.normal(size=m.shape)) for m in self.means]
+            for i, b in enumerate(boot):
+                b[norm_idx[0] if i < len(boot) - 1 else norm_idx[1]] = 1
+            self.boots.append(boot)
+
+    def remove(self, **kwargs):
+        args = dict(bootstraps=self.boots, normalization=0, num_pops=2, statistics=None)
+        args.update(kwargs)
+        means = args.pop("means", self.means)
+        varcovs = args.pop("varcovs", self.varcovs)
+        return moments.LD.Inference._remove_normalizing_statistics(
+            means, varcovs, **args
+        )
+
+    def without_normalizing(self, xs):
+        # data with the normalizing statistics removed, as saved before version 1.7
+        return moments.LD.Inference._remove_normalizing_statistics(xs, xs, num_pops=2)[
+            1
+        ]
+
+    def test_full_data(self):
+        # With statistics=None, full data have the normalizing statistics removed
+        # from the names, means, varcovs, and bootstraps, and the inputs are not
+        # modified.
+        means = copy.deepcopy(self.means)
+        varcovs = copy.deepcopy(self.varcovs)
+        boots = copy.deepcopy(self.boots)
+        stats, ms, vcs, bs = self.remove()
+        self.assertNotIn("pi2_0_0_0_0", stats[0])
+        self.assertNotIn("H_0_0", stats[1])
+        self.assertEqual(len(stats[0]), len(self.names[0]) - 1)
+        self.assertEqual([len(m) for m in ms], [14, 14, 2])
+        self.assertEqual([v.shape for v in vcs], [(14, 14), (14, 14), (2, 2)])
+        self.assertEqual([len(m) for m in bs[0]], [14, 14, 2])
+        for a, b in zip(means + varcovs, self.means + self.varcovs):
+            self.assertTrue(np.array_equal(a, b))
+        for boot, boot_orig in zip(boots, self.boots):
+            for a, b in zip(boot, boot_orig):
+                self.assertTrue(np.array_equal(a, b))
+
+    def test_data_without_normalizing_statistics_raises(self):
+        # With statistics=None, data saved before version 1.7 (normalizing
+        # statistics already removed) raise an error that explains the change, for
+        # data means and for bootstraps.
+        with self.assertRaises(ValueError) as err:
+            self.remove(means=self.without_normalizing(self.means))
+        self.assertIn("1.7.0", str(err.exception))
+        boots = [self.without_normalizing(b) for b in self.boots]
+        with self.assertRaises(ValueError):
+            self.remove(bootstraps=boots)
+
+    def test_statistics_with_normalizing(self):
+        # Listing all statistics, including the normalizing ones, gives the same
+        # result as statistics=None.
+        full = self.remove()
+        listed = self.remove(statistics=[list(self.names[0]), list(self.names[1])])
+        self.assertEqual(full[0], listed[0])
+        for a, b in zip(full[1] + full[2], listed[1] + listed[2]):
+            self.assertTrue(np.array_equal(a, b))
+
+    def test_statistics_without_normalizing(self):
+        # Data that don't include the normalizing statistics, with statistics
+        # listing exactly what they contain, are used as they are.
+        stats, ms, vcs, _ = self.remove()
+        stats2, ms2, vcs2, _ = self.remove(
+            means=ms, varcovs=vcs, bootstraps=None, statistics=stats
+        )
+        self.assertEqual(stats, stats2)
+        for a, b in zip(ms + vcs, ms2 + vcs2):
+            self.assertTrue(np.array_equal(a, b))
+
+    def test_statistics_mismatch_raises(self):
+        # Data that don't match the listed statistics, or the full set for the
+        # number of populations, raise an error.
+        with self.assertRaises(ValueError):
+            self.remove(statistics=[self.names[0][:-1], list(self.names[1])])
+        with self.assertRaises(ValueError):
+            self.remove(num_pops=3)
+
+    def test_without_heterozygosity_entry(self):
+        # When fitting with the AFS, the data have only recombination bins, without
+        # a final entry of heterozygosity statistics: the normalizing pi2 is
+        # removed from every bin, including the last.
+        stats, ms, vcs, _ = self.remove(
+            means=self.means[:-1],
+            varcovs=self.varcovs[:-1],
+            bootstraps=None,
+            has_H=False,
+        )
+        self.assertEqual([len(m) for m in ms], [14, 14])
+
+    def test_single_population(self):
+        # One population: removing H_0_0 leaves an empty heterozygosity entry, with
+        # the variance of H given as a 1x1 matrix, a length-1 array, or a scalar.
+        stats1 = moments.LD.Util.moment_names(1)
+        means = [np.ones(len(stats1[0])), np.ones(1)]
+        for h_var in [np.ones((1, 1)), np.ones(1), np.float64(1)]:
+            varcovs = [np.eye(len(stats1[0])), h_var]
+            stats, ms, vcs, _ = moments.LD.Inference._remove_normalizing_statistics(
+                means, varcovs, num_pops=1
+            )
+            self.assertEqual(stats[1], [])
+            self.assertEqual(np.size(ms[-1]), 0)
+            self.assertEqual(np.size(vcs[-1]), 0)
+
+    def test_data_not_normalized_by_population(self):
+        # The data are normalized by population 0, so their pi2_1_1_1_1 and H_1_1
+        # don't equal 1. Removing the normalizing statistics with normalization=1
+        # raises an error, for data means and for bootstraps.
+        with self.assertRaises(ValueError) as err:
+            self.remove(normalization=1, bootstraps=None)
+        self.assertIn("pi2_1_1_1_1", str(err.exception))
+        boots = copy.deepcopy(self.boots)
+        boots[0][0][self.names[0].index("pi2_0_0_0_0")] = 1.2
+        with self.assertRaises(ValueError):
+            self.remove(bootstraps=boots)
+
+    def test_inference_and_uncertainty_functions(self):
+        # With full data (zero-variance normalizing statistics included), the
+        # optimizer, FIM, GIM, and LRT adjustment run, and listing all statistics
+        # (including the normalizing ones) gives the same results instead of a
+        # singular matrix error. The data passed in are not modified.
+        means = copy.deepcopy(self.means)
+        all_names = [list(self.names[0]), list(self.names[1])]
+        out = []
+        for statistics in [None, all_names]:
+            kwargs = dict(r_edges=self.r_edges, statistics=statistics)
+            out.append(
+                [
+                    moments.LD.Inference.optimize_log_fmin(
+                        self.p0,
+                        [self.means, self.varcovs],
+                        [self.model_func],
+                        rs=self.r_edges,
+                        maxiter=2,
+                        statistics=statistics,
+                    )[0],
+                    moments.LD.Godambe.FIM_uncert(
+                        self.model_func, self.p0, self.means, self.varcovs, **kwargs
+                    ),
+                    moments.LD.Godambe.GIM_uncert(
+                        self.model_func,
+                        self.boots,
+                        self.p0,
+                        self.means,
+                        self.varcovs,
+                        **kwargs,
+                    ),
+                    moments.LD.Godambe.LRT_adjust(
+                        self.model_func,
+                        self.boots,
+                        self.p0,
+                        [3],
+                        self.means,
+                        self.varcovs,
+                        **kwargs,
+                    ),
+                ]
+            )
+        for a, b in zip(out[0], out[1]):
+            self.assertTrue(np.all(np.isfinite(a)))
+            self.assertTrue(np.allclose(a, b))
+        for a, b in zip(means, self.means):
+            self.assertTrue(np.array_equal(a, b))
+
+    def test_GIM_uncert_with_get_bootstrap_sets(self):
+        # Regression test for #192: data means from bootstrap_data and bootstrap
+        # sets from get_bootstrap_sets now both include the normalizing statistics,
+        # and GIM_uncert removes them from both. Bootstraps saved before version 1.7
+        # (normalizing statistics removed) raise an error.
+        uncerts = moments.LD.Godambe.GIM_uncert(
+            self.model_func,
+            self.boots,
+            self.p0,
+            self.means,
+            self.varcovs,
+            r_edges=self.r_edges,
+        )
+        self.assertTrue(np.all(np.isfinite(uncerts)))
+        with self.assertRaises(ValueError):
+            moments.LD.Godambe.GIM_uncert(
+                self.model_func,
+                [self.without_normalizing(b) for b in self.boots],
+                self.p0,
+                self.means,
+                self.varcovs,
+                r_edges=self.r_edges,
+            )
+
+    def test_model_helpers_do_not_modify_input(self):
+        # remove_normalized_lds and remove_nonpresent_statistics return modified
+        # copies of the model statistics, leaving the LDstats passed in unchanged.
+        y = moments.LD.Inference.sigmaD2(moments.LD.Demographics2D.snm(rho=[0, 1]))
+        y_orig = copy.deepcopy(y)
+        out = moments.LD.Inference.remove_normalized_lds(y)
+        self.assertEqual(len(out[0]), len(y_orig[0]) - 1)
+        out = moments.LD.Inference.remove_nonpresent_statistics(
+            y, [y.names()[0][:3], y.names()[1]]
+        )
+        self.assertEqual(len(out[0]), 3)
+        for a, b in zip(y, y_orig):
+            self.assertTrue(np.array_equal(a, b))
+
+    def test_plot_data_must_match_statistics(self):
+        # Plotting data without the normalizing statistics and statistics=None used
+        # to silently plot the wrong statistics. Now it raises an error, while full
+        # data plot without error.
+        try:
+            import matplotlib
+
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            self.skipTest("matplotlib is not installed")
+        y = moments.LD.Inference.bin_stats(
+            self.model_func, self.p0[:-1], rho=4 * self.p0[-1] * self.r_edges
+        )
+        y = moments.LD.Inference.sigmaD2(y)
+        kwargs = dict(stats_to_plot=[["DD_0_0"]], rs=self.r_edges)
+        moments.LD.Plotting.plot_ld_curves_comp(y, self.means, self.varcovs, **kwargs)
+        with self.assertRaises(ValueError):
+            moments.LD.Plotting.plot_ld_curves_comp(
+                y,
+                self.without_normalizing(self.means),
+                self.without_normalizing(self.varcovs),
+                **kwargs,
+            )
+        plt.close("all")

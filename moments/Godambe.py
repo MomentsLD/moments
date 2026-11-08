@@ -85,13 +85,21 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
 
 def get_hess(func, p0, eps, args=()):
     """
-    Calculate Hessian matrix of partial second derivatives.
-    Hij = dfunc/(dp_i dp_j)
+    Calculate the Hessian matrix of partial second derivatives of ``func``, where
+    entry ``(i, j)`` is the second derivative of ``func`` with respect to parameters
+    ``i`` and ``j``, computed by finite differences.
 
-    func: Model function
-    p0: Parameter values to take derivative around
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-    args: Additional arguments to func
+    :param func: Function returning a scalar, called as ``func(params, *args)``.
+    :type func: function
+    :param p0: Parameter values to take derivatives around.
+    :type p0: list-like
+    :param eps: Fractional stepsize to use when taking finite-difference
+        derivatives. Parameters equal to zero use a step size of ``eps``.
+    :type eps: float
+    :param args: Additional arguments to ``func``.
+    :type args: tuple
+    :return: The Hessian matrix, with shape ``(len(p0), len(p0))``.
+    :rtype: numpy.ndarray
     """
     # Calculate step sizes for finite-differences.
     eps_in = eps
@@ -249,7 +257,10 @@ def GIM_uncert(
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
     :type eps: float
     :param return_GIM: If True, also return the full GIM.
-    :type return_GIm: bool
+    :type return_GIM: bool
+    :return: The standard deviations of the parameters (including theta, last, if
+        ``multinom`` is True), and if ``return_GIM`` is True, the GIM.
+    :rtype: numpy.ndarray, or tuple of numpy.ndarray
     """
     if multinom:
         func_multi = func_ex
@@ -290,6 +301,9 @@ def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
     :param eps: Fractional stepsize to use when taking
         finite-difference derivatives
     :type eps: float
+    :return: The standard deviations of the parameters (including theta, last, if
+        ``multinom`` is True).
+    :rtype: numpy.ndarray
     """
     if multinom:
         func_multi = func_ex
@@ -304,6 +318,11 @@ def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
 def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0.01):
     """
     First-order moment matching adjustment factor for likelihood ratio test.
+
+    The adjusted test statistic is ``D_adj = adj * (ll_complex - ll_simple)``,
+    where ``ll_complex`` and ``ll_simple`` are the log-likelihoods of the best fits
+    of the complex and simple (nested) models (Coffman et al., 2016). Its p-value
+    is given by ``sum_chi2_ppf(D_adj, weights)``.
 
     :param func_ex: Model function for complex model
     :type func_ex: demographic model
@@ -326,6 +345,8 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0
     :type multinom: bool
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
     :type eps: float
+    :return: The adjustment factor, ``adj``.
+    :rtype: float
     """
     if multinom:
         func_multi = func_ex
@@ -353,15 +374,21 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0
 
 def sum_chi2_ppf(x, weights=(0, 1)):
     """
-    Percent point function (inverse of cdf) of weighted sum of chi^2
-    distributions.
+    Returns the upper tail probability (1 - cdf) of a weighted sum of chi^2
+    distributions, which is the p-value of a likelihood ratio test statistic.
+    (Despite the name, this is not the percent point function.)
 
-    x: Value(s) at which to evaluate ppf
-    weights: Weights of chi^2 distributions, beginning with zero d.o.f.
-             For example, weights=(0,1) is the normal chi^2 distribution with 1
-             d.o.f. For single parameters on the boundary, the correct
-             distribution for the LRT is 0.5*chi^2_0 + 0.5*chi^2_1, which would
-             be weights=(0.5,0.5).
+    :param x: Value(s) at which to evaluate the upper tail probability, e.g. the
+        (adjusted) test statistic.
+    :type x: float or array-like
+    :param weights: Weights of the chi^2 distributions, beginning with zero degrees
+        of freedom. For example, ``weights=(0, 1)`` is the chi^2 distribution with
+        one degree of freedom. For single parameters on the boundary, the correct
+        distribution for the LRT is 0.5*chi^2_0 + 0.5*chi^2_1, which would be
+        ``weights=(0.5, 0.5)``. The weights must sum to one.
+    :type weights: list-like
+    :return: The upper tail probability (p-value), with the same shape as ``x``.
+    :rtype: float or numpy.ndarray
     """
     import scipy.stats.distributions as ssd
 
@@ -405,29 +432,39 @@ def Wald_stat(
     adj_and_org=False,
 ):
     """
-    Calculate test stastic from wald test
+    Calculate the test statistic of the Wald test, adjusted using the Godambe
+    Information Matrix.
 
-    func_ex: Model function for complex model
-    all_boot: List of bootstrap frequency spectra
-    p0: Best-fit parameters for the simple model, with nested parameter
-        explicity defined.  Although equal to values for simple model, should
-        be in a list form that can be taken in by the complex model you'd like
-        to evaluate.
-    data: Original data frequency spectrum
-    nested_indices: List of positions of nested parameters in complex model
-    parameter list
-    full_params: Parameter values for parameters found only in complex model,
-                 Can either be array with just values found only in the compelx
-                 model, or entire list of parameters from complex model.
-    multinom: If True, assume model is defined without an explicit parameter for
-              theta. Because uncertainty in theta must be accounted for to get
-              correct uncertainties for other parameters, this function will
-              automatically consider theta if multinom=True. In that case, the
-              final entry of the returned uncertainties will correspond to
-              theta.
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-    adj_and_org: If False, return only adjusted Wald statistic. If True, also
-                 return unadjusted statistic as second return value.
+    :param func_ex: Model function for the complex model.
+    :type func_ex: demographic model
+    :param all_boot: List of bootstrap frequency spectra.
+    :type all_boot: list of spectra
+    :param p0: Best-fit parameters for the simple model, with the nested parameters
+        explicitly defined. Although equal to the values for the simple model, they
+        should be given as a list that can be taken in by the complex model.
+    :type p0: list-like
+    :param data: Original data frequency spectrum.
+    :type data: spectrum object
+    :param nested_indices: List of positions of the nested parameters in the
+        complex model's parameter list.
+    :type nested_indices: list of ints
+    :param full_params: Values of the parameters found only in the complex model.
+        This can either be an array with just the values found only in the complex
+        model, or the entire list of parameters of the complex model.
+    :type full_params: list-like
+    :param multinom: If True, assume model is defined without an explicit parameter
+        for theta. Because uncertainty in theta must be accounted for to get
+        correct uncertainties for other parameters, this function will
+        automatically consider theta if multinom=True.
+    :type multinom: bool
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+    :type eps: float
+    :param adj_and_org: If False, return only the adjusted Wald statistic. If True,
+        also return the unadjusted statistic as a second return value.
+    :type adj_and_org: bool
+    :return: The adjusted Wald statistic, and if ``adj_and_org`` is True, the
+        unadjusted statistic.
+    :rtype: float, or tuple of floats
     """
     if multinom:
         func_multi = func_ex
@@ -478,24 +515,35 @@ def score_stat(
     adj_and_org=False,
 ):
     """
-    Calculate test stastic from score test
+    Calculate the test statistic of the score test, adjusted using the Godambe
+    Information Matrix.
 
-    func_ex: Model function for complex model
-    all_boot: List of bootstrap frequency spectra
-    p0: Best-fit parameters for the simple model, with nested parameter
-        explicity defined.  Although equal to values for simple model, should
-        be in a list form that can be taken in by the complex model you'd like
-        to evaluate.
-    data: Original data frequency spectrum
-    nested_indices: List of positions of nested parameters in complex model
-                    parameter list
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-    multinom: If True, assume model is defined without an explicit parameter for
-              theta. Because uncertainty in theta must be accounted for to get
-              correct uncertainties for other parameters, this function will
-              automatically consider theta if multinom=True.
-    adj_and_org: If False, return only adjusted score statistic. If True, also
-                 return unadjusted statistic as second return value.
+    :param func_ex: Model function for the complex model.
+    :type func_ex: demographic model
+    :param all_boot: List of bootstrap frequency spectra.
+    :type all_boot: list of spectra
+    :param p0: Best-fit parameters for the simple model, with the nested parameters
+        explicitly defined. Although equal to the values for the simple model, they
+        should be given as a list that can be taken in by the complex model.
+    :type p0: list-like
+    :param data: Original data frequency spectrum.
+    :type data: spectrum object
+    :param nested_indices: List of positions of the nested parameters in the
+        complex model's parameter list.
+    :type nested_indices: list of ints
+    :param multinom: If True, assume model is defined without an explicit parameter
+        for theta. Because uncertainty in theta must be accounted for to get
+        correct uncertainties for other parameters, this function will
+        automatically consider theta if multinom=True.
+    :type multinom: bool
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives.
+    :type eps: float
+    :param adj_and_org: If False, return only the adjusted score statistic. If
+        True, also return the unadjusted statistic as a second return value.
+    :type adj_and_org: bool
+    :return: The adjusted score statistic, and if ``adj_and_org`` is True, the
+        unadjusted statistic.
+    :rtype: float, or tuple of floats
     """
     if multinom:
         func_multi = func_ex

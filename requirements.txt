@@ -1,11 +1,11 @@
-numpy>=2.0
-cython~=0.29.0
-scipy
-mpmath
+numpy>=2.0,<3.0
+cython>=3.1
+scipy>=1.13
+mpmath>=1.0,<1.4
 matplotlib
 ipython
 pandas
 jupyter_sphinx
-demes~=0.2.0
-demesdraw~=0.3.0
+demes>=0.2
+demesdraw>=0.4
 ruamel.yaml

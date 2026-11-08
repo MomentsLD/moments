@@ -10,7 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   tests:
+    needs: lint
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -18,18 +22,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, macos-15]
-        python-version: ["3.12", "3.13"]
+        os: [ubuntu-latest, macos-15, macos-26]
+        python-version: ["3.14", "3.15"]
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -39,8 +43,7 @@ jobs:
           # pip install -r requirements/development.txt
           ## can we get rid of requirements.txt?
           pip install -r requirements/tests.txt
-          pip install -r requirements/lint.txt
-      
+
       # Check that moments installs as expected.
       - name: Install moments
         run: |

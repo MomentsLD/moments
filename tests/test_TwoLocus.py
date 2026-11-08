@@ -57,7 +57,7 @@ class TestTwoLocusMethods(unittest.TestCase):
         fs.integrate(1, 20, rho=0.0, dt=0.2)
         self.assertTrue(np.allclose(fs, cached))
 
-    #def test_recombination(self):
+    # def test_recombination(self):
     #    ns = 30
     #    cached = moments.TwoLocus.TLSpectrum.from_file(
     #        os.path.join(
@@ -106,7 +106,7 @@ class TestTwoLocusResults(unittest.TestCase):
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
-    #def test_equilibrium(self):
+    # def test_equilibrium(self):
     #    ns = 30
     #    rhos = [0, 1]
     #    for rho in rhos:
@@ -263,10 +263,6 @@ class TestLowOrderStats(unittest.TestCase):
             pi2_2 = moments.TwoLocus.Util.compute_pi2_conditional(F, nAmax=5, nBmax=5)
             self.assertTrue(np.isclose(pi2_1, pi2_2))
 
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusMethods)
-suite = unittest.TestLoader().loadTestsFromTestCase(TestTwoLocusResults)
-suite = unittest.TestLoader().loadTestsFromTestCase(TestLowOrderStats)
 
 if __name__ == "__main__":
     unittest.main()

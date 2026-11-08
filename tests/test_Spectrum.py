@@ -1,3 +1,6 @@
+import subprocess
+import sys
+import warnings
 import os
 import unittest
 
@@ -352,7 +355,10 @@ class TestFolding(unittest.TestCase):
             self.assertTrue(result.folded)
             self.assertTrue(np.all(result.mask == folded1.mask))
 
-            result = op(npfloat, folded2)
+            # with a numpy scalar on the left, numpy computes the operation on all
+            # entries, so masked zeros can warn (unlike Spectrum's own operators)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                result = op(npfloat, folded2)
             self.assertTrue(result.folded)
             self.assertTrue(np.all(result.mask == folded2.mask))
 
@@ -544,19 +550,25 @@ class TestProjection(unittest.TestCase):
 
         # Check that when I project an equilibrium spectrum, I get back an
         # equilibrium spectrum
-        fs = moments.Spectrum(1.0 / np.arange(100))
+        # entry 0 is 1/0 = inf, which is masked in the Spectrum
+        with np.errstate(divide="ignore"):
+            fs = moments.Spectrum(1.0 / np.arange(100))
         p = fs.project([17])
         self.assertTrue(np.allclose(p[1:-1], 1.0 / np.arange(1, len(p) - 1)))
 
         # Check that masked values are propagated correctly.
-        fs = moments.Spectrum(1.0 / np.arange(20))
+        # entry 0 is 1/0 = inf, which is masked or replaced
+        with np.errstate(divide="ignore"):
+            fs = moments.Spectrum(1.0 / np.arange(20))
         # All values with 3 or fewer observed should be masked.
         fs.mask[3] = True
         p = fs.project([10])
         self.assertTrue(np.all(p.mask[:4]))
 
         # Check that masked values are propagated correctly.
-        fs = moments.Spectrum(1.0 / np.arange(20))
+        # entry 0 is 1/0 = inf, which is masked or replaced
+        with np.errstate(divide="ignore"):
+            fs = moments.Spectrum(1.0 / np.arange(20))
         fs.mask[-3] = True
         # All values with 3 or fewer observed should be masked.
         p = fs.project([10])
@@ -861,3 +873,73 @@ class TestSampling(unittest.TestCase):
         fs = moments.Demographics1D.snm([11])
         with self.assertRaises(ValueError):
             G = fs.genotype_matrix(diploid_genotypes=True)
+
+
+class TestArithmeticWarnings(unittest.TestCase):
+    """
+    Spectrum arithmetic only warns about inf or nan in unmasked entries, and
+    importing moments doesn't change numpy's floating-point warning settings.
+    """
+
+    def count_warnings(self, func):
+        # run func, returning its output and the number of RuntimeWarnings
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            out = func()
+        return out, sum(issubclass(w.category, RuntimeWarning) for w in record)
+
+    def test_masked_entries_do_not_warn(self):
+        # The corners of a spectrum are masked and here equal 0, so dividing by
+        # it computes 1/0 and 0/0 in masked entries, which doesn't warn. Same for
+        # folded spectra, whose masked half is 0.
+        fs = moments.Spectrum(np.arange(6.0))
+        out, n = self.count_warnings(lambda: fs / fs)
+        self.assertEqual(n, 0)
+        folded = moments.Spectrum(np.random.rand(5, 5)).fold()
+        out, n = self.count_warnings(lambda: folded / folded)
+        self.assertEqual(n, 0)
+        out, n = self.count_warnings(lambda: 1.0 / fs)
+        self.assertEqual(n, 0)
+
+    def test_unmasked_division_by_zero_warns(self):
+        # A zero in an unmasked entry gives inf when divided by, which warns, and
+        # the result is inf and unmasked there.
+        fs = moments.Spectrum(np.array([0.0, 1.0, 0.0, 3.0, 4.0, 5.0]))
+        out, n = self.count_warnings(lambda: 1.0 / fs)
+        self.assertEqual(n, 1)
+        self.assertTrue(np.isinf(out.data[2]) and not out.mask[2])
+
+    def test_existing_nonfinite_does_not_warn(self):
+        # An unmasked entry that is already inf stays inf without a warning, since
+        # the operation didn't create it.
+        fs = moments.Spectrum(np.array([0.0, 1.0, np.inf, 3.0, 4.0, 5.0]))
+        out, n = self.count_warnings(lambda: fs * 2.0)
+        self.assertEqual(n, 0)
+
+    def test_inplace_operators(self):
+        # In-place division follows the same rules: no warning for masked zeros,
+        # and a warning for a zero in an unmasked entry.
+        fs = moments.Spectrum(np.arange(6.0))
+        other = moments.Spectrum(np.arange(6.0))
+
+        def divide():
+            fs.__itruediv__(other)
+
+        _, n = self.count_warnings(divide)
+        self.assertEqual(n, 0)
+        fs = moments.Spectrum(np.arange(6.0))
+        other = moments.Spectrum(np.array([0.0, 1.0, 0.0, 1.0, 1.0, 0.0]))
+        _, n = self.count_warnings(divide)
+        self.assertEqual(n, 1)
+
+    def test_import_keeps_numpy_error_settings(self):
+        # Importing moments used to turn off numpy's floating-point warnings for
+        # the whole session. Run in a new process, so moments isn't imported yet.
+        code = (
+            "import numpy; before = numpy.geterr(); import moments; "
+            "assert numpy.geterr() == before, (before, numpy.geterr())"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
