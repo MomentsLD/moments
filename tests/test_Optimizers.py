@@ -56,6 +56,20 @@ class SFSLBFGSBTestCase(unittest.TestCase):
         self.assertEqual(len(popt), 2)
         self.assertTrue(np.all(np.isfinite(popt)))
 
+    def test_optimize_log_lbfgsb_zero_lower_bound(self):
+        # A lower bound of 0 is -inf on the log scale, which is valid, so the
+        # optimization runs without a divide-by-zero warning (warnings are errors
+        # in the tests).
+        popt = moments.Inference.optimize_log_lbfgsb(
+            self.p0,
+            self.data,
+            self.model_func,
+            lower_bound=[0, 0],
+            upper_bound=[10, 1],
+            maxiter=3,
+        )
+        self.assertTrue(np.all(np.isfinite(popt)))
+
     def test_optimize_lbfgsb(self):
         popt = moments.Inference.optimize_lbfgsb(
             self.p0, self.data, self.model_func, **self.kwargs

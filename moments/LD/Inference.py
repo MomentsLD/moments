@@ -1176,13 +1176,16 @@ def optimize_log_lbfgsb(
     if lower_bound is None:
         lower_bound = [None] * len(p0)
     else:
-        lower_bound = np.log(lower_bound)
+        # a lower bound of 0 is -inf on the log scale, which is valid
+        with np.errstate(divide="ignore", invalid="ignore"):
+            lower_bound = np.log(lower_bound)
         lower_bound[np.isnan(lower_bound)] = None
     lower_bound = _project_params_down(lower_bound, fixed_params)
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     else:
-        upper_bound = np.log(upper_bound)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            upper_bound = np.log(upper_bound)
         upper_bound[np.isnan(upper_bound)] = None
     upper_bound = _project_params_down(upper_bound, fixed_params)
     bounds = list(zip(lower_bound, upper_bound))

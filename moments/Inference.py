@@ -335,12 +335,19 @@ def optimize_log_lbfgsb(
     if lower_bound is None:
         lower_bound = [None] * len(p0)
     else:
-        lower_bound = [numpy.log(lb) if lb is not None else None for lb in lower_bound]
+        # a lower bound of 0 is -inf on the log scale, which is valid
+        with numpy.errstate(divide="ignore"):
+            lower_bound = [
+                numpy.log(lb) if lb is not None else None for lb in lower_bound
+            ]
     lower_bound = _project_params_down(lower_bound, fixed_params)
     if upper_bound is None:
         upper_bound = [None] * len(p0)
     else:
-        upper_bound = [numpy.log(ub) if ub is not None else None for ub in upper_bound]
+        with numpy.errstate(divide="ignore"):
+            upper_bound = [
+                numpy.log(ub) if ub is not None else None for ub in upper_bound
+            ]
     upper_bound = _project_params_down(upper_bound, fixed_params)
     bounds = list(zip(lower_bound, upper_bound))
 

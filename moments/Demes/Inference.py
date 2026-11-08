@@ -717,7 +717,9 @@ def optimize(
     elif method == "lbfgsb":
         # bounds must be on the same scale as the parameters being optimized
         if log:
-            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+            # a lower bound of 0 is -inf on the log scale, which is valid
+            with np.errstate(divide="ignore"):
+                bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
         else:
             bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(
@@ -1330,7 +1332,9 @@ def optimize_LD(
     elif method == "lbfgsb":
         # bounds must be on the same scale as the parameters being optimized
         if log:
-            bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
+            # a lower bound of 0 is -inf on the log scale, which is valid
+            with np.errstate(divide="ignore"):
+                bounds = list(zip(np.log(lower_bound) + 1, np.log(upper_bound) + 1))
         else:
             bounds = list(zip(lower_bound, upper_bound))
         outputs = scipy.optimize.fmin_l_bfgs_b(

@@ -18,7 +18,9 @@ class ResultsTestCase(unittest.TestCase):
         n = 10
         fs = moments.Spectrum(numpy.zeros(n + 1))
         fs.integrate([1], tf=10, dt_fac=0.01)
-        answer = moments.Spectrum(1.0 / numpy.arange(n + 1))
+        # entry 0 is 1/0 = inf, which is masked in the Spectrum
+        with numpy.errstate(divide="ignore"):
+            answer = moments.Spectrum(1.0 / numpy.arange(n + 1))
         self.assertTrue(numpy.ma.allclose(fs, answer, atol=5e-5))
 
     def test_1pop(self):
