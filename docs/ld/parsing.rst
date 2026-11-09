@@ -38,7 +38,14 @@ SNPs, genetic maps are non-uniform and physical distance does not perfectly
 correlate with genetic distance at small scales. If we have a recombination map
 available, it is preferable to compute and compare statistics using that map.
 
-Recombination rate bins are defined by bin edges, which is a list or array with
+Recombination distances and bin edges are given in Morgans: the expected number
+of crossovers between two loci per generation, which for short distances is
+very close to the recombination fraction :math:`r` between them. For a sense of
+scale, at a typical human recombination rate of about :math:`10^{-8}` per base
+pair per generation, :math:`r = 10^{-6}` corresponds to roughly 100 bp,
+:math:`10^{-4}` to roughly 10 kb, and :math:`10^{-3}` to roughly 100 kb.
+
+Recombination distance bins are defined by bin edges, which is a list or array with
 length equal to the number of desired bins plus one. Bin edges should be
 monotonically increasing, and are thus adjacent without gaps between bins. Thus,
 bins are defined as semi-open intervals:
@@ -81,9 +88,20 @@ provided bins. For example:
 
 .. code-block:: python
 
+    # bin edges of recombination distance, in Morgans
     r_bins = np.logspace(-6, -3, 7)
     ld_stats = moments.LD.Parsing.compute_ld_statistics(
         vcf_path, r_bins=r_bins, rec_map_file=map_path)
+
+Recombination distance bins (``r_bins``) require a recombination map. Without
+one, we bin by the physical distance between SNPs instead, using ``bp_bins``,
+with bin edges in base pairs:
+
+.. code-block:: python
+
+    # bin edges of physical distance, in base pairs (100 bp to 100 kb)
+    bp_bins = np.logspace(2, 5, 7)
+    ld_stats = moments.LD.Parsing.compute_ld_statistics(vcf_path, bp_bins=bp_bins)
 
 Using a recombination map
 -------------------------
@@ -97,6 +115,9 @@ first column.
 
 Typically, maps are given in units of centi-Morgans, and the default behavior is to
 assume cM units. If the map is given in units of Morgans, we need to set ``cM=False``.
+Either way, the map is converted to Morgans when computing the distances between
+SNPs, so ``r_bins`` are always given in Morgans (for example, ``1e-6`` Morgans,
+rather than the equivalent ``1e-4`` cM).
 
 Populations and pop-file
 ------------------------
