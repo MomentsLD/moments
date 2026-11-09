@@ -18,6 +18,15 @@ The simplest way to install the latest stable version of ``moments`` is to
 This installs ``moments`` along with the minimal dependencies, and you should
 be able to ``import moments``.
 
+.. warning::
+
+   Our package on PyPI is named ``moments-popgen``. Running ``pip install
+   moments`` installs a different, unrelated package that is also imported as
+   ``moments``. If you installed it by mistake, run ``pip uninstall moments``
+   and then reinstall ours with ``pip install --force-reinstall
+   moments-popgen``, since the two packages write to the same ``moments``
+   directory.
+
 To install the development version of ``moments``, you can install directly
 from the development branch at Github:
 
@@ -42,17 +51,19 @@ Using conda
 
 .. code-block:: bash
 
-   conda install -c bioconda moments
+   conda install -c conda-forge -c bioconda moments
 
-The `conda channels
-<https://bioconda.github.io/user/install.html#set-up-channels>`_ must be set up
-to include bioconda, which can be done by running
+Alternatively, you can `set up your conda channels
+<https://bioconda.github.io/#usage>`_ to include bioconda and conda-forge, as
+recommended by Bioconda, by running
 
 .. code-block:: bash
-   
-   conda config --add channels defaults
+
    conda config --add channels bioconda
    conda config --add channels conda-forge
+   conda config --set channel_priority strict
+
+after which ``conda install moments`` will install ``moments`` from Bioconda.
 
 
 
