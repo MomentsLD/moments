@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools>=77",
     "setuptools_scm>=8",
     "wheel",
     "numpy>=2.0",
@@ -17,7 +17,8 @@ authors = [
     {name = "Aaron Ragsdale", email = "apragsdale@wisc.edu"},
     {name = "Simon Gravel", email = "simon.gravel@mcgill.ca"},
 ]
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE.txt"]
 requires-python = ">=3.11, <3.16"
 dynamic = ["version"]
 dependencies=[
