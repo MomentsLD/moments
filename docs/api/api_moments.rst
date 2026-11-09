@@ -10,6 +10,13 @@ The Spectrum object
 .. autoclass:: moments.Spectrum
     :members:
 
+Parsing functions
+-----------------
+
+The SFS is computed from a VCF file using ``moments.Spectrum.from_vcf``, above.
+
+.. autofunction:: moments.Parsing.compute_L
+
 Miscellaneous functions
 -----------------------
 
@@ -40,6 +47,10 @@ Inference functions
 
 .. autofunction:: moments.Inference.ll_multinom
 
+.. autofunction:: moments.Inference.ll_per_bin
+
+.. autofunction:: moments.Inference.ll_multinom_per_bin
+
 .. autofunction:: moments.Inference.optimal_sfs_scaling
 
 .. autofunction:: moments.Inference.optimally_scaled_sfs
@@ -56,13 +67,20 @@ Inference functions
 
 .. autofunction:: moments.Inference.optimize_log_lbfgsb
 
-.. _sec_sfs_api_plotting:
+.. autofunction:: moments.Inference.optimize
+
+.. autofunction:: moments.Inference.optimize_powell
+
+.. autofunction:: moments.Inference.optimize_lbfgsb
 
 Uncertainty functions
 ---------------------
 
 .. automodule:: moments.Godambe
-    :members: FIM_uncert, GIM_uncert, LRT_adjust
+    :members: FIM_uncert, GIM_uncert, LRT_adjust, sum_chi2_ppf, Wald_stat,
+        score_stat, get_hess
+
+.. _sec_sfs_api_plotting:
 
 Plotting features
 -----------------
@@ -82,3 +100,9 @@ Multi-population plotting
         plot_2d_comp_Poisson, plot_3d_comp_multinom, plot_3d_comp_Poisson,
         plot_3d_spectrum, plot_4d_comp_multinom, plot_4d_comp_Poisson
     :noindex:
+
+Plotting demographic models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: moments.ModelPlot
+    :members: generate_model, plot_model
