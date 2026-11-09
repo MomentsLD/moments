@@ -214,7 +214,7 @@ def get_genotypes(
             bed_rights = bed_rights.compress(bp_filter)
             if len(bed_lefts) == 0:
                 raise ValueError(
-                    "No features in bed file were at least {min_bp} in length."
+                    f"No features in bed file were at least {min_bp} in length."
                 )
 
         in_bed = all_positions < 0
@@ -302,20 +302,20 @@ def _assign_recombination_rates(
         map_positions = rec_map["Position(bp)"]
     else:
         map_positions = rec_map[rec_map.keys()[0]]
-    if map_name is None:  # we use the first map column
+    # the first map column follows the positions
+    first_map_name = rec_map.keys()[1]
+    if map_name is None:
         if report is True:
             print(current_time(), "No recombination map name given, trying Map(cM).")
             sys.stdout.flush()
-        map_name = "Map(cM)"
-    try:
-        map_values = rec_map[map_name]
-    except KeyError:
-        print(
-            current_time(),
-            f"WARNING: map_name did not match {map_name}"
-            " in recombination map file. Using the first column.",
+        map_name = "Map(cM)" if "Map(cM)" in rec_map.keys() else first_map_name
+    elif map_name not in rec_map.keys():
+        warnings.warn(
+            f"map_name {map_name} is not in the recombination map file. "
+            f"Using the first map column, {first_map_name}."
         )
-        map_values = rec_map[rec_map.keys()[1]]
+        map_name = first_map_name
+    map_values = rec_map[map_name]
 
     # for positions sticking out the end of the map,
     # they take the value of the closest position
@@ -1221,6 +1221,124 @@ def _get_reported_stats(
     return reported_stats
 
 
+def _read_pop_file_pops(pop_file):
+    """
+    Returns the set of population names in a population file, which has a header
+    line "sample pop", followed by one "{sample} {pop}" line per sample.
+    """
+    with open(pop_file) as fin:
+        header = fin.readline().split()
+        if "sample" not in header or "pop" not in header:
+            raise ValueError(
+                f"The first line of pop_file ({pop_file}) must give the column "
+                "names, sample and pop."
+            )
+        pop_column = header.index("pop")
+        return {line.split()[pop_column] for line in fin if line.strip()}
+
+
+def _check_bins(bins, name):
+    """
+    Checks that bin edges are at least two non-negative, increasing values.
+    """
+    bins = np.asarray(bins, dtype=float)
+    if bins.ndim != 1 or len(bins) < 2:
+        raise ValueError(f"{name} must be a list of at least two bin edges.")
+    if np.any(bins < 0):
+        raise ValueError(f"{name} must be non-negative.")
+    if np.any(np.diff(bins) <= 0):
+        raise ValueError(f"{name} must be a monotonically increasing list.")
+
+
+def _check_ld_statistics_args(
+    bed_file,
+    region,
+    rec_map_file,
+    pop_file,
+    pops,
+    r_bins,
+    bp_bins,
+    min_bp,
+    stats_to_compute,
+):
+    """
+    Checks the arguments of compute_ld_statistics, before reading the VCF, which
+    can be slow. Raises an error for invalid arguments, and warns for arguments
+    that would be ignored.
+    """
+    # input files, other than the VCF (with use_h5, an h5 file may be used instead)
+    for name, file_name in [
+        ("bed_file", bed_file),
+        ("rec_map_file", rec_map_file),
+        ("pop_file", pop_file),
+    ]:
+        if file_name is not None and not os.path.isfile(file_name):
+            raise FileNotFoundError(f"{name} {file_name} does not exist.")
+
+    # populations
+    if pops is not None and pop_file is None:
+        raise ValueError(
+            "pops are given, but not pop_file, which assigns samples to populations."
+        )
+    if pop_file is not None and pops is None:
+        raise ValueError(
+            "pop_file is given, but not the pops to compute statistics for."
+        )
+    if pops is not None:
+        missing = [pop for pop in pops if pop not in _read_pop_file_pops(pop_file)]
+        if len(missing) > 0:
+            raise ValueError(f"pops {missing} are not in pop_file {pop_file}.")
+
+    # region
+    if region is not None:
+        if len(region) != 2 or not region[0] < region[1]:
+            raise ValueError("region must be given as [start, end], with start < end.")
+
+    # bins
+    if r_bins is not None and bp_bins is not None:
+        raise ValueError("Can specify only recombination or bp bins, not both.")
+    if r_bins is not None:
+        if rec_map_file is None:
+            raise ValueError(
+                "r_bins are recombination distances (in Morgans), which require a "
+                "recombination map. Provide rec_map_file, or use bp_bins to bin by "
+                "physical distance in base pairs."
+            )
+        _check_bins(r_bins, "r_bins")
+    elif bp_bins is not None:
+        _check_bins(bp_bins, "bp_bins")
+        if rec_map_file is not None:
+            warnings.warn(
+                "bp_bins are given, so the recombination map is not used. "
+                "Use r_bins to bin by recombination distance."
+            )
+    else:
+        warnings.warn(
+            "Both r_bins and bp_bins are None, so no LD statistics will be computed."
+        )
+
+    # statistics
+    if stats_to_compute is not None:
+        if len(stats_to_compute) != 2:
+            raise ValueError(
+                "stats_to_compute must be given as [ld_stats, h_stats], lists of the "
+                "LD and heterozygosity statistics."
+            )
+        num_pops = 1 if pops is None else len(pops)
+        valid_names = Util.moment_names(num_pops)
+        for given, valid, kind in zip(stats_to_compute, valid_names, ["LD", "H"]):
+            invalid = [s for s in given if s not in valid]
+            if len(invalid) > 0:
+                raise ValueError(
+                    f"{kind} statistics {invalid} in stats_to_compute are not "
+                    f"valid statistics for {num_pops} population(s)."
+                )
+
+    # arguments that are only used with a bed file
+    if min_bp is not None and bed_file is None:
+        warnings.warn("min_bp is only used with a bed_file, so it is ignored.")
+
+
 def compute_ld_statistics(
     vcf_file,
     bed_file=None,
@@ -1309,24 +1427,20 @@ def compute_ld_statistics(
     :param bool use_cache: If True, cache intermediate results.
     """
 
-    # check the bins before reading the VCF, which can be slow
-    if r_bins is not None and rec_map_file is None:
-        raise ValueError(
-            "r_bins are recombination distances (in Morgans), which require a "
-            "recombination map. Provide rec_map_file, or use bp_bins to bin by "
-            "physical distance in base pairs."
-        )
+    # check the arguments before reading the VCF, which can be slow
+    _check_ld_statistics_args(
+        bed_file,
+        region,
+        rec_map_file,
+        pop_file,
+        pops,
+        r_bins,
+        bp_bins,
+        min_bp,
+        stats_to_compute,
+    )
 
     check_imports()
-
-    if r_bins is None and bp_bins is None:
-        warnings.warn(
-            "Both r_bins and bp_pins are None, so no LD statistics will be computed"
-        )
-        bins = []
-    elif r_bins is not None:
-        if bp_bins is not None:
-            raise ValueError("Can specify only recombination or bp bins, not both")
 
     positions, genotypes, counts, sample_ids = get_genotypes(
         vcf_file,
@@ -1361,9 +1475,6 @@ def compute_ld_statistics(
             bins = bp_bins
         else:
             bins = []
-
-    if not np.all([b1 - b0 > 0 for b0, b1 in zip(bins[:-1], bins[1:])]):
-        raise ValueError("bins must be a monotonically increasing list")
 
     reported_stats = _get_reported_stats(
         genotypes,

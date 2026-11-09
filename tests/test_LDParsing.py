@@ -1,7 +1,9 @@
 import os
+import tempfile
 import unittest
 
 import numpy as np
+import pytest
 import moments.LD
 import pickle
 import time
@@ -172,14 +174,193 @@ class ParsedDataNormalizingStatistics(unittest.TestCase):
         self.assertEqual(len(means), 2)
 
 
-class ComputeLDStatisticsBins(unittest.TestCase):
+class ComputeLDStatisticsArguments(unittest.TestCase):
+    """
+    compute_ld_statistics checks its arguments before reading the VCF, which can be
+    slow. Errors are tested by calling compute_ld_statistics with a VCF
+    that doesn't exist, so that each test also confirms the check runs before the
+    VCF is read (and before scikit-allel is needed). Warnings are tested on the
+    checking function, since compute_ld_statistics would then go on to the VCF.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.vcf_file = os.path.join(self.tmpdir.name, "not_a_file.vcf")
+        self.pop_file = os.path.join(self.tmpdir.name, "pops.txt")
+        with open(self.pop_file, "w") as fout:
+            fout.write("sample pop\ns1 A\ns2 A\ns3 B\ns4 B\n")
+        self.map_file = os.path.join(self.tmpdir.name, "map.txt")
+        with open(self.map_file, "w") as fout:
+            fout.write("Position(bp) Map(cM) Other(cM)\n0 0 0\n1000000 1 2\n")
+        self.bed_file = os.path.join(self.tmpdir.name, "regions.bed")
+        with open(self.bed_file, "w") as fout:
+            fout.write("1 0 1000000\n")
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def compute(self, **kwargs):
+        return moments.LD.Parsing.compute_ld_statistics(self.vcf_file, **kwargs)
+
+    def check_args(self, **kwargs):
+        args = dict(
+            bed_file=None,
+            region=None,
+            rec_map_file=None,
+            pop_file=None,
+            pops=None,
+            r_bins=None,
+            bp_bins=[0, 1000, 10000],
+            min_bp=None,
+            stats_to_compute=None,
+        )
+        args.update(kwargs)
+        moments.LD.Parsing._check_ld_statistics_args(**args)
+
+    def test_valid_arguments(self):
+        # Valid arguments pass the checks without error or warning (warnings are
+        # errors in the tests), with r_bins and a map, and with bp_bins.
+        self.check_args(
+            bed_file=self.bed_file,
+            region=[100, 200000],
+            rec_map_file=self.map_file,
+            pop_file=self.pop_file,
+            pops=["B", "A"],
+            r_bins=[0, 1e-5, 1e-4],
+            bp_bins=None,
+            min_bp=500,
+            stats_to_compute=[["DD_0_0", "pi2_0_0_0_0"], ["H_0_0", "H_0_1"]],
+        )
+        self.check_args(pop_file=self.pop_file, pops=["A"])
+
     def test_r_bins_require_recombination_map(self):
         # r_bins are recombination distances (in Morgans), which can't be computed
-        # without a recombination map. This used to silently compute no LD
-        # statistics. Now it raises an error before reading the VCF (which doesn't
-        # exist here), pointing to bp_bins for binning by physical distance.
+        # without a recombination map.
         with self.assertRaises(ValueError) as err:
-            moments.LD.Parsing.compute_ld_statistics(
-                "not_a_file.vcf", r_bins=[0, 1e-5, 1e-4]
-            )
+            self.compute(r_bins=[0, 1e-5, 1e-4])
         self.assertIn("bp_bins", str(err.exception))
+
+    def test_r_bins_and_bp_bins(self):
+        # Only one type of bins can be given.
+        with self.assertRaises(ValueError):
+            self.compute(
+                rec_map_file=self.map_file, r_bins=[0, 1e-5], bp_bins=[0, 1000]
+            )
+
+    def test_invalid_bins(self):
+        # Bins need at least two edges, which are non-negative and increasing, for
+        # both types of bins.
+        for bins in [[1000], [], [-100, 0, 100], [0, 1000, 1000], [0, 1000, 100]]:
+            with self.assertRaises(ValueError):
+                self.compute(bp_bins=bins)
+            with self.assertRaises(ValueError):
+                self.compute(rec_map_file=self.map_file, r_bins=bins)
+
+    def test_missing_input_files(self):
+        # The bed, map and population files must exist.
+        missing = os.path.join(self.tmpdir.name, "missing.txt")
+        for kwargs in [
+            dict(bed_file=missing),
+            dict(rec_map_file=missing, r_bins=[0, 1e-5]),
+            dict(pop_file=missing, pops=["A"]),
+        ]:
+            with self.assertRaises(FileNotFoundError):
+                self.compute(bp_bins=[0, 1000], **kwargs)
+
+    def test_pops_and_pop_file_given_together(self):
+        # pops and pop_file must be given together.
+        with self.assertRaises(ValueError):
+            self.compute(bp_bins=[0, 1000], pops=["A", "B"])
+        with self.assertRaises(ValueError):
+            self.compute(bp_bins=[0, 1000], pop_file=self.pop_file)
+
+    def test_pops_not_in_pop_file(self):
+        # Each of the pops must be in the population file, and the error names the
+        # missing ones.
+        with self.assertRaises(ValueError) as err:
+            self.compute(bp_bins=[0, 1000], pop_file=self.pop_file, pops=["A", "C"])
+        self.assertIn("C", str(err.exception))
+
+    def test_pop_file_header(self):
+        # The population file's first line names the sample and pop columns.
+        no_header = os.path.join(self.tmpdir.name, "no_header.txt")
+        with open(no_header, "w") as fout:
+            fout.write("s1 A\ns2 B\n")
+        with self.assertRaises(ValueError):
+            self.compute(bp_bins=[0, 1000], pop_file=no_header, pops=["A"])
+
+    def test_invalid_region(self):
+        # A region is [start, end] with start < end.
+        for region in [[100], [100, 200, 300], [200, 100], [100, 100]]:
+            with self.assertRaises(ValueError):
+                self.compute(bp_bins=[0, 1000], region=region)
+
+    def test_invalid_stats_to_compute(self):
+        # stats_to_compute is [ld_stats, h_stats], with names valid for the number
+        # of populations (one, if pops aren't given).
+        for stats in [
+            ["DD_0_0", "pi2_0_0_0_0"],
+            [["DD_0_0"], ["H_0_0"], []],
+            [["DD_0_1"], ["H_0_0"]],
+            [["DD_0_0"], ["H_0_1"]],
+            [["H_0_0"], ["DD_0_0"]],
+        ]:
+            with self.assertRaises(ValueError):
+                self.compute(bp_bins=[0, 1000], stats_to_compute=stats)
+        # with two populations, statistics of a third population are invalid
+        with self.assertRaises(ValueError):
+            self.compute(
+                bp_bins=[0, 1000],
+                pop_file=self.pop_file,
+                pops=["A", "B"],
+                stats_to_compute=[["DD_0_2"], ["H_0_0"]],
+            )
+
+    def test_warn_no_bins(self):
+        # Without bins, only heterozygosity statistics are computed.
+        with self.assertWarns(UserWarning):
+            self.check_args(bp_bins=None)
+
+    def test_warn_bp_bins_with_map(self):
+        # With bp_bins, a recombination map isn't used.
+        with self.assertWarns(UserWarning):
+            self.check_args(rec_map_file=self.map_file)
+
+    def test_warn_min_bp_without_bed_file(self):
+        # min_bp filters the features of a bed file, so it's ignored without one.
+        with self.assertWarns(UserWarning):
+            self.check_args(min_bp=1000)
+
+
+class AssignRecombinationRates(unittest.TestCase):
+    def setUp(self):
+        pytest.importorskip("pandas")
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.map_file = os.path.join(self.tmpdir.name, "map.txt")
+        with open(self.map_file, "w") as fout:
+            fout.write("Position(bp) Other(cM) Map(cM)\n0 0 0\n1000000 2 1\n")
+        self.positions = np.array([250000, 500000])
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def test_map_name(self):
+        # The named map column is used, and Map(cM) if no map_name is given. Maps in
+        # cM are converted to Morgans.
+        rs = moments.LD.Parsing._assign_recombination_rates(
+            self.positions, self.map_file, map_name="Other(cM)", report=False
+        )
+        self.assertTrue(np.allclose(rs, [0.005, 0.01]))
+        rs = moments.LD.Parsing._assign_recombination_rates(
+            self.positions, self.map_file, report=False
+        )
+        self.assertTrue(np.allclose(rs, [0.0025, 0.005]))
+
+    def test_map_name_not_in_map_file(self):
+        # A map_name that isn't in the map file warns, and
+        # the first map column is used.
+        with self.assertWarns(UserWarning):
+            rs = moments.LD.Parsing._assign_recombination_rates(
+                self.positions, self.map_file, map_name="Missing(cM)", report=False
+            )
+        self.assertTrue(np.allclose(rs, [0.005, 0.01]))
