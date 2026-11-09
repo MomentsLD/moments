@@ -1270,7 +1270,7 @@ def compute_ld_statistics(
         mask can be provided along with the region of interest. Statistics are only
         computed for sites that pass the mask and fall within that region.
     :param str rec_map_file: The input recombination map. The format is
-        {pos}\t{map (cM)}\t{additional maps}\n
+        `{pos}\t{map (cM)}\t{additional maps}\n`. Required to use ``r_bins``.
     :param str map_name: If None, takes the first map column, otherwise takes the
         specified map column with the name matching the recombination map file header.
     :param str map_sep: Deprecated! We now read the recombination map, splitting by
@@ -1281,10 +1281,14 @@ def compute_ld_statistics(
     :param list(str) pops: List of populations to compute statistics for.
         If none are given, it treates every sample as coming from the same population.
     :param bool cM: If True, the recombination map is specified in cM. If False,
-        the map is given in units of Morgans.
-    :param list(float) r_bins: A list of raw recombination rate bin edges.
-    :param list(float) bp_bins: If ``r_bins`` are not given, a list of bp bin
-        edges (for use when no recombination map is specified).
+        the map is given in units of Morgans. A map in cM is converted to Morgans,
+        so this does not change the units of ``r_bins``.
+    :param list(float) r_bins: Bin edges of the recombination distance between
+        pairs of SNPs, in Morgans (for example, from 1e-6 to 1e-3). Requires
+        ``rec_map_file``.
+    :param list(float) bp_bins: If ``r_bins`` are not given, bin edges of the
+        physical distance between pairs of SNPs, in base pairs (for use when no
+        recombination map is specified).
     :param int, float min_bp: The minimum bp allowed for a segment specified
         by the bed file.
     :param bool use_genotypes: If True, we assume the data in the VCF is unphased.
@@ -1304,6 +1308,14 @@ def compute_ld_statistics(
         and report our progress with the given spacing.
     :param bool use_cache: If True, cache intermediate results.
     """
+
+    # check the bins before reading the VCF, which can be slow
+    if r_bins is not None and rec_map_file is None:
+        raise ValueError(
+            "r_bins are recombination distances (in Morgans), which require a "
+            "recombination map. Provide rec_map_file, or use bp_bins to bin by "
+            "physical distance in base pairs."
+        )
 
     check_imports()
 

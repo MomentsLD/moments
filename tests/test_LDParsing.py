@@ -170,3 +170,16 @@ class ParsedDataNormalizingStatistics(unittest.TestCase):
         )
         self.assertEqual(list(r_edges), [0, 1e-5])
         self.assertEqual(len(means), 2)
+
+
+class ComputeLDStatisticsBins(unittest.TestCase):
+    def test_r_bins_require_recombination_map(self):
+        # r_bins are recombination distances (in Morgans), which can't be computed
+        # without a recombination map. This used to silently compute no LD
+        # statistics. Now it raises an error before reading the VCF (which doesn't
+        # exist here), pointing to bp_bins for binning by physical distance.
+        with self.assertRaises(ValueError) as err:
+            moments.LD.Parsing.compute_ld_statistics(
+                "not_a_file.vcf", r_bins=[0, 1e-5, 1e-4]
+            )
+        self.assertIn("bp_bins", str(err.exception))
