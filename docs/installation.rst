@@ -87,9 +87,8 @@ Some features need additional packages:
 
 We also strongly recommend installing ``ipython`` for interactive analyses.
 
-For development, ``requirements.txt`` lists the dependencies along with the
-packages needed to build the documentation. From the moments directory, these
-can be installed with
+For development, ``requirements.txt`` lists the dependencies. From the moments
+directory, these can be installed with
 
 .. code-block:: bash
 
@@ -100,6 +99,18 @@ or, using conda,
 .. code-block:: bash
 
    conda install -c conda-forge --file requirements.txt
+
+To build the documentation locally, install ``moments`` along with the packages
+in ``requirements/docs.txt``, and then run ``make html`` in the ``docs``
+directory:
+
+.. code-block:: bash
+
+   python -m pip install . -r requirements/docs.txt
+   cd docs
+   make html
+
+The pages are written to ``docs/_build/html``.
 
 You should then be able to import ``moments`` in your python scripts. Entering
 an ipython or python session, type ``import moments``. If, for any reason, you

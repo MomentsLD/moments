@@ -69,8 +69,7 @@ Some features need additional packages:
 
 We also recommend installing `ipython` for interactive analyses.
 
-For development, `requirements.txt` lists the dependencies along with the packages
-needed to build the documentation:
+For development, `requirements.txt` lists the dependencies:
 
 ```
 pip install -r requirements.txt
@@ -80,6 +79,15 @@ or, with `conda`:
 
 ```
 conda install -c conda-forge --file requirements.txt
+```
+
+To build the documentation locally, install `moments` along with the packages in
+`requirements/docs.txt`, and then run `make html` in the `docs` directory:
+
+```
+python -m pip install . -r requirements/docs.txt
+cd docs
+make html
 ```
 
 More details on installation can be found in the
