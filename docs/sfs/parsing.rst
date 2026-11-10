@@ -1,10 +1,10 @@
- .. _sec_sfs_parsing:
+.. _sec_sfs_parsing:
 
 ===============================
 Parsing the SFS from a VCF file
 ===============================
 
-As described in the `SFS section <sfs>`_, the site frequencey spectrum (SFS) is 
+As described in the :ref:`SFS section <sec_sfs>`, the site frequency spectrum (SFS) is 
 a multidimensional histogram that records the counts, frequencies or probabilities
 of the observed counts of SNPs in one or more populations. Here we show how to use 
 ``moments.Spectrum.from_vcf`` to compute the SFS from a VCF file. 
@@ -80,7 +80,7 @@ as though the data were missing, but the assignments may be taken as valid by pa
 Biallelic and multiallelic sites
 --------------------------------
 
-By default, multiallelic sites are skipped. We can pass ``True``to ``allow_multiallelic``
+By default, multiallelic sites are skipped. We can pass ``True`` to ``allow_multiallelic``
 to include derived alleles at multiallelic sites as distinct entries in the SFS. 
 When we provide an ancestral sequence and ``allow_multiallelic`` is ``False``, 
 biallelic sites where the reference and alternate alleles both differ from 
@@ -98,7 +98,7 @@ Valid key-value combinations are listed here. ``"QUAL"`` specifies a lower bound
 on the VCF ``QUAL`` column and should map to a float or integer. ``"FILTER"``
 should map to a string or list/set/tuple of strings. To pass, sites must have a ``FILTER``
 entry equal to the value of ``"FILTER"`` if it is a string, or to one of its 
-elements if it is a string, tuple or list.
+elements if it is a list, set or tuple.
 
 ``"INFO/SUBFIELD"`` imposes a filter on ``SUBFIELD`` in the ``INFO`` column. Its 
 value may be a float or integer, in which case it imposes a minimum threshold on that 
@@ -115,9 +115,9 @@ at the sample level. An arbitrary example is:
         "QUAL": 30,
         "FILTER": "PASS",
         "INFO/DP": 30,
-        "INFO/DB": "DB"
-        "FORMAT/GQ": 30
-        "FORMAT/DP": 30
+        "INFO/DB": "DB",
+        "FORMAT/GQ": 30,
+        "FORMAT/DP": 30,
     }
     fs = moments.Spectrum.from_vcf(vcf_file, filters=filter_dict)
 
@@ -129,7 +129,7 @@ are not skipped, but one-time alert messages are printed for each unique excepti
 Projecting to a smaller sample size
 -----------------------------------
 
-We may wish to reduce the size the output SFS to reduce the space it occupies in 
+We may wish to reduce the size of the output SFS to reduce the space it occupies in 
 memory, to make computing an expected SFS for the same shape faster, to allow sites 
 where some samples are filtered out or missing to be retained in output, or for 
 other reasons. We can accomplish this by passing a dictionary of desired haploid sample sizes to 
@@ -180,7 +180,7 @@ with the ``moments.Parsing.compute_L`` function. Its only required argument is
 ``bed_file``, the path to the BED file that was used to parse the SFS. We can also
 give an ``interval``, restricting sites to a one-indexed, half-open interval. Also, 
 if we used an ancestral sequence from an external FASTA file, it can be passed to 
-``anc_seq_file``, with the interpretation of low-confidence allele assignements modulated 
+``anc_seq_file``, with the interpretation of low-confidence allele assignments modulated 
 by ``allow_low_confidence``. Providing a FASTA file will restrict sites counted in 
 :math:`L` to those with inferred ancestral states. A maximal example is: 
 

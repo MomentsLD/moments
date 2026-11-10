@@ -1,9 +1,8 @@
 # Methods to plot LD decay curves from moments.LD
 # !!!!
 # WARNING: These functions are meant to serve as examples or inspiration. They are not
-# documented, nor are they nicely formatted or take friendly inputs. Similarly, they
-# are not currently maintained, aside from being usable in some example code blocks in
-# the documentation.
+# nicely formatted and do not take friendly inputs. Similarly, they are not currently
+# maintained, aside from being usable in some example code blocks in the documentation.
 # !!!!
 
 import matplotlib.pylab as plt, matplotlib
@@ -34,26 +33,48 @@ def plot_ld_curves(
     show=False,
 ):
     """
-    Plot single set of LD curves
-    LD curves are named as given in statistics
+    Plot LD curves (statistics against recombination distance) from a model.
 
-    ld_stats is the output of bin_stats
-    stats_to_plot is a list of lists, where each inner list gives the stats
-        to plot in a given pane, and the list of lists are each pane
-    rows and cols tells us how to arrange the panes, if there are more than one
-        sets of statistics to plot
-    if statistics is None, we use the statistics as listed in ld_stats.names()
+    For example, to plot four panes, two on each of two rows, with the
+    :math:`D^2` statistics, the between-population :math:`D_iD_j` statistics,
+    the single-population :math:`Dz` statistics, and the single-population
+    :math:`\\pi_2` statistics of a three-population model:
 
-    For example, to plot four panes, two on each of two rows, with the D^2
-        statistics, the between-population cov(D) statistics, the non-cross
-        populations Dz statistics, and the non-cross pop pi2 statistics, we run
-        plot_ld_curves(ld_stats, stats_to_plot=[['DD_0_0','DD_1_1','DD_2_2'],
-            ['DD_0_1','DD_0_2','DD_1_2'],['Dz_0_0_0','Dz_1_1_1','Dz_2_2_2'],
-            ['pi2_1_1_1_1','pi2_2_2_2_2']], rows=2, cols=2,
-            statistics=statistics)
+    .. code-block:: python
 
-    If you want to save the figure, set output to the file path+name
+        moments.LD.Plotting.plot_ld_curves(
+            ld_stats,
+            stats_to_plot=[
+                ["DD_0_0", "DD_1_1", "DD_2_2"],
+                ["DD_0_1", "DD_0_2", "DD_1_2"],
+                ["Dz_0_0_0", "Dz_1_1_1", "Dz_2_2_2"],
+                ["pi2_0_0_0_0", "pi2_1_1_1_1", "pi2_2_2_2_2"],
+            ],
+            rows=2,
+            cols=2,
+            r_edges=r_bins,
+        )
+
+    :param ld_stats: The binned LD statistics, as returned by
+        ``moments.LD.Inference.bin_stats``.
+    :param stats_to_plot: A list of lists of statistic names. Each inner list
+        gives the statistics to plot in one pane.
+    :param rows: The number of rows of panes. If neither ``rows`` nor ``cols`` is
+        given, the panes are placed in a single row.
+    :param cols: The number of columns of panes.
+    :param statistics: The names of the statistics in ``ld_stats``, as
+        ``[ld_stat_names, h_stat_names]``. If None, ``ld_stats.names()`` is used.
+    :param fig_size: The figure size, in inches.
+    :param dpi: The figure resolution.
+    :param r_edges: The edges of the recombination bins used to compute
+        ``ld_stats``. The statistics are plotted at the bin midpoints.
+    :param numfig: The matplotlib figure number to draw in.
+    :param cM: If True, label the x-axis in cM (scaling ``r`` by 100).
+    :param output: If given, save the figure to this file.
+    :param show: If True, show the figure. Otherwise, return it.
+    :returns: The matplotlib figure, if ``show`` is False.
     """
+
     num_axes = len(stats_to_plot)
     if num_axes == 0:
         return
@@ -138,33 +159,67 @@ def plot_ld_curves_comp(
     labels=None,
 ):
     """
-    Plot comparison between expected stats (y) and data (ms, vcs)
+    Plot LD curves from a model along with the data they were fit to, with
+    the model drawn as solid lines and the data means as dashed lines.
 
-    stats_to_plot is a list of lists, where each inner list gives the stats
-        to plot in a given pane, and the list of lists are each pane
-    rows and cols tells us how to arrange the panes, if there are more than one
-        sets of statistics to plot
-    if statistics is None, we use the statistics as listed in ld_stats.names(), and
-        the data must include all of them, including the normalizing statistics (as
-        returned by the moments.LD.Parsing functions). Otherwise, statistics lists
-        the statistics in the data, as [ld_stats, h_stats].
+    For example, to plot four panes, two on each of two rows, with the
+    :math:`D^2` statistics, the between-population :math:`D_iD_j` statistics,
+    the single-population :math:`Dz` statistics, and the single-population
+    :math:`\\pi_2` statistics of a three-population model:
 
-    if binned_data is True, then rs defines the edges of bins, so that ld_stats,
-        ms, and vcs have length of ld stats equal to rs-1, while if
-        binned data is False, ld_stats and ms is plotted at values of rs,
-        and have equal length to rs.
+    .. code-block:: python
 
-    For example, to plot four panes, two on each of two rows, with the D^2
-        statistics, the between-population cov(D) statistics, the non-cross
-        populations Dz statistics, and the non-cross pop pi2 statistics, we run
-        plot_ld_curves(ld_stats, stats_to_plot=[['DD_0_0','DD_1_1','DD_2_2'],
-            ['DD_0_1','DD_0_2','DD_1_2'],['Dz_0_0_0','Dz_1_1_1','Dz_2_2_2'],
-            ['pi2_1_1_1_1','pi2_2_2_2_2']], rows=2, cols=2,
-            statistics=statistics)
+        moments.LD.Plotting.plot_ld_curves_comp(
+            ld_stats,
+            means[:-1],
+            varcovs[:-1],
+            stats_to_plot=[
+                ["DD_0_0", "DD_1_1", "DD_2_2"],
+                ["DD_0_1", "DD_0_2", "DD_1_2"],
+                ["Dz_0_0_0", "Dz_1_1_1", "Dz_2_2_2"],
+                ["pi2_0_0_0_0", "pi2_1_1_1_1", "pi2_2_2_2_2"],
+            ],
+            rows=2,
+            cols=2,
+            rs=r_bins,
+            plot_vcs=True,
+        )
 
-    Otherwise we can pass an ax object in a fig that already exists, in which
-        case stats_to_plot must have length 1 (with as many statistics you want
-        to plot within that axis).
+    :param ld_stats: The expected LD statistics from the model, binned as the data
+        are and normalized in the same way, for example using
+        ``moments.LD.Inference.sigmaD2(moments.LD.Inference.bin_stats(...))``.
+    :param ms: The data means, one array of LD statistics per recombination bin.
+    :param vcs: The data variance-covariance matrices, one per recombination bin.
+    :param stats_to_plot: A list of lists of statistic names. Each inner list
+        gives the statistics to plot in one pane.
+    :param rows: The number of rows of panes. If neither ``rows`` nor ``cols`` is
+        given, the panes are placed in a single row.
+    :param cols: The number of columns of panes.
+    :param statistics: The names of the statistics in the data, as
+        ``[ld_stat_names, h_stat_names]``. If None, ``ld_stats.names()`` is used,
+        and the data must include all of those statistics, including the
+        normalizing statistics (as returned by the ``moments.LD.Parsing``
+        functions).
+    :param fig_size: The figure size, in inches.
+    :param dpi: The figure resolution.
+    :param rs: If ``binned_data`` is True, the edges of the recombination bins,
+        so that the model and data have one fewer entry than ``rs``, and are
+        plotted at the bin midpoints. Otherwise, the recombination distances at
+        which the model and data are plotted, with the same length as ``rs``.
+    :param numfig: The matplotlib figure number to draw in.
+    :param cM: If True, label the x-axis in cM (scaling ``r`` by 100).
+    :param output: If given, save the figure to this file.
+    :param show: If True, show the figure. Otherwise, return it.
+    :param plot_means: If True, plot the data means as dashed lines.
+    :param plot_vcs: If True, shade the 95% confidence intervals of the data,
+        computed from the variances in ``vcs``.
+    :param binned_data: Whether ``rs`` gives bin edges (True) or the points at
+        which statistics were computed (False).
+    :param ax: A matplotlib axis to draw in, in an existing figure. In this case
+        ``stats_to_plot`` must have length one, and nothing is returned.
+    :param labels: Legend labels, as a list of lists with the same shape as
+        ``stats_to_plot``. If None, the statistic names are used.
+    :returns: The matplotlib figure, if ``ax`` is not given and ``show`` is False.
     """
 
     # Check that all the data has the correct dimensions
