@@ -1403,7 +1403,7 @@ def _get_godambe_LD(
         hess = -moments.LD.Godambe._get_hess(func, p0, eps, args=[means, varcovs])
     else:
         hess = -moments.LD.Godambe._get_hess(
-            log_func, np.log(p0), eps, args=[means, varcovs]
+            log_func, np.log(p0), eps, args=[means, varcovs], log=True
         )
 
     if just_hess:
@@ -1421,7 +1421,7 @@ def _get_godambe_LD(
             )
         else:
             grad_temp = moments.LD.Godambe._get_grad(
-                log_func, np.log(p0), eps, args=[bs_ms, varcovs]
+                log_func, np.log(p0), eps, args=[bs_ms, varcovs], log=True
             )
         J_temp = np.outer(grad_temp, grad_temp)
         J = J + J_temp
