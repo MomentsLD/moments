@@ -71,6 +71,11 @@ Change log
   nested ones, and used the wrong sign of the hessian. The ``LRT_adjust``
   docstrings and LD example now use the likelihood ratio test statistic
   ``D = 2 * (ll_complex - ll_simple)``, which the adjustment factor scales
+- **Bug fix:** With ``log=True``, ``moments.LD.Godambe.GIM_uncert`` and
+  ``FIM_uncert``, and ``moments.Demes.Inference.uncerts_LD``, took one-sided
+  derivatives for parameters less than one, with step sizes that scaled with the
+  log of the parameter, so that GIM uncertainties could be several times too
+  large. They now use a step of ``eps`` in log space with central differences
 
 1.7.0
 =====

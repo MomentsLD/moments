@@ -17,6 +17,34 @@ from .. import Misc
 import sys, os
 
 
+def _step_sizes(p0, eps, log=False):
+    """
+    Step sizes for finite-difference derivatives, and whether each derivative is
+    one-sided.
+
+    :param p0: Parameter values to take derivatives around.
+    :param eps: Fractional step size. If ``log`` is True, ``p0`` are log-parameters,
+        and the step is ``eps`` for each of them, which changes each parameter by
+        the same relative amount, with central differences.
+    :param log: If True, ``p0`` are log-parameters.
+    :return: The step sizes and a list of whether each derivative is one-sided.
+        Without ``log``, parameters equal to zero, or so small that ``eps`` times
+        the parameter is below 1e-12, use a step of ``eps`` and one-sided
+        (forward) differences, so that they are not stepped below zero.
+    """
+    steps = numpy.empty(len(p0))
+    one_sided = [False] * len(p0)
+    for i, pval in enumerate(p0):
+        if log:
+            steps[i] = eps
+        elif abs(pval) * eps < 1e-12:
+            steps[i] = eps
+            one_sided[i] = True
+        else:
+            steps[i] = eps * abs(pval)
+    return steps, one_sided
+
+
 def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
@@ -34,11 +62,11 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
     if one_sided is None:
-        one_sided = [False] * len(p0)
+        one_sided = [p == 0 for p in p0]
 
     pwork = numpy.array(p0, copy=True, dtype=float)
     if ii == jj:
-        if pwork[ii] != 0 and not one_sided[ii]:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -55,12 +83,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
 
             element = (fpp - 2 * fp + f0) / eps[ii] ** 2
     else:
-        if (
-            pwork[ii] != 0
-            and pwork[jj] != 0
-            and not one_sided[ii]
-            and not one_sided[jj]
-        ):
+        if not one_sided[ii] and not one_sided[jj]:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
@@ -102,7 +125,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     return element
 
 
-def _get_hess(func, p0, eps, args=()):
+def _get_hess(func, p0, eps, args=(), log=False):
     """
     Calculate Hessian matrix of partial second derivatives.
     Hij = dfunc/(dp_i dp_j)
@@ -110,26 +133,11 @@ def _get_hess(func, p0, eps, args=()):
     :param func: Model function
     :param p0: Parameter values to take derivative around
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-12, then the step size for that parameter
-        will simply be eps, to avoid numerical issues with small parameter
-        perturbations.
+        (see ``_step_sizes``).
     :param args: Additional arguments to func
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    one_sided = [False] * len(p0)
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-12:
-                eps[i] = eps_in
-                one_sided[i] = True
-            else:
-                eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     f0 = func(p0, *args)
     hess = numpy.empty((len(p0), len(p0)))
@@ -142,39 +150,24 @@ def _get_hess(func, p0, eps, args=()):
     return hess
 
 
-def _get_grad(func, p0, eps, args=()):
+def _get_grad(func, p0, eps, args=(), log=False):
     """
     Calculate gradient vector
 
     :param func: Model function
     :param p0: Parameters for func
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-12, then the step size for that parameter
-        will simply be eps, to avoid numerical issues with small parameter
-        perturbations.
+        (see ``_step_sizes``).
     :param args: Additional arguments to func
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    one_sided = [False] * len(p0)
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-12:
-                eps[i] = eps_in
-                one_sided[i] = True
-            else:
-                eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     grad = numpy.empty([len(p0), 1])
     for ii in range(len(p0)):
         pwork = numpy.array(p0, copy=True, dtype=float)
 
-        if p0[ii] != 0 and not one_sided[ii]:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -233,7 +226,7 @@ def _get_godambe(
     if not log:
         hess = -_get_hess(func, p0, eps, args=[ms, vcs])
     else:
-        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
+        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs], log=True)
 
     if just_hess:
         return hess
@@ -247,7 +240,9 @@ def _get_godambe(
         if not log:
             grad_temp = _get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
-            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(
+                log_func, numpy.log(p0), eps, args=[bs_ms, vcs], log=True
+            )
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp

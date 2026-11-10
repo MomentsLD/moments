@@ -1054,3 +1054,34 @@ class GodambeWellSpecified(unittest.TestCase):
         )
         self.assertTrue(np.all(np.isfinite(fim)) and np.all(fim > 0))
         self.assertTrue(np.allclose(gim, fim, rtol=0.05))
+
+    def test_log_uncertainties(self):
+        # With log=True, the uncertainties of the log-parameters equal the relative
+        # uncertainties sd(p) / p from log=False, for parameters below one (negative
+        # log values) as well as above. Negative log values used to get one-sided
+        # derivatives, and the step size scaled with the log-parameter.
+        p0 = np.array([0.2, 2.0, 0.075, 1.5, 10000])
+        means, varcovs, boots = self.data(p0)
+        args = (self.model_func, p0, means, varcovs)
+        fim = moments.LD.Godambe.FIM_uncert(*args, r_edges=self.r_edges)
+        fim_log = moments.LD.Godambe.FIM_uncert(*args, r_edges=self.r_edges, log=True)
+        self.assertTrue(np.allclose(fim_log, fim / p0, rtol=0.02))
+        args = (self.model_func, boots, p0, means, varcovs)
+        gim = moments.LD.Godambe.GIM_uncert(*args, r_edges=self.r_edges)
+        gim_log = moments.LD.Godambe.GIM_uncert(*args, r_edges=self.r_edges, log=True)
+        self.assertTrue(np.allclose(gim_log, gim / p0, rtol=0.02))
+
+
+class GodambeStepSizes(unittest.TestCase):
+    def test_step_sizes(self):
+        # Without log, steps are a fraction eps of each parameter, with one-sided
+        # derivatives for zero and tiny values, and central derivatives for negative
+        # values. With log (log-parameters), every step is eps, with central
+        # derivatives, including for log-parameters that are zero or negative.
+        p0 = [2.0, -0.5, 0, 1e-14]
+        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01)
+        self.assertTrue(np.allclose(steps, [0.02, 0.005, 0.01, 0.01]))
+        self.assertEqual(one_sided, [False, False, True, True])
+        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01, log=True)
+        self.assertTrue(np.allclose(steps, 0.01))
+        self.assertEqual(one_sided, [False] * 4)

@@ -774,6 +774,33 @@ class TestUncertsNearInvalidGraph(TempFilesTestCase):
         self.assertTrue(np.isfinite(out[0]) and out[0] > 0)
 
 
+class TestUncertsLDLog(TempFilesTestCase):
+    def test_log_uncertainties(self):
+        # With log=True, the FIM uncertainties of the log-parameters equal the
+        # relative uncertainties sd(p) / p from log=False, including for the
+        # migration rate (1e-4), whose log is negative. Negative log values used to
+        # get one-sided derivatives, and the step size scaled with the log-parameter.
+        graph = self.write("graph.yaml", GRAPH)
+        options = self.write(
+            "options.yaml",
+            "parameters:"
+            + size_param("NA", "A")
+            + "- name: m\n  values:\n  - migrations:\n      0: rate\n",
+        )
+        g = demes.loads(GRAPH)
+        rs = [0, 1e-5, 1e-4]
+        y = Inference.compute_bin_stats(g, ["A", "B"], rs=rs)
+        y = moments.LD.Inference.sigmaD2(y)
+        means = [np.array(m) for m in y]
+        varcovs = [np.diag((0.01 * m) ** 2 + 1e-12) for m in means]
+        kwargs = dict(pop_ids=["A", "B"], rs=rs, normalization="A")
+        out = Inference.uncerts_LD(graph, options, means, varcovs, **kwargs)
+        out_log = Inference.uncerts_LD(
+            graph, options, means, varcovs, log=True, **kwargs
+        )
+        self.assertTrue(np.allclose(out_log, out / np.array([2000, 1e-4]), rtol=0.01))
+
+
 class TestUncerts(TempFilesTestCase):
     def setUp(self):
         super().setUp()
