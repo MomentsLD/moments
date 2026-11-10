@@ -319,10 +319,11 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0
     """
     First-order moment matching adjustment factor for likelihood ratio test.
 
-    The adjusted test statistic is ``D_adj = adj * (ll_complex - ll_simple)``,
-    where ``ll_complex`` and ``ll_simple`` are the log-likelihoods of the best fits
-    of the complex and simple (nested) models (Coffman et al., 2016). Its p-value
-    is given by ``sum_chi2_ppf(D_adj, weights)``.
+    The adjusted likelihood ratio test statistic is
+    ``D_adj = adj * 2 * (ll_complex - ll_simple)``, where ``ll_complex`` and
+    ``ll_simple`` are the log-likelihoods of the best fits of the complex and simple
+    (nested) models (Coffman et al., 2016). Its p-value is given by
+    ``sum_chi2_ppf(D_adj, weights)``.
 
     :param func_ex: Model function for complex model
     :type func_ex: demographic model

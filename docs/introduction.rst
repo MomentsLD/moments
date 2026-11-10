@@ -63,6 +63,15 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.7.1
+=====
+- **Bug fix:** ``moments.LD.Godambe.LRT_adjust`` returned an adjustment factor
+  that was much too small (so that the test could not reject the nested model),
+  because it took derivatives with respect to all parameters instead of only the
+  nested ones, and used the wrong sign of the hessian. The ``LRT_adjust``
+  docstrings and LD example now use the likelihood ratio test statistic
+  ``D = 2 * (ll_complex - ll_simple)``, which the adjustment factor scales
+
 1.7.0
 =====
 - Add python 3.15 support
