@@ -16,7 +16,7 @@ jobs:
           python-version: "3.13"
       - name: Install dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme . jupyter-sphinx matplotlib demes demesdraw
+          pip install . -r requirements/docs.txt
       - name: Sphinx build
         run: |
           cd docs

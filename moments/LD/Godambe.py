@@ -224,8 +224,7 @@ def _get_godambe(
         if key not in ld_cache:
             ld_cache[key] = func_ex(params, statistics)
         y = ld_cache[key]
-        ll = Inference.ll_over_bins(y, m, v)
-        return -ll
+        return Inference.ll_over_bins(m, y, v)
 
     def log_func(logparams, m, v):
         return func(numpy.exp(logparams), m, v)
@@ -502,9 +501,7 @@ def FIM_uncert(
     H = _get_godambe(
         pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
     )
-    # NOTE: There appears to be some discrepancy with +/- when returning log-likelihoods,
-    # which makes returned hessian matrix negative
-    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(-H)))
+    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
     return uncerts
 
 
@@ -525,10 +522,10 @@ def LRT_adjust(
     Following ``moments.Godambe.LRT_adjust()``, this function performs
     first-order moment matching to adjust the test statistic for the likelihood
     ratio test. Given log-likelihoods for a full and nested model (complex and
-    simpler model, resp), the adjustment factor ``adj`` scales the test statistic,
-    ``D_adj = adj * (ll_full - ll_nested)``, whose p-value is given by
-    ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization functions
-    return the negative log-likelihood.
+    simpler model, resp), the adjustment factor ``adj`` scales the likelihood ratio
+    test statistic, ``D_adj = adj * 2 * (ll_full - ll_nested)``, whose p-value is
+    given by ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization
+    functions return the negative log-likelihood.
 
     :param model_func: The demographic model function for the complex (full) model,
         called as ``model_func(params, rho=rho)`` and returning an LDstats object.
@@ -581,8 +578,16 @@ def LRT_adjust(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
+    # We only take derivatives with respect to the nested parameters, which are
+    # fixed in the simple model, as in moments.Godambe.LRT_adjust.
+    def diff_func(diff_params, statistics):
+        full_params = numpy.array(p0, copy=True, dtype=float)
+        full_params[nested_indices] = diff_params
+        return pass_func(full_params, statistics)
+
+    p_nested = numpy.asarray(p0, dtype=float)[nested_indices]
     GIM, H, J, cU = _get_godambe(
-        pass_func, all_boots, p0, means, varcovs, eps, statistics, log=False
+        diff_func, all_boots, p_nested, means, varcovs, eps, statistics, log=False
     )
 
     adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))

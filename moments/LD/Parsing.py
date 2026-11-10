@@ -1388,7 +1388,7 @@ def compute_ld_statistics(
         mask can be provided along with the region of interest. Statistics are only
         computed for sites that pass the mask and fall within that region.
     :param str rec_map_file: The input recombination map. The format is
-        `{pos}\t{map (cM)}\t{additional maps}\n`. Required to use ``r_bins``.
+        ``{pos}\\t{map (cM)}\\t{additional maps}\\n``. Required to use ``r_bins``.
     :param str map_name: If None, takes the first map column, otherwise takes the
         specified map column with the name matching the recombination map file header.
     :param str map_sep: Deprecated! We now read the recombination map, splitting by

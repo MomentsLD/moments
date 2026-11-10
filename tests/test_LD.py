@@ -989,3 +989,68 @@ class NormalizingStatistics(unittest.TestCase):
                 **kwargs,
             )
         plt.close("all")
+
+
+class GodambeWellSpecified(unittest.TestCase):
+    """
+    When the data are the model's expectations, and the bootstrap replicates vary
+    with exactly the variances in varcovs and independently across bins, the
+    composite likelihood is the true likelihood, so the Godambe information equals
+    the Fisher information and the LRT adjustment factor is one.
+    """
+
+    def setUp(self):
+        self.model_func = moments.LD.Demographics2D.split_mig
+        self.r_edges = np.array([0, 1e-6, 1e-5, 1e-4])
+        names = moments.LD.Util.moment_names(2)
+        self.norm_idx = [names[0].index("pi2_0_0_0_0"), names[1].index("H_0_0")]
+
+    def data(self, p):
+        # Expected statistics at p as the data, with 2% standard deviations and the
+        # normalizing statistics fixed at one. Bootstrap replicates shift one
+        # statistic at a time by +/- sqrt(K) standard deviations, where K is the
+        # number of non-normalizing statistics, so their variances equal varcovs
+        # and they are uncorrelated within and between bins.
+        y = moments.LD.Inference.bin_stats(
+            self.model_func, p[:-1], rho=4 * p[-1] * self.r_edges
+        )
+        means = [np.array(m) for m in moments.LD.Inference.sigmaD2(y)]
+        norms = [self.norm_idx[0]] * (len(means) - 1) + [self.norm_idx[1]]
+        sds = []
+        for m, k in zip(means, norms):
+            sd = 0.02 * np.abs(m)
+            sd[k] = 0
+            sds.append(sd)
+        varcovs = [np.diag(sd**2) for sd in sds]
+        coords = [(i, j) for i, sd in enumerate(sds) for j in range(len(sd)) if sd[j]]
+        boots = []
+        for i, j in coords:
+            for sign in (1, -1):
+                boot = [m.copy() for m in means]
+                boot[i][j] += sign * np.sqrt(len(coords)) * sds[i][j]
+                boots.append(boot)
+        return means, varcovs, boots
+
+    def test_LRT_adjust(self):
+        # Data from the model without migration (m = 0), testing for migration. The
+        # adjustment was negative or near zero when derivatives were taken with
+        # respect to all parameters and with the wrong sign of the hessian.
+        p0 = [2.0, 3.0, 0.1, 0.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        adj = moments.LD.Godambe.LRT_adjust(
+            self.model_func, boots, p0, [3], means, varcovs, r_edges=self.r_edges
+        )
+        self.assertTrue(np.isclose(adj, 1, rtol=0.05))
+
+    def test_GIM_equals_FIM(self):
+        # The Godambe and Fisher uncertainties agree, and are positive and finite.
+        p0 = [2.0, 3.0, 0.1, 1.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        fim = moments.LD.Godambe.FIM_uncert(
+            self.model_func, p0, means, varcovs, r_edges=self.r_edges
+        )
+        gim = moments.LD.Godambe.GIM_uncert(
+            self.model_func, boots, p0, means, varcovs, r_edges=self.r_edges
+        )
+        self.assertTrue(np.all(np.isfinite(fim)) and np.all(fim > 0))
+        self.assertTrue(np.allclose(gim, fim, rtol=0.05))
