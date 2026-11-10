@@ -207,7 +207,7 @@ For example, with the data ``mv`` returned by ``bootstrap_data``:
 .. code-block:: python
 
     # all statistics, as returned by bootstrap_data, so statistics isn't needed
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess, [mv["means"], mv["varcovs"]], [model_func], rs=r_bins
     )
 
@@ -215,7 +215,7 @@ For example, with the data ``mv`` returned by ``bootstrap_data``:
     r_edges, means, varcovs, stats = moments.LD.Parsing.subset_data(
         mv, ["deme0", "deme1"], remove_Dz=True
     )
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess, [means, varcovs], [model_func], rs=r_edges, statistics=stats
     )
 
@@ -248,8 +248,8 @@ use ``optimize_log_fmin`` to fit the model.
     p_guess = [0.1, 2.0, 0.075, 2.0, 10000]
     p0 = moments.LD.Util.perturb_params(p_guess, fold=0.2)
 
-    # run optimization
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    # run optimization, which returns the negative log-likelihood
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess,
         [data["means"], data["varcovs"]],
         [model_func],
@@ -397,3 +397,83 @@ We can see above that the FIM uncertainties are considerably smaller (i.e. more
 constrained) than the GIM uncertainties. However, the GIM uncertainties are to
 be preferred here, as they more accurately estimate the underlying true
 uncertainty in the demographic inference.
+
+.. _sec_ld_inference_lrt:
+
+***********************
+Likelihood ratio tests
+***********************
+
+To test whether a more complex model fits the data significantly better than a
+simpler, nested model (one that is a special case of the complex model with some
+parameters fixed), we can use a likelihood ratio test. The test statistic is
+twice the difference in log-likelihoods of the best fits,
+:math:`D = 2 (\ell_{complex} - \ell_{simple})`. If the data points were
+independent, :math:`D` would follow a :math:`\chi^2` distribution under the
+simple model, with degrees of freedom equal to the number of nested parameters.
+
+The LD likelihood is a composite likelihood, which treats the recombination
+bins as independent, so this :math:`\chi^2` test is badly overconfident.
+Following [Coffman2016]_, ``moments.LD.Godambe.LRT_adjust`` uses the bootstrap
+replicates to compute an adjustment factor ``adj``, and the adjusted statistic
+:math:`D_{adj} = adj \times D` is then compared to the :math:`\chi^2`
+distribution. For LD statistics, ``adj`` is usually much smaller than one,
+because the statistics in different recombination bins are computed from the
+same pairs of SNPs and so are strongly correlated.
+
+``LRT_adjust`` takes the complex model function and the parameters of the best
+fit of the simple model, given as parameters of the complex model with the nested
+parameters set to their fixed values (and Ne as the last entry), along with the
+indices of the nested parameters:
+``LRT_adjust(model_func, bootstrap_sets, p_nested, nested_indices, means,
+varcovs, r_edges=rs)``. The p-value is given by ``moments.Godambe.sum_chi2_ppf``.
+
+Example
+-------
+
+We'll test whether migration is needed to explain the data from the example
+above, by fitting a model without migration, in which the migration rate is
+fixed at zero. Because zero is on the boundary of the allowed range of the
+migration rate, the test statistic follows an equal mixture of :math:`\chi^2`
+distributions with zero and one degrees of freedom, which we specify with
+``weights=(0.5, 0.5)``.
+
+.. jupyter-execute::
+
+    def model_nomig(params, rho=None, theta=0.001):
+        nu0, nu1, T = params
+        return model_func([nu0, nu1, T, 0], rho=rho, theta=theta)
+
+    opt_params_nomig, neg_LL_nomig = moments.LD.Inference.optimize_log_fmin(
+        [0.1, 2.0, 0.075, 10000],
+        [data["means"], data["varcovs"]],
+        [model_nomig],
+        rs=rs,
+    )
+
+    # the best fit without migration, as parameters of the model with migration
+    p_nested = [*opt_params_nomig[:3], 0, opt_params_nomig[3]]
+    adj = moments.LD.Godambe.LRT_adjust(
+        model_func,
+        bootstrap_sets,
+        p_nested,
+        [3],
+        data["means"],
+        data["varcovs"],
+        r_edges=rs,
+    )
+
+    D = 2 * (neg_LL_nomig - neg_LL)
+    D_adj = adj * D
+    print(f"Test statistic D  : {D:.2f}")
+    print(f"Adjustment factor : {adj:.4f}")
+    print(f"Adjusted D        : {D_adj:.2f}")
+    p_unadj = moments.Godambe.sum_chi2_ppf(D, weights=(0.5, 0.5))
+    p_adj = moments.Godambe.sum_chi2_ppf(D_adj, weights=(0.5, 0.5))
+    print(f"p-value, unadjusted: {p_unadj:.3g}")
+    print(f"p-value, adjusted  : {p_adj:.3g}")
+
+Without the adjustment, the p-value is effectively zero. After adjusting for
+the correlations between recombination bins, the test still rejects the model
+without migration, which we know to be the right answer for these simulated data,
+but with a much less extreme p-value.

@@ -1,10 +1,10 @@
-description: A single-population model to be fit to the MSL data. Initial guesses
-  are given as parameters in the model.
+description: A single-population model to be fit to the MSL data. Initial 
+  guesses are given as parameters in the model.
 time_units: years
 generation_time: 29
 demes:
 - name: MSL
   epochs:
-  - {end_time: 438036.5612580968, start_size: 10852.074100964639}
-  - {end_time: 22028.575408245557, start_size: 25030.347289181653}
-  - {end_time: 0, start_size: 25030.347289181653, end_size: 65992.01795593937}
+  - {end_time: 438036.5612507149, start_size: 10852.074101001497}
+  - {end_time: 22028.57540811275, start_size: 25030.347289259727}
+  - {end_time: 0, start_size: 25030.347289259727, end_size: 65992.01795551841}
