@@ -765,7 +765,11 @@ class Spectrum(np.ma.masked_array):
             matrix m[i,j] is the migration rate from pop j to pop i in genetic
             units, that is, normalized by :math:`2N_e`. ``m`` may be either a
             2-D array, or a function that returns a 2-D array (with dimensions
-            equal to (num pops)x(num pops)).
+            equal to (num pops)x(num pops)). If ``m`` is None (the default), there
+            is no migration, and a faster integration method is used. If ``m`` is
+            given, the integration method with migration is used, even if all
+            rates are zero, so that the SFS changes continuously as migration rates
+            go to zero (the two methods differ slightly, by their numerical errors).
         :type m: array-like, optional
         :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
             ``theta`` can be used in the reversible model in the case of symmetric
@@ -864,9 +868,12 @@ class Spectrum(np.ma.masked_array):
                     frozen=frozen,
                 )
         else:
+            # Without migration (m is None), we use the faster integrators without
+            # migration. Any migration matrix, even with all rates zero, uses the
+            # integrators with migration: the two sets of integrators differ by their
+            # time-discretization errors (which are O(dt^2)), so switching between them
+            # at zero would make the SFS jump as migration rates go to zero.
             if m is None:
-                m = np.zeros([len(n), len(n)])
-            if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver
                 # seems to be faster than the tridiag...
                 if (

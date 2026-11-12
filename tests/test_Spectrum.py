@@ -948,3 +948,19 @@ class TestArithmeticWarnings(unittest.TestCase):
             [sys.executable, "-c", code], capture_output=True, text=True
         )
         self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+
+class TestZeroMigration(unittest.TestCase):
+    def test_continuous_at_zero_migration(self):
+        # With a migration matrix, the SFS is continuous as the migration rates go to
+        # zero (#292): split_mig at M = 0 and at M = 1e-12 agree. Without a matrix
+        # (m=None), integrate uses the integrators without migration, whose
+        # numerical errors differ slightly.
+        ns = [20, 20]
+        fs0 = moments.Demographics2D.split_mig([0.5, 2, 0.1, 0], ns)
+        fs_tiny = moments.Demographics2D.split_mig([0.5, 2, 0.1, 1e-12], ns)
+        self.assertTrue(np.allclose(fs0, fs_tiny, rtol=1e-9, atol=0))
+        fs_nomig = moments.Demographics1D.snm([40]).split(0, 20, 20)
+        fs_nomig.integrate([0.5, 2], 0.1)
+        self.assertTrue(np.allclose(fs0, fs_nomig, rtol=1e-2))
+        self.assertFalse(np.allclose(fs0, fs_nomig, rtol=1e-9, atol=0))
