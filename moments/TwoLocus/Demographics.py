@@ -42,6 +42,19 @@ def _make_floats(params):
         return float(params)
 
 
+def _equilibrium_cache_name(ns, rho, theta, sel_params, sel_params_general):
+    """
+    Path of the cached equilibrium spectrum. Every input that changes the spectrum must
+    appear in the file name, so that different models never share a cache entry.
+    """
+    eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}"
+    if sel_params is not None:
+        eq_name += ".sel_" + "_".join(str(s) for s in sel_params)
+    if sel_params_general is not None:
+        eq_name += ".sel_general_" + "_".join(str(s) for s in sel_params_general)
+    return os.path.join(cache_path, eq_name + ".fs")
+
+
 def equilibrium(
     ns,
     rho=None,
@@ -75,20 +88,20 @@ def equilibrium(
     rho = _make_floats(rho)
     theta = _make_floats(theta)
     sel_params = _make_floats(sel_params)
+    sel_params_general = _make_floats(sel_params_general)
 
     if sel_params is None and gamma is not None:
         print("Setting selection parameters to (2 * gamma, gamma, gamma)")
         sel_params = [2 * gamma, gamma, gamma]
     if sel_params is not None and np.all([s == 0 for s in sel_params]):
         sel_params = None
+    if sel_params_general is not None and np.all([s == 0 for s in sel_params_general]):
+        sel_params_general = None
 
     if cache:
-        if sel_params == None:
-            eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.fs"
-            eq_name = os.path.join(cache_path, eq_name)
-        else:
-            eq_name = f"tlfs.ns_{ns}.rho_{rho}.theta_{theta}.sel_{sel_params[0]}_{sel_params[1]}_{sel_params[2]}.fs"
-            eq_name = os.path.join(cache_path, eq_name)
+        eq_name = _equilibrium_cache_name(
+            ns, rho, theta, sel_params, sel_params_general
+        )
         try:
             F = moments.TwoLocus.TLSpectrum.from_file(eq_name)
             recompute = False

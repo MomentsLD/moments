@@ -1,5 +1,6 @@
 import os, unittest
 import copy
+import tempfile
 import numpy as np
 import moments, moments.TwoLocus
 import time
@@ -185,6 +186,43 @@ class TestTwoLocusResults(unittest.TestCase):
         self.assertTrue(
             np.isclose(F1.D2() / F1.pi2(), F2.D2() / F2.pi2(), atol=1e-4, rtol=1e-2)
         )
+
+
+class TestEquilibriumCache(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+        self.old_cache_path = moments.TwoLocus.Demographics.cache_path
+        self.tmpdir = tempfile.TemporaryDirectory()
+        moments.TwoLocus.Demographics.set_cache_path(self.tmpdir.name)
+
+    def tearDown(self):
+        moments.TwoLocus.Demographics.cache_path = self.old_cache_path
+        self.tmpdir.cleanup()
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_cache_distinguishes_sel_params_general(self):
+        # Regression test for #294: spectra cached with sel_params_general used to be
+        # saved under the neutral file name, so later neutral calls (or calls with other
+        # general selection parameters) loaded the wrong spectrum. Cache three different
+        # models and check that each cached load matches a fresh computation.
+        n = 14
+        rho = 1.0
+        eq = moments.TwoLocus.Demographics.equilibrium
+        sel_1 = moments.TwoLocus.Util.simple_dominance(-2.0, h=0.1)
+        sel_2 = moments.TwoLocus.Util.gene_based_dominance(-2.0, h=0.1)
+        F_sel_1 = eq(n, rho=rho, sel_params_general=sel_1, cache=True)
+        F_sel_2 = eq(n, rho=rho, sel_params_general=sel_2, cache=True)
+        F_neu = eq(n, rho=rho, cache=True)
+        self.assertEqual(len(os.listdir(self.tmpdir.name)), 3)
+        self.assertFalse(np.allclose(F_sel_1.data, F_neu.data))
+        self.assertFalse(np.allclose(F_sel_1.data, F_sel_2.data))
+        # reloading from the cache gives back the matching spectrum
+        for sel, F in [(sel_1, F_sel_1), (sel_2, F_sel_2), (None, F_neu)]:
+            F_cached = eq(n, rho=rho, sel_params_general=sel, cache=True)
+            F_fresh = eq(n, rho=rho, sel_params_general=sel, cache=False)
+            self.assertTrue(np.allclose(F_cached.data, F.data))
+            self.assertTrue(np.allclose(F_cached.data, F_fresh.data))
 
 
 class TestLowOrderStats(unittest.TestCase):
