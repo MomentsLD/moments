@@ -1,21 +1,27 @@
+"""
+Equilibrium spectra and simple single-population demographic models for the two-locus
+frequency spectrum: two-epoch, three-epoch, exponential growth, and bottleneck followed
+by exponential growth.
+
+All models use the infinite sites mutation model. Selection may be specified with
+``gamma`` (additive selection with the same coefficient at both loci and no epistasis)
+or with ``sel_params`` (additive selection within loci, allowing for different
+coefficients at the two loci and epistasis). :func:`equilibrium` also accepts
+``sel_params_general``, which allows for dominance.
+"""
+
 import numpy as np
 import moments.TwoLocus.Integration
 import moments.TwoLocus
 import os
 
-"""
-Demographic models for two locus model (all single population)
-Two-epoch
-Three-epoch
-Growth
-Bottlegrowth
-"""
-
 
 # Cache equilibrium spectra in ~/.moments/TwoLocus_cache by default
 def set_cache_path(path="~/.moments/TwoLocus_cache"):
     """
-    Set directory in which demographic equilibrium phi spectra will be cached.
+    Set directory in which equilibrium two-locus spectra will be cached, when
+    :func:`equilibrium` is called with ``cache=True``. Defaults to
+    ``~/.moments/TwoLocus_cache``.
 
     The collection of cached spectra can get large, so it may be helpful to
     store them outside the user's home directory.
@@ -65,20 +71,37 @@ def equilibrium(
     cache=False,
 ):
     """
-    Compute or load the equilibrium two locus frequency spectrum. If the cached spectrum
-    does not exist, create the equilibrium spectrum and cache in the cache path.
+    Compute (or load from the cache) the steady-state two-locus frequency spectrum
+    under the infinite sites model, for a population of constant size.
 
-    :param ns: The sample size.
-    :param rho: The population size scaled selection coefficient, 4*Ne*r.
-    :param theta: The mutation rate at each locus, typically left as 1.
-    :param gamma: Only used for additive selection at the A/a locus.
-    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
-        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
-        epistasis.
-    :param sel_params_general: General selection parameters for diploids. In the order
-        (s_AB_AB, s_AB_Ab, s_AB_aB, s_AB_ab, s_Ab_Ab, s_Ab_aB, s_Ab_ab, s_aB_aB, s_aB_ab)
-    :param cache: If True, save the frequency spectrum in the cache for future use. If
-        False, don't save the spectrum.
+    :param ns: The haploid sample size.
+    :param rho: The population-size scaled recombination rate between the two loci,
+        4*Ne*r. If not given, rho = 0 is used and a warning is printed.
+    :param theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+        Defaults to 1.
+    :param gamma: The population-size scaled selection coefficient, 2*Ne*s, for
+        additive selection with the same coefficient at both loci and no epistasis.
+        This is shorthand for ``sel_params = [2 * gamma, gamma, gamma]``, so that the
+        single-locus spectrum at each locus matches the single-site SFS with selection
+        coefficient gamma and h = 1/2. For selection at only one locus, unequal
+        selection, or epistasis, use ``sel_params`` instead. Cannot be combined with
+        ``sel_params``.
+    :param sel_params: Additive (within-locus) selection parameters for the AB, Ab, and
+        aB haplotypes relative to ab, given as ``[gamma_AB, gamma_A, gamma_B]``, where
+        each is 2*Ne*s for that haplotype. For example, selection only at the left locus
+        is ``[gamma, gamma, 0]``. With ``gamma_AB = gamma_A + gamma_B`` there is no
+        epistasis. See :func:`moments.TwoLocus.Util.additive_epistasis`.
+    :param sel_params_general: Selection parameters for the nine diploid two-locus
+        genotypes relative to ab/ab, each given as 2*Ne*s for that genotype, in the order
+        ``[AB/AB, AB/Ab, AB/aB, AB/ab, Ab/Ab, Ab/aB, Ab/ab, aB/aB, aB/ab]``. This model
+        allows for dominance and epistasis, and requires ``ns >= 13``. Cannot be
+        combined with ``gamma`` or ``sel_params``. See
+        :func:`moments.TwoLocus.Util.simple_dominance` and
+        :func:`moments.TwoLocus.Util.gene_based_dominance`.
+    :param cache: If True, load the spectrum from the cache (see
+        :func:`set_cache_path`) if it exists there, and otherwise compute it and save it
+        to the cache. If False (default), compute the spectrum without using the cache.
+    :returns: The equilibrium spectrum, as a :class:`moments.TwoLocus.TLSpectrum`.
     """
     if rho == None:
         print("Warning: no rho value set. Simulating with rho = 0.")
@@ -90,13 +113,10 @@ def equilibrium(
     sel_params = _make_floats(sel_params)
     sel_params_general = _make_floats(sel_params_general)
 
-    if sel_params is None and gamma is not None:
-        print("Setting selection parameters to (2 * gamma, gamma, gamma)")
-        sel_params = [2 * gamma, gamma, gamma]
-    if sel_params is not None and np.all([s == 0 for s in sel_params]):
-        sel_params = None
-    if sel_params_general is not None and np.all([s == 0 for s in sel_params_general]):
-        sel_params_general = None
+    # check that only one selection model is given, and convert gamma to sel_params
+    _, sel_params, sel_params_general = moments.TwoLocus.Integration._resolve_selection(
+        gamma, sel_params, sel_params_general
+    )
 
     if cache:
         eq_name = _equilibrium_cache_name(
@@ -123,17 +143,31 @@ def equilibrium(
 
 def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    A two-epoch model, with relative size change nu, time T in the past. T is given
-    in units of 2Ne generations. Note that a relative size of 1 implies no size change.
+    A two-epoch model, in which the population changes size instantaneously to nu
+    (relative to the ancestral size) at time T in the past. T is given in units of 2Ne
+    generations, where Ne is the ancestral effective size. A relative size of 1 implies
+    no size change.
 
     :param params: Given as [nu, T].
-    :param ns: The sample size.
-    :param rho: The population size scaled selection coefficient, 4*Ne*r.
-    :param theta: The mutation rate at each locus, typically left as 1.
-    :param gamma: Only used for additive selection at the A/a locus.
-    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
-        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
-        epistasis.
+    :param ns: The haploid sample size.
+    :param rho: The population-size scaled recombination rate between the two loci,
+        4*Ne*r. If not given, rho = 0 is used and a warning is printed.
+    :param theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+        Defaults to 1.
+    :param gamma: The population-size scaled selection coefficient, 2*Ne*s, for
+        additive selection with the same coefficient at both loci and no epistasis.
+        This is shorthand for ``sel_params = [2 * gamma, gamma, gamma]``, so that the
+        single-locus spectrum at each locus matches the single-site SFS with selection
+        coefficient gamma and h = 1/2. For selection at only one locus, unequal
+        selection, or epistasis, use ``sel_params`` instead. Cannot be combined with
+        ``sel_params``.
+    :param sel_params: Additive (within-locus) selection parameters for the AB, Ab, and
+        aB haplotypes relative to ab, given as ``[gamma_AB, gamma_A, gamma_B]``, where
+        each is 2*Ne*s for that haplotype. For example, selection only at the left locus
+        is ``[gamma, gamma, 0]``. With ``gamma_AB = gamma_A + gamma_B`` there is no
+        epistasis. See :func:`moments.TwoLocus.Util.additive_epistasis`.
+    :returns: The two-locus frequency spectrum, as a
+        :class:`moments.TwoLocus.TLSpectrum`.
     """
     nu, T = params
     if rho == None:
@@ -156,17 +190,29 @@ def two_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
 def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
     A three-epoch model, with relative size changes nu1 that lasts for time T1, followed
-    by a relative size change to nu2 that last for time T2. Times are in units of 2Ne
+    by a relative size change to nu2 that lasts for time T2. Times are in units of 2Ne
     generations, and sizes are relative to the ancestral Ne.
 
     :param params: Given as [nu1, nu2, T1, T2].
-    :param ns: The sample size.
-    :param rho: The population size scaled selection coefficient, 4*Ne*r.
-    :param theta: The mutation rate at each locus, typically left as 1.
-    :param gamma: Only used for additive selection at the A/a locus.
-    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
-        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
-        epistasis.
+    :param ns: The haploid sample size.
+    :param rho: The population-size scaled recombination rate between the two loci,
+        4*Ne*r. If not given, rho = 0 is used and a warning is printed.
+    :param theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+        Defaults to 1.
+    :param gamma: The population-size scaled selection coefficient, 2*Ne*s, for
+        additive selection with the same coefficient at both loci and no epistasis.
+        This is shorthand for ``sel_params = [2 * gamma, gamma, gamma]``, so that the
+        single-locus spectrum at each locus matches the single-site SFS with selection
+        coefficient gamma and h = 1/2. For selection at only one locus, unequal
+        selection, or epistasis, use ``sel_params`` instead. Cannot be combined with
+        ``sel_params``.
+    :param sel_params: Additive (within-locus) selection parameters for the AB, Ab, and
+        aB haplotypes relative to ab, given as ``[gamma_AB, gamma_A, gamma_B]``, where
+        each is 2*Ne*s for that haplotype. For example, selection only at the left locus
+        is ``[gamma, gamma, 0]``. With ``gamma_AB = gamma_A + gamma_B`` there is no
+        epistasis. See :func:`moments.TwoLocus.Util.additive_epistasis`.
+    :returns: The two-locus frequency spectrum, as a
+        :class:`moments.TwoLocus.TLSpectrum`.
     """
     nu1, nu2, T1, T2 = params
     if rho == None:
@@ -189,18 +235,30 @@ def three_epoch(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
 
 def growth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
-    An expnential growth model, that begins growth at time T ago, in units of 2Ne
-    generations. The final size is given by nu, which is the relative size to the
+    An exponential growth model, which begins growth at time T ago, in units of 2Ne
+    generations. The final size is given by nu, which is the size relative to the
     ancestral Ne.
 
     :param params: Given as [nu, T].
-    :param ns: The sample size.
-    :param rho: The population size scaled selection coefficient, 4*Ne*r.
-    :param theta: The mutation rate at each locus, typically left as 1.
-    :param gamma: Only used for additive selection at the A/a locus.
-    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
-        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
-        epistasis.
+    :param ns: The haploid sample size.
+    :param rho: The population-size scaled recombination rate between the two loci,
+        4*Ne*r. If not given, rho = 0 is used and a warning is printed.
+    :param theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+        Defaults to 1.
+    :param gamma: The population-size scaled selection coefficient, 2*Ne*s, for
+        additive selection with the same coefficient at both loci and no epistasis.
+        This is shorthand for ``sel_params = [2 * gamma, gamma, gamma]``, so that the
+        single-locus spectrum at each locus matches the single-site SFS with selection
+        coefficient gamma and h = 1/2. For selection at only one locus, unequal
+        selection, or epistasis, use ``sel_params`` instead. Cannot be combined with
+        ``sel_params``.
+    :param sel_params: Additive (within-locus) selection parameters for the AB, Ab, and
+        aB haplotypes relative to ab, given as ``[gamma_AB, gamma_A, gamma_B]``, where
+        each is 2*Ne*s for that haplotype. For example, selection only at the left locus
+        is ``[gamma, gamma, 0]``. With ``gamma_AB = gamma_A + gamma_B`` there is no
+        epistasis. See :func:`moments.TwoLocus.Util.additive_epistasis`.
+    :returns: The two-locus frequency spectrum, as a
+        :class:`moments.TwoLocus.TLSpectrum`.
     """
     nu, T = params
     if rho == None:
@@ -224,17 +282,29 @@ def growth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
 def bottlegrowth(params, ns, rho=None, theta=1.0, gamma=None, sel_params=None):
     """
     A bottleneck followed by exponential growth. The population changes size to nuB
-    T generations ago, and then has exponential size change to final size nuF. Time is
+    at time T ago, and then has exponential size change to final size nuF. Time is
     in units of 2Ne generations, and sizes are relative to the ancestral Ne.
 
     :param params: Given as [nuB, nuF, T].
-    :param ns: The sample size.
-    :param rho: The population size scaled selection coefficient, 4*Ne*r.
-    :param theta: The mutation rate at each locus, typically left as 1.
-    :param gamma: Only used for additive selection at the A/a locus.
-    :param sel_params: Additive selection coefficients for haplotypes AB, Ab, and aB, so
-        that sel_params = [sAB, sA, sB]. If sAB = sA + sB, this is a model with no
-        epistasis.
+    :param ns: The haploid sample size.
+    :param rho: The population-size scaled recombination rate between the two loci,
+        4*Ne*r. If not given, rho = 0 is used and a warning is printed.
+    :param theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+        Defaults to 1.
+    :param gamma: The population-size scaled selection coefficient, 2*Ne*s, for
+        additive selection with the same coefficient at both loci and no epistasis.
+        This is shorthand for ``sel_params = [2 * gamma, gamma, gamma]``, so that the
+        single-locus spectrum at each locus matches the single-site SFS with selection
+        coefficient gamma and h = 1/2. For selection at only one locus, unequal
+        selection, or epistasis, use ``sel_params`` instead. Cannot be combined with
+        ``sel_params``.
+    :param sel_params: Additive (within-locus) selection parameters for the AB, Ab, and
+        aB haplotypes relative to ab, given as ``[gamma_AB, gamma_A, gamma_B]``, where
+        each is 2*Ne*s for that haplotype. For example, selection only at the left locus
+        is ``[gamma, gamma, 0]``. With ``gamma_AB = gamma_A + gamma_B`` there is no
+        epistasis. See :func:`moments.TwoLocus.Util.additive_epistasis`.
+    :returns: The two-locus frequency spectrum, as a
+        :class:`moments.TwoLocus.TLSpectrum`.
     """
     nuB, nuF, T = params
     if rho == None:

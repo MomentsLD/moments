@@ -1,5 +1,7 @@
 import os, unittest
+import contextlib
 import copy
+import io
 import tempfile
 import numpy as np
 import moments, moments.TwoLocus
@@ -225,6 +227,72 @@ class TestEquilibriumCache(unittest.TestCase):
             self.assertTrue(np.allclose(F_cached.data, F_fresh.data))
 
 
+class TestSelectionArguments(unittest.TestCase):
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print("%s: %.3f seconds" % (self.id(), t))
+
+    def test_gamma_is_additive_at_both_loci(self):
+        # Checks the documented meaning of gamma (#293): it is shorthand for
+        # sel_params = [2 * gamma, gamma, gamma], i.e. additive selection at both
+        # loci, so that the single-locus spectrum stored along F[0, :, 0] (left locus)
+        # and F[0, 0, :] (right locus) matches the single-site SFS with the same gamma.
+        n = 10
+        gamma = -2.0
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=0, gamma=gamma)
+        F_sel = moments.TwoLocus.Demographics.equilibrium(
+            n, rho=0, sel_params=[2 * gamma, gamma, gamma]
+        )
+        self.assertTrue(np.allclose(F.data, F_sel.data))
+        fs = moments.LinearSystem_1D.steady_state_1D(n, gamma=gamma, h=0.5)
+        self.assertTrue(np.allclose(F[0, 1:-1, 0], fs[1:-1]))
+        self.assertTrue(np.allclose(F[0, 0, 1:-1], fs[1:-1]))
+
+    def test_conflicting_selection_arguments_raise(self):
+        # Giving more than one selection model used to either silently ignore gamma
+        # or fail with an unrelated error, so each combination should now raise a
+        # ValueError, in both integrate and equilibrium.
+        n = 14
+        sel = [0.2, 0.1, 0.1]
+        sel_gen = moments.TwoLocus.Util.simple_dominance(-1.0, h=0.1)
+        F = moments.TwoLocus.Demographics.equilibrium(n, rho=1.0)
+        conflicts = [
+            dict(gamma=-1.0, sel_params=sel),
+            dict(gamma=-1.0, sel_params_general=sel_gen),
+            dict(sel_params=sel, sel_params_general=sel_gen),
+        ]
+        for kwargs in conflicts:
+            with self.assertRaises(ValueError):
+                F.copy().integrate(1.0, 0.01, rho=1.0, **kwargs)
+            with self.assertRaises(ValueError):
+                moments.TwoLocus.Demographics.equilibrium(n, rho=1.0, **kwargs)
+        # only gamma (at the left locus) is supported with the finite genome model
+        for kwargs in [dict(sel_params=sel), dict(sel_params_general=sel_gen)]:
+            with self.assertRaises(ValueError):
+                F.copy().integrate(
+                    1.0, 0.01, rho=1.0, finite_genome=True, u=1e-3, v=1e-3, **kwargs
+                )
+
+    def test_neutral_models_do_not_print(self):
+        # Demographic models used to print a message about gamma even when no
+        # selection was specified. Capture stdout for a neutral model with rho given.
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            moments.TwoLocus.Demographics.two_epoch([2.0, 0.1], 10, rho=1.0)
+        self.assertEqual(buf.getvalue(), "")
+
+    def test_small_sample_size_jackknife_error(self):
+        # The jackknife is not defined for small sample sizes; check that we raise a
+        # ValueError with a useful message instead of an IndexError.
+        with self.assertRaises(ValueError):
+            moments.TwoLocus.Jackknife.calc_jk(6, 1)
+        with self.assertRaises(ValueError):
+            moments.TwoLocus.Jackknife.calc_jk(12, 2)
+
+
 class TestLowOrderStats(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
@@ -300,6 +368,29 @@ class TestLowOrderStats(unittest.TestCase):
             pi2_1 = moments.TwoLocus.Util.compute_pi2_threshold(F, thresh=5)
             pi2_2 = moments.TwoLocus.Util.compute_pi2_conditional(F, nAmax=5, nBmax=5)
             self.assertTrue(np.isclose(pi2_1, pi2_2))
+
+    def test_S(self):
+        # TLSpectrum.S used to raise an AttributeError. Compare it to a direct sum over
+        # entries where both loci are segregating, overall and for given nA and nB.
+        n = 8
+        rng = np.random.default_rng(42)
+        F = moments.TwoLocus.TLSpectrum(rng.random((n + 1, n + 1, n + 1)))
+        total = 0
+        total_nA = 0
+        total_nA_nB = 0
+        for i in range(n + 1):
+            for j in range(n + 1 - i):
+                for k in range(n + 1 - i - j):
+                    if i + j in [0, n] or i + k in [0, n]:
+                        continue
+                    total += F.data[i, j, k]
+                    if i + j == 3:
+                        total_nA += F.data[i, j, k]
+                        if i + k == 2:
+                            total_nA_nB += F.data[i, j, k]
+        self.assertTrue(np.isclose(F.S(), total))
+        self.assertTrue(np.isclose(F.S(nA=3), total_nA))
+        self.assertTrue(np.isclose(F.S(nA=3, nB=2), total_nA_nB))
 
 
 if __name__ == "__main__":

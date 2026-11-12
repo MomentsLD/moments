@@ -7,9 +7,39 @@ from scipy.sparse.linalg import spsolve
 import moments.TwoLocus.Jackknife
 import moments.TwoLocus.Numerics
 
-import warnings
 
-warnings.filterwarnings("ignore")
+def _resolve_selection(gamma, sel_params, sel_params_general, finite_genome=False):
+    """
+    Check that at most one selection model is specified, and convert ``gamma`` to
+    ``sel_params`` under the infinite sites model.
+
+    Returns (gamma, sel_params, sel_params_general), with selection inputs that are
+    all zero replaced by None (and gamma = 0).
+    """
+    if gamma is None:
+        gamma = 0.0
+    if sel_params is not None and np.all([s == 0 for s in sel_params]):
+        sel_params = None
+    if sel_params_general is not None and np.all([s == 0 for s in sel_params_general]):
+        sel_params_general = None
+
+    if finite_genome:
+        if sel_params is not None or sel_params_general is not None:
+            raise ValueError(
+                "With finite_genome=True, only gamma (additive selection at the left "
+                "locus) is supported, not sel_params or sel_params_general"
+            )
+        return gamma, None, None
+
+    num_models = (gamma != 0) + (sel_params is not None)
+    num_models += sel_params_general is not None
+    if num_models > 1:
+        raise ValueError("Specify only one of gamma, sel_params, or sel_params_general")
+    if gamma != 0:
+        # additive selection with the same coefficient at both loci, no epistasis
+        sel_params = [2 * gamma, gamma, gamma]
+        gamma = 0.0
+    return gamma, sel_params, sel_params_general
 
 
 def integrate(
@@ -29,14 +59,12 @@ def integrate(
     clustered_mutations=False,
 ):
     """
-    There are two selection options:
-    1) set gamma and h, which is for selection at the left locus, linked to a neutral locus
-    2) set sel_params, which are the (additive) selection coefficients for haplotypes AB, Ab, and aB
-        so that sel_params = (sAB, sA, sB)
-        If sAB = sA + sB, no epistatic interaction
-    Finite genome (reversible mutation) options are only available to selection and
-    dominance at the left locus.
-    The default selection model is available with the ISM model.
+    Integrate the two-locus frequency spectrum forward in time. Users will typically
+    call :meth:`moments.TwoLocus.TLSpectrum.integrate` instead, which takes the same
+    arguments and is documented there.
+
+    :param F: The two-locus frequency spectrum, as an array of shape (n+1, n+1, n+1).
+    :returns: The integrated spectrum, as a numpy array of the same shape.
     """
     if rho is None:
         rho = 0
@@ -44,9 +72,13 @@ def integrate(
         raise ValueError("rho must be non-negative")
 
     if tf < 0:
-        raise ValueError("must have positive integration time")
+        raise ValueError("integration time must be non-negative")
     elif tf == 0:
         return F
+
+    gamma, sel_params, sel_params_general = _resolve_selection(
+        gamma, sel_params, sel_params_general, finite_genome=finite_genome
+    )
 
     n = len(F) - 1
 
@@ -59,6 +91,9 @@ def integrate(
 
     compute_jk1 = False
     compute_jk2 = False
+    # selection operators that act on the jump-1 and jump-2 jackknife extrapolations
+    S1 = None
+    S2 = None
 
     if rho != 0:
         compute_jk1 = True
@@ -73,19 +108,15 @@ def integrate(
         else:
             M_0to1, M = moments.TwoLocus.Numerics.mutations(n, theta=theta)
         D = moments.TwoLocus.Numerics.drift(n)
-        if sel_params is None and gamma != 0:
-            sel_params = [2 * gamma, gamma, gamma]
         if sel_params is not None:
             compute_jk1 = True
-            S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
+            S1 = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
         if sel_params_general is not None:
             compute_jk2 = True
-            S = moments.TwoLocus.Numerics.selection_general(n, sel_params_general)
+            S2 = moments.TwoLocus.Numerics.selection_general(n, sel_params_general)
     else:
         if clustered_mutations:
             raise ValueError("clustered mutations only allowed in ISM")
-        if sel_params is not None:
-            raise ValueError("if finite_genome is True, cannot use sel_params")
         if u is None or v is None:
             raise ValueError("if finite_genome is True, must specify u and v")
         if alternate_fg == True:
@@ -94,7 +125,7 @@ def integrate(
             M = moments.TwoLocus.Numerics.mutations_reversible(n, u, v)
         D = moments.TwoLocus.Numerics.drift_reversible(n)
         if gamma != 0:
-            S = gamma * moments.TwoLocus.Numerics.selection_reversible_additive(n)
+            S1 = gamma * moments.TwoLocus.Numerics.selection_reversible_additive(n)
             compute_jk1 = True
 
     if compute_jk1:
@@ -121,12 +152,10 @@ def integrate(
                 Ab += M
             if rho != 0:
                 Ab += R.dot(J1)
-            if (
-                sel_params is not None and np.any([s != 0 for s in sel_params])
-            ) or gamma != 0:
-                Ab += S.dot(J1)
-            elif sel_params_general is not None:
-                Ab += S.dot(J2)
+            if S1 is not None:
+                Ab += S1.dot(J1)
+            if S2 is not None:
+                Ab += S2.dot(J2)
             Ab1 = identity(Ab.shape[0], format="csc") + dt / 2.0 * Ab
             slv = factorized(identity(Ab.shape[0], format="csc") - dt / 2.0 * Ab)
 
@@ -174,16 +203,30 @@ def steady_state(
     clustered_mutations=False,
 ):
     """
-    Compute the steady state distribution for the additive or general selection model
-    and infinite sites.
+    Compute the steady-state two-locus frequency spectrum under the infinite sites
+    model. Users will typically call :func:`moments.TwoLocus.Demographics.equilibrium`
+    instead, which documents the parameters and can cache the result.
+
+    :param int n: The sample size.
+    :param float rho: The population-size scaled recombination rate, 4*Ne*r.
+    :param float theta: The population-size scaled mutation rate at each locus, 4*Ne*u.
+    :param list sel_params: Additive selection parameters [gamma_AB, gamma_A, gamma_B].
+    :param list sel_params_general: Selection parameters for the nine diploid
+        genotypes.
+    :param bool clustered_mutations: If True, new mutations arise as AB haplotypes
+        at both loci at once instead of on the background of the other locus.
+    :returns: The equilibrium spectrum, as a :class:`moments.TwoLocus.TLSpectrum`.
     """
+    if rho is None:
+        rho = 0.0
     if rho < 0:
         raise ValueError("recombination rate must be non-negative")
     if theta <= 0:
         raise ValueError("theta must be positive")
 
-    if sel_params is not None and sel_params_general is not None:
-        raise ValueError("pick one selection model or the other")
+    _, sel_params, sel_params_general = _resolve_selection(
+        0, sel_params, sel_params_general
+    )
 
     if clustered_mutations:
         M_0to1 = moments.TwoLocus.Numerics.mutations_mnm(n, theta=theta)
@@ -202,7 +245,7 @@ def steady_state(
         computed_jk1 = True
         Ab += R.dot(J1)
 
-    if sel_params is not None and np.any([s != 0 for s in sel_params]):
+    if sel_params is not None:
         S = moments.TwoLocus.Numerics.selection_two_locus(n, sel_params)
         if computed_jk1 is False:
             J1 = moments.TwoLocus.Jackknife.calc_jk(n, 1)
