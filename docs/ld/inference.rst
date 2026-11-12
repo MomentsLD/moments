@@ -1,5 +1,13 @@
  .. _sec_ld_inference:
 
+.. jupyter-execute::
+    :hide-code:
+
+    # fixed random seed, so that sampled data and perturbed starting parameters
+    # (and so the outputs shown) are the same in every docs build
+    import numpy as np
+    np.random.seed(42)
+
 ============================
 Inferring demography with LD
 ============================
@@ -245,12 +253,13 @@ use ``optimize_log_fmin`` to fit the model.
 
     rs = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3]
 
+    # an initial guess, perturbed to get the starting parameters
     p_guess = [0.1, 2.0, 0.075, 2.0, 10000]
     p0 = moments.LD.Util.perturb_params(p_guess, fold=0.2)
 
     # run optimization, which returns the negative log-likelihood
     opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
-        p_guess,
+        p0,
         [data["means"], data["varcovs"]],
         [model_func],
         rs=rs,

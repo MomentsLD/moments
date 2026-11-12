@@ -691,6 +691,10 @@ def optimize(
         {},  # run_state
     )
 
+    # count function evaluations from 1 in each run (for the verbose output)
+    global _counter
+    _counter = 0
+
     # run optimization
     if method == "fmin":
         outputs = scipy.optimize.fmin(
@@ -1305,6 +1309,10 @@ def optimize_LD(
         output_stream,
         {},  # run_state
     )
+
+    # count function evaluations from 1 in each run (for the verbose output)
+    global _counter
+    _counter = 0
 
     # run optimization
     if method == "fmin":

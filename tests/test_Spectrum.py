@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import tempfile
 import warnings
 import os
 import unittest
@@ -14,8 +15,12 @@ import time
 class TestLoadDump(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
+        # files are written to a temporary directory, so that tests running in
+        # parallel (pytest -n) don't overwrite each other's files
+        self.tmpdir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
+        self.tmpdir.cleanup()
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
@@ -24,7 +29,7 @@ class TestLoadDump(unittest.TestCase):
         Saving spectrum to file.
         """
         comments = ["comment 1", "comment 2"]
-        filename = "test.fs"
+        filename = os.path.join(self.tmpdir.name, "test.fs")
         data = np.random.rand(3, 3)
 
         fs = moments.Spectrum(data)
@@ -40,7 +45,7 @@ class TestLoadDump(unittest.TestCase):
         Loading spectrum from file.
         """
         commentsin = ["comment 1", "comment 2"]
-        filename = "test.fs"
+        filename = os.path.join(self.tmpdir.name, "test.fs")
         data = np.random.rand(3, 3)
 
         fsin = moments.Spectrum(data)
@@ -91,7 +96,7 @@ class TestLoadDump(unittest.TestCase):
         Saving spectrum to file.
         """
         comments = ["comment 1", "comment 2"]
-        filename = "test.p"
+        filename = os.path.join(self.tmpdir.name, "test.p")
         data = np.random.rand(3, 3)
 
         fs = moments.Spectrum(data)
@@ -105,7 +110,7 @@ class TestLoadDump(unittest.TestCase):
         Loading spectrum from file.
         """
         commentsin = ["comment 1", "comment 2"]
-        filename = "test.p"
+        filename = os.path.join(self.tmpdir.name, "test.p")
         data = np.random.rand(3, 3)
 
         fsin = moments.Spectrum(data)

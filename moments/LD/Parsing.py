@@ -1,6 +1,3 @@
-_imported_h5py = 0
-_imported_allel = 0
-_imported_pandas = 0
 import os
 from datetime import datetime
 
@@ -9,38 +6,45 @@ def current_time():
     return " [" + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "]"
 
 
-try:
-    os.environ["NUMEXPR_MAX_THREADS"] = "272"
-    import allel
+# scikit-allel and h5py are imported by check_imports, the first time they are
+# needed, rather than with moments, as scikit-allel is slow to import
+allel = None
+h5py = None
 
-    _imported_allel = 1
-except ImportError:
-    pass
 
-try:
-    import h5py
+def _pandas():
+    # pandas is imported when first needed, rather than with moments, as it is slow
+    # to import
+    try:
+        import pandas
+    except ImportError:
+        raise ImportError("Failed to import pandas which is needed for Parsing")
+    return pandas
 
-    _imported_h5py = 1
-except ImportError:
-    pass
-
-try:
-    import pandas
-
-    _imported_pandas = 1
-except ImportError:
-    pass
 
 from . import Util
 
 
 def check_imports():
-    if _imported_allel == 0:
-        raise ImportError("Failed to import scikit-allel which is needed for Parsing")
-    if _imported_h5py == 0:
-        raise ImportError("Failed to import h5py which is needed for Parsing")
-    if _imported_pandas == 0:
-        raise ImportError("Failed to import pandas which is needed for Parsing")
+    global allel, h5py
+    if allel is None:
+        os.environ["NUMEXPR_MAX_THREADS"] = "272"
+        try:
+            import allel
+        except ImportError:
+            raise ImportError(
+                "Failed to import scikit-allel which is needed for Parsing"
+            )
+        # turn off UserWarnings from allel
+        warnings.filterwarnings(
+            action="ignore", message="'GQ' FORMAT", category=UserWarning
+        )
+    if h5py is None:
+        try:
+            import h5py
+        except ImportError:
+            raise ImportError("Failed to import h5py which is needed for Parsing")
+    _pandas()
 
 
 import numpy as np
@@ -61,13 +65,7 @@ try:
 except ImportError:
     pass
 
-# turn off UserWarnings from allel
 import warnings
-
-if _imported_allel:
-    warnings.filterwarnings(
-        action="ignore", message="'GQ' FORMAT", category=UserWarning
-    )
 
 
 def _load_h5(vcf_file, report=True):
@@ -185,7 +183,7 @@ def get_genotypes(
         all_genotypes = all_genotypes.compress(in_chromosome)
 
     if bed_file is not None:
-        bed_file_data = pandas.read_csv(bed_file, sep=r"\s+", header=None)
+        bed_file_data = _pandas().read_csv(bed_file, sep=r"\s+", header=None)
 
         bed_chromosomes = np.array(bed_file_data[0])
         # this is a fragile hack to protect against the chromosome label begin chr{chrom}
@@ -293,7 +291,7 @@ def _assign_recombination_rates(
         )
         sys.stdout.flush()
     try:
-        rec_map = pandas.read_csv(map_file, sep=r"\s+")
+        rec_map = _pandas().read_csv(map_file, sep=r"\s+")
     except:
         raise ValueError("Error loading recombination map.")
         sys.stdout.flush()
@@ -589,7 +587,7 @@ def _count_types_sparse(
     pop_indexes = {}
     if pops is not None:
         ## get columns to keep, and compress data and sample_ids
-        samples = pandas.read_csv(pop_file, sep=r"\s+")
+        samples = _pandas().read_csv(pop_file, sep=r"\s+")
         cols_to_keep = np.array([False] * np.shape(genotypes)[1])
         all_samples_to_keep = []
         for pop in pops:
@@ -1059,7 +1057,7 @@ def _get_H_statistics(
         pops = ["ALL"]
 
     if pop_file is not None:
-        samples = pandas.read_csv(pop_file, sep=r"\s+")
+        samples = _pandas().read_csv(pop_file, sep=r"\s+")
         populations = np.array(samples["pop"].value_counts().keys())
         samples.reset_index(drop=True, inplace=True)
 

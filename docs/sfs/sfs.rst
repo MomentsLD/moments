@@ -11,6 +11,11 @@
     matplotlib.rc('axes', titlesize=12)
     matplotlib.rc('legend', fontsize=10)
 
+    # fixed random seed, so that sampled data and perturbed starting parameters
+    # (and so the outputs shown) are the same in every docs build
+    import numpy as np
+    np.random.seed(42)
+
 ===========================
 The Site Frequency Spectrum
 ===========================

@@ -77,6 +77,7 @@ Change log
   log of the parameter, so that GIM uncertainties could be several times too
   large. They now use a step of ``eps`` in log space with central differences
 - Godambe LRT adjustment methods warn if the adjustment is unreliable
+- Fix bugs and docs inconsistencies in the ``moments.TwoLocus`` methods
 
 1.7.0
 =====
