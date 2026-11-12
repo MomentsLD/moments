@@ -11,6 +11,11 @@
     matplotlib.rc('axes', titlesize=12)
     matplotlib.rc('legend', fontsize=10)
 
+    # fixed random seed, so that sampled data and perturbed starting parameters
+    # (and so the outputs shown) are the same in every docs build
+    import numpy as np
+    np.random.seed(42)
+
 =============
 SFS Inference
 =============
@@ -170,10 +175,11 @@ built in options (see previous section).
 
 .. jupyter-execute::
 
-    p0 = [0.2, 3.0, 0.4]
+    # an initial guess, perturbed to get the starting parameters
+    p_guess = [0.2, 3.0, 0.4]
     lower_bound = [0, 0, 0]
     upper_bound = [None, None, None]
-    p_guess = moments.Misc.perturb_params(p0, fold=1,
+    p0 = moments.Misc.perturb_params(p_guess, fold=1,
         lower_bound=lower_bound, upper_bound=upper_bound)
 
     model_func = moments.Demographics1D.bottlegrowth
@@ -192,7 +198,7 @@ The reinferred parameters:
 .. jupyter-execute::
     :hide-code:
 
-    print_params = p0 + [theta]
+    print_params = [nuB, nuF, T, theta]
     print_opt = np.concatenate((opt_params, [opt_theta]))
     print("Params\tnuB\tnuF\tT\ttheta")
     print(f"Input\t" + "\t".join([str(p) for p in print_params]))
@@ -236,15 +242,16 @@ errors).
     model = input_theta * model
     data = model.sample()
 
+    # an initial guess, perturbed to get the starting parameters
     p_guess = [2, 2, .1, 4]
     lower_bound = [1e-3, 1e-3, 1e-3, 1e-3]
     upper_bound = [10, 10, 1, 10]
 
-    p_guess = moments.Misc.perturb_params(
+    p0 = moments.Misc.perturb_params(
         p_guess, lower_bound=lower_bound, upper_bound=upper_bound)
 
     opt_params = moments.Inference.optimize_log_fmin(
-        p_guess, data, model_func,
+        p0, data, model_func,
         lower_bound=lower_bound, upper_bound=upper_bound,
         verbose=20) # report every 20 iterations
 
