@@ -269,6 +269,19 @@ Above, we can see that we recovered the parameters used to simulate the data
 very closely, and we used ``moments``'s plotting features to visually compare
 the data to the model fit.
 
+Likelihood ratio tests
+----------------------
+
+To test whether a complex model fits the data significantly better than a
+simpler, nested model, ``moments.Godambe.LRT_adjust`` computes an adjustment
+factor ``adj`` from the bootstrap replicates, which accounts for linkage between
+sites. The adjusted statistic ``adj * D``, with ``D = 2 * (ll_complex -
+ll_simple)``, is compared to a :math:`\chi^2` distribution using
+``moments.Godambe.sum_chi2_ppf``. The :ref:`LD documentation
+<sec_ld_inference_lrt>` describes the usage in more detail. The adjustment can
+be very conservative; see :ref:`sec_lrt_conservative` for how to recognize this
+and for alternatives.
+
 
 **********
 References
