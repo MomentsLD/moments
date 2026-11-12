@@ -76,6 +76,7 @@ Change log
   derivatives for parameters less than one, with step sizes that scaled with the
   log of the parameter, so that GIM uncertainties could be several times too
   large. They now use a step of ``eps`` in log space with central differences
+- Godambe LRT adjustment methods warn if the adjustment is unreliable
 
 1.7.0
 =====

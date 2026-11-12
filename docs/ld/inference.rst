@@ -477,3 +477,59 @@ Without the adjustment, the p-value is effectively zero. After adjusting for
 the correlations between recombination bins, the test still rejects the model
 without migration, which we know to be the right answer for these simulated data,
 but with a much less extreme p-value.
+
+.. _sec_lrt_conservative:
+
+When the adjustment is too conservative
+---------------------------------------
+
+``LRT_adjust`` (for both the SFS and LD) can be very conservative. Its
+adjustment factor shrinks roughly as :math:`1/D`, so the adjusted statistic
+stays small even when :math:`D` is very large. In simulations testing for weak
+migration, the adjusted SFS test rarely rejected the model without migration at
+a 1% level, and the adjusted LD test did so in fewer than half of the
+replicates.
+
+A large :math:`D` (hundreds or more) with an adjusted statistic of only a few
+units suggests the adjustment is too conservative, and a non-significant result
+should then be treated as inconclusive. ``LRT_adjust`` also warns when the
+Hessian of the complex model at the simple model's best fit is indefinite or
+nearly singular, in which case the adjustment factor is unreliable. In either
+case, the alternatives are, from cheapest to most expensive:
+
+1. **A Wald test from the GIM uncertainties of the complex model.** This needs no
+   further fits: compute :math:`SE_{GIM}` at the complex model's best fit with
+   ``moments.LD.Godambe.GIM_uncert`` (or ``moments.Godambe.GIM_uncert`` for the
+   SFS). For a parameter fixed at a boundary, such as a migration rate of zero,
+   use the one-sided :math:`z = (\hat{\theta} - \theta_0) / SE_{GIM}` with
+   p-value ``scipy.stats.norm.sf(z)``. Caveats: the GIM uncertainty is
+   least reliable near the boundary, the false-positive rate of this test has
+   not been checked, and the result depends on the parameterization (e.g., a
+   rate or its log).
+
+2. **Refitting the complex model to the bootstrap replicates.** Reject the
+   simple model if the bootstrap interval of the nested parameter excludes its
+   fixed value. This needs one converged optimization per replicate, which is
+   the cost the Godambe methods avoid. It is an interval test, not a null
+   distribution for :math:`D`, and bootstrap intervals are imperfect near a
+   boundary.
+
+3. **A parametric bootstrap under the simple model.** Simulate genomes (e.g.,
+   with msprime) under the simple model's best fit, matching the data's sample
+   sizes, sequence lengths, and recombination and mutation rates, and fit both
+   models to each replicate. The p-value is the fraction of simulated :math:`D`
+   at least as large as the observed one. This is the most reliable option but
+   the most expensive. Sampling from the composite likelihood instead (Poisson
+   SFS, or independent Gaussian bins for LD) ignores linkage and is far too
+   liberal.
+
+For the data above, the Wald test gives much stronger evidence for migration
+than the adjusted likelihood ratio test:
+
+.. jupyter-execute::
+
+    import scipy.stats
+
+    z = opt_params[3] / uncerts_GIM[3]
+    print(f"Wald z            : {z:.2f}")
+    print(f"p-value, one-sided: {scipy.stats.norm.sf(z):.3g}")

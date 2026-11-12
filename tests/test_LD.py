@@ -7,6 +7,8 @@ import moments
 import moments.LD
 import moments.TwoLocus
 import pickle
+import warnings
+from unittest import mock
 import time
 import copy
 import demes
@@ -909,6 +911,8 @@ class NormalizingStatistics(unittest.TestCase):
                         self.varcovs,
                         **kwargs,
                     ),
+                    # p0 is not a fit of the nested model to these data, so the
+                    # Hessian check would (correctly) warn
                     moments.LD.Godambe.LRT_adjust(
                         self.model_func,
                         self.boots,
@@ -916,6 +920,7 @@ class NormalizingStatistics(unittest.TestCase):
                         [3],
                         self.means,
                         self.varcovs,
+                        check_hessian=False,
                         **kwargs,
                     ),
                 ]
@@ -1041,6 +1046,27 @@ class GodambeWellSpecified(unittest.TestCase):
             self.model_func, boots, p0, [3], means, varcovs, r_edges=self.r_edges
         )
         self.assertTrue(np.isclose(adj, 1, rtol=0.05))
+
+    def test_LRT_adjust_hessian_check(self):
+        # The nested model fits these data exactly, so the Hessian check over all
+        # parameters (including Ne) doesn't warn, and the adjustment factor is the
+        # same without the check.
+        p0 = [2.0, 3.0, 0.1, 0.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        args = (self.model_func, boots, p0, [3], means, varcovs)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            adj = moments.LD.Godambe.LRT_adjust(*args, r_edges=self.r_edges)
+        self.assertEqual([x for x in w if "Hessian" in str(x.message)], [])
+        adj_nocheck = moments.LD.Godambe.LRT_adjust(
+            *args, r_edges=self.r_edges, check_hessian=False
+        )
+        self.assertEqual(adj, adj_nocheck)
+        with mock.patch("moments.Godambe._check_nested_hessian") as check:
+            moments.LD.Godambe.LRT_adjust(*args, r_edges=self.r_edges)
+            H, labels, _ = check.call_args.args
+            self.assertEqual(H.shape, (5, 5))
+            self.assertEqual(labels, ["p0[0]", "p0[1]", "p0[2]", "p0[3]", "Ne"])
 
     def test_GIM_equals_FIM(self):
         # The Godambe and Fisher uncertainties agree, and are positive and finite.

@@ -14,6 +14,7 @@ import copy
 
 # from moments.Misc import delayed_flush
 from .. import Misc
+from .. import Godambe as _sfs_godambe
 import sys, os
 
 
@@ -512,6 +513,7 @@ def LRT_adjust(
     normalization=0,
     pass_Ne=False,
     statistics=None,
+    check_hessian=True,
 ):
     """
     Following ``moments.Godambe.LRT_adjust()``, this function performs
@@ -550,6 +552,12 @@ def LRT_adjust(
         data contain a subset of statistics (e.g. from
         ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
         normalizing statistics are removed before computing likelihoods.
+    :param check_hessian: If True, also compute the Hessian of the complex model over
+        all of its parameters at ``p0``, and warn if it is indefinite or nearly
+        singular, in which case the adjustment is unreliable (see the documentation
+        on likelihood ratio tests). This takes roughly ``2 * k**2`` extra model
+        evaluations for ``k`` parameters. The adjustment factor is the same either
+        way.
     :return: The adjustment factor for the likelihood ratio test statistic.
     :rtype: float
     """
@@ -584,6 +592,27 @@ def LRT_adjust(
     GIM, H, J, cU = _get_godambe(
         diff_func, all_boots, p_nested, means, varcovs, eps, statistics, log=False
     )
+
+    labels = [f"p0[{i}]" for i in range(len(p0) - 1)] + ["Ne"]
+    if check_hessian:
+        H_full = _get_godambe(
+            pass_func,
+            0,
+            numpy.asarray(p0, dtype=float),
+            means,
+            varcovs,
+            eps,
+            statistics,
+            log=False,
+            just_hess=True,
+        )
+        _sfs_godambe._check_nested_hessian(
+            H_full, labels, "moments.LD.Godambe.LRT_adjust"
+        )
+    else:
+        _sfs_godambe._check_nested_hessian(
+            H, [labels[i] for i in nested_indices], "moments.LD.Godambe.LRT_adjust"
+        )
 
     adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
     return adjust
