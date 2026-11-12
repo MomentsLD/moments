@@ -7,6 +7,7 @@ import moments
 import moments.LD
 import moments.TwoLocus
 import pickle
+import tempfile
 import warnings
 from unittest import mock
 import time
@@ -394,8 +395,12 @@ class TestDemographics1D(unittest.TestCase):
 class CopyAndPickle(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
+        # files are written to a temporary directory, so that tests running in
+        # parallel (pytest -n) don't overwrite each other's files
+        self.tmpdir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
+        self.tmpdir.cleanup()
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
@@ -405,7 +410,7 @@ class CopyAndPickle(unittest.TestCase):
 
     def test_pickle(self):
         y = moments.LD.Demographics2D.snm(rho=[0, 1, 2], pop_ids=["A", "B"])
-        temp_file = "temp.bp"
+        temp_file = os.path.join(self.tmpdir.name, "temp.bp")
         with open(temp_file, "wb+") as fout:
             pickle.dump(y, fout)
         with open(temp_file, "rb") as fin:
