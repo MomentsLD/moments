@@ -235,7 +235,7 @@ def plot_model(
     if grid:
         ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
         ax.yaxis.set_minor_locator(mticker.NullLocator())
-        ax.grid(b=True, which="major", axis="y", color=gridline_color)
+        ax.grid(visible=True, which="major", axis="y", color=gridline_color)
         ax.tick_params(which="both", axis="y", colors="none", labelsize=tick_size)
     else:
         ax.set_yticks([])
@@ -423,7 +423,9 @@ def plot_model(
 
     # Display figure
     if save_file:
-        plt.savefig(save_file, **fig_kwargs)
+        # figsize is only an option for creating the figure, not for saving it
+        save_kwargs = {k: v for k, v in fig_kwargs.items() if k != "figsize"}
+        ax.figure.savefig(save_file, **save_kwargs)
     else:
         if show == True:
             plt.show()
