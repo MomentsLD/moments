@@ -2075,6 +2075,10 @@ class TestSFSScaling(unittest.TestCase):
         self.assertTrue(np.allclose(fs, fs2))
 
     def test_two_pops(self):
+        # A split without migration matches the same model integrated directly
+        # (without a migration matrix), scaled by theta = 4 Ne. With a migration of
+        # rate zero in the graph, it matches split_mig with M = 0 (both use the
+        # integrators with migration).
         b = demes.Builder()
         Ne = 10000
         b.add_deme("anc", epochs=[dict(start_size=Ne, end_time=2000)])
@@ -2083,6 +2087,11 @@ class TestSFSScaling(unittest.TestCase):
         g = b.resolve()
         n = 20
         fs = Demes.SFS(g, samples={"A": n, "B": n})
+        fs2 = moments.Demographics1D.snm([2 * n]).split(0, n, n)
+        fs2.integrate([2, 3], 0.1)
+        self.assertTrue(np.allclose(fs, fs2 * 4 * Ne))
+        b.add_migration(demes=["A", "B"], rate=0)
+        fs = Demes.SFS(b.resolve(), samples={"A": n, "B": n})
         fs2 = moments.Demographics2D.split_mig([2, 3, 0.1, 0], [n, n]) * 4 * Ne
         self.assertTrue(np.allclose(fs, fs2))
 
