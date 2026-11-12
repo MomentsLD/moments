@@ -16,19 +16,26 @@ import scipy.special
 
 class TLSpectrum(np.ma.masked_array):
     """
-    Represents a two locus frequency spectrum.
+    Represents a two-locus frequency spectrum.
+
+    The left locus carries alleles A/a and the right locus B/b, where A and B are the
+    derived alleles. In a sample of n haploid copies, entry ``F[i, j, k]`` is the
+    number (or density) of pairs of loci with i copies of the AB haplotype, j copies
+    of Ab, and k copies of aB (the remaining n - i - j - k copies are ab). The
+    derived allele counts are thus i + j at the left locus and i + k at the right
+    locus.
 
     :param array data: The frequency spectrum data, which has shape
         (n+1)-by-(n+1)-by-(n+1) where n is the sample size.
     :param array mask: An optional array of the same size as data. 'True' entries
         in this array are masked in the TLSpectrum.
     :param bool mask_infeasible: If True, mask all bins for frequencies that cannot
-        occur, e.g. i + j > n. Defaults to True.
-    :param bool mask_fixed: If True, mask the fixed bins. Defaults to True.
+        occur, i.e. i + j + k > n. Defaults to True.
+    :param bool mask_fixed: If True, mask the bins in which either locus is not
+        segregating (see :meth:`mask_fixed`). Defaults to False.
     :param bool data_folded: If True, it is assumed that the input data is folded
-        for the major and minor derived alleles
-    :param bool check_folding: If True and data_folded=True, the data and
-        mask will be checked to ensure they are consistent.
+        by the minor allele at each locus.
+    :param bool check_folding: Not currently used.
     """
 
     def __new__(
@@ -106,7 +113,7 @@ class TLSpectrum(np.ma.masked_array):
 
     def mask_infeasible(self):
         """
-        Mask any infeasible entries.
+        Mask any infeasible entries, i.e. those with i + j + k > n.
         """
         ns = len(self) - 1
         # mask entries with i+j+k > ns
@@ -118,33 +125,26 @@ class TLSpectrum(np.ma.masked_array):
 
     def mask_fixed(self):
         """
-        Mask all infeasible entries, as well as any where both sites are not
-        segregating.
+        Mask all infeasible entries, as well as any where either locus is not
+        segregating (i.e. the derived allele at that locus has count 0 or n).
         """
         ns = len(self) - 1
-        # mask fixed entries
-        self.mask[0, 0, 0] = True
-        self.mask[0, 0, -1] = True
-        self.mask[0, -1, 0] = True
-        self.mask[-1, 0, 0] = True
-        # mask entries with i+j+k > ns
-        for ii in range(len(self)):
-            for jj in range(len(self)):
-                for kk in range(len(self)):
-                    if ii + jj + kk > ns:
-                        self.mask[ii, jj, kk] = True
 
-        # mask fA = 0 and fB = 0
+        self.mask_infeasible()
+
+        # mask fA = n and fB = n
         for ii in range(len(self)):
             self.mask[ii, ns - ii, 0] = True
             self.mask[ii, 0, ns - ii] = True
 
+        # mask fA = 0 and fB = 0
         self.mask[0, :, 0] = True
         self.mask[0, 0, :] = True
 
     def unfold(self):
         """
-        Remove folding from the spectrum.
+        Return an unfolded copy of the spectrum. Entries that were folded over
+        remain zero, and only infeasible entries are masked.
         """
         if not self.folded:
             raise ValueError("Input Spectrum is not folded.")
@@ -159,7 +159,9 @@ class TLSpectrum(np.ma.masked_array):
 
     def left(self):
         """
-        The marginal allele frequency spectrum at the left locus.
+        The marginal allele frequency spectrum at the left locus, i.e. the sum of
+        the spectrum over all entries with each derived allele count (i + j) at the
+        left locus.
         """
         n = len(self) - 1
         fl = np.zeros(n + 1)
@@ -171,7 +173,9 @@ class TLSpectrum(np.ma.masked_array):
 
     def right(self):
         """
-        The marginal AFS at the right locus.
+        The marginal allele frequency spectrum at the right locus, i.e. the sum of
+        the spectrum over all entries with each derived allele count (i + k) at the
+        right locus.
         """
         n = len(self) - 1
         fr = np.zeros(n + 1)
@@ -183,7 +187,8 @@ class TLSpectrum(np.ma.masked_array):
 
     def ancestral_misid(self, p):
         """
-        Return a new SFS with a given ancestral misidentification, p.
+        Return a new two-locus spectrum with ancestral state misidentification,
+        applied independently at each locus with probability p.
 
         :param p: The rate of ancestral state misidentification.
         """
@@ -209,25 +214,35 @@ class TLSpectrum(np.ma.masked_array):
 
     def S(self, nA=None, nB=None):
         """
-        Return the sum of probabilities over all variable two-locus entries
-        in the spectrum.
+        Return the sum over all unmasked entries of the spectrum in which both loci
+        are segregating.
+
+        :param nA: If given, only include entries with derived allele count nA at the
+            left locus.
+        :param nB: If given, only include entries with derived allele count nB at the
+            right locus.
         """
         if nA is not None and (nA <= 0 or nA >= self.sample_size):
             raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
         if nB is not None and (nB <= 0 or nB >= self.sample_size):
             raise ValueError(f"nB must be between 1 and {self.sample_size - 1}")
-        return Util.compute_S(self, nA, nB)
+        return Util._compute_S(self, nA, nB)
 
     def D(self, proj=True, nA=None, nB=None):
         """
         Return the expectation of :math:`D` from the spectrum.
 
+        This is the sum over unmasked entries in which both loci are segregating,
+        weighting each entry by its estimate of the statistic. It is not normalized by
+        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the
+        :math:`\\sigma_d^2` statistic) are typically reported.
+
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
-        :param nA: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the left locus.
-        :param nB: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the right locus.
+        :param nA: If given, only include entries with derived allele count nA at the
+            left locus. If None, include all counts.
+        :param nB: If given, only include entries with derived allele count nB at the
+            right locus. If None, include all counts.
         """
         if nA is not None and (nA <= 0 or nA >= self.sample_size):
             raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
@@ -239,12 +254,17 @@ class TLSpectrum(np.ma.masked_array):
         """
         Return the expectation of :math:`D^2` from the spectrum.
 
+        This is the sum over unmasked entries in which both loci are segregating,
+        weighting each entry by its estimate of the statistic. It is not normalized by
+        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the
+        :math:`\\sigma_d^2` statistic) are typically reported.
+
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
-        :param nA: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the left locus.
-        :param nB: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the right locus.
+        :param nA: If given, only include entries with derived allele count nA at the
+            left locus. If None, include all counts.
+        :param nB: If given, only include entries with derived allele count nB at the
+            right locus. If None, include all counts.
         """
         if nA is not None and (nA <= 0 or nA >= self.sample_size):
             raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
@@ -256,12 +276,17 @@ class TLSpectrum(np.ma.masked_array):
         """
         Compute the expectation of :math:`Dz = D(1-2p)(1-2q)` from the spectrum.
 
+        This is the sum over unmasked entries in which both loci are segregating,
+        weighting each entry by its estimate of the statistic. It is not normalized by
+        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the
+        :math:`\\sigma_d^2` statistic) are typically reported.
+
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
-        :param nA: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the left locus.
-        :param nB: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the right locus.
+        :param nA: If given, only include entries with derived allele count nA at the
+            left locus. If None, include all counts.
+        :param nB: If given, only include entries with derived allele count nB at the
+            right locus. If None, include all counts.
         """
         if nA is not None and (nA <= 0 or nA >= self.sample_size):
             raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
@@ -273,12 +298,17 @@ class TLSpectrum(np.ma.masked_array):
         """
         Return the expectation of :math:`\\pi_2 = p(1-p)q(1-q)` from the spectrum.
 
+        This is the sum over unmasked entries in which both loci are segregating,
+        weighting each entry by its estimate of the statistic. It is not normalized by
+        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the
+        :math:`\\sigma_d^2` statistic) are typically reported.
+
         :param proj: If True, use the unbiased estimator from downsampling. If False,
             use naive maximum likelihood estimates for frequency.
-        :param nA: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the left locus.
-        :param nB: If None, the average is computed over all frequencies. If given,
-            condition on the given allele count for the right locus.
+        :param nA: If given, only include entries with derived allele count nA at the
+            left locus. If None, include all counts.
+        :param nB: If given, only include entries with derived allele count nB at the
+            right locus. If None, include all counts.
         """
         if nA is not None and (nA <= 0 or nA >= self.sample_size):
             raise ValueError(f"nA must be between 1 and {self.sample_size - 1}")
@@ -423,8 +453,12 @@ class TLSpectrum(np.ma.masked_array):
         """
         Project to smaller sample size.
 
-        param int ns: Sample size for new spectrum.
-        param bool finite_genome: If we also track proportions in fixed bins.
+        :param int ns: Sample size for new spectrum.
+        :param bool finite_genome: Projection is only supported for the infinite sites
+            model, so this must be False.
+        :param bool cache: If True, cache the projection coefficients in memory to
+            speed up repeated projections. Set to False to reduce memory usage.
+        :returns: The projected spectrum, as a new TLSpectrum.
         """
         if finite_genome:
             raise ValueError("Projection with finite genome is not currently supported")
@@ -513,36 +547,58 @@ def %(method)s(self, other):
         clustered_mutations=False,
     ):
         """
-        Simulate the two-locus haplotype frequency spectrum forward in time.
-        This integration scheme takes advantage of scipy's sparse methods.
+        Integrate the two-locus frequency spectrum forward in time, modifying the
+        spectrum in place. This integration scheme takes advantage of scipy's sparse
+        methods.
 
-        When using the reversible mutation model (with `finite_genome` = True),
-        we are limited to selection at only one locus (the left locus), and
-        selection is additive. When using the default ISM, additive selection
-        is allowed at both loci, and we use `sel_params`, which specifies [sAB,
-        sA, and sB] in that order.  Note that while this selection model is
-        additive within loci, it allows for epistasis between loci if sAB != sA
-        + sB.
+        Selection is specified in one of three ways (at most one may be given):
 
-        :param nu: Population effective size as positive value or callable function.
-        :param float tf: The integration time in genetics units.
-        :param float dt_fac: The time step for integration.
-        :param float rho: The population-size scaled recombination rate 4*Ne*r.
-        :param float gamma: The population-size scaled selection coefficient 2*Ne*s.
-        :param list sel_params: A list of selection parameters. See docstrings in
-            Numerics. Selection parameters will be deprecated when we clean up the
-            numerics and integration.
-        :param list sel_params_general: To be filled. ## TODO!!
-        :param float theta: Population size scale mutation parameter.
+        - ``gamma``: additive selection with the same coefficient at both loci and no
+          epistasis. Under the infinite sites model, this is shorthand for
+          ``sel_params = [2 * gamma, gamma, gamma]``. With ``finite_genome=True``,
+          ``gamma`` is instead additive selection at the left locus only, which is the
+          only selection model available for the reversible mutation model.
+        - ``sel_params = [gamma_AB, gamma_A, gamma_B]``: additive selection within
+          loci for the AB, Ab, and aB haplotypes relative to ab. This allows for
+          different selection coefficients at the two loci, and for epistasis if
+          ``gamma_AB != gamma_A + gamma_B``.
+        - ``sel_params_general``: selection coefficients for each of the nine diploid
+          two-locus genotypes, which allows for dominance.
+
+        :param nu: Population size relative to the ancestral (reference) size, given
+            as a positive number or as a function of time.
+        :param float tf: The integration time, in units of 2*Ne generations.
+        :param float dt: The time step for integration.
+        :param float rho: The population-size scaled recombination rate, 4*Ne*r. If not
+            given, rho = 0 is used and a warning is printed.
+        :param float gamma: The population-size scaled selection coefficient, 2*Ne*s.
+            See above for how it is applied.
+        :param list sel_params: Additive selection parameters ``[gamma_AB, gamma_A,
+            gamma_B]``, each given as 2*Ne*s for that haplotype relative to ab. Only
+            used with the infinite sites model. See
+            :func:`moments.TwoLocus.Util.additive_epistasis`.
+        :param list sel_params_general: Selection parameters for the nine diploid
+            genotypes relative to ab/ab, each given as 2*Ne*s for that genotype, in the
+            order ``[AB/AB, AB/Ab, AB/aB, AB/ab, Ab/Ab, Ab/aB, Ab/ab, aB/aB, aB/ab]``.
+            Only used with the infinite sites model, and requires a sample size of at
+            least 13. See :func:`moments.TwoLocus.Util.simple_dominance` and
+            :func:`moments.TwoLocus.Util.gene_based_dominance`.
+        :param float theta: The population-size scaled mutation rate at each locus,
+            4*Ne*u, under the infinite sites model.
         :param bool finite_genome: Defaults to False, in which case we use the
             infinite sites model. Otherwise, we use a reversible mutation model, and
             must specify ``u`` and ``v``.
-        :param float u: The mutation rate at the left locus in the finite genome model.
+        :param float u: The mutation rate at the left locus in the finite genome model,
+            given as 2*Ne*mu (that is, half of ``theta_fd`` in the single-site
+            reversible model). Forward and backward mutation rates are equal.
         :param float v: The mutation rate at the right locus in the finite genome
-            model.
+            model, with the same scaling as ``u``.
         :param bool alternate_fg: If True, use the alternative finite genome model.
             This parameter will be deprecated when we clean up the numerics and
             integration.
+        :param bool clustered_mutations: If True, new mutations under the infinite
+            sites model arise as AB haplotypes at both loci at once, instead of
+            arising on the background of the other locus.
         """
         if gamma == None:
             gamma = 0.0

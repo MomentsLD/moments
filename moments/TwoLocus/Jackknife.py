@@ -28,7 +28,7 @@ def load_pickle(filename):
 # Cache jackknife matrices in ~/.moments/TwoLocus_cache by default
 def set_cache_path(path="~/.moments/TwoLocus_cache/"):
     """
-    Set directory in which demographic equilibrium phi spectra will be cached.
+    Set directory in which jackknife matrices will be cached.
 
     The collection of cached spectra can get large, so it may be helpful to
     store them outside the user's home directory.
@@ -883,8 +883,32 @@ def compute_alphas_edges(i, j, k, ordered_set, n, jump):
 
 jks = {}
 
+# Smallest sample sizes for which the jackknife extrapolation is defined. The jump-1
+# jackknife is used for recombination and for additive selection, and the jump-2
+# jackknife for general (diploid) selection.
+_MIN_SAMPLE_SIZE = {1: 7, 2: 13}
+
 
 def calc_jk(n, jump):
+    """
+    Return the jackknife matrix that approximates the spectrum of size n + jump from
+    the spectrum of size n. Matrices are cached in memory and on disk (see
+    :func:`set_cache_path`).
+
+    :param int n: The sample size.
+    :param int jump: The number of samples to extrapolate up by (1 or 2).
+    """
+    if jump not in _MIN_SAMPLE_SIZE:
+        raise ValueError("jump must be 1 or 2")
+    if n < _MIN_SAMPLE_SIZE[jump]:
+        raise ValueError(
+            f"Sample size must be at least {_MIN_SAMPLE_SIZE[jump]} for "
+            + (
+                "models with recombination or additive selection"
+                if jump == 1
+                else "the general selection model (sel_params_general)"
+            )
+        )
     try:
         return jks[(n, jump)]
     except KeyError:
