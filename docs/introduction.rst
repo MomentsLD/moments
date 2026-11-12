@@ -65,19 +65,23 @@ Change log
 
 1.7.1
 =====
-- **Bug fix:** ``moments.LD.Godambe.LRT_adjust`` returned an adjustment factor
+- Bug fix: ``moments.LD.Godambe.LRT_adjust`` returned an adjustment factor
   that was much too small (so that the test could not reject the nested model),
   because it took derivatives with respect to all parameters instead of only the
   nested ones, and used the wrong sign of the hessian. The ``LRT_adjust``
   docstrings and LD example now use the likelihood ratio test statistic
   ``D = 2 * (ll_complex - ll_simple)``, which the adjustment factor scales
-- **Bug fix:** With ``log=True``, ``moments.LD.Godambe.GIM_uncert`` and
+- Bug fix: With ``log=True``, ``moments.LD.Godambe.GIM_uncert`` and
   ``FIM_uncert``, and ``moments.Demes.Inference.uncerts_LD``, took one-sided
   derivatives for parameters less than one, with step sizes that scaled with the
   log of the parameter, so that GIM uncertainties could be several times too
   large. They now use a step of ``eps`` in log space with central differences
 - Godambe LRT adjustment methods warn if the adjustment is unreliable
 - Fix bugs and docs inconsistencies in the ``moments.TwoLocus`` methods
+- ``Spectrum.integrate`` now uses the integration method with migration whenever
+  a migration matrix is given, even if all rates are zero, so that the SFS is
+  continuous as migration rates go to zero (#292). Models without migration
+  (``m=None``, or Demes graphs without migrations) are unchanged
 
 1.7.0
 =====
@@ -89,7 +93,7 @@ Change log
 - Raise an error when two Demes inference parameters map to the same graph value
 - Fix several bugs in ``moments.Demes.Inference`` (#276)
 - Fix LD uncertainty functions failing with bootstraps from ``get_bootstrap_sets`` (#192)
-- **Breaking:** ``get_bootstrap_sets`` and ``subset_data`` keep the normalizing
+- Breaking: ``get_bootstrap_sets`` and ``subset_data`` keep the normalizing
   statistics (their options to remove them are removed), which all LD inference,
   uncertainty, and plotting functions remove (see the LD parsing docs)
 - Fix Demes SFS and LD computation when all samples are ancient (#201)
