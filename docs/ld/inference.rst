@@ -502,8 +502,8 @@ replicates.
 A large :math:`D` (hundreds or more) with an adjusted statistic of only a few
 units suggests the adjustment is too conservative, and a non-significant result
 should then be treated as inconclusive. ``LRT_adjust`` also warns when the
-Hessian of the complex model at the simple model's best fit is indefinite or
-nearly singular, in which case the adjustment factor is unreliable. In either
+Hessian of the complex model at the simple model's best fit is indefinite, in
+which case the adjustment factor is unreliable. In either
 case, the alternatives are, from cheapest to most expensive:
 
 1. **A Wald test from the GIM uncertainties of the complex model.** This needs no

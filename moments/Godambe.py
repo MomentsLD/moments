@@ -227,16 +227,13 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
     return godambe, hess, J, cU
 
 
-# Threshold on the smallest eigenvalue of the correlation-scaled Hessian of the
-# complex model at the nested fit, below which LRT_adjust warns. This tolerance was
-# calibrated on a two-population split-with-migration model.
-_HESSIAN_WARN_TOL = 0.005
-
-
 def _check_nested_hessian(H, labels, caller):
     """
     Warn if the Hessian of the complex model at the best fit of the nested model is
-    indefinite or nearly singular, in which case the LRT adjustment is unreliable.
+    indefinite (or has non-positive or non-finite entries on its diagonal), in which
+    case the LRT adjustment is unreliable. A Hessian that is positive definite but
+    nearly singular, as with strongly confounded parameters, does not warn: in
+    simulations, the adjustment could still be well calibrated in that case.
 
     :param H: The Hessian of the negative log-likelihood of the complex model, over
         all of its parameters, at the best fit of the nested model.
@@ -271,14 +268,13 @@ def _check_nested_hessian(H, labels, caller):
         return True
     s = numpy.sqrt(d)
     w, v = numpy.linalg.eigh(H / numpy.outer(s, s))
-    if w[0] < _HESSIAN_WARN_TOL:
-        # the parameters that make up most of the near-null direction
+    if w[0] <= 0:
+        # the parameters that make up most of the direction of negative curvature
         cut = min(0.3, numpy.abs(v[:, 0]).max())
         direction = [l for l, x in zip(labels, v[:, 0]) if abs(x) >= cut]
-        kind = "indefinite" if w[0] <= 0 else "nearly singular"
         warnings.warn(
             f"{caller}: the Hessian of the complex model at the nested fit is "
-            f"{kind} (smallest eigenvalue of the correlation-scaled Hessian "
+            f"indefinite (smallest eigenvalue of the correlation-scaled Hessian "
             f"{w[0]:.2g}), along a direction mostly in {', '.join(direction)}. "
             f"{advice}",
             stacklevel=3,
@@ -418,9 +414,9 @@ def LRT_adjust(
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
     :type eps: float
     :param check_hessian: If True, also compute the Hessian of the complex model over
-        all of its parameters at ``p0``, and warn if it is indefinite or nearly
-        singular, in which case the adjustment is unreliable (see the documentation
-        on likelihood ratio tests). This takes roughly ``2 * k**2`` extra model
+        all of its parameters at ``p0``, and warn if it is indefinite, in which case
+        the adjustment is unreliable (see the documentation on likelihood ratio
+        tests). This takes roughly ``2 * k**2`` extra model
         evaluations for ``k`` parameters. The adjustment factor is the same either
         way.
     :type check_hessian: bool
