@@ -20,20 +20,21 @@ Manips.split_{1D_to_2D,2D_to_3D_2,2D_to_3D_1,3D_to_4D_3,4D_to_5D_4}
 Spectrum_mod.Spectrum.integrate
 """
 
-try:
-    import matplotlib.colors as mcolors
-    import matplotlib.offsetbox as mbox
-    import matplotlib.patches as mpatches
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as mticker
-
-    _imported_mpl = True
-except ImportError:
-    _imported_mpl = False
+# matplotlib is imported by _check_mpl_imported, when a plotting function is first
+# used, rather than when moments is imported (this module is imported with moments,
+# and matplotlib is slow to import, and optional).
+mcolors = mbox = mpatches = plt = mticker = None
 
 
 def _check_mpl_imported():
-    if not _imported_mpl:
+    global mcolors, mbox, mpatches, plt, mticker
+    try:
+        import matplotlib.colors as mcolors
+        import matplotlib.offsetbox as mbox
+        import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker as mticker
+    except ImportError:
         raise ValueError(
             "matplotlib not found - moments can be used but "
             "plotting features will not work"
@@ -234,7 +235,7 @@ def plot_model(
     if grid:
         ax.yaxis.set_major_locator(mticker.FixedLocator(np.arange(ymax)))
         ax.yaxis.set_minor_locator(mticker.NullLocator())
-        ax.grid(b=True, which="major", axis="y", color=gridline_color)
+        ax.grid(visible=True, which="major", axis="y", color=gridline_color)
         ax.tick_params(which="both", axis="y", colors="none", labelsize=tick_size)
     else:
         ax.set_yticks([])
@@ -422,7 +423,9 @@ def plot_model(
 
     # Display figure
     if save_file:
-        plt.savefig(save_file, **fig_kwargs)
+        # figsize is only an option for creating the figure, not for saving it
+        save_kwargs = {k: v for k, v in fig_kwargs.items() if k != "figsize"}
+        ax.figure.savefig(save_file, **save_kwargs)
     else:
         if show == True:
             plt.show()

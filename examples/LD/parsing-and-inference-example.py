@@ -263,12 +263,12 @@ if __name__ == "__main__":
         demo_func, all_boot, p0, [3], mv["means"], mv["varcovs"], r_edges=r_bins
     )
 
-    # The test statistic is the difference in log-likelihoods between the full and
-    # nested models, which the Godambe adjustment scales (Coffman et al., 2016).
-    # The migration rate is fixed at the boundary of its range (zero) in the nested
-    # model, so the statistic follows an equal mixture of chi^2 distributions with 0
-    # and 1 degrees of freedom.
-    D = LL - LL_nomig
+    # The likelihood ratio test statistic is twice the difference in log-likelihoods
+    # between the full and nested models, which the Godambe adjustment scales
+    # (Coffman et al., 2016). The migration rate is fixed at the boundary of its
+    # range (zero) in the nested model, so the statistic follows an equal mixture of
+    # chi^2 distributions with 0 and 1 degrees of freedom.
+    D = 2 * (LL - LL_nomig)
     D_adj = D * adj
 
     p_val_nomig = moments.Godambe.sum_chi2_ppf(D_adj, weights=(0.5, 0.5))

@@ -1,5 +1,13 @@
  .. _sec_ld_inference:
 
+.. jupyter-execute::
+    :hide-code:
+
+    # fixed random seed, so that sampled data and perturbed starting parameters
+    # (and so the outputs shown) are the same in every docs build
+    import numpy as np
+    np.random.seed(42)
+
 ============================
 Inferring demography with LD
 ============================
@@ -207,7 +215,7 @@ For example, with the data ``mv`` returned by ``bootstrap_data``:
 .. code-block:: python
 
     # all statistics, as returned by bootstrap_data, so statistics isn't needed
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess, [mv["means"], mv["varcovs"]], [model_func], rs=r_bins
     )
 
@@ -215,7 +223,7 @@ For example, with the data ``mv`` returned by ``bootstrap_data``:
     r_edges, means, varcovs, stats = moments.LD.Parsing.subset_data(
         mv, ["deme0", "deme1"], remove_Dz=True
     )
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
         p_guess, [means, varcovs], [model_func], rs=r_edges, statistics=stats
     )
 
@@ -245,12 +253,13 @@ use ``optimize_log_fmin`` to fit the model.
 
     rs = [0, 1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3]
 
+    # an initial guess, perturbed to get the starting parameters
     p_guess = [0.1, 2.0, 0.075, 2.0, 10000]
     p0 = moments.LD.Util.perturb_params(p_guess, fold=0.2)
 
-    # run optimization
-    opt_params, LL = moments.LD.Inference.optimize_log_fmin(
-        p_guess,
+    # run optimization, which returns the negative log-likelihood
+    opt_params, neg_LL = moments.LD.Inference.optimize_log_fmin(
+        p0,
         [data["means"], data["varcovs"]],
         [model_func],
         rs=rs,
@@ -397,3 +406,139 @@ We can see above that the FIM uncertainties are considerably smaller (i.e. more
 constrained) than the GIM uncertainties. However, the GIM uncertainties are to
 be preferred here, as they more accurately estimate the underlying true
 uncertainty in the demographic inference.
+
+.. _sec_ld_inference_lrt:
+
+***********************
+Likelihood ratio tests
+***********************
+
+To test whether a more complex model fits the data significantly better than a
+simpler, nested model (one that is a special case of the complex model with some
+parameters fixed), we can use a likelihood ratio test. The test statistic is
+twice the difference in log-likelihoods of the best fits,
+:math:`D = 2 (\ell_{complex} - \ell_{simple})`. If the data points were
+independent, :math:`D` would follow a :math:`\chi^2` distribution under the
+simple model, with degrees of freedom equal to the number of nested parameters.
+
+The LD likelihood is a composite likelihood, which treats the recombination
+bins as independent, so this :math:`\chi^2` test is badly overconfident.
+Following [Coffman2016]_, ``moments.LD.Godambe.LRT_adjust`` uses the bootstrap
+replicates to compute an adjustment factor ``adj``, and the adjusted statistic
+:math:`D_{adj} = adj \times D` is then compared to the :math:`\chi^2`
+distribution. For LD statistics, ``adj`` is usually much smaller than one,
+because the statistics in different recombination bins are computed from the
+same pairs of SNPs and so are strongly correlated.
+
+``LRT_adjust`` takes the complex model function and the parameters of the best
+fit of the simple model, given as parameters of the complex model with the nested
+parameters set to their fixed values (and Ne as the last entry), along with the
+indices of the nested parameters:
+``LRT_adjust(model_func, bootstrap_sets, p_nested, nested_indices, means,
+varcovs, r_edges=rs)``. The p-value is given by ``moments.Godambe.sum_chi2_ppf``.
+
+Example
+-------
+
+We'll test whether migration is needed to explain the data from the example
+above, by fitting a model without migration, in which the migration rate is
+fixed at zero. Because zero is on the boundary of the allowed range of the
+migration rate, the test statistic follows an equal mixture of :math:`\chi^2`
+distributions with zero and one degrees of freedom, which we specify with
+``weights=(0.5, 0.5)``.
+
+.. jupyter-execute::
+
+    def model_nomig(params, rho=None, theta=0.001):
+        nu0, nu1, T = params
+        return model_func([nu0, nu1, T, 0], rho=rho, theta=theta)
+
+    opt_params_nomig, neg_LL_nomig = moments.LD.Inference.optimize_log_fmin(
+        [0.1, 2.0, 0.075, 10000],
+        [data["means"], data["varcovs"]],
+        [model_nomig],
+        rs=rs,
+    )
+
+    # the best fit without migration, as parameters of the model with migration
+    p_nested = [*opt_params_nomig[:3], 0, opt_params_nomig[3]]
+    adj = moments.LD.Godambe.LRT_adjust(
+        model_func,
+        bootstrap_sets,
+        p_nested,
+        [3],
+        data["means"],
+        data["varcovs"],
+        r_edges=rs,
+    )
+
+    D = 2 * (neg_LL_nomig - neg_LL)
+    D_adj = adj * D
+    print(f"Test statistic D  : {D:.2f}")
+    print(f"Adjustment factor : {adj:.4f}")
+    print(f"Adjusted D        : {D_adj:.2f}")
+    p_unadj = moments.Godambe.sum_chi2_ppf(D, weights=(0.5, 0.5))
+    p_adj = moments.Godambe.sum_chi2_ppf(D_adj, weights=(0.5, 0.5))
+    print(f"p-value, unadjusted: {p_unadj:.3g}")
+    print(f"p-value, adjusted  : {p_adj:.3g}")
+
+Without the adjustment, the p-value is effectively zero. After adjusting for
+the correlations between recombination bins, the test still rejects the model
+without migration, which we know to be the right answer for these simulated data,
+but with a much less extreme p-value.
+
+.. _sec_lrt_conservative:
+
+When the adjustment is too conservative
+---------------------------------------
+
+``LRT_adjust`` (for both the SFS and LD) can be very conservative. Its
+adjustment factor shrinks roughly as :math:`1/D`, so the adjusted statistic
+stays small even when :math:`D` is very large. In simulations testing for weak
+migration, the adjusted SFS test rarely rejected the model without migration at
+a 1% level, and the adjusted LD test did so in fewer than half of the
+replicates.
+
+A large :math:`D` (hundreds or more) with an adjusted statistic of only a few
+units suggests the adjustment is too conservative, and a non-significant result
+should then be treated as inconclusive. ``LRT_adjust`` also warns when the
+Hessian of the complex model at the simple model's best fit is indefinite, in
+which case the adjustment factor is unreliable. In either
+case, the alternatives are, from cheapest to most expensive:
+
+1. **A Wald test from the GIM uncertainties of the complex model.** This needs no
+   further fits: compute :math:`SE_{GIM}` at the complex model's best fit with
+   ``moments.LD.Godambe.GIM_uncert`` (or ``moments.Godambe.GIM_uncert`` for the
+   SFS). For a parameter fixed at a boundary, such as a migration rate of zero,
+   use the one-sided :math:`z = (\hat{\theta} - \theta_0) / SE_{GIM}` with
+   p-value ``scipy.stats.norm.sf(z)``. Caveats: the GIM uncertainty is
+   least reliable near the boundary, the false-positive rate of this test has
+   not been checked, and the result depends on the parameterization (e.g., a
+   rate or its log).
+
+2. **Refitting the complex model to the bootstrap replicates.** Reject the
+   simple model if the bootstrap interval of the nested parameter excludes its
+   fixed value. This needs one converged optimization per replicate, which is
+   the cost the Godambe methods avoid. It is an interval test, not a null
+   distribution for :math:`D`, and bootstrap intervals are imperfect near a
+   boundary.
+
+3. **A parametric bootstrap under the simple model.** Simulate genomes (e.g.,
+   with msprime) under the simple model's best fit, matching the data's sample
+   sizes, sequence lengths, and recombination and mutation rates, and fit both
+   models to each replicate. The p-value is the fraction of simulated :math:`D`
+   at least as large as the observed one. This is the most reliable option but
+   the most expensive. Sampling from the composite likelihood instead (Poisson
+   SFS, or independent Gaussian bins for LD) ignores linkage and is far too
+   liberal.
+
+For the data above, the Wald test gives much stronger evidence for migration
+than the adjusted likelihood ratio test:
+
+.. jupyter-execute::
+
+    import scipy.stats
+
+    z = opt_params[3] / uncerts_GIM[3]
+    print(f"Wald z            : {z:.2f}")
+    print(f"p-value, one-sided: {scipy.stats.norm.sf(z):.3g}")

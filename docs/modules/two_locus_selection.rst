@@ -65,7 +65,9 @@ Citing this work
 
 Demographic inference using a diffusion approximation-based solution for :math:`\Psi_n`
 was introduced in [Ragsdale_Gutenkunst]_. The moments-based method, which is implemented
-here, was described in [Ragsdale_Gravel]_.
+here, was described in [Ragsdale_Gravel]_, and the selection models were described in
+[Ragsdale2022]_. If you use ``moments.TwoLocus`` in your research, please cite
+[Ragsdale2022]_.
 
 Two-locus haplotype distribution under neutrality
 =================================================
@@ -211,7 +213,7 @@ rates and a few different sample sizes, and compare to [Ohta]_'s expectation, wh
 The moments approximation breaks down for recombination rates around :math:`\rho\approx50`
 but is very accurate for lower recombination rates, and this accuracy increases with the
 sample size. To be safe, we can assume that numerical error starts to creep
-in around :math:`rho\approx25`, which for human parameters, is very roughly 50 or 100kb.
+in around :math:`\rho\approx25`, which for human parameters, is very roughly 50 or 100kb.
 So we're limited to looking at LD in relatively shorter regions. For higher recombination
 rates, we can turn to ``moments.LD``, which lets us model multiple populations, but
 is restricted to neutral loci and low-order statistics.
@@ -296,7 +298,7 @@ These approaches have their limitations: analytical results are largely
 constrained to simple selection scenarios and steady-state demography, while simulation
 studies are computationally expensive and thus often end up limited to still a handful
 of selection and demographic scenarios. Numerical approaches to compute expectations of
-statistics of interest could therefore provide a far more efficient way to compute
+statistics of interest could therefore provide a far more efficient way to
 explore parameter regimes and compare model expectations to data in inference frameworks.
 
 Here, we'll explore a few selection models, including both dominance and epistatic
@@ -337,7 +339,7 @@ across loci, so that if :math:`s_A` is the selection coefficient at the left (`A
 locus, and :math:`s_B` is the selection coefficient at the right (`B`/`b`) locus, then
 :math:`s_{AB} = s_A + s_B`.
 
-.. list-table:: No epistasis or dominance emits a haploid selection model.
+.. list-table:: No epistasis or dominance yields a haploid selection model.
     :align: center
 
     * - Genotype
@@ -356,10 +358,10 @@ Additive selection with epistasis
 
 Epistasis is typically modeled as a factor :math:`\epsilon` that either increases or
 decreases the selection coefficient for the `AB` haplotype, so that
-:math:`s_{AB} = s_A + s_B + \epsilon`. If :math:`|s_{AB}| > |s_A| + |s_A|`, i.e. the
+:math:`s_{AB} = s_A + s_B + \epsilon`. If :math:`|s_{AB}| > |s_A| + |s_B|`, i.e. the
 fitness effect of the `AB` haplotype is greater than the sum of the effect of the `Ab`
 and `aB` haplotypes, the effect is called `synergistic` epistasis, and if
-:math:`|s_{AB}| < |s_A| + |s_A|`, it is refered to as `antagonistic` epistasis.
+:math:`|s_{AB}| < |s_A| + |s_B|`, it is referred to as `antagonistic` epistasis.
 
 .. list-table:: A haploid selection model with epistasis.
     :align: center
@@ -487,10 +489,10 @@ Additive selection with and without epistasis
 
 Let's first see how simple, additive selection distorts expected LD away from neutral
 expectations at steady state. Plotted below are decay curves for both :math:`\sigma_d^2`
-and :math:`\sigma_d^2 = {\mathbb{E}[D]}{\mathbb{E}[p(1-p)q(1-q)]}`, a common signed LD
+and :math:`\sigma_d^1 = \frac{\mathbb{E}[D]}{\mathbb{E}[p(1-p)q(1-q)]}`, a common signed LD
 statistic.
 
-For each parameter pair of selection coefficient :math:`\gamma = 2 N_e s` and :math:`rho`,
+For each parameter pair of selection coefficient :math:`\gamma = 2 N_e s` and :math:`\rho`,
 we use the "helper" function that creates the input selection parameters for the
 `AB`, `Ab`, and `aB` haplotypes, and then simulate the equilibrium two-locus sampling
 distribution:
@@ -502,18 +504,24 @@ distribution:
     F = moments.TwoLocus.Demographics.equilibrium(n, rho=rho, sel_params=sel_params)
     sigma_d1 = F.D() / F.pi2()
     sigma_d2 = F.D2() / F.pi2()
-    
+
+.. note:: Additive selection with the same coefficient at both loci and no epistasis
+    can also be specified with the ``gamma`` keyword argument, e.g.
+    ``moments.TwoLocus.Demographics.equilibrium(n, rho=rho, gamma=gamma)``, which is
+    shorthand for ``sel_params=[2 * gamma, gamma, gamma]``. This is selection at
+    `both` loci. For selection at only the left locus, use
+    ``sel_params=[gamma, gamma, 0]``.
 
 .. jupyter-execute::
     :hide-code:
 
     rhos = np.concatenate((np.logspace(-1, 1, 20), [15, 20, 30]))
-    # signed $D$, normalized by $E[p(1-p)q(1-q)]$
+    # signed $D$, normalized by $E[p(1-p)q(1-q)]$, i.e. F.D() / F.pi2()
     sigma_d1 = {
-        -0.1: [-0.001602, -0.001563, -0.001517, -0.001463, -0.001404, -0.001338, -0.001268, -0.001196, -0.001124, -0.001053, -0.000984, -0.000915, -0.000841, -0.000761, -0.000671, -0.000573, -0.000469, -0.000367, -0.000272, -0.000189, -0.000086, -0.000043, -0.000023],
-        -1.0: [-0.089919, -0.087698, -0.084983, -0.081698, -0.077777, -0.073168, -0.067853, -0.061864, -0.055292, -0.048302, -0.041122, -0.034031, -0.027318, -0.021239, -0.015984, -0.011647, -0.008227, -0.005645, -0.003776, -0.002472, -0.001181, -0.000700, -0.000358],
-        -5.0: [-0.031588, -0.031318, -0.030987, -0.030584, -0.030098, -0.029517, -0.02883, -0.028027, -0.027096, -0.026027, -0.02481, -0.02344, -0.021911, -0.020225, -0.018396, -0.016449, -0.01443, -0.0124, -0.010434, -0.008612, -0.006069, -0.004736, -0.003525],
-        -20.0: [0.003101, 0.0031, 0.003099, 0.003098, 0.003096, 0.003093, 0.00309, 0.003086, 0.00308, 0.003074, 0.003065, 0.003055, 0.003041, 0.003024, 0.003002, 0.002975, 0.00294, 0.002897, 0.002842, 0.002774, 0.002619, 0.002468, 0.002177]
+        -0.1: [-0.003204, -0.003126, -0.003034, -0.002926, -0.002808, -0.002676, -0.002536, -0.002392, -0.002248, -0.002106, -0.001968, -0.00183, -0.001682, -0.001522, -0.001342, -0.001146, -0.000938, -0.000734, -0.000544, -0.000378, -0.000172, -8.6e-05, -4.6e-05],
+        -1.0: [-0.179838, -0.175396, -0.169966, -0.163396, -0.155554, -0.146336, -0.135706, -0.123728, -0.110584, -0.096604, -0.082244, -0.068062, -0.054636, -0.042478, -0.031968, -0.023294, -0.016454, -0.01129, -0.007552, -0.004944, -0.002362, -0.0014, -0.000716],
+        -5.0: [-0.063176, -0.062636, -0.061974, -0.061168, -0.060196, -0.059034, -0.05766, -0.056054, -0.054192, -0.052054, -0.04962, -0.04688, -0.043822, -0.04045, -0.036792, -0.032898, -0.02886, -0.0248, -0.020868, -0.017224, -0.012138, -0.009472, -0.00705],
+        -20.0: [0.006202, 0.0062, 0.006198, 0.006196, 0.006192, 0.006186, 0.00618, 0.006172, 0.00616, 0.006148, 0.00613, 0.00611, 0.006082, 0.006048, 0.006004, 0.00595, 0.00588, 0.005794, 0.005684, 0.005548, 0.005238, 0.004936, 0.004354]
     }
     # classical $\sigma_d^2$ statistic
     sigma_d2 = {
@@ -546,18 +554,18 @@ distribution:
     fig.tight_layout()
 
 Already with this very simple selection model (no epistasis, no dominance, equal selection
-at both loci), we find some interesting behavior. For very strong or very week selection,
+at both loci), we find some interesting behavior. For very strong or very weak selection,
 signed-LD remains close to zero, but for intermediate selection, average :math:`D` can be
 significantly negative. As fitness effects get stronger, :math:`\sigma_d^2` is reduced
-dramatically compare to neutral expectations.
+dramatically compared to neutral expectations.
 
 .. todo:: Plots of frequency conditioned LD.
 
 The "helper" function that we used above converts input :math:`\gamma` and :math:`\epsilon`
 to the selection parameters that are passed to ``moments.TwoLocus.Demographics`` functions.
 The additive epistasis model implemented in the helper function
-(``moments.TwoLocus.Util.additive_epistasis``) returns
-:math:`[(1+\epsilon)(\gamma_A + \gamma_B), \gamma_A, \gamma_B]`, so that if
+(``moments.TwoLocus.Util.additive_epistasis``) uses the same selection coefficient
+at both loci and returns :math:`[2(1+\epsilon)\gamma, \gamma, \gamma]`, so that if
 :math:`\epsilon > 0`, we have synergistic epistasis, and if :math:`\epsilon < 0`, we
 have antagonistic epistasis. Any value of :math:`\epsilon` is permitted, and note that if
 :math:`\epsilon` is less than :math:`-1`, we get reverse-sign epistasis.
@@ -597,18 +605,18 @@ Below we again plot :math:`\sigma_d^2` and :math:`\sigma_d^1` for each set of pa
     }
     sigma_d1s = {
         -1: {
-            -1.0: [0.526179, 0.522556, 0.516758, 0.507473, 0.492796, 0.470312, 0.437671, 0.393729, 0.339841, 0.280243, 0.220823, 0.166973, 0.121969, 0.086702, 0.060373],
-            -0.5: [0.217899, 0.217428, 0.216415, 0.214343, 0.210368, 0.203295, 0.191817, 0.175075, 0.153352, 0.12834, 0.102623, 0.078705, 0.058242, 0.041862, 0.029404],
-            0: [-0.089919, -0.085908, -0.080356, -0.072955, -0.063583, -0.052503, -0.040509, -0.028838, -0.018779, -0.011158, -0.006079, -0.003075, -0.001477, -0.000702, -0.000358],
-            0.5: [-0.329042, -0.321945, -0.311873, -0.29794, -0.279336, -0.255625, -0.227122, -0.195142, -0.161857, -0.129715, -0.100727, -0.07606, -0.056041, -0.040418, -0.028628],
-            1.0: [-0.495968, -0.487368, -0.475066, -0.457853, -0.434498, -0.404069, -0.366412, -0.322584, -0.274929, -0.226606, -0.180767, -0.139824, -0.105136, -0.077073, -0.055271],
+            -1.0: [1.05236, 1.04511, 1.03352, 1.01495, 0.985592, 0.940624, 0.875342, 0.787458, 0.679682, 0.560486, 0.441646, 0.333946, 0.243938, 0.173404, 0.120746],
+            -0.5: [0.435798, 0.434856, 0.43283, 0.428686, 0.420736, 0.40659, 0.383634, 0.35015, 0.306704, 0.25668, 0.205246, 0.15741, 0.116484, 0.083724, 0.058808],
+            0: [-0.179838, -0.171816, -0.160712, -0.14591, -0.127166, -0.105006, -0.081018, -0.057676, -0.037558, -0.022316, -0.012158, -0.00615, -0.002954, -0.001404, -0.000716],
+            0.5: [-0.658084, -0.64389, -0.623746, -0.59588, -0.558672, -0.51125, -0.454244, -0.390284, -0.323714, -0.25943, -0.201454, -0.15212, -0.112082, -0.080836, -0.057256],
+            1.0: [-0.991936, -0.974736, -0.950132, -0.915706, -0.868996, -0.808138, -0.732824, -0.645168, -0.549858, -0.453212, -0.361534, -0.279648, -0.210272, -0.154146, -0.110542],
         },
         -20: {
-            -1.0: [2.553811, 2.551505, 2.548031, 2.542794, 2.534886, 2.522912, 2.504711, 2.476878, 2.433927, 2.366837, 2.260753, 2.09317, 1.840166, 1.503754, 1.138065],
-            -0.5: [0.505542, 0.504908, 0.503959, 0.502538, 0.500419, 0.497267, 0.492604, 0.485759, 0.475823, 0.461632, 0.441829, 0.415065, 0.380412, 0.337957, 0.289324],
-            0: [0.003101, 0.0031, 0.003097, 0.003093, 0.003087, 0.003078, 0.003064, 0.003044, 0.003015, 0.002971, 0.002906, 0.002811, 0.002671, 0.002469, 0.002177],
-            0.5: [-0.171986, -0.17191, -0.171796, -0.171625, -0.171369, -0.170985, -0.170412, -0.169557, -0.168288, -0.166418, -0.163685, -0.159745, -0.154176, -0.146513, -0.136359],
-            1.0: [-0.260211, -0.260124, -0.259995, -0.259801, -0.259509, -0.259072, -0.258418, -0.257441, -0.255987, -0.253834, -0.250665, -0.246051, -0.239433, -0.23014, -0.217478],
+            -1.0: [5.10762, 5.10301, 5.09606, 5.08559, 5.06977, 5.04582, 5.00942, 4.95376, 4.86785, 4.73367, 4.52151, 4.18634, 3.68033, 3.00751, 2.27613],
+            -0.5: [1.01108, 1.00982, 1.00792, 1.00508, 1.00084, 0.994534, 0.985208, 0.971518, 0.951646, 0.923264, 0.883658, 0.83013, 0.760824, 0.675914, 0.578648],
+            0: [0.006202, 0.0062, 0.006194, 0.006186, 0.006174, 0.006156, 0.006128, 0.006088, 0.00603, 0.005942, 0.005812, 0.005622, 0.005342, 0.004938, 0.004354],
+            0.5: [-0.343972, -0.34382, -0.343592, -0.34325, -0.342738, -0.34197, -0.340824, -0.339114, -0.336576, -0.332836, -0.32737, -0.31949, -0.308352, -0.293026, -0.272718],
+            1.0: [-0.520422, -0.520248, -0.51999, -0.519602, -0.519018, -0.518144, -0.516836, -0.514882, -0.511974, -0.507668, -0.50133, -0.492102, -0.478866, -0.46028, -0.434956],
         }
     }
 
@@ -834,6 +842,9 @@ Let's look at how :math:`\sigma_d^2` and :math:`\sigma_d^1` are affected by domi
 .. jupyter-execute::
     :hide-code:
 
+    # precomputed with n = 50, using
+    # F = moments.TwoLocus.Demographics.equilibrium(
+    #     n, rho=rho, sel_params_general=moments.TwoLocus.Util.simple_dominance(gamma, h=h))
     rhos = np.logspace(-1, np.log10(30), 15)
     hs = [0, 0.1, 0.25, 0.5, 1.0]
     gammas = [-0.1, -1, -5]
@@ -844,10 +855,10 @@ Let's look at how :math:`\sigma_d^2` and :math:`\sigma_d^1` are affected by domi
             0.1: [0.434072, 0.423973, 0.409661, 0.389902, 0.363592, 0.330199, 0.290295, 0.245899, 0.200239, 0.156878, 0.118662, 0.087094, 0.062368, 0.043795, 0.030286],
             0.25: [0.430616, 0.420658, 0.406541, 0.387042, 0.361063, 0.328062, 0.288588, 0.24462, 0.199343, 0.156291, 0.118299, 0.086883, 0.062251, 0.043733, 0.030254],
             0.5: [0.424888, 0.415162, 0.401365, 0.382295, 0.356861, 0.324509, 0.285747, 0.242489, 0.197848, 0.155309, 0.117693, 0.086529, 0.062054, 0.043628, 0.0302],
-            1.0: [0.424888, 0.415162, 0.401365, 0.382295, 0.356861, 0.324509, 0.285747, 0.242489, 0.197848, 0.155309, 0.117693, 0.086529, 0.062054, 0.043628, 0.0302]
+            1.0: [0.413535, 0.404256, 0.39108, 0.372838, 0.348456, 0.317356, 0.279969, 0.238085, 0.194688, 0.15317, 0.116318, 0.08568, 0.061542, 0.043317, 0.030004]
         },
         -1: {
-            0: [0.424888, 0.415162, 0.401365, 0.382295, 0.356861, 0.324509, 0.285747, 0.242489, 0.197848, 0.155309, 0.117693, 0.086529, 0.062054, 0.043628, 0.0302],
+            0: [0.433969, 0.422819, 0.40719, 0.385925, 0.358124, 0.323575, 0.283199, 0.239197, 0.194666, 0.152783, 0.115974, 0.085487, 0.061468, 0.043302, 0.030008],
             0.1: [0.413552, 0.404279, 0.391109, 0.372878, 0.348514, 0.317439, 0.280082, 0.238228, 0.194851, 0.153336, 0.116472, 0.085814, 0.061656, 0.043415, 0.03009],
             0.25: [0.375311, 0.366692, 0.354528, 0.337825, 0.31572, 0.28783, 0.25464, 0.217717, 0.179518, 0.142772, 0.10976, 0.081857, 0.059467, 0.042265, 0.029509],
             0.5: [0.321996, 0.315453, 0.306156, 0.293273, 0.276013, 0.253894, 0.22707, 0.196579, 0.164287, 0.132469, 0.103206, 0.077919, 0.057223, 0.041044, 0.02887],
@@ -863,25 +874,25 @@ Let's look at how :math:`\sigma_d^2` and :math:`\sigma_d^1` are affected by domi
     }
     sigma_d1s = {
         -0.1: {
-            0: [-0.001403, -0.001333, -0.001244, -0.001138, -0.001023, -0.000911, -0.000808, -0.000708, -0.000592, -0.000451, -0.000299, -0.000164, -6.6e-05, -1.1e-05, 5e-06],
-            0.1: [-0.00144, -0.001371, -0.001283, -0.001177, -0.001062, -0.000948, -0.000841, -0.000735, -0.000613, -0.000466, -0.000309, -0.00017, -7e-05, -1.4e-05, 3e-06],
-            0.25: [-0.001503, -0.001435, -0.001348, -0.001242, -0.001125, -0.001007, -0.000893, -0.000778, -0.000646, -0.000489, -0.000324, -0.00018, -7.7e-05, -1.8e-05, 1e-06],
-            0.5: [-0.001627, -0.00156, -0.001472, -0.001366, -0.001245, -0.001118, -0.000991, -0.000858, -0.000706, -0.000532, -0.000353, -0.000199, -8.8e-05, -2.5e-05, -3e-06],
-            1.0: [-0.00194, -0.001872, -0.001782, -0.001669, -0.001536, -0.001387, -0.001225, -0.001049, -0.000851, -0.000633, -0.00042, -0.000241, -0.000114, -4.1e-05, -1.2e-05]
+            0: [-0.002806, -0.002666, -0.002488, -0.002276, -0.002046, -0.001822, -0.001616, -0.001416, -0.001184, -0.000902, -0.000598, -0.000328, -0.000132, -2.2e-05, 1e-05],
+            0.1: [-0.00288, -0.002742, -0.002566, -0.002354, -0.002124, -0.001896, -0.001682, -0.00147, -0.001226, -0.000932, -0.000618, -0.00034, -0.00014, -2.8e-05, 6e-06],
+            0.25: [-0.003006, -0.00287, -0.002696, -0.002484, -0.00225, -0.002014, -0.001786, -0.001556, -0.001292, -0.000978, -0.000648, -0.00036, -0.000154, -3.6e-05, 2e-06],
+            0.5: [-0.003254, -0.00312, -0.002944, -0.002732, -0.00249, -0.002236, -0.001982, -0.001716, -0.001412, -0.001064, -0.000706, -0.000398, -0.000176, -5e-05, -6e-06],
+            1.0: [-0.00388, -0.003744, -0.003564, -0.003338, -0.003072, -0.002774, -0.00245, -0.002098, -0.001702, -0.001266, -0.00084, -0.000482, -0.000228, -8.2e-05, -2.4e-05]
         },
         -1: {
-            0: [-0.140166, -0.1313, -0.119394, -0.104172, -0.085973, -0.066034, -0.046443, -0.029507, -0.016801, -0.008565, -0.003933, -0.001641, -0.000622, -0.000206, -4.9e-05],
-            0.1: [-0.127589, -0.120032, -0.109817, -0.096642, -0.0807, -0.062955, -0.045167, -0.029411, -0.017245, -0.009099, -0.004347, -0.0019, -0.000766, -0.000281, -8.9e-05],
-            0.25: [-0.111273, -0.105337, -0.097238, -0.086657, -0.073622, -0.058768, -0.043422, -0.029317, -0.017943, -0.009941, -0.005015, -0.00233, -0.001011, -0.000414, -0.000161],
-            0.5: [-0.090199, -0.086221, -0.080712, -0.073363, -0.064046, -0.053012, -0.041032, -0.029325, -0.019179, -0.01144, -0.006245, -0.003153, -0.001498, -0.000688, -0.000319],
-            1.0: [-0.065275, -0.063376, -0.06068, -0.056946, -0.051963, -0.045637, -0.03812, -0.029902, -0.021778, -0.014609, -0.009009, -0.005139, -0.00276, -0.001445, -0.000782]
+            0: [-0.280332, -0.2626, -0.238788, -0.208344, -0.171946, -0.132068, -0.092886, -0.059014, -0.033602, -0.01713, -0.007866, -0.003282, -0.001244, -0.000412, -9.8e-05],
+            0.1: [-0.255178, -0.240064, -0.219634, -0.193284, -0.1614, -0.12591, -0.090334, -0.058822, -0.03449, -0.018198, -0.008694, -0.0038, -0.001532, -0.000562, -0.000178],
+            0.25: [-0.222546, -0.210674, -0.194476, -0.173314, -0.147244, -0.117536, -0.086844, -0.058634, -0.035886, -0.019882, -0.01003, -0.00466, -0.002022, -0.000828, -0.000322],
+            0.5: [-0.180398, -0.172442, -0.161424, -0.146726, -0.128092, -0.106024, -0.082064, -0.05865, -0.038358, -0.02288, -0.01249, -0.006306, -0.002996, -0.001376, -0.000638],
+            1.0: [-0.13055, -0.126752, -0.12136, -0.113892, -0.103926, -0.091274, -0.07624, -0.059804, -0.043556, -0.029218, -0.018018, -0.010278, -0.00552, -0.00289, -0.001564]
         },
         -5: {
-            0: [-0.273842, -0.213698, -0.160323, -0.116068, -0.08134, -0.055197, -0.036104, -0.02251, -0.013135, -0.00701, -0.003356, -0.001455, -0.000628, -0.000331, -0.000435],
-            0.1: [-0.166874, -0.139404, -0.112697, -0.088555, -0.068005, -0.051229, -0.037825, -0.027181, -0.018763, -0.01225, -0.007484, -0.004304, -0.002417, -0.001418, -0.000952],
-            0.25: [-0.076182, -0.070171, -0.063292, -0.05592, -0.04848, -0.0413, -0.034527, -0.028157, -0.022161, -0.016612, -0.011727, -0.007783, -0.004945, -0.003141, -0.002121],
-            0.5: [-0.032184, -0.031711, -0.031053, -0.030161, -0.028986, -0.027481, -0.025601, -0.023305, -0.020573, -0.017443, -0.014067, -0.010729, -0.007785, -0.005514, -0.003995],
-            1.0: [-0.013187, -0.013152, -0.013101, -0.013024, -0.01291, -0.012741, -0.012493, -0.012135, -0.011627, -0.010926, -0.010001, -0.008857, -0.007569, -0.00629, -0.005207]
+            0: [-0.547684, -0.427396, -0.320646, -0.232136, -0.16268, -0.110394, -0.072208, -0.04502, -0.02627, -0.01402, -0.006712, -0.00291, -0.001256, -0.000662, -0.00087],
+            0.1: [-0.333748, -0.278808, -0.225394, -0.17711, -0.13601, -0.102458, -0.07565, -0.054362, -0.037526, -0.0245, -0.014968, -0.008608, -0.004834, -0.002836, -0.001904],
+            0.25: [-0.152364, -0.140342, -0.126584, -0.11184, -0.09696, -0.0826, -0.069054, -0.056314, -0.044322, -0.033224, -0.023454, -0.015566, -0.00989, -0.006282, -0.004242],
+            0.5: [-0.064368, -0.063422, -0.062106, -0.060322, -0.057972, -0.054962, -0.051202, -0.04661, -0.041146, -0.034886, -0.028134, -0.021458, -0.01557, -0.011028, -0.00799],
+            1.0: [-0.026374, -0.026304, -0.026202, -0.026048, -0.02582, -0.025482, -0.024986, -0.02427, -0.023254, -0.021852, -0.020002, -0.017714, -0.015138, -0.01258, -0.010414]
         }
     }
 
@@ -959,8 +970,6 @@ Gene-based dominance
 Non-steady-state demography
 ---------------------------
 
-:math:`\mathcal{K}`
-
 .. todo:: Are any of these statistics quite sensitive to bottlenecks or expansions?
 
 .. todo:: Discussion on what we can expect to learn from signed LD-based inferences. Are
@@ -987,13 +996,18 @@ References
     nucleotide sites under the steady flux of mutations in a finite population."
     *Genetics* 68.4 (1971): 571.
 
+.. [Ragsdale2022]
+    Ragsdale, Aaron P. "Local fitness and epistatic effects lead to distinct patterns
+    of linkage disequilibrium in protein-coding genes." *Genetics* 221.4 (2022):
+    iyac097.
+
 .. [Ragsdale_Gutenkunst]
     Ragsdale, Aaron P. and Ryan N. Gutenkunst. "Inferring demographic history using
     two-locus statistics." *Genetics* 206.2 (2017): 1037-1048.
 
 .. [Ragsdale_Gravel]
     Ragsdale, Aaron P. and Simon Gravel. "Models of archaic admixture and recent history
-    from two-locus statistics." *PLoS Genetics* 15.8 (2019): e1008204.
+    from two-locus statistics." *PLoS Genetics* 15.6 (2019): e1008204.
 
 .. [Sandler]
     Sandler, George, Stephen I. Wright, and Aneil F. Agrawal. "Using patterns of signed

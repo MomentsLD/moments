@@ -884,14 +884,21 @@ def _get_integration_parameters(g, demes_present, frozen_list, Ne=None):
             sizes.append(_sizes_at_time(g, d, interval))
         nu_func = _make_nu_func(sizes, T, Ne)
         nu_funcs.append(nu_func)
-        # get migration matrix for interval
+        # get migration matrix for interval, or None if the graph has no migration
+        # between the live demes in this interval. Spectrum.integrate uses the faster
+        # integrators without migration for m=None, and the integrators with migration
+        # for any matrix, even if all its rates are zero (for example, a fitted
+        # migration rate at zero), so that the SFS is continuous as rates go to zero.
         mig_mat = np.zeros((len(live_demes), len(live_demes)))
+        has_migration = False
         for ii, d_from in enumerate(live_demes):
             for jj, d_to in enumerate(live_demes):
                 if d_from != d_to:
                     m = _migration_rate_in_interval(g, d_from, d_to, interval)
-                    mig_mat[jj, ii] = 2 * Ne * m
-        migration_matrices.append(mig_mat)
+                    if m is not None:
+                        has_migration = True
+                        mig_mat[jj, ii] = 2 * Ne * m
+        migration_matrices.append(mig_mat if has_migration else None)
 
     return nu_funcs, migration_matrices, integration_times, frozen_demes
 
@@ -979,9 +986,10 @@ def _sizes_at_time(g, deme_id, time_interval):
 
 def _migration_rate_in_interval(g, source, dest, time_interval):
     """
-    Get the migration rate from source to dest over the given time interval.
+    Get the migration rate from source to dest over the given time interval, or None
+    if the graph has no migration from source to dest in that interval.
     """
-    rate = 0
+    rate = None
     for mig in g.migrations:
         try:  # if asymmetric migration
             if mig.source == source and mig.dest == dest:
@@ -1574,6 +1582,10 @@ def _compute_LD(
             selfing = [s if s is not None else 0 for s in selfing_rate]
 
         if T > 0:
+            # LD statistics are continuous at zero migration, so they keep a matrix
+            # of zeros where the graph has no migration
+            if M is None:
+                M = np.zeros((len(frozen), len(frozen)))
             y.integrate(
                 nu, T, m=M, frozen=frozen, theta=theta, rho=rho, selfing=selfing
             )

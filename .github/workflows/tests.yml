@@ -40,8 +40,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          # pip install -r requirements/development.txt
-          ## can we get rid of requirements.txt?
           pip install -r requirements/tests.txt
 
       # Check that moments installs as expected.

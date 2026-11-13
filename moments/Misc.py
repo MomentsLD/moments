@@ -165,9 +165,9 @@ def make_fux_table(fid, ts, Q, tri_freq):
               for variation, not just sites where there are SNPs.
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a futureversion, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 
@@ -276,9 +276,9 @@ def make_data_dict(filename):
     zipped, there must be only a single file in the zip archive.
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a future version, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 
@@ -363,9 +363,9 @@ def count_data_dict(data_dict, pop_ids):
     :type pop_ids: list of strings
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a future version, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 
@@ -456,9 +456,9 @@ def make_data_dict_vcf(
     :type skip_multiallelic: bool, optional
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a future version, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 
@@ -628,9 +628,9 @@ def _get_popinfo(popinfo_file):
     popinfo_file : An open text file of the format described above.
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a future version, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 
@@ -724,9 +724,9 @@ def bootstrap(
     :type save_dir: str, optional
     """
     warnings.warn(
-        "Operations using the `data_dict` are deprecated and will be removed "
-        "in a future version, in favor of `from_vcf` and associated functions "
-        "in the `Parsing` module",
+        "Operations using the `data_dict` are deprecated. We recommend using "
+        "`moments.Spectrum.from_vcf` and associated functions in the "
+        "`moments.Parsing` module, which are actively supported.",
         category=DeprecationWarning,
     )
 

@@ -26,12 +26,6 @@ from . import Numerics
 from . import Demes
 from . import Parsing
 
-# Protect import of Plotting in case matplotlib not installed.
-try:
-    from . import Plotting
-except ImportError:
-    pass
-
 # Protect import of ModelPlot in case matplotlib not installed.
 try:
     from . import ModelPlot
@@ -44,3 +38,19 @@ from . import Spectrum_mod
 Spectrum = Spectrum_mod.Spectrum
 
 from moments._version import __version__
+
+
+# Plotting needs matplotlib, which is slow to import (and optional), so it is imported
+# the first time it's used, as moments.Plotting, instead of with moments.
+def __getattr__(name):
+    if name == "Plotting":
+        # (import_module, not "from . import Plotting", which would call this
+        # function again to check for the attribute)
+        import importlib
+
+        return importlib.import_module(f"{__name__}.Plotting")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return sorted(list(globals()) + ["Plotting"])

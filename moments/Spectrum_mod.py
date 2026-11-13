@@ -765,7 +765,11 @@ class Spectrum(np.ma.masked_array):
             matrix m[i,j] is the migration rate from pop j to pop i in genetic
             units, that is, normalized by :math:`2N_e`. ``m`` may be either a
             2-D array, or a function that returns a 2-D array (with dimensions
-            equal to (num pops)x(num pops)).
+            equal to (num pops)x(num pops)). If ``m`` is None (the default), there
+            is no migration, and a faster integration method is used. If ``m`` is
+            given, the integration method with migration is used, even if all
+            rates are zero, so that the SFS changes continuously as migration rates
+            go to zero (the two methods differ slightly, by their numerical errors).
         :type m: array-like, optional
         :param theta: The scaled mutation rate :math:`4 N_e u`, which defaults to 1.
             ``theta`` can be used in the reversible model in the case of symmetric
@@ -864,9 +868,12 @@ class Spectrum(np.ma.masked_array):
                     frozen=frozen,
                 )
         else:
+            # Without migration (m is None), we use the faster integrators without
+            # migration. Any migration matrix, even with all rates zero, uses the
+            # integrators with migration: the two sets of integrators differ by their
+            # time-discretization errors (which are O(dt^2)), so switching between them
+            # at zero would make the SFS jump as migration rates go to zero.
             if m is None:
-                m = np.zeros([len(n), len(n)])
-            if not callable(m) and (m == 0).all():
                 # for more than 2 populations, the sparse solver
                 # seems to be faster than the tridiag...
                 if (
@@ -1686,8 +1693,12 @@ class Spectrum(np.ma.masked_array):
         Non-diallelic polymorphisms are skipped.
 
         :param pop_ids: list of which populations to make fs for.
-        :param projections: list of sample sizes to project down to for each
-            population.
+        :param projections: list of haploid sample sizes (the number of sampled
+            genome copies, so twice the number of diploid individuals) to project
+            down to for each population, in the same order as ``pop_ids``. SNPs
+            with fewer successful calls than this in any population are left out.
+        :param mask_corners: If True (default), the 'observed in none' and
+            'observed in all' entries of the SFS array are masked.
         :param polarized: If True, the data are assumed to be correctly polarized by
             'outgroup_allele'. SNPs in which the 'outgroup_allele'
             information is missing or '-' or not concordant with the
@@ -1696,9 +1707,9 @@ class Spectrum(np.ma.masked_array):
             and the returned spectrum is folded.
         """
         warnings.warn(
-            "Operations using the `data_dict` are deprecated and will be removed "
-            "in version 1.5, in favor of `from_vcf` and associated functions "
-            "in the `Parsing` module",
+            "Operations using the `data_dict` are deprecated. We recommend using "
+            "`moments.Spectrum.from_vcf` and associated functions in the "
+            "`moments.Parsing` module, which are actively supported.",
             category=DeprecationWarning,
         )
 
@@ -1786,9 +1797,9 @@ class Spectrum(np.ma.masked_array):
         :param pop_ids: Optional list of strings containing the population labels.
         """
         warnings.warn(
-            "Operations using the `data_dict` are deprecated and will be removed "
-            "in version 1.5, in favor of `from_vcf` and associated functions "
-            "in the `Parsing` module",
+            "Operations using the `data_dict` are deprecated. We recommend using "
+            "`moments.Spectrum.from_vcf` and associated functions in the "
+            "`moments.Parsing` module, which are actively supported.",
             category=DeprecationWarning,
         )
 
@@ -1832,9 +1843,9 @@ class Spectrum(np.ma.masked_array):
         organized as {(derived_tri, outgroup_base): {snp_id: data,...}}
         """
         warnings.warn(
-            "Operations using the `data_dict` are deprecated and will be removed "
-            "in version 1.5, in favor of `from_vcf` and associated functions "
-            "in the `Parsing` module",
+            "Operations using the `data_dict` are deprecated. We recommend using "
+            "`moments.Spectrum.from_vcf` and associated functions in the "
+            "`moments.Parsing` module, which are actively supported.",
             category=DeprecationWarning,
         )
 
@@ -1931,9 +1942,9 @@ class Spectrum(np.ma.masked_array):
         Most commonly this is because of missing or non-constant context.
         """
         warnings.warn(
-            "Operations using the `data_dict` are deprecated and will be removed "
-            "in version 1.5, in favor of `from_vcf` and associated functions "
-            "in the `Parsing` module",
+            "Operations using the `data_dict` are deprecated. We recommend using "
+            "`moments.Spectrum.from_vcf` and associated functions in the "
+            "`moments.Parsing` module, which are actively supported.",
             category=DeprecationWarning,
         )
 
@@ -2136,7 +2147,7 @@ class Spectrum(np.ma.masked_array):
         :param ploidy: Optionally defines the ploidy of samples (default 2).
             Used to determine the haploid sample size from the number of sampled
             individuals when ``sample_sizes`` is not given.
-        :type plody: int, optional
+        :type ploidy: int, optional
         :param verbose: If > 0, print a progress message every ``verbose`` lines
             (default 0).
         :type verbose: int, optional

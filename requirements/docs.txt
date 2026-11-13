@@ -1,0 +1,9 @@
+# Packages needed to build the documentation, in addition to moments itself.
+# From the top-level directory:
+#   python -m pip install . -r requirements/docs.txt
+#   cd docs && make html
+sphinx
+sphinx_rtd_theme
+jupyter-sphinx
+matplotlib
+demesdraw>=0.4

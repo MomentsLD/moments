@@ -11,6 +11,11 @@
     matplotlib.rc('axes', titlesize=12)
     matplotlib.rc('legend', fontsize=10)
 
+    # fixed random seed, so that sampled data and perturbed starting parameters
+    # (and so the outputs shown) are the same in every docs build
+    import numpy as np
+    np.random.seed(42)
+
 ===========================
 The Site Frequency Spectrum
 ===========================
@@ -650,14 +655,57 @@ inflate the "true" divergence.
 Compute SFS from VCF
 ********************
 
-``moments`` supports computing a SFS from files in VCF format, given a
-population information file. This takes two steps. We first parse the VCF
-using and we then pass that data dictionary to the Spectrum class:
+``moments`` computes the SFS from a VCF file with ``moments.Spectrum.from_vcf``.
+Samples are assigned to populations using a population file, with one
+``sample_id pop_id`` pair on each line, and we can choose which populations to
+include with ``pops``:
 
 .. code-block:: python
 
-    data_dict = moments.Misc.make_data_dict_vcf(vcf_filename, popinfo_filename)
-    fs = moments.Spectrum.from_data_dict(data_dict)
+    fs = moments.Spectrum.from_vcf(
+        vcf_filename, pop_file=popinfo_filename, pops=["YRI", "CEU"]
+    )
+
+By default, the sample size of each population is the number of sampled
+individuals times their ploidy (``ploidy=2`` by default), so that 10 diploid
+individuals give a sample size of 20. Sample sizes in ``moments`` always count
+haploid genome copies, not individuals. Sites with missing data have smaller
+sample sizes and are left out of the SFS, unless we project the data to smaller
+sample sizes using ``sample_sizes``, which maps each population to its haploid
+sample size:
+
+.. code-block:: python
+
+    fs = moments.Spectrum.from_vcf(
+        vcf_filename,
+        pop_file=popinfo_filename,
+        pops=["YRI", "CEU"],
+        sample_sizes={"YRI": 16, "CEU": 16},
+    )
+
+Sites with at least 16 called genome copies in each population are then
+projected down to 16, while sites with fewer are left out. Polarizing alleles,
+filtering sites, and restricting to genomic regions are described in
+:ref:`sec_sfs_parsing`.
+
+.. note::
+
+    Older versions of ``moments`` computed the SFS by first parsing the VCF into
+    a data dictionary. These functions still work but are deprecated, and we
+    recommend using ``moments.Spectrum.from_vcf``, which is actively supported.
+    ``moments.Spectrum.from_data_dict`` requires the populations to include and
+    their projected (haploid) sample sizes, given in the same order:
+
+    .. code-block:: python
+
+        data_dict = moments.Misc.make_data_dict_vcf(vcf_filename, popinfo_filename)
+        fs = moments.Spectrum.from_data_dict(
+            data_dict, pop_ids=["YRI", "CEU"], projections=[16, 16]
+        )
+
+    By default the SFS is polarized using the ancestral allele in the VCF's
+    ``INFO/AA`` field, and sites without it are skipped. Pass
+    ``polarized=False`` to compute the folded SFS instead.
 
 ****************
 Plotting the SFS

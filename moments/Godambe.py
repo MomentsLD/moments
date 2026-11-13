@@ -2,6 +2,8 @@
 Parameter uncertainties and likelihood ratio tests using Godambe information.
 """
 
+import warnings
+
 import numpy
 
 from . import Inference
@@ -225,6 +227,62 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
     return godambe, hess, J, cU
 
 
+def _check_nested_hessian(H, labels, caller):
+    """
+    Warn if the Hessian of the complex model at the best fit of the nested model is
+    indefinite (or has non-positive or non-finite entries on its diagonal), in which
+    case the LRT adjustment is unreliable. A Hessian that is positive definite but
+    nearly singular, as with strongly confounded parameters, does not warn: in
+    simulations, the adjustment could still be well calibrated in that case.
+
+    :param H: The Hessian of the negative log-likelihood of the complex model, over
+        all of its parameters, at the best fit of the nested model.
+    :param labels: A name for each parameter, used in the warning.
+    :param caller: The name of the calling function, used in the warning.
+    :return: True if a warning was issued.
+    """
+    H = numpy.asarray(H, dtype=float)
+    labels = list(labels)
+    advice = (
+        "This often happens when the nested model fits the data poorly, so that "
+        "the quadratic approximation that the adjustment relies on does not hold. "
+        "The adjustment factor may be unreliable. See the documentation on "
+        "likelihood ratio tests for alternatives."
+    )
+    if not numpy.all(numpy.isfinite(H)):
+        warnings.warn(
+            f"{caller}: the Hessian of the complex model at the nested fit has "
+            f"non-finite entries. {advice}",
+            stacklevel=3,
+        )
+        return True
+    d = numpy.diag(H)
+    if numpy.any(d <= 0):
+        bad = [labels[i] for i in numpy.where(d <= 0)[0]]
+        warnings.warn(
+            f"{caller}: the log-likelihood of the complex model at the nested fit "
+            f"is not concave in {', '.join(bad)} (non-positive diagonal entries "
+            f"of the Hessian). {advice}",
+            stacklevel=3,
+        )
+        return True
+    s = numpy.sqrt(d)
+    w, v = numpy.linalg.eigh(H / numpy.outer(s, s))
+    if w[0] <= 0:
+        # the parameters that make up most of the direction of negative curvature
+        cut = min(0.3, numpy.abs(v[:, 0]).max())
+        direction = [l for l, x in zip(labels, v[:, 0]) if abs(x) >= cut]
+        warnings.warn(
+            f"{caller}: the Hessian of the complex model at the nested fit is "
+            f"indefinite (smallest eigenvalue of the correlation-scaled Hessian "
+            f"{w[0]:.2g}), along a direction mostly in {', '.join(direction)}. "
+            f"{advice}",
+            stacklevel=3,
+        )
+        return True
+    return False
+
+
 def GIM_uncert(
     func_ex, all_boot, p0, data, log=False, multinom=True, eps=0.01, return_GIM=False
 ):
@@ -315,14 +373,24 @@ def FIM_uncert(func_ex, p0, data, log=False, multinom=True, eps=0.01):
     return numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
 
 
-def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0.01):
+def LRT_adjust(
+    func_ex,
+    all_boot,
+    p0,
+    data,
+    nested_indices,
+    multinom=True,
+    eps=0.01,
+    check_hessian=True,
+):
     """
     First-order moment matching adjustment factor for likelihood ratio test.
 
-    The adjusted test statistic is ``D_adj = adj * (ll_complex - ll_simple)``,
-    where ``ll_complex`` and ``ll_simple`` are the log-likelihoods of the best fits
-    of the complex and simple (nested) models (Coffman et al., 2016). Its p-value
-    is given by ``sum_chi2_ppf(D_adj, weights)``.
+    The adjusted likelihood ratio test statistic is
+    ``D_adj = adj * 2 * (ll_complex - ll_simple)``, where ``ll_complex`` and
+    ``ll_simple`` are the log-likelihoods of the best fits of the complex and simple
+    (nested) models (Coffman et al., 2016). Its p-value is given by
+    ``sum_chi2_ppf(D_adj, weights)``.
 
     :param func_ex: Model function for complex model
     :type func_ex: demographic model
@@ -345,6 +413,13 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0
     :type multinom: bool
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
     :type eps: float
+    :param check_hessian: If True, also compute the Hessian of the complex model over
+        all of its parameters at ``p0``, and warn if it is indefinite, in which case
+        the adjustment is unreliable (see the documentation on likelihood ratio
+        tests). This takes roughly ``2 * k**2`` extra model
+        evaluations for ``k`` parameters. The adjustment factor is the same either
+        way.
+    :type check_hessian: bool
     :return: The adjustment factor, ``adj``.
     :rtype: float
     """
@@ -367,6 +442,17 @@ def LRT_adjust(func_ex, all_boot, p0, data, nested_indices, multinom=True, eps=0
 
     p_nested = numpy.asarray(p0)[nested_indices]
     GIM, H, J, cU = _get_godambe(diff_func, all_boot, p_nested, data, eps, log=False)
+
+    labels = [f"p0[{i}]" for i in range(len(p0))]
+    if multinom:
+        labels[-1] = "theta"
+    if check_hessian:
+        H_full = _get_godambe(func_ex, [], p0, data, eps, log=False, just_hess=True)
+        _check_nested_hessian(H_full, labels, "moments.Godambe.LRT_adjust")
+    else:
+        _check_nested_hessian(
+            H, [labels[i] for i in nested_indices], "moments.Godambe.LRT_adjust"
+        )
 
     adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
     return adjust

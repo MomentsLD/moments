@@ -14,7 +14,36 @@ import copy
 
 # from moments.Misc import delayed_flush
 from .. import Misc
+from .. import Godambe as _sfs_godambe
 import sys, os
+
+
+def _step_sizes(p0, eps, log=False):
+    """
+    Step sizes for finite-difference derivatives, and whether each derivative is
+    one-sided.
+
+    :param p0: Parameter values to take derivatives around.
+    :param eps: Fractional step size. If ``log`` is True, ``p0`` are log-parameters,
+        and the step is ``eps`` for each of them, which changes each parameter by
+        the same relative amount, with central differences.
+    :param log: If True, ``p0`` are log-parameters.
+    :return: The step sizes and a list of whether each derivative is one-sided.
+        Without ``log``, parameters equal to zero, or so small that ``eps`` times
+        the parameter is below 1e-12, use a step of ``eps`` and one-sided
+        (forward) differences, so that they are not stepped below zero.
+    """
+    steps = numpy.empty(len(p0))
+    one_sided = [False] * len(p0)
+    for i, pval in enumerate(p0):
+        if log:
+            steps[i] = eps
+        elif abs(pval) * eps < 1e-12:
+            steps[i] = eps
+            one_sided[i] = True
+        else:
+            steps[i] = eps * abs(pval)
+    return steps, one_sided
 
 
 def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
@@ -34,11 +63,11 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
     if one_sided is None:
-        one_sided = [False] * len(p0)
+        one_sided = [p == 0 for p in p0]
 
     pwork = numpy.array(p0, copy=True, dtype=float)
     if ii == jj:
-        if pwork[ii] != 0 and not one_sided[ii]:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -55,12 +84,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
 
             element = (fpp - 2 * fp + f0) / eps[ii] ** 2
     else:
-        if (
-            pwork[ii] != 0
-            and pwork[jj] != 0
-            and not one_sided[ii]
-            and not one_sided[jj]
-        ):
+        if not one_sided[ii] and not one_sided[jj]:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
@@ -102,7 +126,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     return element
 
 
-def _get_hess(func, p0, eps, args=()):
+def _get_hess(func, p0, eps, args=(), log=False):
     """
     Calculate Hessian matrix of partial second derivatives.
     Hij = dfunc/(dp_i dp_j)
@@ -110,26 +134,11 @@ def _get_hess(func, p0, eps, args=()):
     :param func: Model function
     :param p0: Parameter values to take derivative around
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-12, then the step size for that parameter
-        will simply be eps, to avoid numerical issues with small parameter
-        perturbations.
+        (see ``_step_sizes``).
     :param args: Additional arguments to func
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    one_sided = [False] * len(p0)
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-12:
-                eps[i] = eps_in
-                one_sided[i] = True
-            else:
-                eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     f0 = func(p0, *args)
     hess = numpy.empty((len(p0), len(p0)))
@@ -142,39 +151,24 @@ def _get_hess(func, p0, eps, args=()):
     return hess
 
 
-def _get_grad(func, p0, eps, args=()):
+def _get_grad(func, p0, eps, args=(), log=False):
     """
     Calculate gradient vector
 
     :param func: Model function
     :param p0: Parameters for func
     :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        Note that if eps*param is < 1e-12, then the step size for that parameter
-        will simply be eps, to avoid numerical issues with small parameter
-        perturbations.
+        (see ``_step_sizes``).
     :param args: Additional arguments to func
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    one_sided = [False] * len(p0)
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            # Account for floating point arithmetic issues
-            if pval * eps_in < 1e-12:
-                eps[i] = eps_in
-                one_sided[i] = True
-            else:
-                eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     grad = numpy.empty([len(p0), 1])
     for ii in range(len(p0)):
         pwork = numpy.array(p0, copy=True, dtype=float)
 
-        if p0[ii] != 0 and not one_sided[ii]:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -224,8 +218,7 @@ def _get_godambe(
         if key not in ld_cache:
             ld_cache[key] = func_ex(params, statistics)
         y = ld_cache[key]
-        ll = Inference.ll_over_bins(y, m, v)
-        return -ll
+        return Inference.ll_over_bins(m, y, v)
 
     def log_func(logparams, m, v):
         return func(numpy.exp(logparams), m, v)
@@ -234,7 +227,7 @@ def _get_godambe(
     if not log:
         hess = -_get_hess(func, p0, eps, args=[ms, vcs])
     else:
-        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs])
+        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs], log=True)
 
     if just_hess:
         return hess
@@ -248,7 +241,9 @@ def _get_godambe(
         if not log:
             grad_temp = _get_grad(func, p0, eps, args=[bs_ms, vcs])
         else:
-            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[bs_ms, vcs])
+            grad_temp = _get_grad(
+                log_func, numpy.log(p0), eps, args=[bs_ms, vcs], log=True
+            )
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
         cU = cU + grad_temp
@@ -502,9 +497,7 @@ def FIM_uncert(
     H = _get_godambe(
         pass_func, 0, p0, means, varcovs, eps, statistics, log=log, just_hess=True
     )
-    # NOTE: There appears to be some discrepancy with +/- when returning log-likelihoods,
-    # which makes returned hessian matrix negative
-    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(-H)))
+    uncerts = numpy.sqrt(numpy.diag(numpy.linalg.inv(H)))
     return uncerts
 
 
@@ -520,15 +513,16 @@ def LRT_adjust(
     normalization=0,
     pass_Ne=False,
     statistics=None,
+    check_hessian=True,
 ):
     """
     Following ``moments.Godambe.LRT_adjust()``, this function performs
     first-order moment matching to adjust the test statistic for the likelihood
     ratio test. Given log-likelihoods for a full and nested model (complex and
-    simpler model, resp), the adjustment factor ``adj`` scales the test statistic,
-    ``D_adj = adj * (ll_full - ll_nested)``, whose p-value is given by
-    ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization functions
-    return the negative log-likelihood.
+    simpler model, resp), the adjustment factor ``adj`` scales the likelihood ratio
+    test statistic, ``D_adj = adj * 2 * (ll_full - ll_nested)``, whose p-value is
+    given by ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization
+    functions return the negative log-likelihood.
 
     :param model_func: The demographic model function for the complex (full) model,
         called as ``model_func(params, rho=rho)`` and returning an LDstats object.
@@ -558,6 +552,12 @@ def LRT_adjust(
         data contain a subset of statistics (e.g. from
         ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
         normalizing statistics are removed before computing likelihoods.
+    :param check_hessian: If True, also compute the Hessian of the complex model over
+        all of its parameters at ``p0``, and warn if it is indefinite, in which case
+        the adjustment is unreliable (see the documentation on likelihood ratio
+        tests). This takes roughly ``2 * k**2`` extra model
+        evaluations for ``k`` parameters. The adjustment factor is the same either
+        way.
     :return: The adjustment factor for the likelihood ratio test statistic.
     :rtype: float
     """
@@ -581,9 +581,38 @@ def LRT_adjust(
         y = Inference.remove_nonpresent_statistics(y, statistics)
         return y
 
+    # We only take derivatives with respect to the nested parameters, which are
+    # fixed in the simple model, as in moments.Godambe.LRT_adjust.
+    def diff_func(diff_params, statistics):
+        full_params = numpy.array(p0, copy=True, dtype=float)
+        full_params[nested_indices] = diff_params
+        return pass_func(full_params, statistics)
+
+    p_nested = numpy.asarray(p0, dtype=float)[nested_indices]
     GIM, H, J, cU = _get_godambe(
-        pass_func, all_boots, p0, means, varcovs, eps, statistics, log=False
+        diff_func, all_boots, p_nested, means, varcovs, eps, statistics, log=False
     )
+
+    labels = [f"p0[{i}]" for i in range(len(p0) - 1)] + ["Ne"]
+    if check_hessian:
+        H_full = _get_godambe(
+            pass_func,
+            0,
+            numpy.asarray(p0, dtype=float),
+            means,
+            varcovs,
+            eps,
+            statistics,
+            log=False,
+            just_hess=True,
+        )
+        _sfs_godambe._check_nested_hessian(
+            H_full, labels, "moments.LD.Godambe.LRT_adjust"
+        )
+    else:
+        _sfs_godambe._check_nested_hessian(
+            H, [labels[i] for i in nested_indices], "moments.LD.Godambe.LRT_adjust"
+        )
 
     adjust = len(nested_indices) / numpy.trace(numpy.dot(J, numpy.linalg.inv(H)))
     return adjust

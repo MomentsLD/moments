@@ -60,5 +60,8 @@ ____________________
 Plotting
 ********
 
-.. todo::
-    These docs are still needed.
+These plotting functions are meant as examples, which can be used as a starting point
+for your own ``matplotlib`` plots.
+
+.. automodule:: moments.LD.Plotting
+    :members: plot_ld_curves, plot_ld_curves_comp

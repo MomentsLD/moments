@@ -219,6 +219,39 @@ def optimize_log_fmin(
     fixed_params=None,
     output_file=None,
 ):
+    """
+    Optimize log(params) to fit a model to two-locus data binned by recombination
+    distance, using the downhill simplex algorithm (scipy.optimize.fmin).
+
+    The model spectrum for each bin is computed by integrating over rho within the bin
+    using Simpson's rule, from the model evaluated at the bin edges and midpoints.
+
+    :param p0: Initial parameters.
+    :param data_list: List of two-locus frequency spectra, one for each rho bin.
+    :param model_func: Function that takes ``(params, ns, rhos=rhos)`` and returns a
+        list of model spectra, one for each value in ``rhos``.
+    :param rhos: The edges of the rho bins, so ``len(rhos) == len(data_list) + 1``.
+    :param lower_bound: Lower bounds on parameter values. Use None for no bound.
+    :param upper_bound: Upper bounds on parameter values. Use None for no bound.
+    :param int verbose: If greater than zero, print optimization status every
+        ``verbose`` steps.
+    :param float flush_delay: Standard output will be flushed once every
+        ``flush_delay`` minutes.
+    :param epsilon: Not used.
+    :param pgtol: Not used.
+    :param bool multinom: If True, the model is optimally rescaled to the data within
+        each bin (multinomial likelihood). If False, the Poisson likelihood is used.
+    :param int maxiter: Maximum number of iterations.
+    :param bool full_output: If True, return the full output of scipy.optimize.fmin,
+        ``(xopt, fopt, iter, funcalls, warnflag)``. Otherwise, return only the best-fit
+        parameters.
+    :param func_args: Not used.
+    :param dict func_kwargs: Additional keyword arguments to model_func.
+    :param fixed_params: If not None, a list of the same length as p0, in which
+        non-None values are held fixed during optimization.
+    :param str output_file: If given, write optimization status to this file instead
+        of standard output.
+    """
     if output_file:
         output_stream = open(output_file, "w")
     else:

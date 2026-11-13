@@ -7,6 +7,9 @@ import moments
 import moments.LD
 import moments.TwoLocus
 import pickle
+import tempfile
+import warnings
+from unittest import mock
 import time
 import copy
 import demes
@@ -392,8 +395,12 @@ class TestDemographics1D(unittest.TestCase):
 class CopyAndPickle(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
+        # files are written to a temporary directory, so that tests running in
+        # parallel (pytest -n) don't overwrite each other's files
+        self.tmpdir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
+        self.tmpdir.cleanup()
         t = time.time() - self.startTime
         print("%s: %.3f seconds" % (self.id(), t))
 
@@ -403,7 +410,7 @@ class CopyAndPickle(unittest.TestCase):
 
     def test_pickle(self):
         y = moments.LD.Demographics2D.snm(rho=[0, 1, 2], pop_ids=["A", "B"])
-        temp_file = "temp.bp"
+        temp_file = os.path.join(self.tmpdir.name, "temp.bp")
         with open(temp_file, "wb+") as fout:
             pickle.dump(y, fout)
         with open(temp_file, "rb") as fin:
@@ -909,6 +916,8 @@ class NormalizingStatistics(unittest.TestCase):
                         self.varcovs,
                         **kwargs,
                     ),
+                    # p0 is not a fit of the nested model to these data, so the
+                    # Hessian check would (correctly) warn
                     moments.LD.Godambe.LRT_adjust(
                         self.model_func,
                         self.boots,
@@ -916,6 +925,7 @@ class NormalizingStatistics(unittest.TestCase):
                         [3],
                         self.means,
                         self.varcovs,
+                        check_hessian=False,
                         **kwargs,
                     ),
                 ]
@@ -989,3 +999,120 @@ class NormalizingStatistics(unittest.TestCase):
                 **kwargs,
             )
         plt.close("all")
+
+
+class GodambeWellSpecified(unittest.TestCase):
+    """
+    When the data are the model's expectations, and the bootstrap replicates vary
+    with exactly the variances in varcovs and independently across bins, the
+    composite likelihood is the true likelihood, so the Godambe information equals
+    the Fisher information and the LRT adjustment factor is one.
+    """
+
+    def setUp(self):
+        self.model_func = moments.LD.Demographics2D.split_mig
+        self.r_edges = np.array([0, 1e-6, 1e-5, 1e-4])
+        names = moments.LD.Util.moment_names(2)
+        self.norm_idx = [names[0].index("pi2_0_0_0_0"), names[1].index("H_0_0")]
+
+    def data(self, p):
+        # Expected statistics at p as the data, with 2% standard deviations and the
+        # normalizing statistics fixed at one. Bootstrap replicates shift one
+        # statistic at a time by +/- sqrt(K) standard deviations, where K is the
+        # number of non-normalizing statistics, so their variances equal varcovs
+        # and they are uncorrelated within and between bins.
+        y = moments.LD.Inference.bin_stats(
+            self.model_func, p[:-1], rho=4 * p[-1] * self.r_edges
+        )
+        means = [np.array(m) for m in moments.LD.Inference.sigmaD2(y)]
+        norms = [self.norm_idx[0]] * (len(means) - 1) + [self.norm_idx[1]]
+        sds = []
+        for m, k in zip(means, norms):
+            sd = 0.02 * np.abs(m)
+            sd[k] = 0
+            sds.append(sd)
+        varcovs = [np.diag(sd**2) for sd in sds]
+        coords = [(i, j) for i, sd in enumerate(sds) for j in range(len(sd)) if sd[j]]
+        boots = []
+        for i, j in coords:
+            for sign in (1, -1):
+                boot = [m.copy() for m in means]
+                boot[i][j] += sign * np.sqrt(len(coords)) * sds[i][j]
+                boots.append(boot)
+        return means, varcovs, boots
+
+    def test_LRT_adjust(self):
+        # Data from the model without migration (m = 0), testing for migration. The
+        # adjustment was negative or near zero when derivatives were taken with
+        # respect to all parameters and with the wrong sign of the hessian.
+        p0 = [2.0, 3.0, 0.1, 0.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        adj = moments.LD.Godambe.LRT_adjust(
+            self.model_func, boots, p0, [3], means, varcovs, r_edges=self.r_edges
+        )
+        self.assertTrue(np.isclose(adj, 1, rtol=0.05))
+
+    def test_LRT_adjust_hessian_check(self):
+        # The nested model fits these data exactly, so the Hessian check over all
+        # parameters (including Ne) doesn't warn, and the adjustment factor is the
+        # same without the check.
+        p0 = [2.0, 3.0, 0.1, 0.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        args = (self.model_func, boots, p0, [3], means, varcovs)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            adj = moments.LD.Godambe.LRT_adjust(*args, r_edges=self.r_edges)
+        self.assertEqual([x for x in w if "Hessian" in str(x.message)], [])
+        adj_nocheck = moments.LD.Godambe.LRT_adjust(
+            *args, r_edges=self.r_edges, check_hessian=False
+        )
+        self.assertEqual(adj, adj_nocheck)
+        with mock.patch("moments.Godambe._check_nested_hessian") as check:
+            moments.LD.Godambe.LRT_adjust(*args, r_edges=self.r_edges)
+            H, labels, _ = check.call_args.args
+            self.assertEqual(H.shape, (5, 5))
+            self.assertEqual(labels, ["p0[0]", "p0[1]", "p0[2]", "p0[3]", "Ne"])
+
+    def test_GIM_equals_FIM(self):
+        # The Godambe and Fisher uncertainties agree, and are positive and finite.
+        p0 = [2.0, 3.0, 0.1, 1.0, 10000]
+        means, varcovs, boots = self.data(p0)
+        fim = moments.LD.Godambe.FIM_uncert(
+            self.model_func, p0, means, varcovs, r_edges=self.r_edges
+        )
+        gim = moments.LD.Godambe.GIM_uncert(
+            self.model_func, boots, p0, means, varcovs, r_edges=self.r_edges
+        )
+        self.assertTrue(np.all(np.isfinite(fim)) and np.all(fim > 0))
+        self.assertTrue(np.allclose(gim, fim, rtol=0.05))
+
+    def test_log_uncertainties(self):
+        # With log=True, the uncertainties of the log-parameters equal the relative
+        # uncertainties sd(p) / p from log=False, for parameters below one (negative
+        # log values) as well as above. Negative log values used to get one-sided
+        # derivatives, and the step size scaled with the log-parameter.
+        p0 = np.array([0.2, 2.0, 0.075, 1.5, 10000])
+        means, varcovs, boots = self.data(p0)
+        args = (self.model_func, p0, means, varcovs)
+        fim = moments.LD.Godambe.FIM_uncert(*args, r_edges=self.r_edges)
+        fim_log = moments.LD.Godambe.FIM_uncert(*args, r_edges=self.r_edges, log=True)
+        self.assertTrue(np.allclose(fim_log, fim / p0, rtol=0.02))
+        args = (self.model_func, boots, p0, means, varcovs)
+        gim = moments.LD.Godambe.GIM_uncert(*args, r_edges=self.r_edges)
+        gim_log = moments.LD.Godambe.GIM_uncert(*args, r_edges=self.r_edges, log=True)
+        self.assertTrue(np.allclose(gim_log, gim / p0, rtol=0.02))
+
+
+class GodambeStepSizes(unittest.TestCase):
+    def test_step_sizes(self):
+        # Without log, steps are a fraction eps of each parameter, with one-sided
+        # derivatives for zero and tiny values, and central derivatives for negative
+        # values. With log (log-parameters), every step is eps, with central
+        # derivatives, including for log-parameters that are zero or negative.
+        p0 = [2.0, -0.5, 0, 1e-14]
+        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01)
+        self.assertTrue(np.allclose(steps, [0.02, 0.005, 0.01, 0.01]))
+        self.assertEqual(one_sided, [False, False, True, True])
+        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01, log=True)
+        self.assertTrue(np.allclose(steps, 0.01))
+        self.assertEqual(one_sided, [False] * 4)
