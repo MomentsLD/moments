@@ -1,0 +1,838 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.TwoLocus.TLSpectrum_mod &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.TwoLocus.TLSpectrum_mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.TwoLocus.TLSpectrum_mod</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Contains two locus spectrum object</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"TLSpectrum_mod"</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">Numerics</span><span class="p">,</span> <span class="n">Integration</span><span class="p">,</span> <span class="n">Util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.special</span>
+
+
+<div class="viewcode-block" id="TLSpectrum">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TLSpectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Represents a two-locus frequency spectrum.</span>
+
+<span class="sd">    The left locus carries alleles A/a and the right locus B/b, where A and B are the</span>
+<span class="sd">    derived alleles. In a sample of n haploid copies, entry ``F[i, j, k]`` is the</span>
+<span class="sd">    number (or density) of pairs of loci with i copies of the AB haplotype, j copies</span>
+<span class="sd">    of Ab, and k copies of aB (the remaining n - i - j - k copies are ab). The</span>
+<span class="sd">    derived allele counts are thus i + j at the left locus and i + k at the right</span>
+<span class="sd">    locus.</span>
+
+<span class="sd">    :param array data: The frequency spectrum data, which has shape</span>
+<span class="sd">        (n+1)-by-(n+1)-by-(n+1) where n is the sample size.</span>
+<span class="sd">    :param array mask: An optional array of the same size as data. 'True' entries</span>
+<span class="sd">        in this array are masked in the TLSpectrum.</span>
+<span class="sd">    :param bool mask_infeasible: If True, mask all bins for frequencies that cannot</span>
+<span class="sd">        occur, i.e. i + j + k &gt; n. Defaults to True.</span>
+<span class="sd">    :param bool mask_fixed: If True, mask the bins in which either locus is not</span>
+<span class="sd">        segregating (see :meth:`mask_fixed`). Defaults to False.</span>
+<span class="sd">    :param bool data_folded: If True, it is assumed that the input data is folded</span>
+<span class="sd">        by the minor allele at each locus.</span>
+<span class="sd">    :param bool check_folding: Not currently used.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>
+        <span class="n">subtype</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span><span class="p">,</span>
+        <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mask_fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">data_folded</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">check_folding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+        <span class="n">keep_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">shrink</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">make_mask_none</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">subarr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">keep_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">shrink</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">subarr</span> <span class="o">=</span> <span class="n">subarr</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">subtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"folded"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">data_folded</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">data_folded</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+                <span class="n">subarr</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span>
+            <span class="k">elif</span> <span class="n">data_folded</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"Data does not have same folding status as "</span>
+                    <span class="s2">"was called for in Spectrum constructor."</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_folded</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="n">data_folded</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">mask_infeasible</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">mask_infeasible</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">mask_fixed</span><span class="p">:</span>
+            <span class="n">subarr</span><span class="o">.</span><span class="n">mask_fixed</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subarr</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"folded"</span><span class="p">,</span> <span class="s2">"unspecified"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">return_scalar</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="o">.</span><span class="n">_update_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"folded"</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">folded</span>
+
+    <span class="c1"># masked_array has priority 15.</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"TLSpectrum(</span><span class="si">%s</span><span class="s2">, folded=</span><span class="si">%s</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folded</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TLSpectrum.mask_infeasible">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.mask_infeasible">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mask_infeasible</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Mask any infeasible entries, i.e. those with i + j + k &gt; n.</span>
+<span class="sd">        """</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># mask entries with i+j+k &gt; ns</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">&gt;</span> <span class="n">ns</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.mask_fixed">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.mask_fixed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mask_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Mask all infeasible entries, as well as any where either locus is not</span>
+<span class="sd">        segregating (i.e. the derived allele at that locus has count 0 or n).</span>
+<span class="sd">        """</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_infeasible</span><span class="p">()</span>
+
+        <span class="c1"># mask fA = n and fB = n</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># mask fA = 0 and fB = 0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.unfold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.unfold">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unfold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return an unfolded copy of the spectrum. Entries that were folded over</span>
+<span class="sd">        remain zero, and only infeasible entries are masked.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input Spectrum is not folded."</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">unfolded</span> <span class="o">=</span> <span class="n">TLSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unfolded</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_sample_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">sample_size</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_sample_size</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TLSpectrum.left">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.left">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The marginal allele frequency spectrum at the left locus, i.e. the sum of</span>
+<span class="sd">        the spectrum over all entries with each derived allele count (i + j) at the</span>
+<span class="sd">        left locus.</span>
+<span class="sd">        """</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="n">fl</span><span class="p">[</span><span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fl</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.right">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.right">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The marginal allele frequency spectrum at the right locus, i.e. the sum of</span>
+<span class="sd">        the spectrum over all entries with each derived allele count (i + k) at the</span>
+<span class="sd">        right locus.</span>
+<span class="sd">        """</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">fr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="n">fr</span><span class="p">[</span><span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fr</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.ancestral_misid">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.ancestral_misid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ancestral_misid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return a new two-locus spectrum with ancestral state misidentification,</span>
+<span class="sd">        applied independently at each locus with probability p.</span>
+
+<span class="sd">        :param p: The rate of ancestral state misidentification.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"probability of misid must be between 0 and 1"</span><span class="p">)</span>
+
+        <span class="n">F_new</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="n">ll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+                    <span class="c1"># left misid, right correct</span>
+                    <span class="n">F_new</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">kk</span><span class="p">,</span> <span class="n">ll</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                    <span class="c1"># right misid, left correct</span>
+                    <span class="n">F_new</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">jj</span><span class="p">,</span> <span class="n">ii</span><span class="p">,</span> <span class="n">ll</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                    <span class="c1"># both misid</span>
+                    <span class="n">F_new</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ll</span><span class="p">,</span> <span class="n">kk</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">+=</span> <span class="n">p</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">F_new</span></div>
+
+
+    <span class="c1"># statistics, called from Util</span>
+
+<div class="viewcode-block" id="TLSpectrum.S">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.S">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nA</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return the sum over all unmasked entries of the spectrum in which both loci</span>
+<span class="sd">        are segregating.</span>
+
+<span class="sd">        :param nA: If given, only include entries with derived allele count nA at the</span>
+<span class="sd">            left locus.</span>
+<span class="sd">        :param nB: If given, only include entries with derived allele count nB at the</span>
+<span class="sd">            right locus.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nA</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nB</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">_compute_S</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.D">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.D">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nA</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return the expectation of :math:`D` from the spectrum.</span>
+
+<span class="sd">        This is the sum over unmasked entries in which both loci are segregating,</span>
+<span class="sd">        weighting each entry by its estimate of the statistic. It is not normalized by</span>
+<span class="sd">        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the</span>
+<span class="sd">        :math:`\\sigma_d^2` statistic) are typically reported.</span>
+
+<span class="sd">        :param proj: If True, use the unbiased estimator from downsampling. If False,</span>
+<span class="sd">            use naive maximum likelihood estimates for frequency.</span>
+<span class="sd">        :param nA: If given, only include entries with derived allele count nA at the</span>
+<span class="sd">            left locus. If None, include all counts.</span>
+<span class="sd">        :param nB: If given, only include entries with derived allele count nB at the</span>
+<span class="sd">            right locus. If None, include all counts.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nA</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nB</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">_compute_D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.D2">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.D2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">D2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nA</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return the expectation of :math:`D^2` from the spectrum.</span>
+
+<span class="sd">        This is the sum over unmasked entries in which both loci are segregating,</span>
+<span class="sd">        weighting each entry by its estimate of the statistic. It is not normalized by</span>
+<span class="sd">        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the</span>
+<span class="sd">        :math:`\\sigma_d^2` statistic) are typically reported.</span>
+
+<span class="sd">        :param proj: If True, use the unbiased estimator from downsampling. If False,</span>
+<span class="sd">            use naive maximum likelihood estimates for frequency.</span>
+<span class="sd">        :param nA: If given, only include entries with derived allele count nA at the</span>
+<span class="sd">            left locus. If None, include all counts.</span>
+<span class="sd">        :param nB: If given, only include entries with derived allele count nB at the</span>
+<span class="sd">            right locus. If None, include all counts.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nA</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nB</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">_compute_D2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.Dz">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.Dz">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Dz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nA</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Compute the expectation of :math:`Dz = D(1-2p)(1-2q)` from the spectrum.</span>
+
+<span class="sd">        This is the sum over unmasked entries in which both loci are segregating,</span>
+<span class="sd">        weighting each entry by its estimate of the statistic. It is not normalized by</span>
+<span class="sd">        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the</span>
+<span class="sd">        :math:`\\sigma_d^2` statistic) are typically reported.</span>
+
+<span class="sd">        :param proj: If True, use the unbiased estimator from downsampling. If False,</span>
+<span class="sd">            use naive maximum likelihood estimates for frequency.</span>
+<span class="sd">        :param nA: If given, only include entries with derived allele count nA at the</span>
+<span class="sd">            left locus. If None, include all counts.</span>
+<span class="sd">        :param nB: If given, only include entries with derived allele count nB at the</span>
+<span class="sd">            right locus. If None, include all counts.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nA</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nB</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">_compute_Dz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.pi2">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.pi2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pi2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nA</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return the expectation of :math:`\\pi_2 = p(1-p)q(1-q)` from the spectrum.</span>
+
+<span class="sd">        This is the sum over unmasked entries in which both loci are segregating,</span>
+<span class="sd">        weighting each entry by its estimate of the statistic. It is not normalized by</span>
+<span class="sd">        the total of the spectrum, so ratios such as ``F.D2() / F.pi2()`` (the</span>
+<span class="sd">        :math:`\\sigma_d^2` statistic) are typically reported.</span>
+
+<span class="sd">        :param proj: If True, use the unbiased estimator from downsampling. If False,</span>
+<span class="sd">            use naive maximum likelihood estimates for frequency.</span>
+<span class="sd">        :param nA: If given, only include entries with derived allele count nA at the</span>
+<span class="sd">            left locus. If None, include all counts.</span>
+<span class="sd">        :param nB: If given, only include entries with derived allele count nB at the</span>
+<span class="sd">            right locus. If None, include all counts.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nA</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nB</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 1 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Util</span><span class="o">.</span><span class="n">_compute_pi2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Make from_file a static method, so we can use it without an instance.</span>
+<div class="viewcode-block" id="TLSpectrum.from_file">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.from_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_comments</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Read frequency spectrum from file.</span>
+
+<span class="sd">        :param str fid: String with file name to read from or an open file object.</span>
+<span class="sd">        :param bool mask_infeasible: If True, mask the infeasible entries in the</span>
+<span class="sd">            two locus spectrum.</span>
+<span class="sd">        :param bool return_comments: If true, the return value is (fs, comments), where</span>
+<span class="sd">            comments is a list of strings containing the comments from the file.</span>
+<span class="sd">        """</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Try to read from fid. If we can't, assume it's something that we can</span>
+        <span class="c1"># use to open a file.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="c1"># Strip out the comments</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
+            <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="c1"># Read the shape of the data</span>
+        <span class="n">shape</span><span class="p">,</span> <span class="n">folded</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">count</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span>
+        <span class="c1"># fromfile returns a 1-d array. Reshape it to the proper form.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">maskline</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">maskline</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">folded</span> <span class="o">==</span> <span class="s2">"folded"</span><span class="p">:</span>
+            <span class="n">folded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">folded</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># If we opened a new file, clean it up.</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">TLSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="p">,</span> <span class="n">data_folded</span><span class="o">=</span><span class="n">folded</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_comments</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">comments</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.to_file">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">comment_lines</span><span class="o">=</span><span class="p">[],</span> <span class="n">foldmaskinfo</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Write frequency spectrum to file.</span>
+
+<span class="sd">        :param str fid: String with file name to write to or an open file object.</span>
+<span class="sd">        :param int precision: Precision with which to write out entries of the SFS.</span>
+<span class="sd">            (They  are formated via %.&lt;p&gt;g, where &lt;p&gt; is the precision.)</span>
+<span class="sd">        :param list comment_lines: List of strings to be used as comment lines in</span>
+<span class="sd">            the header of the output file.</span>
+<span class="sd">        :param bool foldmaskinfo: If False, folding and mask and population label</span>
+<span class="sd">                      information will not be saved.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Open the file object.</span>
+        <span class="n">newfile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">"write"</span><span class="p">):</span>
+            <span class="n">newfile</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
+
+        <span class="c1"># Write comments</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">comment_lines</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"# "</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write out the shape of the fs</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="si">{0}</span><span class="s2"> "</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">foldmaskinfo</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"unfolded "</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"folded "</span><span class="p">)</span>
+
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Write the data to the file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">" "</span><span class="p">,</span> <span class="s2">"</span><span class="si">%%</span><span class="s2">.</span><span class="si">%i</span><span class="s2">g"</span> <span class="o">%</span> <span class="n">precision</span><span class="p">)</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">foldmaskinfo</span><span class="p">:</span>
+            <span class="c1"># Write the mask to the file</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+
+        <span class="c1"># Close file</span>
+        <span class="k">if</span> <span class="n">newfile</span><span class="p">:</span>
+            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.fold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.fold">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Fold the two-locus spectrum by minor allele frequencies.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input Spectrum is already folded."</span><span class="p">)</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">folded</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="bp">self</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]:</span>
+                        <span class="k">continue</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span>
+                    <span class="n">q</span> <span class="o">=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span>
+                    <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="c1"># Switch A/a and B/b, so AB becomes ab, Ab becomes aB, etc</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span><span class="p">,</span> <span class="n">kk</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                        <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">elif</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="c1"># Switch A/a, so AB -&gt; aB, Ab -&gt; ab, aB -&gt; AB, and ab -&gt; Ab</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">kk</span><span class="p">,</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                        <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">elif</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="c1"># Switch B/b, so AB -&gt; Ab, Ab -&gt; AB, aB -&gt; ab, and ab -&gt; aB</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">jj</span><span class="p">,</span> <span class="n">ii</span><span class="p">,</span> <span class="n">ns</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                        <span class="n">folded</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">folded</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+        <span class="n">folded</span><span class="o">.</span><span class="n">folded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">folded</span></div>
+
+
+<div class="viewcode-block" id="TLSpectrum.project">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.project">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">finite_genome</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Project to smaller sample size.</span>
+
+<span class="sd">        :param int ns: Sample size for new spectrum.</span>
+<span class="sd">        :param bool finite_genome: Projection is only supported for the infinite sites</span>
+<span class="sd">            model, so this must be False.</span>
+<span class="sd">        :param bool cache: If True, cache the projection coefficients in memory to</span>
+<span class="sd">            speed up repeated projections. Set to False to reduce memory usage.</span>
+<span class="sd">        :returns: The projected spectrum, as a new TLSpectrum.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">finite_genome</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Projection with finite genome is not currently supported"</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Numerics</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">TLSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+
+    <span class="c1"># Ensures that when arithmetic is done with TLSpectrum objects,</span>
+    <span class="c1"># attributes are preserved. For details, see similar code in</span>
+    <span class="c1"># moments.Spectrum_mod</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">"__add__"</span><span class="p">,</span>
+        <span class="s2">"__radd__"</span><span class="p">,</span>
+        <span class="s2">"__sub__"</span><span class="p">,</span>
+        <span class="s2">"__rsub__"</span><span class="p">,</span>
+        <span class="s2">"__mul__"</span><span class="p">,</span>
+        <span class="s2">"__rmul__"</span><span class="p">,</span>
+        <span class="s2">"__div__"</span><span class="p">,</span>
+        <span class="s2">"__rdiv__"</span><span class="p">,</span>
+        <span class="s2">"__truediv__"</span><span class="p">,</span>
+        <span class="s2">"__rtruediv__"</span><span class="p">,</span>
+        <span class="s2">"__floordiv__"</span><span class="p">,</span>
+        <span class="s2">"__rfloordiv__"</span><span class="p">,</span>
+        <span class="s2">"__rpow__"</span><span class="p">,</span>
+        <span class="s2">"__pow__"</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">def </span><span class="si">%(method)s</span><span class="s2">(self, other):</span>
+<span class="s2">    self._check_other_folding(other)</span>
+<span class="s2">    if isinstance(other, np.ma.masked_array):</span>
+<span class="s2">        newdata = self.data.</span><span class="si">%(method)s</span><span class="s2"> (other.data)</span>
+<span class="s2">        newmask = np.ma.mask_or(self.mask, other.mask)</span>
+<span class="s2">    else:</span>
+<span class="s2">        newdata = self.data.</span><span class="si">%(method)s</span><span class="s2"> (other)</span>
+<span class="s2">        newmask = self.mask</span>
+<span class="s2">    outfs = self.__class__.__new__(self.__class__, newdata, newmask, </span>
+<span class="s2">                                   mask_infeasible=False, </span>
+<span class="s2">                                   data_folded=self.folded)</span>
+<span class="s2">    return outfs</span>
+<span class="s2">"""</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"method"</span><span class="p">:</span> <span class="n">method</span><span class="p">})</span>
+
+    <span class="c1"># Methods that modify the Spectrum in-place.</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">"__iadd__"</span><span class="p">,</span>
+        <span class="s2">"__isub__"</span><span class="p">,</span>
+        <span class="s2">"__imul__"</span><span class="p">,</span>
+        <span class="s2">"__idiv__"</span><span class="p">,</span>
+        <span class="s2">"__itruediv__"</span><span class="p">,</span>
+        <span class="s2">"__ifloordiv__"</span><span class="p">,</span>
+        <span class="s2">"__ipow__"</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="n">exec</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">def </span><span class="si">%(method)s</span><span class="s2">(self, other):</span>
+<span class="s2">    self._check_other_folding(other)</span>
+<span class="s2">    if isinstance(other, np.ma.masked_array):</span>
+<span class="s2">        self.data.</span><span class="si">%(method)s</span><span class="s2"> (other.data)</span>
+<span class="s2">        self.mask = np.ma.mask_or(self.mask, other.mask)</span>
+<span class="s2">    else:</span>
+<span class="s2">        self.data.</span><span class="si">%(method)s</span><span class="s2"> (other)</span>
+<span class="s2">    return self</span>
+<span class="s2">"""</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"method"</span><span class="p">:</span> <span class="n">method</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_other_folding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Ensure other Spectrum has same .folded status</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">folded</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folded</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"Cannot operate with a folded Spectrum and an "</span> <span class="s2">"unfolded one."</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="TLSpectrum.integrate">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.TLSpectrum.integrate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">integrate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nu</span><span class="p">,</span>
+        <span class="n">tf</span><span class="p">,</span>
+        <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sel_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sel_params_general</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">finite_genome</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">v</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">alternate_fg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">clustered_mutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Integrate the two-locus frequency spectrum forward in time, modifying the</span>
+<span class="sd">        spectrum in place. This integration scheme takes advantage of scipy's sparse</span>
+<span class="sd">        methods.</span>
+
+<span class="sd">        Selection is specified in one of three ways (at most one may be given):</span>
+
+<span class="sd">        - ``gamma``: additive selection with the same coefficient at both loci and no</span>
+<span class="sd">          epistasis. Under the infinite sites model, this is shorthand for</span>
+<span class="sd">          ``sel_params = [2 * gamma, gamma, gamma]``. With ``finite_genome=True``,</span>
+<span class="sd">          ``gamma`` is instead additive selection at the left locus only, which is the</span>
+<span class="sd">          only selection model available for the reversible mutation model.</span>
+<span class="sd">        - ``sel_params = [gamma_AB, gamma_A, gamma_B]``: additive selection within</span>
+<span class="sd">          loci for the AB, Ab, and aB haplotypes relative to ab. This allows for</span>
+<span class="sd">          different selection coefficients at the two loci, and for epistasis if</span>
+<span class="sd">          ``gamma_AB != gamma_A + gamma_B``.</span>
+<span class="sd">        - ``sel_params_general``: selection coefficients for each of the nine diploid</span>
+<span class="sd">          two-locus genotypes, which allows for dominance.</span>
+
+<span class="sd">        :param nu: Population size relative to the ancestral (reference) size, given</span>
+<span class="sd">            as a positive number or as a function of time.</span>
+<span class="sd">        :param float tf: The integration time, in units of 2*Ne generations.</span>
+<span class="sd">        :param float dt: The time step for integration.</span>
+<span class="sd">        :param float rho: The population-size scaled recombination rate, 4*Ne*r. If not</span>
+<span class="sd">            given, rho = 0 is used and a warning is printed.</span>
+<span class="sd">        :param float gamma: The population-size scaled selection coefficient, 2*Ne*s.</span>
+<span class="sd">            See above for how it is applied.</span>
+<span class="sd">        :param list sel_params: Additive selection parameters ``[gamma_AB, gamma_A,</span>
+<span class="sd">            gamma_B]``, each given as 2*Ne*s for that haplotype relative to ab. Only</span>
+<span class="sd">            used with the infinite sites model. See</span>
+<span class="sd">            :func:`moments.TwoLocus.Util.additive_epistasis`.</span>
+<span class="sd">        :param list sel_params_general: Selection parameters for the nine diploid</span>
+<span class="sd">            genotypes relative to ab/ab, each given as 2*Ne*s for that genotype, in the</span>
+<span class="sd">            order ``[AB/AB, AB/Ab, AB/aB, AB/ab, Ab/Ab, Ab/aB, Ab/ab, aB/aB, aB/ab]``.</span>
+<span class="sd">            Only used with the infinite sites model, and requires a sample size of at</span>
+<span class="sd">            least 13. See :func:`moments.TwoLocus.Util.simple_dominance` and</span>
+<span class="sd">            :func:`moments.TwoLocus.Util.gene_based_dominance`.</span>
+<span class="sd">        :param float theta: The population-size scaled mutation rate at each locus,</span>
+<span class="sd">            4*Ne*u, under the infinite sites model.</span>
+<span class="sd">        :param bool finite_genome: Defaults to False, in which case we use the</span>
+<span class="sd">            infinite sites model. Otherwise, we use a reversible mutation model, and</span>
+<span class="sd">            must specify ``u`` and ``v``.</span>
+<span class="sd">        :param float u: The mutation rate at the left locus in the finite genome model,</span>
+<span class="sd">            given as 2*Ne*mu (that is, half of ``theta_fd`` in the single-site</span>
+<span class="sd">            reversible model). Forward and backward mutation rates are equal.</span>
+<span class="sd">        :param float v: The mutation rate at the right locus in the finite genome</span>
+<span class="sd">            model, with the same scaling as ``u``.</span>
+<span class="sd">        :param bool alternate_fg: If True, use the alternative finite genome model.</span>
+<span class="sd">            This parameter will be deprecated when we clean up the numerics and</span>
+<span class="sd">            integration.</span>
+<span class="sd">        :param bool clustered_mutations: If True, new mutations under the infinite</span>
+<span class="sd">            sites model arise as AB haplotypes at both loci at once, instead of</span>
+<span class="sd">            arising on the background of the other locus.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">rho</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Warning: rho was not specified. Simulating with rho = 0"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">Integration</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">nu</span><span class="p">,</span>
+            <span class="n">tf</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+            <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+            <span class="n">sel_params</span><span class="o">=</span><span class="n">sel_params</span><span class="p">,</span>
+            <span class="n">sel_params_general</span><span class="o">=</span><span class="n">sel_params_general</span><span class="p">,</span>
+            <span class="n">finite_genome</span><span class="o">=</span><span class="n">finite_genome</span><span class="p">,</span>
+            <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+            <span class="n">alternate_fg</span><span class="o">=</span><span class="n">alternate_fg</span><span class="p">,</span>
+            <span class="n">clustered_mutations</span><span class="o">=</span><span class="n">clustered_mutations</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Allow TLSpectrum objects to be pickled.</span>
+<span class="c1"># See http://effbot.org/librarybook/copy-reg.htm</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">copy_reg</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">copyreg</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">TLSpectrum_pickler</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+    <span class="c1"># Collect all the info necessary to save the state of a TLSpectrum</span>
+    <span class="k">return</span> <span class="n">TLSpectrum_unpickler</span><span class="p">,</span> <span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">folded</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">TLSpectrum_unpickler</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">folded</span><span class="p">):</span>
+    <span class="c1"># Use that info to recreate the TLSpectrum</span>
+    <span class="k">return</span> <span class="n">TLSpectrum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">mask_infeasible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">data_folded</span><span class="o">=</span><span class="n">folded</span><span class="p">)</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">TLSpectrum</span><span class="p">,</span> <span class="n">TLSpectrum_pickler</span><span class="p">,</span> <span class="n">TLSpectrum_unpickler</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">copyreg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">TLSpectrum</span><span class="p">,</span> <span class="n">TLSpectrum_pickler</span><span class="p">,</span> <span class="n">TLSpectrum_unpickler</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

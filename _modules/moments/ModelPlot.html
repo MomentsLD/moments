@@ -1,0 +1,940 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.ModelPlot &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.ModelPlot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.ModelPlot</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">This module provides functionality to gather and store information about a</span>
+<span class="sd">demographic model (as defined by a demographic model function), and to use this</span>
+<span class="sd">information to generate a visual representation of the model.</span>
+
+<span class="sd">Just two functions are used for generating and plotting models. For example, the</span>
+<span class="sd">following is all that is necessary to generate a plot of the model defined by</span>
+<span class="sd">demographic_model_func(params, ns):</span>
+
+<span class="sd">model = ModelPlot.generate_model(demographic_model_func, params, ns)</span>
+<span class="sd">ModelPlot.plot_model(model)</span>
+
+<span class="sd">Additional options for customizing the model are described in the documentation</span>
+<span class="sd">of these two functions. The module is currently compatible with the following</span>
+<span class="sd">methods in moments:</span>
+
+<span class="sd">LinearSystem_1D.steady_state_1D</span>
+<span class="sd">LinearSystem.steady_state</span>
+<span class="sd">Manips.split_{1D_to_2D,2D_to_3D_2,2D_to_3D_1,3D_to_4D_3,4D_to_5D_4}</span>
+<span class="sd">Spectrum_mod.Spectrum.integrate</span>
+<span class="sd">"""</span>
+
+<span class="c1"># matplotlib is imported by _check_mpl_imported, when a plotting function is first</span>
+<span class="c1"># used, rather than when moments is imported (this module is imported with moments,</span>
+<span class="c1"># and matplotlib is slow to import, and optional).</span>
+<span class="n">mcolors</span> <span class="o">=</span> <span class="n">mbox</span> <span class="o">=</span> <span class="n">mpatches</span> <span class="o">=</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">mticker</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_mpl_imported</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">mcolors</span><span class="p">,</span> <span class="n">mbox</span><span class="p">,</span> <span class="n">mpatches</span><span class="p">,</span> <span class="n">plt</span><span class="p">,</span> <span class="n">mticker</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mcolors</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.offsetbox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mbox</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpatches</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mticker</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"matplotlib not found - moments can be used but "</span>
+            <span class="s2">"plotting features will not work"</span>
+        <span class="p">)</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="c1">## USER FUNCTIONS ##</span>
+<div class="viewcode-block" id="generate_model">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.ModelPlot.generate_model">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_model</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generates information about a demographic model, and stores the information</span>
+<span class="sd">    in a format that can be used by the plot_model function</span>
+
+<span class="sd">    model_func : Function of the form model_func(params, ns). Describes the</span>
+<span class="sd">                 demographic model to collect information on.</span>
+
+<span class="sd">    params : List of values of the demographic variables to be passed as the</span>
+<span class="sd">             params argument to model_func.</span>
+
+<span class="sd">    ns : List of sample sizes to be passed as the ns argument to model_func.</span>
+<span class="sd">         Actual values do not matter, as long as the dimensionality is correct.</span>
+
+<span class="sd">    precision : Number of times to evaluate population sizes per period. This</span>
+<span class="sd">                value can be increased if any of the plotted populations do</span>
+<span class="sd">                not appear smooth.</span>
+
+<span class="sd">    Returns a _ModelInfo object storing the information.</span>
+<span class="sd">    """</span>
+    <span class="n">_check_mpl_imported</span><span class="p">()</span>
+    <span class="c1"># Initialize model and collect necessary information from model function</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">_ModelInfo</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span>
+    <span class="n">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+    <span class="c1"># Closing model prevents continued collection of information</span>
+    <span class="n">_close_model</span><span class="p">()</span>
+    <span class="c1"># Determine size of population trees for space allocation in plot</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">determine_framesizes</span><span class="p">()</span>
+    <span class="c1"># Determine location and orientation of each plotted population</span>
+    <span class="n">vstart</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">tp1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">pop_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp1</span><span class="o">.</span><span class="n">popsizes</span><span class="p">)):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">determine_drawinfo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pop_index</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">vstart</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">vstart</span> <span class="o">+=</span> <span class="n">tp1</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+
+<div class="viewcode-block" id="plot_model">
+<a class="viewcode-back" href="../../api/api_moments.html#moments.ModelPlot.plot_model">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_model</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">save_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fig_title</span><span class="o">=</span><span class="s2">"Demographic Model"</span><span class="p">,</span>
+    <span class="n">pop_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">nref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">draw_ancestors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">draw_migrations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">draw_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">scale_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">arrow_size</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">transition_size</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">gen_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">gen_time_units</span><span class="o">=</span><span class="s2">"Years"</span><span class="p">,</span>
+    <span class="n">reverse_timeline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fig_bg_color</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">plot_bg_color</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">text_color</span><span class="o">=</span><span class="s2">"#002b36"</span><span class="p">,</span>
+    <span class="n">gridline_color</span><span class="o">=</span><span class="s2">"#586e75"</span><span class="p">,</span>
+    <span class="n">pop_color</span><span class="o">=</span><span class="s2">"#268bd2"</span><span class="p">,</span>
+    <span class="n">arrow_color</span><span class="o">=</span><span class="s2">"#073642"</span><span class="p">,</span>
+    <span class="n">label_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">tick_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Plots a demographic model based on information contained within a _ModelInfo</span>
+<span class="sd">    object. See the matplotlib docs for valid entries for the color parameters.</span>
+
+<span class="sd">    model : A _ModelInfo object created using generate_model().</span>
+
+<span class="sd">    save_file : If not None, the figure will be saved to this location. Otherwise</span>
+<span class="sd">                the figure will be displayed to the screen.</span>
+
+<span class="sd">    fig_title : Title of the figure.</span>
+
+<span class="sd">    pop_labels : If not None, should be a list of strings of the same length as</span>
+<span class="sd">                 the total number of final populations in the model. The string</span>
+<span class="sd">                 at index i should be the name of the population along axis i in</span>
+<span class="sd">                 the model's SFS.</span>
+
+<span class="sd">    nref : If specified, this will update the time and population size labels to</span>
+<span class="sd">           use units based on an ancestral population size of nref. See the</span>
+<span class="sd">           documentation for details.</span>
+
+<span class="sd">    draw_ancestors : Specify whether the ancestral populations should be drawn</span>
+<span class="sd">                     in beginning of plot. Will fade off with a gradient.</span>
+
+<span class="sd">    draw_migrations : Specify whether migration arrows are drawn.</span>
+
+<span class="sd">    draw_scale : Specify whether scale bar should be shown in top-left corner.</span>
+
+<span class="sd">    scale_bar : If True, draw the scale bar. If False (default), only draw</span>
+<span class="sd">                arrows for scale.</span>
+
+<span class="sd">    arrow_size : Float to control the size of the migration arrows.</span>
+
+<span class="sd">    transition_size : Float specifying size of the "transitional periods"</span>
+<span class="sd">                      between populations.</span>
+
+<span class="sd">    gen_time : If greater than 0, and nref given, timeline will be adjusted to</span>
+<span class="sd">               show absolute time values, using this value as the time elapsed</span>
+<span class="sd">               per generation.</span>
+
+<span class="sd">    gen_time_units : Units used for gen_time (e.g. Years, Thousand Years, etc.).</span>
+
+<span class="sd">    reverse_timeline : If True, the labels on the timeline will be reversed, so</span>
+<span class="sd">                       that "0 time" is the present time period, rather than the</span>
+<span class="sd">                       time of the original population.</span>
+
+<span class="sd">    fig_bg_color : Background color of figure (i.e. border surrounding the</span>
+<span class="sd">                   drawn model).</span>
+
+<span class="sd">    plot_bg_color : Background color of the actual plot area.</span>
+
+<span class="sd">    text_color : Color of text in the figure.</span>
+
+<span class="sd">    gridline_color : Color of the plot gridlines.</span>
+
+<span class="sd">    pop_color : Color of the populations.</span>
+
+<span class="sd">    arrow_color : Color of the arrows showing migrations between populations.</span>
+<span class="sd">    """</span>
+    <span class="n">_check_mpl_imported</span><span class="p">()</span>
+    <span class="c1"># Set up the plot with a title and axis labels</span>
+    <span class="n">fig_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"figsize"</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.6</span><span class="p">,</span> <span class="mf">5.4</span><span class="p">),</span>
+        <span class="s2">"dpi"</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s2">"facecolor"</span><span class="p">:</span> <span class="n">fig_bg_color</span><span class="p">,</span>
+        <span class="s2">"edgecolor"</span><span class="p">:</span> <span class="n">fig_bg_color</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">plot_bg_color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">fig_title</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+    <span class="n">xlabel</span> <span class="o">=</span> <span class="s2">"Time Ago"</span> <span class="k">if</span> <span class="n">reverse_timeline</span> <span class="k">else</span> <span class="s2">"Time"</span>
+    <span class="k">if</span> <span class="n">nref</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gen_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">xlabel</span> <span class="o">+=</span> <span class="s2">" (</span><span class="si">{}</span><span class="s2">)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gen_time_units</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xlabel</span> <span class="o">+=</span> <span class="s2">" (Generations)"</span>
+        <span class="n">ylabel</span> <span class="o">=</span> <span class="s2">"Population Sizes"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xlabel</span> <span class="o">+=</span> <span class="s2">" (Genetic Units)"</span>
+        <span class="n">ylabel</span> <span class="o">=</span> <span class="s2">"Relative Population Sizes"</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">label_size</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">label_size</span><span class="p">)</span>
+
+    <span class="c1"># Determine various maximum values for proper scaling within the plot</span>
+    <span class="n">xmax</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ymax</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">framesizes</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">xmax</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">xmax</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">])</span>
+    <span class="n">mig_max</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">migrations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">mig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">migrations</span><span class="p">)</span>
+        <span class="n">mig_max</span> <span class="o">=</span> <span class="n">mig_max</span> <span class="k">if</span> <span class="n">mig_max</span> <span class="o">&gt;</span> <span class="n">mig</span> <span class="k">else</span> <span class="n">mig</span>
+
+    <span class="c1"># Configure axis border colors</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"top"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"right"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"bottom"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"left"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Major ticks along x-axis (time) placed at each population split</span>
+    <span class="n">xticks</span> <span class="o">=</span> <span class="p">[</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">]</span>
+    <span class="n">xticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xmax</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">xticks</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">NullLocator</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span>
+        <span class="n">which</span><span class="o">=</span><span class="s2">"both"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">tick_size</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="c1"># Choose correct time labels based on nref, gen_time, and reverse_timeline</span>
+    <span class="k">if</span> <span class="n">reverse_timeline</span><span class="p">:</span>
+        <span class="n">xticks</span> <span class="o">=</span> <span class="p">[</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">nref</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gen_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">xticks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nref</span> <span class="o">*</span> <span class="n">gen_time</span> <span class="o">*</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xticks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nref</span> <span class="o">*</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="s2">"</span><span class="si">{:.0f}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="s2">"</span><span class="si">{:.2f}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">])</span>
+
+    <span class="c1"># Gridlines along y-axis (population size) spaced by nref size</span>
+    <span class="k">if</span> <span class="n">grid</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ymax</span><span class="p">)))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">NullLocator</span><span class="p">())</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">"major"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">gridline_color</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">"both"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s2">"none"</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">tick_size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+
+    <span class="c1"># Add scale in top-left corner displaying ancestral population size (Nref)</span>
+    <span class="k">if</span> <span class="n">draw_scale</span><span class="p">:</span>
+        <span class="c1"># Bidirectional arrow of height Nref</span>
+        <span class="n">arrow</span> <span class="o">=</span> <span class="n">mbox</span><span class="o">.</span><span class="n">AuxTransformBox</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="p">)</span>
+        <span class="n">awidth</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">*</span> <span class="n">arrow_size</span> <span class="o">*</span> <span class="mf">0.2</span>
+        <span class="n">alength</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">*</span> <span class="n">arrow_size</span>
+        <span class="n">arrow_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"width"</span><span class="p">:</span> <span class="n">awidth</span><span class="p">,</span>
+            <span class="s2">"head_width"</span><span class="p">:</span> <span class="n">awidth</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"head_length"</span><span class="p">:</span> <span class="n">alength</span><span class="p">,</span>
+            <span class="s2">"color"</span><span class="p">:</span> <span class="n">text_color</span><span class="p">,</span>
+            <span class="s2">"length_includes_head"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">arrow</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="o">**</span><span class="n">arrow_kwargs</span><span class="p">))</span>
+        <span class="n">arrow</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="o">**</span><span class="n">arrow_kwargs</span><span class="p">))</span>
+        <span class="c1"># Population bar of height Nref</span>
+        <span class="n">bar</span> <span class="o">=</span> <span class="n">mbox</span><span class="o">.</span><span class="n">AuxTransformBox</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="p">)</span>
+        <span class="n">bar</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">mpatches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">xmax</span> <span class="o">/</span> <span class="n">ymax</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pop_color</span><span class="p">))</span>
+        <span class="c1"># Appropriate label depending on scale</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">mbox</span><span class="o">.</span><span class="n">TextArea</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">nref</span><span class="p">)</span> <span class="k">if</span> <span class="n">nref</span> <span class="k">else</span> <span class="s2">"Nref"</span><span class="p">)</span>
+        <span class="n">label</span><span class="o">.</span><span class="n">get_children</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scale_bar</span><span class="p">:</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">arrow</span><span class="p">,</span> <span class="n">bar</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">arrow</span><span class="p">]</span>
+        <span class="n">bars</span> <span class="o">=</span> <span class="n">mbox</span><span class="o">.</span><span class="n">HPacker</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="n">children</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">"center"</span><span class="p">)</span>
+        <span class="n">scalebar</span> <span class="o">=</span> <span class="n">mbox</span><span class="o">.</span><span class="n">AnchoredOffsetbox</span><span class="p">(</span>
+            <span class="mi">2</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">child</span><span class="o">=</span><span class="n">bars</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">scalebar</span><span class="p">)</span>
+
+    <span class="c1"># Add ancestral populations using a gradient fill.</span>
+    <span class="k">if</span> <span class="n">draw_ancestors</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">xmax</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ori</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">origins</span><span class="p">):</span>
+            <span class="c1"># Draw ancestor for each initial pop</span>
+            <span class="n">xlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">xlist</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">low</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">ori</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">ori</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">ori</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">tsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">transition_size</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+            <span class="n">y1list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">low</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+            <span class="n">y2list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mid</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">precision</span> <span class="o">-</span> <span class="n">tsize</span><span class="p">))</span>
+            <span class="n">y2list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y2list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">tsize</span><span class="p">))</span>
+            <span class="c1"># Custom color map runs from bg color to pop color</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
+                <span class="s2">"custom_map"</span><span class="p">,</span> <span class="p">[</span><span class="n">plot_bg_color</span><span class="p">,</span> <span class="n">pop_color</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">precision</span> <span class="o">-</span> <span class="n">tsize</span><span class="p">)))</span>
+            <span class="c1"># Gradient created by drawing multiple small rectangles</span>
+            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">xlist</span><span class="p">[:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span><span class="p">],</span> <span class="n">y1list</span><span class="p">[:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span><span class="p">],</span> <span class="n">y2list</span><span class="p">[:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span><span class="p">],</span> <span class="n">colors</span>
+            <span class="p">):</span>
+                <span class="n">rect</span> <span class="o">=</span> <span class="n">mpatches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="n">dx</span><span class="p">,</span> <span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                <span class="n">xlist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span> <span class="p">:],</span>
+                <span class="n">y1list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span> <span class="p">:],</span>
+                <span class="n">y2list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span> <span class="p">:],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">pop_color</span><span class="p">,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="n">pop_color</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Iterate through time periods and populations to draw everything</span>
+    <span class="k">for</span> <span class="n">tp_index</span><span class="p">,</span> <span class="n">tp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">):</span>
+        <span class="c1"># Keep track of migrations to evenly space arrows across time period</span>
+        <span class="n">total_migrations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">migrations</span><span class="p">)</span>
+        <span class="n">num_migrations</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">pop_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">)):</span>
+            <span class="c1"># Draw current population</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+            <span class="n">popsize</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+            <span class="n">direc</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">direcs</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+            <span class="n">y1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">y2</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">direc</span> <span class="o">*</span> <span class="n">popsize</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pop_color</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">pop_color</span><span class="p">)</span>
+
+            <span class="c1"># Draw connections to next populations if necessary</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">desc</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+                <span class="n">tp_next</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="n">tp_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="c1"># Split population case</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="c1"># Get origins</span>
+                    <span class="n">connect_below</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">connect_above</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="c1"># Get popsizes</span>
+                    <span class="n">subpop_below</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">subpop_above</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="c1"># Determine correct connection location</span>
+                    <span class="n">connect_below</span> <span class="o">-=</span> <span class="n">direc</span> <span class="o">*</span> <span class="n">subpop_below</span>
+                    <span class="n">connect_above</span> <span class="o">+=</span> <span class="n">direc</span> <span class="o">*</span> <span class="n">subpop_above</span>
+                <span class="c1"># Single population case</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">connect_below</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">desc</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">subpop</span> <span class="o">=</span> <span class="n">tp_next</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">desc</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">connect_above</span> <span class="o">=</span> <span class="n">connect_below</span> <span class="o">+</span> <span class="n">direc</span> <span class="o">*</span> <span class="n">subpop</span>
+                <span class="c1"># Draw the connections</span>
+                <span class="n">tsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">transition_size</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+                <span class="n">cx</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span> <span class="p">:]</span>
+                <span class="n">cy_below_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">tsize</span>
+                <span class="n">cy_above_1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">direc</span> <span class="o">*</span> <span class="n">popsize</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">tsize</span> <span class="p">:]</span>
+                <span class="n">cy_below_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">cy_below_1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">connect_below</span><span class="p">,</span> <span class="n">tsize</span><span class="p">)</span>
+                <span class="n">cy_above_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">cy_above_1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">connect_above</span><span class="p">,</span> <span class="n">tsize</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                    <span class="n">cx</span><span class="p">,</span> <span class="n">cy_below_1</span><span class="p">,</span> <span class="n">cy_below_2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pop_color</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">pop_color</span>
+                <span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                    <span class="n">cx</span><span class="p">,</span> <span class="n">cy_above_1</span><span class="p">,</span> <span class="n">cy_above_2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pop_color</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">pop_color</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Draw migrations if necessary</span>
+            <span class="k">if</span> <span class="n">draw_migrations</span> <span class="ow">and</span> <span class="n">tp</span><span class="o">.</span><span class="n">migrations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Iterate through migrations for current population</span>
+                <span class="k">for</span> <span class="n">mig_index</span><span class="p">,</span> <span class="n">mig_val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">migrations</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]):</span>
+                    <span class="c1"># If no migration, continue</span>
+                    <span class="k">if</span> <span class="n">mig_val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="c1"># Calculate proper offset for arrow within this period</span>
+                    <span class="n">num_migrations</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">tp</span><span class="o">.</span><span class="n">precision</span> <span class="o">*</span> <span class="n">num_migrations</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_migrations</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span>
+                    <span class="n">dx</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># Determine which sides of populations are closest</span>
+                    <span class="n">y1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">y2</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">+</span> <span class="n">direc</span> <span class="o">*</span> <span class="n">popsize</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span>
+                    <span class="n">mig_y1</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">mig_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">mig_y2</span> <span class="o">=</span> <span class="n">mig_y1</span> <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">tp</span><span class="o">.</span><span class="n">direcs</span><span class="p">[</span><span class="n">mig_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">mig_index</span><span class="p">][</span><span class="n">offset</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">y1</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mig_y1</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mig_y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span> <span class="k">else</span> <span class="n">y2</span>
+                    <span class="n">dy</span> <span class="o">=</span> <span class="n">mig_y1</span> <span class="o">-</span> <span class="n">y</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mig_y1</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mig_y2</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="k">else</span> <span class="n">mig_y2</span> <span class="o">-</span> <span class="n">y</span>
+                    <span class="c1"># Scale arrow to proper size</span>
+                    <span class="n">mig_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">mig_val</span> <span class="o">/</span> <span class="n">mig_max</span><span class="p">)</span>
+                    <span class="n">awidth</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">*</span> <span class="n">arrow_size</span> <span class="o">*</span> <span class="n">mig_scale</span>
+                    <span class="n">alength</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">*</span> <span class="n">arrow_size</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span>
+                        <span class="n">x</span><span class="p">,</span>
+                        <span class="n">y</span><span class="p">,</span>
+                        <span class="n">dx</span><span class="p">,</span>
+                        <span class="n">dy</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">awidth</span><span class="p">,</span>
+                        <span class="n">head_width</span><span class="o">=</span><span class="n">awidth</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="n">head_length</span><span class="o">=</span><span class="n">alength</span><span class="p">,</span>
+                        <span class="n">color</span><span class="o">=</span><span class="n">arrow_color</span><span class="p">,</span>
+                        <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+    <span class="c1"># Label populations if proper labels are given</span>
+    <span class="n">tp_last</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">pop_labels</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pop_labels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">tp_last</span><span class="o">.</span><span class="n">popsizes</span><span class="p">):</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">())</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">())</span>
+        <span class="c1"># Determine placement of ticks</span>
+        <span class="n">yticks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">tp_last</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tp_last</span><span class="o">.</span><span class="n">direcs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">tp_last</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp_last</span><span class="o">.</span><span class="n">popsizes</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">yticks</span><span class="p">))</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">pop_labels</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span>
+            <span class="n">which</span><span class="o">=</span><span class="s2">"both"</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">"none"</span><span class="p">,</span>
+            <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span>
+            <span class="n">labelsize</span><span class="o">=</span><span class="n">label_size</span><span class="p">,</span>
+            <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"top"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"left"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"right"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">"bottom"</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Display figure</span>
+    <span class="k">if</span> <span class="n">save_file</span><span class="p">:</span>
+        <span class="c1"># figsize is only an option for creating the figure, not for saving it</span>
+        <span class="n">save_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fig_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"figsize"</span><span class="p">}</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="o">**</span><span class="n">save_kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">show</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+
+
+<span class="c1">## IMPLEMENTATION FUNCTIONS ##</span>
+<span class="n">_current_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Used by the various methods in moments to determine the correct _ModelInfo</span>
+<span class="sd">    object to send information to (if any).</span>
+<span class="sd">    """</span>
+    <span class="k">global</span> <span class="n">_current_model</span>
+    <span class="k">return</span> <span class="n">_current_model</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_close_model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Sets _current_model to None to ensure that ModelPlot does not waste</span>
+<span class="sd">    resources by collecting information when it is not being used. Also</span>
+<span class="sd">    ends model by setting descendants of final populations to None.</span>
+<span class="sd">    """</span>
+    <span class="k">global</span> <span class="n">_current_model</span>
+    <span class="n">_current_model</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">descendants</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_current_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_ModelInfo</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Uses information sent by method calls in moments to generate a demographic</span>
+<span class="sd">    model. Model information is stored as a list of TimePeriod objects, each of</span>
+<span class="sd">    which stores demographic information (population sizes, splits, migration</span>
+<span class="sd">    rates) for a given time step in the model.</span>
+
+<span class="sd">    current_time : Float, to keep track of current point in time of model.</span>
+
+<span class="sd">    tp_list : List of TimePeriod objects of this model.</span>
+
+<span class="sd">    precision : Number of times population sizes are evaluated in each period.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">precision</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Sets itself as the global current model, to be able to collect data from</span>
+<span class="sd">        other methods in moments, and initializes instance variables.</span>
+
+<span class="sd">        precision : Sets the precision variable.</span>
+<span class="sd">        """</span>
+        <span class="k">global</span> <span class="n">_current_model</span>
+        <span class="n">_current_model</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">precision</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npops</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Creates initial steady-state population(s) at time = 0.0.</span>
+
+<span class="sd">        npops : Number of original populations.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TimePeriod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_time</span><span class="p">,</span> <span class="n">npops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tp</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_pop</span><span class="p">,</span> <span class="n">split_pops</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Sets the appropriate descendants for the current time period and</span>
+<span class="sd">        correctly splits one of them.</span>
+
+<span class="sd">        initial_pop : index of population to split.</span>
+
+<span class="sd">        split_pops : tuple of the two indices of the resulting populations.</span>
+<span class="sd">        """</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="n">initial_pop</span><span class="p">:</span>
+                <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">split_pops</span>
+                <span class="k">break</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_pops</span><span class="p">,</span> <span class="n">new_pop</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Merges two populations to one - this is always a 2 to 1 population</span>
+<span class="sd">        function</span>
+
+<span class="sd">        source_pops : tuple of populations that merge (always 0,1) - these go</span>
+<span class="sd">                      extinct, and we have a new population left over</span>
+
+<span class="sd">        new_pop: index of new population (always 0)</span>
+
+<span class="sd">        To implements, we'll first use admix_new with a time period of zero,</span>
+<span class="sd">        and then have the first two populations go extinct, leaving behind the</span>
+<span class="sd">        merged population</span>
+<span class="sd">        """</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">admix_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_pops</span><span class="p">,</span> <span class="n">new_pop</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Creates a new population through admixture, with fraction f from first</span>
+<span class="sd">        source pop</span>
+
+<span class="sd">        source_pops : tuple of parental populations</span>
+
+<span class="sd">        new_pop : index of new admixed population (if not in last position,</span>
+<span class="sd">            shifts the rest)</span>
+
+<span class="sd">        f : admixture fraction from first source population</span>
+
+<span class="sd">        Assume that source population indices are adjacent, place new pop</span>
+<span class="sd">        between them</span>
+<span class="sd">        """</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">source_pops</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">source_pops</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">admix_inplace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_pop</span><span class="p">,</span> <span class="n">target_pop</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        New admixed population replaces second source population, with fraction</span>
+<span class="sd">        f from first source pop</span>
+
+<span class="sd">        source_pop : non-replaced source population</span>
+
+<span class="sd">        new_pop : replaced source population</span>
+
+<span class="sd">        f : admixture fraction from non-replaced source population</span>
+<span class="sd">        """</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">popsizes</span><span class="p">,</span> <span class="n">migrations</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Begins a new time period if necessary. Evolves current populations</span>
+<span class="sd">        forward in time by calculating their sizes throughout the interval. Also</span>
+<span class="sd">        moves model time forward and sets migration rates.</span>
+
+<span class="sd">        time : Length of time to evolve.</span>
+
+<span class="sd">        popsizes : Either a list of sizes for each current population, or a</span>
+<span class="sd">                   function that returns a list of sizes for any time value</span>
+<span class="sd">                   given between 0 and time.</span>
+
+<span class="sd">        migrations : 2D array describing migration rates between populations.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Create new time period</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">npops</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">npops</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">desc</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">npops</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">npops</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">new_tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TimePeriod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_time</span><span class="p">,</span> <span class="n">npops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_tp</span><span class="p">)</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="n">new_tp</span>
+        <span class="c1"># Update current time period</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span> <span class="o">+=</span> <span class="n">time</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">popsizes</span><span class="p">):</span>
+            <span class="n">popfunc</span> <span class="o">=</span> <span class="n">popsizes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">popfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">popsizes</span>
+        <span class="n">time_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">popfunc</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_vals</span><span class="p">])</span>
+        <span class="c1"># Use average migration if it is function</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">migrations</span><span class="p">):</span>
+            <span class="n">sum_mig</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+                <span class="n">sum_mig</span> <span class="o">+=</span> <span class="n">migrations</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">migrations</span> <span class="o">=</span> <span class="n">sum_mig</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span>
+        <span class="c1"># Transpose because plotting assumes m[i,j] corresponds to migration from i to j</span>
+        <span class="k">if</span> <span class="n">migrations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">migrations</span> <span class="o">=</span> <span class="n">migrations</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">migrations</span> <span class="o">=</span> <span class="n">migrations</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extinction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extinct_pops</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Cause extinction of populations in extinct_pops and begin a new time</span>
+<span class="sd">        period without them.</span>
+
+<span class="sd">        extinct_pops : Sequence listing the indices of the populations to go</span>
+<span class="sd">                       extinct.</span>
+<span class="sd">        """</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">extinct_pops</span><span class="p">:</span>
+                <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">count</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">count</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">count</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_framesizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Determines the overall size of the tree rooted at each population by</span>
+<span class="sd">        working backwards through the list of time periods. This is necessary</span>
+<span class="sd">        for allocating the proper amount of space to a given population when</span>
+<span class="sd">        drawing it (i.e. a plotted population must be given enough vertical</span>
+<span class="sd">        room for both itself and all of its descendants.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Work backwards through population histories to update all tree sizes</span>
+        <span class="k">for</span> <span class="n">tpindex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="n">tpindex</span><span class="p">]</span>
+            <span class="c1"># Begin by assigning size to be largest size from this time period</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">]</span>
+
+            <span class="c1"># Done if there are no descendants to consider</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">tpnext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="n">tpindex</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># if a population contributes to an admixture, add that amount</span>
+            <span class="c1"># to frame size</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">admixture_new</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">f</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">tpnext</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                            <span class="n">first</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">tpnext</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># Add information from descendant populations</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">):</span>
+                <span class="c1"># If a population splits, add information from both descendants</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">dindex</span> <span class="ow">in</span> <span class="n">desc</span><span class="p">:</span>
+                        <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">tpnext</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">dindex</span><span class="p">]</span>
+                <span class="c1"># Otherwise, update size to max of this pop and its descendant</span>
+                <span class="k">elif</span> <span class="n">desc</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">mysize</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">nextsize</span> <span class="o">=</span> <span class="n">tpnext</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">desc</span><span class="p">]</span>
+                    <span class="n">tp</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mysize</span><span class="p">,</span> <span class="n">nextsize</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_drawinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp_index</span><span class="p">,</span> <span class="n">pop_index</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">direc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Determines the origin and draw direction of each population in the model</span>
+<span class="sd">        so that they may be properly plotted. Works recursively through each</span>
+<span class="sd">        population tree.</span>
+
+<span class="sd">        tp_index : Index of the current TimePeriod in self.tp_list.</span>
+
+<span class="sd">        pop_index : Index of the current population within the TimePeriod.</span>
+
+<span class="sd">        origin : Initial origin value for the current population. May be</span>
+<span class="sd">                 adjusted based on subpopulations.</span>
+
+<span class="sd">        direc : Plot direction for the current population.</span>
+<span class="sd">        """</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="n">tp_index</span><span class="p">]</span>
+        <span class="c1"># Set initial direc and origin info</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span><span class="o">.</span><span class="n">direcs</span><span class="p">:</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">direcs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">))]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span><span class="o">.</span><span class="n">origins</span><span class="p">:</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">origins</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">))]</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">direcs</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">direc</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin</span>
+        <span class="n">vshift</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Recursively determine sub-population information if present</span>
+        <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">descendants</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+            <span class="c1"># Split population case (harder)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="c1"># Shift origin to account for sub-population taking up space</span>
+                <span class="n">vshift</span> <span class="o">=</span> <span class="n">direc</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tp_list</span><span class="p">[</span><span class="n">tp_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">framesizes</span><span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+                <span class="c1"># Determine info for first sub-population</span>
+                <span class="n">vshift</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_drawinfo</span><span class="p">(</span>
+                    <span class="n">tp_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vshift</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">direc</span>
+                <span class="p">)</span>
+                <span class="c1"># Determine info for second subpopulation</span>
+                <span class="c1"># Shift its origin to account for current population's size</span>
+                <span class="n">popsize</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">popsizes</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">determine_drawinfo</span><span class="p">(</span>
+                    <span class="n">tp_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">direc</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">popsize</span><span class="p">)</span> <span class="o">+</span> <span class="n">vshift</span><span class="p">),</span>
+                    <span class="n">direc</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="c1"># Single descendant case (easier)</span>
+            <span class="k">elif</span> <span class="n">desc</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">vshift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_drawinfo</span><span class="p">(</span>
+                    <span class="n">tp_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">direc</span>
+                <span class="p">)</span>
+            <span class="n">tp</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="n">pop_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vshift</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vshift</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">TimePeriod</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Keeps track of population information and relationships during a</span>
+<span class="sd">        specific time period of the demographic model. Also contains information</span>
+<span class="sd">        about how populations should be drawn.</span>
+
+<span class="sd">        precision : Number of times to evaluate population size within period.</span>
+
+<span class="sd">        time : List, of length 'precision'. Equally spaced time intervals</span>
+<span class="sd">               running from the start of this time period to the end of it.</span>
+
+<span class="sd">        popsizes : List containing the size of each population in the current</span>
+<span class="sd">                   time period. Size of each population is stored as a list of</span>
+<span class="sd">                   length 'precision', effectively providing a function from</span>
+<span class="sd">                   time to size for each population.</span>
+
+<span class="sd">        descendants : List that maps the descendant populations for the next</span>
+<span class="sd">                      TimePeriod. Each population has an entry in descendants,</span>
+<span class="sd">                      which is either a single int specifying the index of the</span>
+<span class="sd">                      descendant, or a tuple of two ints specifying the indices</span>
+<span class="sd">                      of the populations it splits into.</span>
+
+<span class="sd">        migrations : 2D array of floats, specifying the migration rates between</span>
+<span class="sd">                     populations within the current time period.</span>
+
+<span class="sd">        framesizes : List specifying the overall space the tree rooted at each</span>
+<span class="sd">                     population takes up. This is useful for plotting later, and</span>
+<span class="sd">                     is dependent on all descendant population sizes.</span>
+
+<span class="sd">        direcs : List of directions that each population in time period is</span>
+<span class="sd">                 drawn. For each population the value is equal to 1 if the</span>
+<span class="sd">                 population should be drawn facing up, and -1 if the population</span>
+<span class="sd">                 should be drawn facing down.</span>
+
+<span class="sd">        origins : List of where each population in the time period should begin</span>
+<span class="sd">                  to be drawn. For each population, if direc is 1, then the</span>
+<span class="sd">                  origin is the lower-left corner of the space. If direc is -1,</span>
+<span class="sd">                  then it is the upper-left corner. Represented as a tuple (x,y)</span>
+<span class="sd">        """</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">npops</span><span class="p">,</span> <span class="n">precision</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">"""</span>
+<span class="sd">            Sets basic information for the time period.</span>
+
+<span class="sd">            time : Starting time of period.</span>
+
+<span class="sd">            npops : Number of populations in the time period.</span>
+
+<span class="sd">            precision : Value of precision variable.</span>
+<span class="sd">            """</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">precision</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">[</span><span class="n">time</span><span class="p">]</span> <span class="o">*</span> <span class="n">precision</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">popsizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">precision</span><span class="p">)</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npops</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">descendants</span> <span class="o">=</span> <span class="p">[</span><span class="n">pop</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npops</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">migrations</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">framesizes</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direcs</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">origins</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">admixture_new</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

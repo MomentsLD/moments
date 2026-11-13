@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inferring demography with LD &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Specifying models with demes" href="../extensions/demes.html" />
+    <link rel="prev" title="Parsing LD statistics" href="parsing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Inferring demography with LD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#likelihood-framework">Likelihood framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#defining-demographic-models">Defining demographic models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-optimization">Running optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#normalizing-statistics-and-the-statistics-option">Normalizing statistics and the <code class="docutils literal notranslate"><span class="pre">statistics</span></code> option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-confidence-intervals">Computing confidence intervals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#likelihood-ratio-tests">Likelihood ratio tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#when-the-adjustment-is-too-conservative">When the adjustment is too conservative</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Inferring demography with LD</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/ld/inference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <blockquote>
+<div></div></blockquote>
+<div class="jupyter_cell docutils container" id="sec-ld-inference">
+<div class="cell_output docutils container">
+</div>
+</div>
+<section id="inferring-demography-with-ld">
+<h1>Inferring demography with LD<a class="headerlink" href="#inferring-demography-with-ld" title="Link to this heading"></a></h1>
+<p>As described in the <a class="reference internal" href="ld.html#sec-ld"><span class="std std-ref">linkage disequilibrium</span></a> and <a class="reference internal" href="parsing.html#sec-ld-parsing"><span class="std std-ref">LD Parsing</span></a> sections, we use a family of normalized LD and heterozygosity
+statistics to compare between model expectations and data. We optimize
+demographic model parameters to find the expected binned LD and heterozygosity
+statistics that maximize a composite likelihood over all pairs of SNPs and
+recombination bins.</p>
+<p>In this section, we’ll describe the likelihood framework, how to define
+demographic models that can be used in inference, how to run optimization using
+<code class="docutils literal notranslate"><span class="pre">moments</span></code>’ built-in inference functions, and how to compute confidence
+intervals. We include a short example, following the <a class="reference internal" href="parsing.html#sec-ld-parsing-example"><span class="std std-ref">parsing</span></a> of data simulated under an isolation-with-migration
+model, to illustrate the main features and options.</p>
+<section id="likelihood-framework">
+<h2>Likelihood framework<a class="headerlink" href="#likelihood-framework" title="Link to this heading"></a></h2>
+<p>For a given recombination distance bin indexed by <span class="math notranslate nohighlight">\(i\)</span>, we have a set of
+computed LD statistic means <span class="math notranslate nohighlight">\(D_i\)</span> from data along with the
+variance-covariance matrix <span class="math notranslate nohighlight">\(\Sigma_i\)</span> as returned by
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.bootstrap_data</span></code>. We assume a multivariate Guassian
+likelihood function, so that a model parameterized by <span class="math notranslate nohighlight">\(\Theta\)</span> that has
+expected statistics <span class="math notranslate nohighlight">\(\mu_i(\Theta)\)</span> has likelihood</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_i(\Theta | D_i) = P(D_i | \mu_i, \Sigma_i)
+= \frac{\exp\left(-\frac{1}{2}(D_i-\mu_i)^T\Sigma_i^{-1}(D_i-\mu_i)\right)}{(2\pi)^{k/2}|\Sigma_i|^{1/2}}.\]</div>
+<p>The likelihood is computed similarly for heterozygosity statistics, given their
+variance-covariance matrix. Then the composite likelihood of two-locus data
+across recombination bins and single-locus heterozygosity (indexed by
+<span class="math notranslate nohighlight">\(i=n+1\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the total number of recombination bins), is</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L} = \prod_{i=1}^{n+1}\mathcal{L}_i.\]</div>
+<p>In practice, we work with the log of the likelihood, so that products turn to
+sums and we can drop constant factors:</p>
+<div class="math notranslate nohighlight">
+\[\log\mathcal{L} \propto -\frac{1}{2}\sum_{i=1}^{n+1} (D_i-\mu_i)^T\Sigma_i^{-1}(D_i-\mu_i).\]</div>
+<p>As the data <span class="math notranslate nohighlight">\(\{D_i, \Sigma_i\}\)</span> is fixed, we search for the model
+parameters <span class="math notranslate nohighlight">\(\Theta\)</span> that provide <span class="math notranslate nohighlight">\(\{\mu_i\}\)</span> that maximizes
+<span class="math notranslate nohighlight">\(\log\mathcal{L}\)</span>.</p>
+</section>
+<section id="defining-demographic-models">
+<h2>Defining demographic models<a class="headerlink" href="#defining-demographic-models" title="Link to this heading"></a></h2>
+<p>There are a handful of built-in demographic models for one-, two-, and
+three-population scenarios that can be used in inference (see <a class="reference internal" href="../api/api_ld.html#sec-api-ld-demog"><span class="std std-ref">here</span></a>). However, these are far from comprehensive and it is
+likely that custom demographic models will need to be written for a given
+inference problem. For inspiration, <code class="docutils literal notranslate"><span class="pre">moments.LD.Demographics1D</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Demographics2D</span></code>, and <code class="docutils literal notranslate"><span class="pre">Demographics3D</span></code> can be used as starting points and
+as illustrations of how to structure model functions.</p>
+<p>Demographic models all require a <code class="docutils literal notranslate"><span class="pre">params</span></code> positional argument and <code class="docutils literal notranslate"><span class="pre">rho</span></code> and
+(optionally) <code class="docutils literal notranslate"><span class="pre">theta</span></code> keyword arguments. <code class="docutils literal notranslate"><span class="pre">theta</span></code>, the population-size scaled
+mutation rate, does not play a role in inference using relative statistics, as
+the mutation rate cancels in <span class="math notranslate nohighlight">\(\sigma_d^2\)</span>-type statistics.</p>
+<p>For example, the IM model we simulated data under in the LD Parsing section
+could be parameterized as</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">model_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+    <span class="n">nu0</span><span class="p">,</span> <span class="n">nu1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Numerics</span><span class="o">.</span><span class="n">steady_state</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">LDstats</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_pops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">integrate</span><span class="p">([</span><span class="n">nu0</span><span class="p">,</span> <span class="n">nu1</span><span class="p">],</span> <span class="n">T</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="p">],</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>In the input demographic model to the simulations, we had the ancestral
+effective population size as 10,000, the size of deme0 was 2,000, and the size
+of deme1 was 20,000. The populations split 1,500 generations ago, and exchanged
+migrants symmetrically at a rate of 0.0001 per-generation. Converted into
+genetic units, <code class="docutils literal notranslate"><span class="pre">nu0</span> <span class="pre">=</span> <span class="pre">0.2</span></code>, <code class="docutils literal notranslate"><span class="pre">nu1</span> <span class="pre">=</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">T=1500</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">/</span> <span class="pre">10000</span> <span class="pre">=</span> <span class="pre">0.075</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">10000</span> <span class="pre">*</span> <span class="pre">0.0001</span> <span class="pre">=</span> <span class="pre">2.0</span></code>.</p>
+</section>
+<section id="running-optimization">
+<h2>Running optimization<a class="headerlink" href="#running-optimization" title="Link to this heading"></a></h2>
+<p>Optimization with <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code>, much like <code class="docutils literal notranslate"><span class="pre">moments</span></code> optimization with the
+SFS, includes a handful functions that serve as wrappers for <code class="docutils literal notranslate"><span class="pre">scipy</span></code>
+optimizers with options specific to working with LD statistics. The two primary
+functions in <code class="docutils literal notranslate"><span class="pre">moments.LD.Inference</span></code> are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_log_fmin</span></code>: Uses the downhill simplex algorithm on the log of
+the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">optimize_log_powell</span></code>: Uses the modified Powell’s method, which optimizes
+slices of parameter space sequentially.</p></li>
+</ul>
+<p>Each optimization method accepts the same arguments. Required positional
+arguments are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p0</span></code>: The initial guess for the parameters in <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: Structured as a list of lists of data means and data var-cov
+matrices. I.e., <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">[[means[0],</span> <span class="pre">means[1],</span> <span class="pre">...],</span> <span class="pre">[varcovs[0],</span> <span class="pre">varcovs[1],</span>
+<span class="pre">...]]</span></code>, with the final entry of the lists the means and varcovs of the
+heterozygosity statistics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model_func</span></code>: The demographic model to be fit (see above section).
+Importantly, this is a <em>list</em>, where the first entry is the LD model, which
+is always used, and the optional second entry is a demographic model for the
+SFS (which is a rarely used option and can be ignored). So usually, we would
+set <code class="docutils literal notranslate"><span class="pre">model_func</span></code> as <code class="docutils literal notranslate"><span class="pre">[model_func_ld]</span></code>.</p></li>
+</ul>
+<p>Additionally, we will almost always pass the list of unscaled recombination
+bin edges as <code class="docutils literal notranslate"><span class="pre">rs</span> <span class="pre">=</span> <span class="pre">[r0,</span> <span class="pre">r1,</span> <span class="pre">...,</span> <span class="pre">rn]</span></code>, which defines <em>n</em> recombination bins.</p>
+<p>The effective population size plays a different role in LD inference than it
+does in SFS inference. For the site frequency spectrum, <span class="math notranslate nohighlight">\(N_e\)</span> merely acts
+as a linear scaling factor and is absorbed by the scaled mutation rate
+<span class="math notranslate nohighlight">\(\theta\)</span>, which is treated as a free parameter. Here, <span class="math notranslate nohighlight">\(N_e\)</span> instead
+rescales recombination rates, and because we use a recombination map to
+determine the binning of data by recombination distances separating loci,
+<span class="math notranslate nohighlight">\(N_e\)</span> is a parameter that must be either passed as a fixed value or
+simultaneously fit in the optimization.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is a fixed value, we specify the population size using that keyword
+argument. Otherwise, if <code class="docutils literal notranslate"><span class="pre">Ne</span></code> is to be fit, our list of parameters to fit by
+convention includes <code class="docutils literal notranslate"><span class="pre">Ne</span></code> in the final position in the list. Typically, <code class="docutils literal notranslate"><span class="pre">Ne</span></code>
+is not a parameter of the demographic model, as we work in rescaled genetic
+units, so the parameters that get passed to <code class="docutils literal notranslate"><span class="pre">model_func</span></code> are <code class="docutils literal notranslate"><span class="pre">params[:-1]</span></code>.
+However, it is also possible to write a demographic model that also uses <code class="docutils literal notranslate"><span class="pre">Ne</span></code>
+as a parameter. In this case we set <code class="docutils literal notranslate"><span class="pre">pass_Ne</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that <code class="docutils literal notranslate"><span class="pre">Ne</span></code>
+both rescales recombination rates and is a model parameter, and all <code class="docutils literal notranslate"><span class="pre">params</span></code>
+are passed to <code class="docutils literal notranslate"><span class="pre">model_func</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Ne</span></code>: The effective population size, used to rescale <code class="docutils literal notranslate"><span class="pre">rs</span></code> to get <code class="docutils literal notranslate"><span class="pre">rhos</span>
+<span class="pre">=</span> <span class="pre">4</span> <span class="pre">*</span> <span class="pre">Ne</span> <span class="pre">*</span> <span class="pre">rs</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pass_Ne</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the demographic model
+includes <code class="docutils literal notranslate"><span class="pre">Ne</span></code> as a parameter (in the final position of input parameters).</p></li>
+</ul>
+<p>Other commonly used options include</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fixed_params</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. To fix some parameters, this should
+be a list of equal length as <code class="docutils literal notranslate"><span class="pre">p0</span></code>, with <code class="docutils literal notranslate"><span class="pre">None</span></code> for parameters to be fit
+and fixed values at corresponding indexes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lower_bound</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the lower bounds during
+optimization. These are given as lists of the same length of the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upper_bound</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Constraints on the upper bounds during
+optimization. These are given as lists of the same length of the parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">statistics</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which assumes that the data contain the
+full set of statistics for the number of populations in the model, as returned
+by the parsing functions. If the data contain a subset of statistics, we list
+them here. See <a class="reference internal" href="#sec-ld-inference-normalization"><span class="std std-ref">below</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalization</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>. The index of the population to
+normalize by, which should match the population index that we normalized by
+when parsing the data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code>: If an integer greater than 0, prints updates of the optimization
+procedure at intervals given by that spacing.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">verbose=1</span></code> prints a line for every function evaluation, which can be many
+lines per second. Displaying them in a visible terminal window can slow down
+the optimization, because the program waits for the terminal to draw each
+line (it may run much faster when the window is minimized). Use a larger
+value, such as 10 to 100, to avoid this.</p>
+</div>
+<section id="normalizing-statistics-and-the-statistics-option">
+<span id="sec-ld-inference-normalization"></span><h3>Normalizing statistics and the <code class="docutils literal notranslate"><span class="pre">statistics</span></code> option<a class="headerlink" href="#normalizing-statistics-and-the-statistics-option" title="Link to this heading"></a></h3>
+<p>The data are normalized by <span class="math notranslate nohighlight">\(\pi_2\)</span> and <span class="math notranslate nohighlight">\(H\)</span> in the normalizing
+population <code class="docutils literal notranslate"><span class="pre">k</span></code> (see <a class="reference internal" href="parsing.html#sec-ld-parsing-normalization"><span class="std std-ref">Parsing</span></a>), so the
+normalizing statistics <code class="docutils literal notranslate"><span class="pre">pi2_k_k_k_k</span></code> and <code class="docutils literal notranslate"><span class="pre">H_k_k</span></code> equal 1 in both the data and
+the model, and have zero variance. They carry no information, so they are left out
+when computing likelihoods. This is handled the same way by all LD inference,
+uncertainty, and plotting functions, in both <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> and <code class="docutils literal notranslate"><span class="pre">moments.Demes</span></code>:</p>
+<ul class="simple">
+<li><p>The data passed to these functions should include the normalizing statistics,
+as returned by the parsing functions. They are removed internally, and the data
+passed in are not modified.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">statistics</span></code> is not given (the default), the data must contain the full set
+of statistics for the number of populations, in the order given by
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>. Data with any other number of
+statistics raise an error.</p></li>
+<li><p>If the data contain a subset of statistics, <code class="docutils literal notranslate"><span class="pre">statistics</span></code> must list exactly
+those statistics, as <code class="docutils literal notranslate"><span class="pre">[ld_stats,</span> <span class="pre">h_stats]</span></code>, in the same order as the data.
+This must be the standard order of <code class="docutils literal notranslate"><span class="pre">moments.LD.Util.moment_names(num_pops)</span></code>,
+which is the order returned by the parsing functions. For example,
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Parsing.subset_data</span></code> returns the list of statistics along with the
+subset data. If the normalizing statistics are in the list, they are removed
+along with the data.</p></li>
+<li><p>The normalizing statistics in the data must equal 1. If they don’t, the data
+were normalized by a different population than <code class="docutils literal notranslate"><span class="pre">normalization</span></code> (for example,
+if the normalizing population was left out with <code class="docutils literal notranslate"><span class="pre">subset_data</span></code>), and an error
+is raised.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> functions, <code class="docutils literal notranslate"><span class="pre">normalization</span></code> is the <em>index</em> of the normalizing
+population. In <code class="docutils literal notranslate"><span class="pre">moments.Demes</span></code> functions, it is the population’s <em>name</em>.</p></li>
+</ul>
+<p>For example, with the data <code class="docutils literal notranslate"><span class="pre">mv</span></code> returned by <code class="docutils literal notranslate"><span class="pre">bootstrap_data</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># all statistics, as returned by bootstrap_data, so statistics isn't needed</span>
+<span class="n">opt_params</span><span class="p">,</span> <span class="n">neg_LL</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="p">[</span><span class="n">mv</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span> <span class="n">mv</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">]],</span> <span class="p">[</span><span class="n">model_func</span><span class="p">],</span> <span class="n">rs</span><span class="o">=</span><span class="n">r_bins</span>
+<span class="p">)</span>
+
+<span class="c1"># a subset of the statistics, without Dz, so we pass their names</span>
+<span class="n">r_edges</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">subset_data</span><span class="p">(</span>
+    <span class="n">mv</span><span class="p">,</span> <span class="p">[</span><span class="s2">"deme0"</span><span class="p">,</span> <span class="s2">"deme1"</span><span class="p">],</span> <span class="n">remove_Dz</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">opt_params</span><span class="p">,</span> <span class="n">neg_LL</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p_guess</span><span class="p">,</span> <span class="p">[</span><span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">],</span> <span class="p">[</span><span class="n">model_func</span><span class="p">],</span> <span class="n">rs</span><span class="o">=</span><span class="n">r_edges</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="n">stats</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before version 1.7.0, <code class="docutils literal notranslate"><span class="pre">get_bootstrap_sets</span></code> and <code class="docutils literal notranslate"><span class="pre">subset_data</span></code> removed the
+normalizing statistics from their outputs. Data saved from those versions need
+to be recomputed, or have the normalizing statistics added back in their
+positions (they equal 1, with zero variance).</p>
+</div>
+</section>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<p>Using the data simulated in the <a class="reference internal" href="parsing.html#sec-ld-parsing"><span class="std std-ref">Parsing</span></a> section, we can
+refit the demographic model under a parameterized IM model. For this, we could
+use the <code class="docutils literal notranslate"><span class="pre">moments.LD.Demographics2D.split_mig</span></code> model as our <code class="docutils literal notranslate"><span class="pre">model_func</span></code>,
+which is equivalent to the function we defined above (which we use in this
+example). After loading the data and setting up the inference options, we’ll
+use <code class="docutils literal notranslate"><span class="pre">optimize_log_fmin</span></code> to fit the model.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">moments.LD</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"data/means.varcovs.split_mig.100_reps.bp"</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
+
+<span class="n">rs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">2e-6</span><span class="p">,</span> <span class="mf">5e-6</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">2e-5</span><span class="p">,</span> <span class="mf">5e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">2e-4</span><span class="p">,</span> <span class="mf">5e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+
+<span class="c1"># an initial guess, perturbed to get the starting parameters</span>
+<span class="n">p_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.075</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">]</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">perturb_params</span><span class="p">(</span><span class="n">p_guess</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="c1"># run optimization, which returns the negative log-likelihood</span>
+<span class="n">opt_params</span><span class="p">,</span> <span class="n">neg_LL</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">]],</span>
+    <span class="p">[</span><span class="n">model_func</span><span class="p">],</span>
+    <span class="n">rs</span><span class="o">=</span><span class="n">rs</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># get physical units, rescaling by Ne</span>
+<span class="n">physical_units</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">rescale_params</span><span class="p">(</span>
+    <span class="n">opt_params</span><span class="p">,</span> <span class="p">[</span><span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">,</span> <span class="s2">"Ne"</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"best fit parameters:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme0)         :  </span><span class="si">{</span><span class="n">physical_units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme1)         :  </span><span class="si">{</span><span class="n">physical_units</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Div. time (gen)  :  </span><span class="si">{</span><span class="n">physical_units</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Migration rate   :  </span><span class="si">{</span><span class="n">physical_units</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(ancestral)     :  </span><span class="si">{</span><span class="n">physical_units</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>40      , -332.63     , array([ 0.162578   ,  2.31173    ,  0.0574049  ,  2.17875    ,  9691.2     ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>80      , -188.495    , array([ 0.162033   ,  2.30575    ,  0.0579513  ,  2.13596    ,  11034.6    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>120     , -154.358    , array([ 0.143319   ,  2.0923     ,  0.0479332  ,  1.97624    ,  11567.5    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>160     , -99.0697    , array([ 0.155263   ,  1.92572    ,  0.0517665  ,  1.77756    ,  11432.9    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>200     , -74.5396    , array([ 0.188409   ,  1.96867    ,  0.0661713  ,  1.75043    ,  10720.2    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>240     , -73.1196    , array([ 0.190973   ,  1.98928    ,  0.0681279  ,  1.75797    ,  10686.9    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>280     , -73.1031    , array([ 0.191864   ,  1.99411    ,  0.0685795  ,  1.76098    ,  10663.1    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>320     , -73.1028    , array([ 0.191921   ,  1.99414    ,  0.0686025  ,  1.76086    ,  10661.7    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>360     , -73.1004    , array([ 0.192222   ,  1.99525    ,  0.0687359  ,  1.76013    ,  10652.5    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>400     , -73.0723    , array([ 0.192072   ,  1.99856    ,  0.0684619  ,  1.74819    ,  10655.4    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>440     , -73.0122    , array([ 0.193818   ,  2.01921    ,  0.0690004  ,  1.7165     ,  10609.2    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>480     , -72.8726    , array([ 0.193059   ,  2.05711    ,  0.0683662  ,  1.6739     ,  10578.6    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>520     , -72.8704    , array([ 0.193055   ,  2.06084    ,  0.0682751  ,  1.66898    ,  10575.5    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>560     , -72.87      , array([ 0.193124   ,  2.06049    ,  0.0683267  ,  1.67003    ,  10573.2    ])
+</pre></div>
+</div>
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>best fit parameters:
+  N(deme0)         :  2041.9
+  N(deme1)         :  21786.9
+  Div. time (gen)  :  1444.8
+  Migration rate   :  0.000079
+  N(ancestral)     :  10573.0
+</pre></div>
+</div>
+</div>
+</div>
+<p>These should be pretty close to the input demographic parameters from the
+simulations. They won’t be spot on, as this was only using 100Mb of simulated
+data, but we should be in the ballpark.</p>
+</section>
+</section>
+<section id="computing-confidence-intervals">
+<h2>Computing confidence intervals<a class="headerlink" href="#computing-confidence-intervals" title="Link to this heading"></a></h2>
+<p>When running demographic inference, we get a point estimate for the <em>best fit</em>
+demographic parameters. However, for an unknown underlying true value, it’s
+important to also estimate what’s called a confidence interval. The CI tells us
+the probability that the true value lies within some range, and provides some
+information about which parameters in our demographic model are tightly
+constrained and which parameters we have little power to pin down.</p>
+<p><code class="docutils literal notranslate"><span class="pre">moments.LD</span></code> can estimate confidence intervals using either the Fisher
+Information Matrix (FIM) or the Godambe Information Matrix (GIM). In almost all
+cases when using real data (or even most simulated data), the FIM will estimate
+a much smaller CI than the GIM. This occurs because the FIM assumes all data
+points that we’ve used are independent, when in reality there is linkage that
+causes data points to be sometimes highly correlated between pairs of loci and
+between recombination bins. The Godambe method uses bootstrap-resampled
+replicates of the data to account for this correlation and does a much better
+job at estimating the true underlying CIs <a class="reference internal" href="../sfs/inference.html#coffman2016" id="id1"><span>[Coffman2016]</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you use the Godambe approach to estimate confidence intervals, please
+cite <a class="reference internal" href="../sfs/inference.html#coffman2016" id="id2"><span>[Coffman2016]</span></a>. Alec originally implemented this approach in <code class="docutils literal notranslate"><span class="pre">dadi</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">moments</span></code> has more-or-less used this same implementation here.</p>
+</div>
+<p>To create bootstrap replicates from the dictionary of data sums computed over
+regions, where <code class="docutils literal notranslate"><span class="pre">region_stats</span> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">ld_stats_0,</span> <span class="pre">1:</span> <span class="pre">ld_stats_1,</span> <span class="pre">...}</span></code>, e.g., we use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_boots</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">norm_idx</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">bootstrap_sets</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Parsing</span><span class="o">.</span><span class="n">get_bootstrap_sets</span><span class="p">(</span>
+    <span class="n">region_stats</span><span class="p">,</span> <span class="n">num_bootstraps</span><span class="o">=</span><span class="n">num_boots</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">norm_idx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The bootstrap sets have the same statistics as the means and varcovs from
+<code class="docutils literal notranslate"><span class="pre">bootstrap_data</span></code>, including the normalizing statistics, which are removed when
+computing uncertainties (see <a class="reference internal" href="#sec-ld-inference-normalization"><span class="std std-ref">above</span></a>).</p>
+<p>These bootstrap sets can then be used as the inputs to the <code class="docutils literal notranslate"><span class="pre">moments.LD.Godambe</span></code>
+methods. The two CI estimation methods are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FIM_uncert</span></code>: Uses the Fisher Information Matrix. Usage is
+<code class="docutils literal notranslate"><span class="pre">FIM_uncert(model_func,</span> <span class="pre">opt_params,</span> <span class="pre">means,</span> <span class="pre">varcovs,</span> <span class="pre">r_edges=rs)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GIM_uncert</span></code>: Uses the Godambe Information Matrix. Usage is <code class="docutils literal notranslate"><span class="pre">GIM_uncert(model_func,</span> <span class="pre">bootstrap_sets,</span> <span class="pre">opt_params,</span> <span class="pre">means,</span> <span class="pre">varcovs,</span> <span class="pre">r_edges=rs)</span></code>.</p></li>
+</ul>
+<p>In each case, the model function is the same as used in inference (some
+manipulation may be needed if we had any fixed parameters), means and varcovs
+are the same data as input to the inference function, and <code class="docutils literal notranslate"><span class="pre">r_edges</span></code> are the
+bin edges used in the inference. Additional options for some corner cases are
+described in the <a class="reference internal" href="../api/api_ld.html#sec-api-ld"><span class="std std-ref">API reference for LD methods</span></a>.</p>
+<section id="id3">
+<h3>Example<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<p>We’ll use both the FIM and GIM to compute uncertainties from the above example
+inference.</p>
+<p>Using the FIM approach:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># using FIM</span>
+<span class="n">uncerts_FIM</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">FIM_uncert</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">opt_params</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">],</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="n">rs</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># lower and upper CIs, in genetic units</span>
+<span class="n">lower</span> <span class="o">=</span> <span class="n">opt_params</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">uncerts_FIM</span>
+<span class="n">upper</span> <span class="o">=</span> <span class="n">opt_params</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">uncerts_FIM</span>
+
+<span class="c1"># convert to physical units</span>
+<span class="n">lower_pu</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">rescale_params</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="p">[</span><span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">,</span> <span class="s2">"Ne"</span><span class="p">])</span>
+<span class="n">upper_pu</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">rescale_params</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="p">[</span><span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">,</span> <span class="s2">"Ne"</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"95% CIs:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme0)         :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme1)         :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Div. time (gen)  :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Migration rate   :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(ancestral)     :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>95% CIs:
+  N(deme0)         :  1825.7 - 2269.1
+  N(deme1)         :  18860.8 - 24880.0
+  Div. time (gen)  :  1266.8 - 1632.7
+  Migration rate   :  0.000069 - 0.000088
+  N(ancestral)     :  10166.3 - 10979.6
+</pre></div>
+</div>
+</div>
+</div>
+<p>And using the GIM approach:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"data/bootstrap_sets.split_mig.100_reps.bp"</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">bootstrap_sets</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
+
+<span class="c1"># using GIM</span>
+<span class="n">uncerts_GIM</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">GIM_uncert</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">bootstrap_sets</span><span class="p">,</span>
+    <span class="n">opt_params</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">],</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="n">rs</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># lower and upper CIs, in genetic units</span>
+<span class="n">lower</span> <span class="o">=</span> <span class="n">opt_params</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">uncerts_GIM</span>
+<span class="n">upper</span> <span class="o">=</span> <span class="n">opt_params</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">uncerts_GIM</span>
+
+<span class="c1"># convert to physical units</span>
+<span class="n">lower_pu</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">rescale_params</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="p">[</span><span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">,</span> <span class="s2">"Ne"</span><span class="p">])</span>
+<span class="n">upper_pu</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">rescale_params</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="p">[</span><span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"nu"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">,</span> <span class="s2">"Ne"</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"95% CIs:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme0)         :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(deme1)         :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Div. time (gen)  :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Migration rate   :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  N(ancestral)     :  </span><span class="si">{</span><span class="n">lower_pu</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper_pu</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>95% CIs:
+  N(deme0)         :  1570.6 - 2562.0
+  N(deme1)         :  17084.3 - 26962.7
+  Div. time (gen)  :  1020.1 - 1917.6
+  Migration rate   :  0.000059 - 0.000096
+  N(ancestral)     :  9845.8 - 11300.2
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can see above that the FIM uncertainties are considerably smaller (i.e. more
+constrained) than the GIM uncertainties. However, the GIM uncertainties are to
+be preferred here, as they more accurately estimate the underlying true
+uncertainty in the demographic inference.</p>
+</section>
+</section>
+<section id="likelihood-ratio-tests">
+<span id="sec-ld-inference-lrt"></span><h2>Likelihood ratio tests<a class="headerlink" href="#likelihood-ratio-tests" title="Link to this heading"></a></h2>
+<p>To test whether a more complex model fits the data significantly better than a
+simpler, nested model (one that is a special case of the complex model with some
+parameters fixed), we can use a likelihood ratio test. The test statistic is
+twice the difference in log-likelihoods of the best fits,
+<span class="math notranslate nohighlight">\(D = 2 (\ell_{complex} - \ell_{simple})\)</span>. If the data points were
+independent, <span class="math notranslate nohighlight">\(D\)</span> would follow a <span class="math notranslate nohighlight">\(\chi^2\)</span> distribution under the
+simple model, with degrees of freedom equal to the number of nested parameters.</p>
+<p>The LD likelihood is a composite likelihood, which treats the recombination
+bins as independent, so this <span class="math notranslate nohighlight">\(\chi^2\)</span> test is badly overconfident.
+Following <a class="reference internal" href="../sfs/inference.html#coffman2016" id="id4"><span>[Coffman2016]</span></a>, <code class="docutils literal notranslate"><span class="pre">moments.LD.Godambe.LRT_adjust</span></code> uses the bootstrap
+replicates to compute an adjustment factor <code class="docutils literal notranslate"><span class="pre">adj</span></code>, and the adjusted statistic
+<span class="math notranslate nohighlight">\(D_{adj} = adj \times D\)</span> is then compared to the <span class="math notranslate nohighlight">\(\chi^2\)</span>
+distribution. For LD statistics, <code class="docutils literal notranslate"><span class="pre">adj</span></code> is usually much smaller than one,
+because the statistics in different recombination bins are computed from the
+same pairs of SNPs and so are strongly correlated.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LRT_adjust</span></code> takes the complex model function and the parameters of the best
+fit of the simple model, given as parameters of the complex model with the nested
+parameters set to their fixed values (and Ne as the last entry), along with the
+indices of the nested parameters:
+<code class="docutils literal notranslate"><span class="pre">LRT_adjust(model_func,</span> <span class="pre">bootstrap_sets,</span> <span class="pre">p_nested,</span> <span class="pre">nested_indices,</span> <span class="pre">means,</span>
+<span class="pre">varcovs,</span> <span class="pre">r_edges=rs)</span></code>. The p-value is given by <code class="docutils literal notranslate"><span class="pre">moments.Godambe.sum_chi2_ppf</span></code>.</p>
+<section id="id5">
+<h3>Example<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p>We’ll test whether migration is needed to explain the data from the example
+above, by fitting a model without migration, in which the migration rate is
+fixed at zero. Because zero is on the boundary of the allowed range of the
+migration rate, the test statistic follows an equal mixture of <span class="math notranslate nohighlight">\(\chi^2\)</span>
+distributions with zero and one degrees of freedom, which we specify with
+<code class="docutils literal notranslate"><span class="pre">weights=(0.5,</span> <span class="pre">0.5)</span></code>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">model_nomig</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+    <span class="n">nu0</span><span class="p">,</span> <span class="n">nu1</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">return</span> <span class="n">model_func</span><span class="p">([</span><span class="n">nu0</span><span class="p">,</span> <span class="n">nu1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+
+<span class="n">opt_params_nomig</span><span class="p">,</span> <span class="n">neg_LL_nomig</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Inference</span><span class="o">.</span><span class="n">optimize_log_fmin</span><span class="p">(</span>
+    <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.075</span><span class="p">,</span> <span class="mi">10000</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">]],</span>
+    <span class="p">[</span><span class="n">model_nomig</span><span class="p">],</span>
+    <span class="n">rs</span><span class="o">=</span><span class="n">rs</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># the best fit without migration, as parameters of the model with migration</span>
+<span class="n">p_nested</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">opt_params_nomig</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">opt_params_nomig</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
+<span class="n">adj</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">LD</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">LRT_adjust</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">bootstrap_sets</span><span class="p">,</span>
+    <span class="n">p_nested</span><span class="p">,</span>
+    <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"means"</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">"varcovs"</span><span class="p">],</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="n">rs</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">D</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">neg_LL_nomig</span> <span class="o">-</span> <span class="n">neg_LL</span><span class="p">)</span>
+<span class="n">D_adj</span> <span class="o">=</span> <span class="n">adj</span> <span class="o">*</span> <span class="n">D</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Test statistic D  : </span><span class="si">{</span><span class="n">D</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Adjustment factor : </span><span class="si">{</span><span class="n">adj</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Adjusted D        : </span><span class="si">{</span><span class="n">D_adj</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">p_unadj</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">sum_chi2_ppf</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="n">p_adj</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Godambe</span><span class="o">.</span><span class="n">sum_chi2_ppf</span><span class="p">(</span><span class="n">D_adj</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"p-value, unadjusted: </span><span class="si">{</span><span class="n">p_unadj</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"p-value, adjusted  : </span><span class="si">{</span><span class="n">p_adj</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Test statistic D  : 114.55
+Adjustment factor : 0.0632
+Adjusted D        : 7.23
+p-value, unadjusted: 0
+p-value, adjusted  : 0.00358
+</pre></div>
+</div>
+</div>
+</div>
+<p>Without the adjustment, the p-value is effectively zero. After adjusting for
+the correlations between recombination bins, the test still rejects the model
+without migration, which we know to be the right answer for these simulated data,
+but with a much less extreme p-value.</p>
+</section>
+<section id="when-the-adjustment-is-too-conservative">
+<span id="sec-lrt-conservative"></span><h3>When the adjustment is too conservative<a class="headerlink" href="#when-the-adjustment-is-too-conservative" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">LRT_adjust</span></code> (for both the SFS and LD) can be very conservative. Its
+adjustment factor shrinks roughly as <span class="math notranslate nohighlight">\(1/D\)</span>, so the adjusted statistic
+stays small even when <span class="math notranslate nohighlight">\(D\)</span> is very large. In simulations testing for weak
+migration, the adjusted SFS test rarely rejected the model without migration at
+a 1% level, and the adjusted LD test did so in fewer than half of the
+replicates.</p>
+<p>A large <span class="math notranslate nohighlight">\(D\)</span> (hundreds or more) with an adjusted statistic of only a few
+units suggests the adjustment is too conservative, and a non-significant result
+should then be treated as inconclusive. <code class="docutils literal notranslate"><span class="pre">LRT_adjust</span></code> also warns when the
+Hessian of the complex model at the simple model’s best fit is indefinite, in
+which case the adjustment factor is unreliable. In either
+case, the alternatives are, from cheapest to most expensive:</p>
+<ol class="arabic simple">
+<li><p><strong>A Wald test from the GIM uncertainties of the complex model.</strong> This needs no
+further fits: compute <span class="math notranslate nohighlight">\(SE_{GIM}\)</span> at the complex model’s best fit with
+<code class="docutils literal notranslate"><span class="pre">moments.LD.Godambe.GIM_uncert</span></code> (or <code class="docutils literal notranslate"><span class="pre">moments.Godambe.GIM_uncert</span></code> for the
+SFS). For a parameter fixed at a boundary, such as a migration rate of zero,
+use the one-sided <span class="math notranslate nohighlight">\(z = (\hat{\theta} - \theta_0) / SE_{GIM}\)</span> with
+p-value <code class="docutils literal notranslate"><span class="pre">scipy.stats.norm.sf(z)</span></code>. Caveats: the GIM uncertainty is
+least reliable near the boundary, the false-positive rate of this test has
+not been checked, and the result depends on the parameterization (e.g., a
+rate or its log).</p></li>
+<li><p><strong>Refitting the complex model to the bootstrap replicates.</strong> Reject the
+simple model if the bootstrap interval of the nested parameter excludes its
+fixed value. This needs one converged optimization per replicate, which is
+the cost the Godambe methods avoid. It is an interval test, not a null
+distribution for <span class="math notranslate nohighlight">\(D\)</span>, and bootstrap intervals are imperfect near a
+boundary.</p></li>
+<li><p><strong>A parametric bootstrap under the simple model.</strong> Simulate genomes (e.g.,
+with msprime) under the simple model’s best fit, matching the data’s sample
+sizes, sequence lengths, and recombination and mutation rates, and fit both
+models to each replicate. The p-value is the fraction of simulated <span class="math notranslate nohighlight">\(D\)</span>
+at least as large as the observed one. This is the most reliable option but
+the most expensive. Sampling from the composite likelihood instead (Poisson
+SFS, or independent Gaussian bins for LD) ignores linkage and is far too
+liberal.</p></li>
+</ol>
+<p>For the data above, the Wald test gives much stronger evidence for migration
+than the adjusted likelihood ratio test:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
+
+<span class="n">z</span> <span class="o">=</span> <span class="n">opt_params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">uncerts_GIM</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wald z            : </span><span class="si">{</span><span class="n">z</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"p-value, one-sided: </span><span class="si">{</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Wald z            : 6.47
+p-value, one-sided: 4.95e-11
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parsing.html" class="btn btn-neutral float-left" title="Parsing LD statistics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../extensions/demes.html" class="btn btn-neutral float-right" title="Specifying models with demes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

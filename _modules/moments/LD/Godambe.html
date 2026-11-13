@@ -1,0 +1,766 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.Godambe &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.Godambe</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.Godambe</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Parameter uncertainties are computed using Godambe information, described in</span>
+<span class="sd">Coffman et al, MBE (2016). doi: https://doi.org/10.1093/molbev/msv255</span>
+
+<span class="sd">If you use moments.LD.Godambe to compute parameter uncertainties, please cite</span>
+<span class="sd">that paper. This was first developed by Alec Coffman for computing uncertainties</span>
+<span class="sd">from inferences performed with dadi, modified here to handle LD decay curves.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">moments.LD</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">moments.LD.LDstats_mod</span><span class="w"> </span><span class="kn">import</span> <span class="n">LDstats</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+
+<span class="c1"># from moments.Misc import delayed_flush</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">Misc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">Godambe</span> <span class="k">as</span> <span class="n">_sfs_godambe</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_step_sizes</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Step sizes for finite-difference derivatives, and whether each derivative is</span>
+<span class="sd">    one-sided.</span>
+
+<span class="sd">    :param p0: Parameter values to take derivatives around.</span>
+<span class="sd">    :param eps: Fractional step size. If ``log`` is True, ``p0`` are log-parameters,</span>
+<span class="sd">        and the step is ``eps`` for each of them, which changes each parameter by</span>
+<span class="sd">        the same relative amount, with central differences.</span>
+<span class="sd">    :param log: If True, ``p0`` are log-parameters.</span>
+<span class="sd">    :return: The step sizes and a list of whether each derivative is one-sided.</span>
+<span class="sd">        Without ``log``, parameters equal to zero, or so small that ``eps`` times</span>
+<span class="sd">        the parameter is below 1e-12, use a step of ``eps`` and one-sided</span>
+<span class="sd">        (forward) differences, so that they are not stepped below zero.</span>
+<span class="sd">    """</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span>
+    <span class="n">one_sided</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pval</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+            <span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span> <span class="o">*</span> <span class="n">eps</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span>
+            <span class="n">one_sided</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">eps</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">steps</span><span class="p">,</span> <span class="n">one_sided</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hessian_elem</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">one_sided</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate element [ii][jj] of the Hessian matrix, a matrix</span>
+<span class="sd">    of partial second derivatives w.r.t. to parameters ii and jj</span>
+
+<span class="sd">    :param func: Model function</span>
+<span class="sd">    :param f0: Evaluation of func at p0</span>
+<span class="sd">    :param p0: Parameters for func</span>
+<span class="sd">    :param eps: List of absolute step sizes to use for each parameter when taking</span>
+<span class="sd">        finite differences.</span>
+<span class="sd">    :param args: Additional arguments to func</span>
+<span class="sd">    :param one_sided: Optionally, pass in a sequence of length p0 that determines</span>
+<span class="sd">        whether a one-sided derivative will be used for each parameter.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Note that we need to specify dtype=float, to avoid this being an integer</span>
+    <span class="c1"># array which will silently fail when adding fractional eps.</span>
+    <span class="k">if</span> <span class="n">one_sided</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">one_sided</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">p0</span><span class="p">]</span>
+
+    <span class="n">pwork</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">jj</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">one_sided</span><span class="p">[</span><span class="n">ii</span><span class="p">]:</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">element</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">fm</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fpp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">element</span> <span class="o">=</span> <span class="p">(</span><span class="n">fpp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">f0</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">one_sided</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">one_sided</span><span class="p">[</span><span class="n">jj</span><span class="p">]:</span>
+            <span class="c1"># f(xi + hi, xj + h)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fpp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># f(xi + hi, xj - hj)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fpm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># f(xi - hi, xj + hj)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fmp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># f(xi - hi, xj - hj)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fmm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">element</span> <span class="o">=</span> <span class="p">(</span><span class="n">fpp</span> <span class="o">-</span> <span class="n">fpm</span> <span class="o">-</span> <span class="n">fmp</span> <span class="o">+</span> <span class="n">fmm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># f(xi + hi, xj + h)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fpp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># f(xi + hi, xj)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fpm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># f(xi, xj + hj)</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+            <span class="n">fmp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">element</span> <span class="o">=</span> <span class="p">(</span><span class="n">fpp</span> <span class="o">-</span> <span class="n">fpm</span> <span class="o">-</span> <span class="n">fmp</span> <span class="o">+</span> <span class="n">f0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="n">eps</span><span class="p">[</span><span class="n">jj</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">element</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_hess</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate Hessian matrix of partial second derivatives.</span>
+<span class="sd">    Hij = dfunc/(dp_i dp_j)</span>
+
+<span class="sd">    :param func: Model function</span>
+<span class="sd">    :param p0: Parameter values to take derivative around</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives</span>
+<span class="sd">        (see ``_step_sizes``).</span>
+<span class="sd">    :param args: Additional arguments to func</span>
+<span class="sd">    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.</span>
+<span class="sd">    """</span>
+    <span class="n">eps</span><span class="p">,</span> <span class="n">one_sided</span> <span class="o">=</span> <span class="n">_step_sizes</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">hess</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)):</span>
+            <span class="n">hess</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="n">_hessian_elem</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">one_sided</span><span class="o">=</span><span class="n">one_sided</span>
+            <span class="p">)</span>
+            <span class="n">hess</span><span class="p">[</span><span class="n">jj</span><span class="p">][</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">hess</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">hess</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_grad</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate gradient vector</span>
+
+<span class="sd">    :param func: Model function</span>
+<span class="sd">    :param p0: Parameters for func</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives</span>
+<span class="sd">        (see ``_step_sizes``).</span>
+<span class="sd">    :param args: Additional arguments to func</span>
+<span class="sd">    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.</span>
+<span class="sd">    """</span>
+    <span class="n">eps</span><span class="p">,</span> <span class="n">one_sided</span> <span class="o">=</span> <span class="n">_step_sizes</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)):</span>
+        <span class="n">pwork</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">one_sided</span><span class="p">[</span><span class="n">ii</span><span class="p">]:</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">grad</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp</span> <span class="o">-</span> <span class="n">fm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Do one-sided finite-difference</span>
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">pwork</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="n">fm</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">pwork</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">grad</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp</span> <span class="o">-</span> <span class="n">fm</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">grad</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_godambe</span><span class="p">(</span>
+    <span class="n">func_ex</span><span class="p">,</span> <span class="n">all_boot</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">statistics</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">just_hess</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Godambe information and Hessian matrices</span>
+
+<span class="sd">    :param func_ex: Model function</span>
+<span class="sd">    :param all_boot: List of bootstrap frequency spectra</span>
+<span class="sd">    :param p0: Best-fit parameters for func_ex.</span>
+<span class="sd">    :param ms: Original data of statistics means.</span>
+<span class="sd">    :param vcs: Original data of statistics variance covariance matrices.</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives</span>
+<span class="sd">        Note that if eps*param is &lt; 1e-12, then the step size for that parameter</span>
+<span class="sd">        will simply be eps, to avoid numerical issues with small parameter</span>
+<span class="sd">        perturbations.</span>
+<span class="sd">    :param statistics:</span>
+<span class="sd">    :param log: If True, calculate derivatives in terms of log-parameters</span>
+<span class="sd">    :param just_hess: If True, only evaluate and return the Hessian matrix</span>
+<span class="sd">    """</span>
+
+    <span class="c1"># Cache evaluations of the LDstats inside our hessian/J evaluation function,</span>
+    <span class="c1"># which reuse parameter values. The cache is local to this call, since the</span>
+    <span class="c1"># statistics also depend on the model in func_ex, which isn't part of the key.</span>
+    <span class="n">ld_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ld_cache</span><span class="p">:</span>
+            <span class="n">ld_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func_ex</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">ld_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Inference</span><span class="o">.</span><span class="n">ll_over_bins</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_func</span><span class="p">(</span><span class="n">logparams</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logparams</span><span class="p">),</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="c1"># First calculate the observed hessian.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span><span class="p">:</span>
+        <span class="n">hess</span> <span class="o">=</span> <span class="o">-</span><span class="n">_get_hess</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">hess</span> <span class="o">=</span> <span class="o">-</span><span class="n">_get_hess</span><span class="p">(</span><span class="n">log_func</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">],</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">just_hess</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">hess</span>
+
+    <span class="c1"># Now the expectation of J over the bootstrap data</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)))</span>
+    <span class="c1"># cU is a column vector</span>
+    <span class="n">cU</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">bs_ms</span> <span class="ow">in</span> <span class="n">all_boot</span><span class="p">:</span>
+        <span class="c1"># boot = LDstats(boot)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span><span class="p">:</span>
+            <span class="n">grad_temp</span> <span class="o">=</span> <span class="n">_get_grad</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">bs_ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad_temp</span> <span class="o">=</span> <span class="n">_get_grad</span><span class="p">(</span>
+                <span class="n">log_func</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span> <span class="n">eps</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">bs_ms</span><span class="p">,</span> <span class="n">vcs</span><span class="p">],</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="n">J_temp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">grad_temp</span><span class="p">,</span> <span class="n">grad_temp</span><span class="p">)</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">J</span> <span class="o">+</span> <span class="n">J_temp</span>
+        <span class="n">cU</span> <span class="o">=</span> <span class="n">cU</span> <span class="o">+</span> <span class="n">grad_temp</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="n">J</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_boot</span><span class="p">)</span>
+    <span class="n">cU</span> <span class="o">=</span> <span class="n">cU</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_boot</span><span class="p">)</span>
+
+    <span class="c1"># G = H*J^-1*H</span>
+    <span class="n">J_inv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">J</span><span class="p">)</span>
+    <span class="n">godambe</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">hess</span><span class="p">,</span> <span class="n">J_inv</span><span class="p">),</span> <span class="n">hess</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">godambe</span><span class="p">,</span> <span class="n">hess</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">cU</span>
+
+
+<span class="n">_func_calls</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">_output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expected_number_of_calls</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_normalizing_statistics</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">pass_Ne</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">all_boots</span><span class="p">,</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">statistics</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns statistics, means, varcovs, and bootstrap means with the normalizing</span>
+<span class="sd">    statistics removed, using ``moments.LD.Inference._remove_normalizing_statistics``.</span>
+<span class="sd">    If ``statistics`` is None, the number of populations is taken from the model.</span>
+<span class="sd">    """</span>
+    <span class="n">num_pops</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span> <span class="k">if</span> <span class="n">pass_Ne</span> <span class="k">else</span> <span class="n">model_func</span><span class="p">(</span><span class="n">p0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">num_pops</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">num_pops</span>
+    <span class="k">return</span> <span class="n">Inference</span><span class="o">.</span><span class="n">_remove_normalizing_statistics</span><span class="p">(</span>
+        <span class="n">means</span><span class="p">,</span>
+        <span class="n">varcovs</span><span class="p">,</span>
+        <span class="n">bootstraps</span><span class="o">=</span><span class="n">all_boots</span><span class="p">,</span>
+        <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span>
+        <span class="n">num_pops</span><span class="o">=</span><span class="n">num_pops</span><span class="p">,</span>
+        <span class="n">statistics</span><span class="o">=</span><span class="n">statistics</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="GIM_uncert">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Godambe.GIM_uncert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">GIM_uncert</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">all_boot</span><span class="p">,</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">ms</span><span class="p">,</span>
+    <span class="n">vcs</span><span class="p">,</span>
+    <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">eps</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">return_GIM</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Parameter uncertainties from Godambe Information Matrix (GIM). If you use this</span>
+<span class="sd">    method, please cite</span>
+<span class="sd">    `Coffman et al., MBE (2016) &lt;https://doi.org/10.1093/molbev/msv255&gt;`_.</span>
+
+<span class="sd">    Returns standard deviations of parameter values.</span>
+
+<span class="sd">    :param model_func: The demographic model function, called as</span>
+<span class="sd">        ``model_func(params, rho=rho)`` and returning an LDstats object.</span>
+<span class="sd">    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned</span>
+<span class="sd">        by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as</span>
+<span class="sd">        ``ms``.</span>
+<span class="sd">    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of</span>
+<span class="sd">        parameter list.</span>
+<span class="sd">    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,</span>
+<span class="sd">        with the statistics given by ``statistics``.</span>
+<span class="sd">    :param vcs: The data variance-covariance matrices, as returned by</span>
+<span class="sd">        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives.</span>
+<span class="sd">        Note that if eps*param is &lt; 1e-12, then the step size for that parameter</span>
+<span class="sd">        will simply be eps, to avoid numerical issues with small parameter</span>
+<span class="sd">        perturbations.</span>
+<span class="sd">    :param log: If True, assume log-normal distribution of parameters. Returned values</span>
+<span class="sd">        are then the standard deviations of the *logs* of the parameter values,</span>
+<span class="sd">        which can be interpreted as relative parameter uncertainties.</span>
+<span class="sd">    :param return_GIM: If True, also return the full GIM.</span>
+<span class="sd">    :param r_edges: The bin edges for LD statistics.</span>
+<span class="sd">    :param normalization: The index of the population that we normalized by.</span>
+<span class="sd">    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention</span>
+<span class="sd">        is the last entry in the parameters list. If False, Ne is only used to scale</span>
+<span class="sd">        recombination rates.</span>
+<span class="sd">    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the</span>
+<span class="sd">        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to</span>
+<span class="sd">        None, in which case the data must contain the full set of statistics for</span>
+<span class="sd">        the number of populations in the model, including the normalizing</span>
+<span class="sd">        statistics, as returned by the ``moments.LD.Parsing`` functions. If the</span>
+<span class="sd">        data contain a subset of statistics (e.g. from</span>
+<span class="sd">        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The</span>
+<span class="sd">        normalizing statistics are removed before computing likelihoods.</span>
+<span class="sd">    :param verbose: If an integer greater than 0, prints updates</span>
+<span class="sd">        of the number of function calls and tested parameters</span>
+<span class="sd">        at intervals given by that spacing.</span>
+<span class="sd">        Note that ``verbose=1`` prints a line for every function evaluation, which can</span>
+<span class="sd">        be many lines per second, and displaying them in a visible terminal window can</span>
+<span class="sd">        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.</span>
+<span class="sd">    :type verbose: int, optional</span>
+<span class="sd">    :return: The standard deviations of the parameters, and if ``return_GIM`` is</span>
+<span class="sd">        True, the GIM.</span>
+<span class="sd">    :rtype: numpy.ndarray, or tuple of numpy.ndarray</span>
+<span class="sd">    """</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">vcs</span><span class="p">)</span>
+    <span class="n">all_boots</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">all_boot</span><span class="p">)</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r_edges</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">"Expected number of function calls: "</span>
+            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">_expected_number_of_calls</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+        <span class="p">)</span>
+        <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># remove the normalizing statistics, and get the names of the remaining ones</span>
+    <span class="n">statistics</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">all_boots</span> <span class="o">=</span> <span class="n">_remove_normalizing_statistics</span><span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">pass_Ne</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">all_boots</span><span class="p">,</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">statistics</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pass_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">_func_calls</span>
+        <span class="n">_func_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">rho</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rs</span>
+        <span class="k">if</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">remove_nonpresent_statistics</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_func_calls</span> <span class="o">%</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">param_str</span> <span class="o">=</span> <span class="s2">"array([</span><span class="si">%s</span><span class="s2">])"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">"</span><span class="si">%- 12g</span><span class="s2">"</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]))</span>
+            <span class="n">_output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="si">%-8i</span><span class="s2">, </span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">_func_calls</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">))</span>
+            <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="n">GIM</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">cU</span> <span class="o">=</span> <span class="n">_get_godambe</span><span class="p">(</span>
+        <span class="n">pass_func</span><span class="p">,</span> <span class="n">all_boots</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">statistics</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span>
+    <span class="p">)</span>
+
+    <span class="n">uncerts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">GIM</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">return_GIM</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">uncerts</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">uncerts</span><span class="p">,</span> <span class="n">GIM</span></div>
+
+
+
+<div class="viewcode-block" id="FIM_uncert">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Godambe.FIM_uncert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">FIM_uncert</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">ms</span><span class="p">,</span>
+    <span class="n">vcs</span><span class="p">,</span>
+    <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">eps</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Parameter uncertainties from Fisher Information Matrix. This approach typically</span>
+<span class="sd">    underestimates the size of the true confidence intervals, as it does not take</span>
+<span class="sd">    into account linkage between loci that causes data to be non-independent.</span>
+
+<span class="sd">    Returns standard deviations of parameter values.</span>
+
+<span class="sd">    :param model_func: The demographic model function, called as</span>
+<span class="sd">        ``model_func(params, rho=rho)`` and returning an LDstats object.</span>
+<span class="sd">    :param p0: Best-fit parameters for model_func, with inferred Ne in last entry of</span>
+<span class="sd">        parameter list.</span>
+<span class="sd">    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,</span>
+<span class="sd">        with the statistics given by ``statistics``.</span>
+<span class="sd">    :param vcs: The data variance-covariance matrices, as returned by</span>
+<span class="sd">        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives.</span>
+<span class="sd">        Note that if eps*param is &lt; 1e-12, then the step size for that parameter</span>
+<span class="sd">        will simply be eps, to avoid numerical issues with small parameter</span>
+<span class="sd">        perturbations.</span>
+<span class="sd">    :param log: If True, assume log-normal distribution of parameters. Returned values</span>
+<span class="sd">        are then the standard deviations of the *logs* of the parameter values,</span>
+<span class="sd">        which can be interpreted as relative parameter uncertainties.</span>
+<span class="sd">    :param r_edges: The bin edges for LD statistics.</span>
+<span class="sd">    :param normalization: The index of the population that we normalized by.</span>
+<span class="sd">    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention</span>
+<span class="sd">        is the last entry in the parameters list. If False, Ne is only used to scale</span>
+<span class="sd">        recombination rates.</span>
+<span class="sd">    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the</span>
+<span class="sd">        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to</span>
+<span class="sd">        None, in which case the data must contain the full set of statistics for</span>
+<span class="sd">        the number of populations in the model, including the normalizing</span>
+<span class="sd">        statistics, as returned by the ``moments.LD.Parsing`` functions. If the</span>
+<span class="sd">        data contain a subset of statistics (e.g. from</span>
+<span class="sd">        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The</span>
+<span class="sd">        normalizing statistics are removed before computing likelihoods.</span>
+<span class="sd">    :param verbose: If an integer greater than 0, prints updates</span>
+<span class="sd">        of the number of function calls and tested parameters</span>
+<span class="sd">        at intervals given by that spacing.</span>
+<span class="sd">        Note that ``verbose=1`` prints a line for every function evaluation, which can</span>
+<span class="sd">        be many lines per second, and displaying them in a visible terminal window can</span>
+<span class="sd">        slow down the computation. Use a larger value (e.g. 10 to 100) to avoid this.</span>
+<span class="sd">    :type verbose: int, optional</span>
+<span class="sd">    :return: The standard deviations of the parameters.</span>
+<span class="sd">    :rtype: numpy.ndarray</span>
+<span class="sd">    """</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">vcs</span><span class="p">)</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r_edges</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">"Expected number of function calls: "</span>
+            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">_expected_number_of_calls</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+        <span class="p">)</span>
+        <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># remove the normalizing statistics, and get the names of the remaining ones</span>
+    <span class="n">statistics</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_remove_normalizing_statistics</span><span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">pass_Ne</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="p">[],</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">statistics</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pass_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">_func_calls</span>
+        <span class="n">_func_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">rho</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rs</span>
+        <span class="k">if</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">remove_nonpresent_statistics</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_func_calls</span> <span class="o">%</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">param_str</span> <span class="o">=</span> <span class="s2">"array([</span><span class="si">%s</span><span class="s2">])"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">"</span><span class="si">%- 12g</span><span class="s2">"</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]))</span>
+            <span class="n">_output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="si">%-8i</span><span class="s2">, </span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">_func_calls</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">))</span>
+            <span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="n">H</span> <span class="o">=</span> <span class="n">_get_godambe</span><span class="p">(</span>
+        <span class="n">pass_func</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">statistics</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span> <span class="n">just_hess</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">uncerts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">H</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">uncerts</span></div>
+
+
+
+<div class="viewcode-block" id="LRT_adjust">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Godambe.LRT_adjust">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">LRT_adjust</span><span class="p">(</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">all_boot</span><span class="p">,</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">nested_indices</span><span class="p">,</span>
+    <span class="n">ms</span><span class="p">,</span>
+    <span class="n">vcs</span><span class="p">,</span>
+    <span class="n">eps</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">normalization</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">pass_Ne</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">check_hessian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Following ``moments.Godambe.LRT_adjust()``, this function performs</span>
+<span class="sd">    first-order moment matching to adjust the test statistic for the likelihood</span>
+<span class="sd">    ratio test. Given log-likelihoods for a full and nested model (complex and</span>
+<span class="sd">    simpler model, resp), the adjustment factor ``adj`` scales the likelihood ratio</span>
+<span class="sd">    test statistic, ``D_adj = adj * 2 * (ll_full - ll_nested)``, whose p-value is</span>
+<span class="sd">    given by ``moments.Godambe.sum_chi2_ppf()``. Note that the LD optimization</span>
+<span class="sd">    functions return the negative log-likelihood.</span>
+
+<span class="sd">    :param model_func: The demographic model function for the complex (full) model,</span>
+<span class="sd">        called as ``model_func(params, rho=rho)`` and returning an LDstats object.</span>
+<span class="sd">    :param all_boot: List of bootstrap LD stat means [m0, m1, m2, ...], as returned</span>
+<span class="sd">        by ``moments.LD.Parsing.get_bootstrap_sets``, with the same statistics as</span>
+<span class="sd">        ``ms``.</span>
+<span class="sd">    :param p0: Best-fit parameters for the simple (nested) model, given as</span>
+<span class="sd">        parameters of the complex model with the nested parameters set to their</span>
+<span class="sd">        fixed values, and with Ne in the last entry.</span>
+<span class="sd">    :param nested_indices: List of the positions of the nested parameters in the</span>
+<span class="sd">        complex model's parameters.</span>
+<span class="sd">    :param ms: The data means, as returned by ``moments.LD.Parsing.bootstrap_data``,</span>
+<span class="sd">        with the statistics given by ``statistics``.</span>
+<span class="sd">    :param vcs: The data variance-covariance matrices, as returned by</span>
+<span class="sd">        ``moments.LD.Parsing.bootstrap_data``, matching ``ms``.</span>
+<span class="sd">    :param eps: Fractional stepsize to use when taking finite-difference derivatives.</span>
+<span class="sd">    :param r_edges: The bin edges for LD statistics.</span>
+<span class="sd">    :param normalization: The index of the population that we normalized by.</span>
+<span class="sd">    :param pass_Ne: If True, Ne is a parameter in the model function, and by convention</span>
+<span class="sd">        is the last entry in the parameters list. If False, Ne is only used to scale</span>
+<span class="sd">        recombination rates.</span>
+<span class="sd">    :param statistics: The statistics in the data, as [ld_stats, h_stats] in the</span>
+<span class="sd">        standard order of ``moments.LD.Util.moment_names(num_pops)``. Defaults to</span>
+<span class="sd">        None, in which case the data must contain the full set of statistics for</span>
+<span class="sd">        the number of populations in the model, including the normalizing</span>
+<span class="sd">        statistics, as returned by the ``moments.LD.Parsing`` functions. If the</span>
+<span class="sd">        data contain a subset of statistics (e.g. from</span>
+<span class="sd">        ``moments.LD.Parsing.subset_data``), list exactly those statistics. The</span>
+<span class="sd">        normalizing statistics are removed before computing likelihoods.</span>
+<span class="sd">    :param check_hessian: If True, also compute the Hessian of the complex model over</span>
+<span class="sd">        all of its parameters at ``p0``, and warn if it is indefinite, in which case</span>
+<span class="sd">        the adjustment is unreliable (see the documentation on likelihood ratio</span>
+<span class="sd">        tests). This takes roughly ``2 * k**2`` extra model</span>
+<span class="sd">        evaluations for ``k`` parameters. The adjustment factor is the same either</span>
+<span class="sd">        way.</span>
+<span class="sd">    :return: The adjustment factor for the likelihood ratio test statistic.</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    """</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>
+    <span class="n">varcovs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">vcs</span><span class="p">)</span>
+    <span class="n">all_boots</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">all_boot</span><span class="p">)</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r_edges</span><span class="p">)</span>
+
+    <span class="c1"># remove the normalizing statistics, and get the names of the remaining ones</span>
+    <span class="n">statistics</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">all_boots</span> <span class="o">=</span> <span class="n">_remove_normalizing_statistics</span><span class="p">(</span>
+        <span class="n">model_func</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">pass_Ne</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">all_boots</span><span class="p">,</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">statistics</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pass_func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">):</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rs</span>
+        <span class="k">if</span> <span class="n">pass_Ne</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">bin_stats</span><span class="p">(</span><span class="n">model_func</span><span class="p">,</span> <span class="n">params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">sigmaD2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Inference</span><span class="o">.</span><span class="n">remove_nonpresent_statistics</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="c1"># We only take derivatives with respect to the nested parameters, which are</span>
+    <span class="c1"># fixed in the simple model, as in moments.Godambe.LRT_adjust.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">diff_func</span><span class="p">(</span><span class="n">diff_params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">):</span>
+        <span class="n">full_params</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">full_params</span><span class="p">[</span><span class="n">nested_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_params</span>
+        <span class="k">return</span> <span class="n">pass_func</span><span class="p">(</span><span class="n">full_params</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+
+    <span class="n">p_nested</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)[</span><span class="n">nested_indices</span><span class="p">]</span>
+    <span class="n">GIM</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">cU</span> <span class="o">=</span> <span class="n">_get_godambe</span><span class="p">(</span>
+        <span class="n">diff_func</span><span class="p">,</span> <span class="n">all_boots</span><span class="p">,</span> <span class="n">p_nested</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">varcovs</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">statistics</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"p0[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]"</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Ne"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">check_hessian</span><span class="p">:</span>
+        <span class="n">H_full</span> <span class="o">=</span> <span class="n">_get_godambe</span><span class="p">(</span>
+            <span class="n">pass_func</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="n">means</span><span class="p">,</span>
+            <span class="n">varcovs</span><span class="p">,</span>
+            <span class="n">eps</span><span class="p">,</span>
+            <span class="n">statistics</span><span class="p">,</span>
+            <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">just_hess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_sfs_godambe</span><span class="o">.</span><span class="n">_check_nested_hessian</span><span class="p">(</span>
+            <span class="n">H_full</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="s2">"moments.LD.Godambe.LRT_adjust"</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_sfs_godambe</span><span class="o">.</span><span class="n">_check_nested_hessian</span><span class="p">(</span>
+            <span class="n">H</span><span class="p">,</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nested_indices</span><span class="p">],</span> <span class="s2">"moments.LD.Godambe.LRT_adjust"</span>
+        <span class="p">)</span>
+
+    <span class="n">adjust</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nested_indices</span><span class="p">)</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">H</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">adjust</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

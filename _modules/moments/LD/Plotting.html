@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.LD.Plotting &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.LD.Plotting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.LD.Plotting</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Methods to plot LD decay curves from moments.LD</span>
+<span class="c1"># !!!!</span>
+<span class="c1"># WARNING: These functions are meant to serve as examples or inspiration. They are not</span>
+<span class="c1"># nicely formatted and do not take friendly inputs. Similarly, they are not currently</span>
+<span class="c1"># maintained, aside from being usable in some example code blocks in the documentation.</span>
+<span class="c1"># !!!!</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span><span class="o">,</span><span class="w"> </span><span class="nn">matplotlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">FONT_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"xtick.labelsize"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"ytick.labelsize"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"font.size"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s2">"font.style"</span><span class="p">:</span> <span class="s2">"normal"</span><span class="p">,</span>
+    <span class="s2">"font.family"</span><span class="p">:</span> <span class="s2">"sans-serif"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="plot_ld_curves">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Plotting.plot_ld_curves">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ld_curves</span><span class="p">(</span>
+    <span class="n">ld_stats</span><span class="p">,</span>
+    <span class="n">stats_to_plot</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fig_size</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">r_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">numfig</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cM</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Plot LD curves (statistics against recombination distance) from a model.</span>
+
+<span class="sd">    For example, to plot four panes, two on each of two rows, with the</span>
+<span class="sd">    :math:`D^2` statistics, the between-population :math:`D_iD_j` statistics,</span>
+<span class="sd">    the single-population :math:`Dz` statistics, and the single-population</span>
+<span class="sd">    :math:`\\pi_2` statistics of a three-population model:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        moments.LD.Plotting.plot_ld_curves(</span>
+<span class="sd">            ld_stats,</span>
+<span class="sd">            stats_to_plot=[</span>
+<span class="sd">                ["DD_0_0", "DD_1_1", "DD_2_2"],</span>
+<span class="sd">                ["DD_0_1", "DD_0_2", "DD_1_2"],</span>
+<span class="sd">                ["Dz_0_0_0", "Dz_1_1_1", "Dz_2_2_2"],</span>
+<span class="sd">                ["pi2_0_0_0_0", "pi2_1_1_1_1", "pi2_2_2_2_2"],</span>
+<span class="sd">            ],</span>
+<span class="sd">            rows=2,</span>
+<span class="sd">            cols=2,</span>
+<span class="sd">            r_edges=r_bins,</span>
+<span class="sd">        )</span>
+
+<span class="sd">    :param ld_stats: The binned LD statistics, as returned by</span>
+<span class="sd">        ``moments.LD.Inference.bin_stats``.</span>
+<span class="sd">    :param stats_to_plot: A list of lists of statistic names. Each inner list</span>
+<span class="sd">        gives the statistics to plot in one pane.</span>
+<span class="sd">    :param rows: The number of rows of panes. If neither ``rows`` nor ``cols`` is</span>
+<span class="sd">        given, the panes are placed in a single row.</span>
+<span class="sd">    :param cols: The number of columns of panes.</span>
+<span class="sd">    :param statistics: The names of the statistics in ``ld_stats``, as</span>
+<span class="sd">        ``[ld_stat_names, h_stat_names]``. If None, ``ld_stats.names()`` is used.</span>
+<span class="sd">    :param fig_size: The figure size, in inches.</span>
+<span class="sd">    :param dpi: The figure resolution.</span>
+<span class="sd">    :param r_edges: The edges of the recombination bins used to compute</span>
+<span class="sd">        ``ld_stats``. The statistics are plotted at the bin midpoints.</span>
+<span class="sd">    :param numfig: The matplotlib figure number to draw in.</span>
+<span class="sd">    :param cM: If True, label the x-axis in cM (scaling ``r`` by 100).</span>
+<span class="sd">    :param output: If given, save the figure to this file.</span>
+<span class="sd">    :param show: If True, show the figure. Otherwise, return it.</span>
+<span class="sd">    :returns: The matplotlib figure, if ``show`` is False.</span>
+<span class="sd">    """</span>
+
+    <span class="n">num_axes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_axes</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">rows</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cols</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">statistics</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">ld_stats</span><span class="o">.</span><span class="n">names</span><span class="p">()</span>
+
+    <span class="c1"># make sure all stats are named properly</span>
+    <span class="n">r_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r_edges</span><span class="p">)</span>
+    <span class="n">r_centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">r_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">r_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">x_label</span> <span class="o">=</span> <span class="s2">"$r$"</span>
+    <span class="k">if</span> <span class="n">cM</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">r_centers</span> <span class="o">*=</span> <span class="mi">100</span>
+        <span class="n">x_label</span> <span class="o">=</span> <span class="s2">"cM"</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">numfig</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">fig_size</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># loop through stats_to_plot, update axis, and plot</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">):</span>
+        <span class="c1"># we don't want to plot log-scale if we predict negative values for stats</span>
+        <span class="n">neg_vals</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+            <span class="n">to_plot</span> <span class="o">=</span> <span class="p">[</span><span class="n">ld_stats</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r_centers</span><span class="p">))]</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r_centers</span><span class="p">,</span> <span class="n">to_plot</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">stat</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">to_plot</span><span class="p">]):</span>
+                <span class="n">neg_vals</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+        <span class="c1"># don't log scale y axis for pi stats</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"pi2"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">neg_vals</span><span class="p">):</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+
+        <span class="c1"># only place x labels at bottom of columns</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span> <span class="o">-</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="c1"># only place y labels on left-most column</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">cols</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Statistic"</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc_context</span><span class="p">(</span><span class="n">FONT_SETTINGS</span><span class="p">):</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">output</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">show</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="plot_ld_curves_comp">
+<a class="viewcode-back" href="../../../api/api_ld.html#moments.LD.Plotting.plot_ld_curves_comp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ld_curves_comp</span><span class="p">(</span>
+    <span class="n">ld_stats</span><span class="p">,</span>
+    <span class="n">ms</span><span class="p">,</span>
+    <span class="n">vcs</span><span class="p">,</span>
+    <span class="n">stats_to_plot</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fig_size</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">rs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">numfig</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cM</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">plot_means</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">plot_vcs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">binned_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Plot LD curves from a model along with the data they were fit to, with</span>
+<span class="sd">    the model drawn as solid lines and the data means as dashed lines.</span>
+
+<span class="sd">    For example, to plot four panes, two on each of two rows, with the</span>
+<span class="sd">    :math:`D^2` statistics, the between-population :math:`D_iD_j` statistics,</span>
+<span class="sd">    the single-population :math:`Dz` statistics, and the single-population</span>
+<span class="sd">    :math:`\\pi_2` statistics of a three-population model:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        moments.LD.Plotting.plot_ld_curves_comp(</span>
+<span class="sd">            ld_stats,</span>
+<span class="sd">            means[:-1],</span>
+<span class="sd">            varcovs[:-1],</span>
+<span class="sd">            stats_to_plot=[</span>
+<span class="sd">                ["DD_0_0", "DD_1_1", "DD_2_2"],</span>
+<span class="sd">                ["DD_0_1", "DD_0_2", "DD_1_2"],</span>
+<span class="sd">                ["Dz_0_0_0", "Dz_1_1_1", "Dz_2_2_2"],</span>
+<span class="sd">                ["pi2_0_0_0_0", "pi2_1_1_1_1", "pi2_2_2_2_2"],</span>
+<span class="sd">            ],</span>
+<span class="sd">            rows=2,</span>
+<span class="sd">            cols=2,</span>
+<span class="sd">            rs=r_bins,</span>
+<span class="sd">            plot_vcs=True,</span>
+<span class="sd">        )</span>
+
+<span class="sd">    :param ld_stats: The expected LD statistics from the model, binned as the data</span>
+<span class="sd">        are and normalized in the same way, for example using</span>
+<span class="sd">        ``moments.LD.Inference.sigmaD2(moments.LD.Inference.bin_stats(...))``.</span>
+<span class="sd">    :param ms: The data means, one array of LD statistics per recombination bin.</span>
+<span class="sd">    :param vcs: The data variance-covariance matrices, one per recombination bin.</span>
+<span class="sd">    :param stats_to_plot: A list of lists of statistic names. Each inner list</span>
+<span class="sd">        gives the statistics to plot in one pane.</span>
+<span class="sd">    :param rows: The number of rows of panes. If neither ``rows`` nor ``cols`` is</span>
+<span class="sd">        given, the panes are placed in a single row.</span>
+<span class="sd">    :param cols: The number of columns of panes.</span>
+<span class="sd">    :param statistics: The names of the statistics in the data, as</span>
+<span class="sd">        ``[ld_stat_names, h_stat_names]``. If None, ``ld_stats.names()`` is used,</span>
+<span class="sd">        and the data must include all of those statistics, including the</span>
+<span class="sd">        normalizing statistics (as returned by the ``moments.LD.Parsing``</span>
+<span class="sd">        functions).</span>
+<span class="sd">    :param fig_size: The figure size, in inches.</span>
+<span class="sd">    :param dpi: The figure resolution.</span>
+<span class="sd">    :param rs: If ``binned_data`` is True, the edges of the recombination bins,</span>
+<span class="sd">        so that the model and data have one fewer entry than ``rs``, and are</span>
+<span class="sd">        plotted at the bin midpoints. Otherwise, the recombination distances at</span>
+<span class="sd">        which the model and data are plotted, with the same length as ``rs``.</span>
+<span class="sd">    :param numfig: The matplotlib figure number to draw in.</span>
+<span class="sd">    :param cM: If True, label the x-axis in cM (scaling ``r`` by 100).</span>
+<span class="sd">    :param output: If given, save the figure to this file.</span>
+<span class="sd">    :param show: If True, show the figure. Otherwise, return it.</span>
+<span class="sd">    :param plot_means: If True, plot the data means as dashed lines.</span>
+<span class="sd">    :param plot_vcs: If True, shade the 95% confidence intervals of the data,</span>
+<span class="sd">        computed from the variances in ``vcs``.</span>
+<span class="sd">    :param binned_data: Whether ``rs`` gives bin edges (True) or the points at</span>
+<span class="sd">        which statistics were computed (False).</span>
+<span class="sd">    :param ax: A matplotlib axis to draw in, in an existing figure. In this case</span>
+<span class="sd">        ``stats_to_plot`` must have length one, and nothing is returned.</span>
+<span class="sd">    :param labels: Legend labels, as a list of lists with the same shape as</span>
+<span class="sd">        ``stats_to_plot``. If None, the statistic names are used.</span>
+<span class="sd">    :returns: The matplotlib figure, if ``ax`` is not given and ``show`` is False.</span>
+<span class="sd">    """</span>
+
+    <span class="c1"># Check that all the data has the correct dimensions</span>
+    <span class="k">if</span> <span class="n">binned_data</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ld_stats</span><span class="o">.</span><span class="n">LD</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"binned_data True, but incorrect length for given rs."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">binned_data</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ld_stats</span><span class="o">.</span><span class="n">LD</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"binned_data False, incorrect length for given rs."</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">stats_to_plot</span>
+
+    <span class="k">if</span> <span class="n">statistics</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">ld_stats</span><span class="o">.</span><span class="n">names</span><span class="p">()</span>
+    <span class="c1"># Data statistics are found by their index in statistics, so the data must have</span>
+    <span class="c1"># the same number of statistics, or the wrong statistics would be plotted</span>
+    <span class="n">num_bins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">binned_data</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">ms</span><span class="p">[:</span><span class="n">num_bins</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">vcs</span><span class="p">[:</span><span class="n">num_bins</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The data have </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> statistics in each recombination bin, but "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2"> are listed in statistics (or in the model, if "</span>
+                <span class="s2">"statistics is not given). If statistics is not given, the data must "</span>
+                <span class="s2">"include the normalizing statistics, as returned by the "</span>
+                <span class="s2">"moments.LD.Parsing functions."</span>
+            <span class="p">)</span>
+    <span class="c1"># set up fig and axes</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">num_axes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_axes</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">rows</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cols</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">cols</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span> <span class="o">/</span> <span class="n">rows</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">rows</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span> <span class="o">/</span> <span class="n">cols</span><span class="p">))</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">numfig</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">fig_size</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">):</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="p">]</span>
+
+    <span class="c1"># make sure all stats are named properly</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">binned_data</span><span class="p">:</span>
+        <span class="n">rs_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">rs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">rs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rs_to_plot</span> <span class="o">=</span> <span class="n">rs</span>
+
+    <span class="n">x_label</span> <span class="o">=</span> <span class="s2">"$r$"</span>
+    <span class="k">if</span> <span class="n">cM</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">rs_to_plot</span> <span class="o">*=</span> <span class="mi">100</span>
+        <span class="n">x_label</span> <span class="o">=</span> <span class="s2">"cM"</span>
+
+    <span class="c1"># loop through stats_to_plot, update axis, and plot</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">,</span> <span class="n">labels</span><span class="p">)):</span>
+        <span class="c1"># we don't want to plot log-scale if we predict negative values for stats</span>
+        <span class="n">neg_vals</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_vcs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+                <span class="n">data_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ms</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">))])</span>
+                <span class="n">data_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">vcs</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="mf">1.96</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">))]</span>
+                <span class="p">)</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                    <span class="n">rs_to_plot</span><span class="p">,</span>
+                    <span class="n">data_to_plot</span> <span class="o">-</span> <span class="n">data_error</span><span class="p">,</span>
+                    <span class="n">data_to_plot</span> <span class="o">+</span> <span class="n">data_error</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="c1"># reset color cycle</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_means</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+                <span class="n">data_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ms</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">))])</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">,</span> <span class="n">data_to_plot</span><span class="p">,</span> <span class="s2">"--"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># reset color cycle</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">stat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats</span><span class="p">):</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+            <span class="n">exp_to_plot</span> <span class="o">=</span> <span class="p">[</span><span class="n">ld_stats</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">))]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exp_to_plot</span><span class="p">]):</span>
+                <span class="n">neg_vals</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs_to_plot</span><span class="p">,</span> <span class="n">exp_to_plot</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+        <span class="c1"># don't log scale y axis for pi stats</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"pi2"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">neg_vals</span><span class="p">):</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+
+        <span class="c1"># only place x labels at bottom of columns</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_to_plot</span><span class="p">)</span> <span class="o">-</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="c1"># only place y labels on left-most column</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">cols</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Statistic"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc_context</span><span class="p">(</span><span class="n">FONT_SETTINGS</span><span class="p">):</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">show</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fig</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

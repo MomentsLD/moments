@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.TwoLocus.Util &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.TwoLocus.Util</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.TwoLocus.Util</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Helper functions for the two-locus frequency spectrum: building selection parameters</span>
+<span class="sd">for common selection models, and computing low-order LD statistics.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="pAB">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.pAB">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the possible counts of AB haplotypes, given derived allele counts nA and</span>
+<span class="sd">    nB at the left and right loci, along with the corresponding entries of the</span>
+<span class="sd">    spectrum. The entries are not normalized; divide by their sum to get the</span>
+<span class="sd">    distribution of the AB count conditional on nA and nB.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param int nA: The derived allele count at the left locus.</span>
+<span class="sd">    :param int nB: The derived allele count at the right locus.</span>
+<span class="sd">    :returns: A tuple (counts, entries) of numpy arrays.</span>
+<span class="sd">    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nA</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nA must be between 0 and n=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nB</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nB</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nB must be between 0 and n=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">min_AB</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nA</span> <span class="o">+</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">max_AB</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">min_AB</span><span class="p">,</span> <span class="n">max_AB</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">AB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">counts</span><span class="p">):</span>
+        <span class="n">AB</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">nA</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">counts</span><span class="p">,</span> <span class="n">AB</span></div>
+
+
+
+<div class="viewcode-block" id="additive_epistasis">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.additive_epistasis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">additive_epistasis</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the additive selection parameters ``[gamma_AB, gamma_A, gamma_B]``, to be</span>
+<span class="sd">    passed as ``sel_params``, for a model with the same selection coefficient at both</span>
+<span class="sd">    loci and multiplicative epistasis:</span>
+<span class="sd">    ``[2 * gamma * (1 + epsilon), gamma, gamma]``.</span>
+
+<span class="sd">    In this model, epsilon of 0 is no epistasis, epsilon &gt; 0 is synergistic epistasis,</span>
+<span class="sd">    while epsilon &lt; 0 is antagonistic epistasis. Note that epsilon &lt; -1 will flip the</span>
+<span class="sd">    sign of the selection coefficient for AB.</span>
+
+<span class="sd">    :param float s: The selection coefficient at each locus. If Ne is None, this is</span>
+<span class="sd">        the population-size scaled coefficient gamma = 2*Ne*s. If Ne is given, this</span>
+<span class="sd">        is the unscaled coefficient s, and gamma = 2*Ne*s is computed.</span>
+<span class="sd">    :param float epsilon: The epistasis parameter.</span>
+<span class="sd">    :param float Ne: The effective population size, used to scale s. Optional.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Ne</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Ne must be positive"</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">),</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="simple_dominance">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.simple_dominance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_dominance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the general selection parameters, to be passed as ``sel_params_general``,</span>
+<span class="sd">    for the simple dominance model with a single selection and dominance coefficient</span>
+<span class="sd">    that applies to both loci. The parameters are given for diploid genotypes in the</span>
+<span class="sd">    order ``[AB/AB, AB/Ab, AB/aB, AB/ab, Ab/Ab, Ab/aB, Ab/ab, aB/aB, aB/ab]``, where</span>
+<span class="sd">    a genotype with one copy of a derived allele has selection coefficient 2*h*gamma</span>
+<span class="sd">    and one with two copies has 2*gamma, summed over the two loci.</span>
+
+<span class="sd">    Fitness effects add across loci (no epistasis), which matches multiplicative</span>
+<span class="sd">    fitness when selection is weak enough that the product of the selection</span>
+<span class="sd">    coefficients at the two loci can be ignored. With h = 1/2, this is equivalent to</span>
+<span class="sd">    ``sel_params = [2 * gamma, gamma, gamma]``.</span>
+
+<span class="sd">    :param float s: The selection coefficient. If Ne is None, this is the</span>
+<span class="sd">        population-size scaled coefficient gamma = 2*Ne*s. If Ne is given, this is the</span>
+<span class="sd">        unscaled coefficient s, and gamma = 2*Ne*s is computed.</span>
+<span class="sd">    :param float h: The dominance coefficient.</span>
+<span class="sd">    :param float Ne: The effective population size, used to scale s. Optional.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Ne</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Ne must be positive"</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="gene_based_dominance">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.gene_based_dominance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gene_based_dominance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">Ne</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the general selection parameters, to be passed as ``sel_params_general``,</span>
+<span class="sd">    for the gene-based dominance model, in which fitness depends on how many of an</span>
+<span class="sd">    individual's two haplotypes carry at least one derived allele. The parameters are</span>
+<span class="sd">    given for diploid genotypes in the order</span>
+<span class="sd">    ``[AB/AB, AB/Ab, AB/aB, AB/ab, Ab/Ab, Ab/aB, Ab/ab, aB/aB, aB/ab]``: genotypes</span>
+<span class="sd">    with one such haplotype (AB/ab, Ab/ab, aB/ab) have selection coefficient</span>
+<span class="sd">    2*h*gamma, and genotypes with two such haplotypes have 2*gamma.</span>
+
+<span class="sd">    :param float s: The selection coefficient. If Ne is None, this is the</span>
+<span class="sd">        population-size scaled coefficient gamma = 2*Ne*s. If Ne is given, this is the</span>
+<span class="sd">        unscaled coefficient s, and gamma = 2*Ne*s is computed.</span>
+<span class="sd">    :param float h: The dominance coefficient.</span>
+<span class="sd">    :param float Ne: The effective population size, used to scale s. Optional.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">Ne</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Ne</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Ne must be positive"</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ne</span> <span class="o">*</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+        <span class="mi">2</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">,</span>
+    <span class="p">]</span></div>
+
+
+
+<span class="c1">##</span>
+<span class="c1">## Methods for computing low-order statistics from the two-locus spectrum</span>
+<span class="c1">##</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_S</span><span class="p">(</span><span class="n">F_in</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">F_in</span><span class="p">)</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">mask_fixed</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nB</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">!=</span> <span class="n">nA</span><span class="p">:</span>
+                        <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">!=</span> <span class="n">nB</span><span class="p">:</span>
+                        <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="p">:,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_D</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span>
+    <span class="n">DD</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nB</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nA</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nB</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+                    <span class="k">if</span> <span class="n">proj</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">DD</span> <span class="o">+=</span> <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">DD</span> <span class="o">+=</span> <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span><span class="p">):</span>
+            <span class="n">jj</span> <span class="o">=</span> <span class="n">nA</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">kk</span> <span class="o">=</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+            <span class="k">assert</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">kk</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ll</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">proj</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">DD</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">DD</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">DD</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_D2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span>
+    <span class="n">DD2</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nB</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nA</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nB</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+                    <span class="k">if</span> <span class="n">proj</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">DD2</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span>
+                                <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                            <span class="p">)</span>
+                            <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">DD2</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span><span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="p">)</span>
+                            <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span><span class="p">):</span>
+            <span class="n">jj</span> <span class="o">=</span> <span class="n">nA</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">kk</span> <span class="o">=</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+            <span class="k">assert</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">kk</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ll</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">proj</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">DD2</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">DD2</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">DD2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_Dz</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nB</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nA</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nB</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+                    <span class="k">if</span> <span class="n">proj</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span>
+                                <span class="o">-</span><span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span>
+                                <span class="o">-</span><span class="p">(</span><span class="n">ii</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">3</span>
+                                <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">3</span>
+                            <span class="p">)</span>
+                            <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span><span class="p">):</span>
+            <span class="n">jj</span> <span class="o">=</span> <span class="n">nA</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">kk</span> <span class="o">=</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+            <span class="k">assert</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">kk</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ll</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">proj</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="o">-</span><span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="o">-</span><span class="p">(</span><span class="n">ii</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">3</span>
+                        <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">-</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">3</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stat</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_pi2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nB</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+                    <span class="k">if</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nA</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nA</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">jj</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nB</span> <span class="o">!=</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">kk</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">proj</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span>
+                                <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                            <span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">,</span> <span class="n">kk</span><span class="p">]</span>
+                            <span class="o">*</span> <span class="p">(</span>
+                                <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                                <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                                <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                            <span class="p">)</span>
+                            <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">pAB</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nAB</span><span class="p">,</span> <span class="n">ps</span><span class="p">):</span>
+            <span class="n">jj</span> <span class="o">=</span> <span class="n">nA</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">kk</span> <span class="o">=</span> <span class="n">nB</span> <span class="o">-</span> <span class="n">ii</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">ii</span> <span class="o">-</span> <span class="n">jj</span> <span class="o">-</span> <span class="n">kk</span>
+            <span class="k">assert</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">kk</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ll</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">proj</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="p">(</span><span class="n">kk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="p">(</span><span class="n">ii</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span> <span class="o">*</span> <span class="p">(</span><span class="n">ll</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">jj</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span>
+                        <span class="o">+</span> <span class="n">ii</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">ii</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                        <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">kk</span> <span class="o">*</span> <span class="n">ll</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">n</span><span class="o">**</span><span class="mi">4</span>
+                <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stat</span>
+
+
+<span class="c1">##</span>
+<span class="c1">## The above methods compute statistics for given nA and nB slices, if provided.</span>
+<span class="c1">## We may also want to compute statistics summed over ranges of allele counts.</span>
+<span class="c1">##</span>
+
+
+<div class="viewcode-block" id="compute_D_threshold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_D_threshold">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_D_threshold</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute D summed over entries with</span>
+<span class="sd">    derived allele counts 1 &lt;= nA &lt;= thresh and 1 &lt;= nB &lt;= thresh. If thresh is None,</span>
+<span class="sd">    sum over all entries in which both loci are segregating. See</span>
+<span class="sd">    :meth:`moments.TwoLocus.TLSpectrum.D`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    :param int thresh: The maximum derived allele count at each locus.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_compute_D</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_D</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_D2_threshold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_D2_threshold">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_D2_threshold</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute D2 summed over entries with</span>
+<span class="sd">    derived allele counts 1 &lt;= nA &lt;= thresh and 1 &lt;= nB &lt;= thresh. If thresh is None,</span>
+<span class="sd">    sum over all entries in which both loci are segregating. See</span>
+<span class="sd">    :meth:`moments.TwoLocus.TLSpectrum.D2`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    :param int thresh: The maximum derived allele count at each locus.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_compute_D2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_D2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_Dz_threshold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_Dz_threshold">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_Dz_threshold</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute Dz summed over entries with</span>
+<span class="sd">    derived allele counts 1 &lt;= nA &lt;= thresh and 1 &lt;= nB &lt;= thresh. If thresh is None,</span>
+<span class="sd">    sum over all entries in which both loci are segregating. See</span>
+<span class="sd">    :meth:`moments.TwoLocus.TLSpectrum.Dz`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    :param int thresh: The maximum derived allele count at each locus.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_compute_Dz</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_Dz</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_pi2_threshold">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_pi2_threshold">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_pi2_threshold</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute pi2 summed over entries with</span>
+<span class="sd">    derived allele counts 1 &lt;= nA &lt;= thresh and 1 &lt;= nB &lt;= thresh. If thresh is None,</span>
+<span class="sd">    sum over all entries in which both loci are segregating. See</span>
+<span class="sd">    :meth:`moments.TwoLocus.TLSpectrum.pi2`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    :param int thresh: The maximum derived allele count at each locus.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_compute_pi2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">thresh</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_pi2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_D_conditional">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_D_conditional">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_D_conditional</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nAmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nAmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute D summed over entries with</span>
+<span class="sd">    derived allele counts nAmin &lt;= nA &lt;= nAmax at the left locus and</span>
+<span class="sd">    nBmin &lt;= nB &lt;= nBmax at the right locus. Bounds that are None are not constrained</span>
+<span class="sd">    (counts range from 1 to n - 1). See :meth:`moments.TwoLocus.TLSpectrum.D`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nAmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nAmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nAmin</span><span class="p">,</span> <span class="n">nAmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nBmin</span><span class="p">,</span> <span class="n">nBmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_D</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_D2_conditional">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_D2_conditional">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_D2_conditional</span><span class="p">(</span>
+    <span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nAmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nAmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmax</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute D2 summed over entries with</span>
+<span class="sd">    derived allele counts nAmin &lt;= nA &lt;= nAmax at the left locus and</span>
+<span class="sd">    nBmin &lt;= nB &lt;= nBmax at the right locus. Bounds that are None are not constrained</span>
+<span class="sd">    (counts range from 1 to n - 1). See :meth:`moments.TwoLocus.TLSpectrum.D2`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nAmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nAmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nAmin</span><span class="p">,</span> <span class="n">nAmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nBmin</span><span class="p">,</span> <span class="n">nBmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_D2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_Dz_conditional">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_Dz_conditional">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_Dz_conditional</span><span class="p">(</span>
+    <span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nAmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nAmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmax</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute Dz summed over entries with</span>
+<span class="sd">    derived allele counts nAmin &lt;= nA &lt;= nAmax at the left locus and</span>
+<span class="sd">    nBmin &lt;= nB &lt;= nBmax at the right locus. Bounds that are None are not constrained</span>
+<span class="sd">    (counts range from 1 to n - 1). See :meth:`moments.TwoLocus.TLSpectrum.Dz`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nAmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nAmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nAmin</span><span class="p">,</span> <span class="n">nAmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nBmin</span><span class="p">,</span> <span class="n">nBmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_Dz</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stat</span></div>
+
+
+
+<div class="viewcode-block" id="compute_pi2_conditional">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Util.compute_pi2_conditional">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_pi2_conditional</span><span class="p">(</span>
+    <span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nAmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nAmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nBmax</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given a two-locus frequency spectrum, compute pi2 summed over entries with</span>
+<span class="sd">    derived allele counts nAmin &lt;= nA &lt;= nAmax at the left locus and</span>
+<span class="sd">    nBmin &lt;= nB &lt;= nBmax at the right locus. Bounds that are None are not constrained</span>
+<span class="sd">    (counts range from 1 to n - 1). See :meth:`moments.TwoLocus.TLSpectrum.pi2`.</span>
+
+<span class="sd">    :param F: The two-locus frequency spectrum.</span>
+<span class="sd">    :param bool proj: If True, use the unbiased estimator from downsampling.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nAmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nAmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmin</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">nBmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nBmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">nA</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nAmin</span><span class="p">,</span> <span class="n">nAmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nBmin</span><span class="p">,</span> <span class="n">nBmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">stat</span> <span class="o">+=</span> <span class="n">_compute_pi2</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">nA</span><span class="p">,</span> <span class="n">nB</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stat</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

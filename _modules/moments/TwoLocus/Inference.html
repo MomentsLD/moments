@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moments.TwoLocus.Inference &mdash; moments 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc837d61"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            moments
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">SFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/sfs.html">The Site Frequency Spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/parsing.html">Parsing the SFS from a VCF file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sfs/inference.html">SFS Inference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Linkage disequilibrium</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/ld.html">Multi-population LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/parsing.html">Parsing LD statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ld/inference.html">Inferring demography with LD</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extensions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/demes.html">Specifying models with <code class="docutils literal notranslate"><span class="pre">demes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/two_locus.html">Two-locus frequency spectrum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extensions/triallele.html">Triallele frequency spectrum</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/diversity.html">Demography and genetic diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/dfe.html">DFE inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/recombination.html">Linkage disequilibrium and recombination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/two_locus_selection.html">Selection at two loci</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Data types and functions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_moments.html">API for site frequency spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_ld.html">API for linkage disequilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/api_demes.html">API for <code class="docutils literal notranslate"><span class="pre">demes</span></code> functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">moments</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">moments.TwoLocus.Inference</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moments.TwoLocus.Inference</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span><span class="o">,</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">gammaln</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">logical_and</span><span class="p">,</span> <span class="n">logical_not</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">moments.Numerics</span><span class="o">,</span><span class="w"> </span><span class="nn">moments.Misc</span>
+
+<span class="n">_counter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">_out_of_bounds_val</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e12</span>
+
+
+<div class="viewcode-block" id="ll">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Inference.ll">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ll</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The log-likelihood of the data given the model linkage frequency spectrum</span>
+<span class="sd">    """</span>
+    <span class="n">ll_arr</span> <span class="o">=</span> <span class="n">ll_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_arr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ll_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Poisson log-likelihood of each entry in the data given the model sfs</span>
+<span class="sd">    """</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">-</span> <span class="n">gammaln</span><span class="p">(</span><span class="n">data</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="ll_multinom">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Inference.ll_multinom">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ll_multinom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    LL of the data given the model, with optimal rescaling</span>
+<span class="sd">    """</span>
+    <span class="n">ll_arr</span> <span class="o">=</span> <span class="n">ll_multinom_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_arr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ll_multinom_per_bin</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Multinomial log-likelihood of each entry in the data given the model</span>
+<span class="sd">    """</span>
+    <span class="n">theta_opt</span> <span class="o">=</span> <span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ll_per_bin</span><span class="p">(</span><span class="n">theta_opt</span> <span class="o">*</span> <span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="optimal_sfs_scaling">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Inference.optimal_sfs_scaling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Optimal multiplicative scaling factor between model and data</span>
+<span class="sd">    """</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">Numerics</span><span class="o">.</span><span class="n">intersect_masks</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">optimally_scaled_sfs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Optimally scaled model to data</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">optimal_sfs_scaling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="n">model</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ll_over_rho_bins</span><span class="p">(</span><span class="n">model_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The log-likelihood of the binned data given the model spectra for the same bins</span>
+<span class="sd">    Input list of models for rho bins, and list of data for rho bins</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"model list and data list must be of same length"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">LL</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model_list</span><span class="p">)):</span>
+        <span class="n">LL</span> <span class="o">+=</span> <span class="n">ll</span><span class="p">(</span><span class="n">model_list</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">data_list</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">LL</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ll_over_rho_bins_multinom</span><span class="p">(</span><span class="n">model_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The log-likelihood of the binned data given the model spectra for the same bins</span>
+<span class="sd">    Input list of models for rho bins, and list of data for rho bins</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"model list and data list must be of same length"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">LL</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model_list</span><span class="p">)):</span>
+        <span class="n">LL</span> <span class="o">+=</span> <span class="n">ll_multinom</span><span class="p">(</span><span class="n">model_list</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">data_list</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">LL</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_params_up</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Fold fixed parameters into pin.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">pin</span><span class="p">):</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="p">[</span><span class="n">pin</span><span class="p">]</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">))</span>
+    <span class="n">orig_ii</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">out_ii</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">pin</span><span class="p">[</span><span class="n">orig_ii</span><span class="p">]</span>
+            <span class="n">orig_ii</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pout</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_params</span><span class="p">[</span><span class="n">out_ii</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pout</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_params_down</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Eliminate fixed parameters from pin.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">fixed_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pin</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed_params</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"fixed_params list must have same length as input "</span> <span class="s2">"parameter array."</span>
+        <span class="p">)</span>
+
+    <span class="n">pout</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="p">(</span><span class="n">curr_val</span><span class="p">,</span> <span class="n">fixed_val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">fixed_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_val</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pout</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_object_func</span><span class="p">(</span>
+    <span class="n">params</span><span class="p">,</span>
+    <span class="n">data_list</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">rhos</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">global</span> <span class="n">_counter</span>
+    <span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Deal with fixed parameters</span>
+    <span class="n">params_up</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="c1"># Check our parameter bounds</span>
+    <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span>
+    <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pval</span><span class="p">,</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_up</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pval</span> <span class="o">&gt;</span> <span class="n">bound</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="n">_out_of_bounds_val</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">all_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">params_up</span><span class="p">,</span> <span class="n">ns</span><span class="p">]</span>
+    <span class="n">func_kwargs</span> <span class="o">=</span> <span class="n">func_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">func_kwargs</span><span class="p">[</span><span class="s2">"rhos"</span><span class="p">]</span> <span class="o">=</span> <span class="n">rhos</span>
+    <span class="n">model_list</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="o">*</span><span class="n">all_args</span><span class="p">,</span> <span class="o">**</span><span class="n">func_kwargs</span><span class="p">)</span>
+    <span class="n">rho_mids</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rhos</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rhos</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">func_kwargs</span><span class="p">[</span><span class="s2">"rhos"</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho_mids</span>
+    <span class="n">model_list_mids</span> <span class="o">=</span> <span class="n">model_func</span><span class="p">(</span><span class="o">*</span><span class="n">all_args</span><span class="p">,</span> <span class="o">**</span><span class="n">func_kwargs</span><span class="p">)</span>
+
+    <span class="c1"># trap rule</span>
+    <span class="c1"># model_list = [(m1+m2)/2. for m1,m2 in zip(model_list[:-1],model_list[1:])]</span>
+    <span class="c1"># simp rule</span>
+    <span class="n">model_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">m1</span> <span class="o">+</span> <span class="n">m2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">m3</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.0</span>
+        <span class="k">for</span> <span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">m3</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">model_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">model_list_mids</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">multinom</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll_over_rho_bins_multinom</span><span class="p">(</span><span class="n">model_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ll_over_rho_bins</span><span class="p">(</span><span class="n">model_list</span><span class="p">,</span> <span class="n">data_list</span><span class="p">)</span>
+
+    <span class="c1"># Bad result</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_out_of_bounds_val</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_counter</span> <span class="o">%</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="s2">"array([</span><span class="si">%s</span><span class="s2">])"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">"</span><span class="si">%- 12g</span><span class="s2">"</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params_up</span><span class="p">]))</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">"</span><span class="si">%-8i</span><span class="s2">, </span><span class="si">%-12g</span><span class="s2">, </span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">_counter</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">moments</span><span class="o">.</span><span class="n">Misc</span><span class="o">.</span><span class="n">delayed_flush</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">flush_delay</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_object_func_log</span><span class="p">(</span><span class="n">log_params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Objective function for optimization in log(params).</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_object_func</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_params</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="optimize_log_fmin">
+<a class="viewcode-back" href="../../../extensions/two_locus.html#moments.TwoLocus.Inference.optimize_log_fmin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_log_fmin</span><span class="p">(</span>
+    <span class="n">p0</span><span class="p">,</span>
+    <span class="n">data_list</span><span class="p">,</span>
+    <span class="n">model_func</span><span class="p">,</span>
+    <span class="n">rhos</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">flush_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">pgtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">multinom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">func_args</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">func_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">fixed_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Optimize log(params) to fit a model to two-locus data binned by recombination</span>
+<span class="sd">    distance, using the downhill simplex algorithm (scipy.optimize.fmin).</span>
+
+<span class="sd">    The model spectrum for each bin is computed by integrating over rho within the bin</span>
+<span class="sd">    using Simpson's rule, from the model evaluated at the bin edges and midpoints.</span>
+
+<span class="sd">    :param p0: Initial parameters.</span>
+<span class="sd">    :param data_list: List of two-locus frequency spectra, one for each rho bin.</span>
+<span class="sd">    :param model_func: Function that takes ``(params, ns, rhos=rhos)`` and returns a</span>
+<span class="sd">        list of model spectra, one for each value in ``rhos``.</span>
+<span class="sd">    :param rhos: The edges of the rho bins, so ``len(rhos) == len(data_list) + 1``.</span>
+<span class="sd">    :param lower_bound: Lower bounds on parameter values. Use None for no bound.</span>
+<span class="sd">    :param upper_bound: Upper bounds on parameter values. Use None for no bound.</span>
+<span class="sd">    :param int verbose: If greater than zero, print optimization status every</span>
+<span class="sd">        ``verbose`` steps.</span>
+<span class="sd">    :param float flush_delay: Standard output will be flushed once every</span>
+<span class="sd">        ``flush_delay`` minutes.</span>
+<span class="sd">    :param epsilon: Not used.</span>
+<span class="sd">    :param pgtol: Not used.</span>
+<span class="sd">    :param bool multinom: If True, the model is optimally rescaled to the data within</span>
+<span class="sd">        each bin (multinomial likelihood). If False, the Poisson likelihood is used.</span>
+<span class="sd">    :param int maxiter: Maximum number of iterations.</span>
+<span class="sd">    :param bool full_output: If True, return the full output of scipy.optimize.fmin,</span>
+<span class="sd">        ``(xopt, fopt, iter, funcalls, warnflag)``. Otherwise, return only the best-fit</span>
+<span class="sd">        parameters.</span>
+<span class="sd">    :param func_args: Not used.</span>
+<span class="sd">    :param dict func_kwargs: Additional keyword arguments to model_func.</span>
+<span class="sd">    :param fixed_params: If not None, a list of the same length as p0, in which</span>
+<span class="sd">        non-None values are held fixed during optimization.</span>
+<span class="sd">    :param str output_file: If given, write optimization status to this file instead</span>
+<span class="sd">        of standard output.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data_list</span><span class="p">,</span>
+        <span class="n">model_func</span><span class="p">,</span>
+        <span class="n">rhos</span><span class="p">,</span>
+        <span class="n">lower_bound</span><span class="p">,</span>
+        <span class="n">upper_bound</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">multinom</span><span class="p">,</span>
+        <span class="n">flush_delay</span><span class="p">,</span>
+        <span class="n">func_args</span><span class="p">,</span>
+        <span class="n">func_kwargs</span><span class="p">,</span>
+        <span class="n">fixed_params</span><span class="p">,</span>
+        <span class="n">output_stream</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">_project_params_down</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span>
+        <span class="n">_object_func_log</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p0</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">outputs</span>
+    <span class="n">xopt</span> <span class="o">=</span> <span class="n">_project_params_up</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">xopt</span><span class="p">),</span> <span class="n">fixed_params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Aaron Ragsdale.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
