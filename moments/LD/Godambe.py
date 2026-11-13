@@ -553,9 +553,9 @@ def LRT_adjust(
         ``moments.LD.Parsing.subset_data``), list exactly those statistics. The
         normalizing statistics are removed before computing likelihoods.
     :param check_hessian: If True, also compute the Hessian of the complex model over
-        all of its parameters at ``p0``, and warn if it is indefinite or nearly
-        singular, in which case the adjustment is unreliable (see the documentation
-        on likelihood ratio tests). This takes roughly ``2 * k**2`` extra model
+        all of its parameters at ``p0``, and warn if it is indefinite, in which case
+        the adjustment is unreliable (see the documentation on likelihood ratio
+        tests). This takes roughly ``2 * k**2`` extra model
         evaluations for ``k`` parameters. The adjustment factor is the same either
         way.
     :return: The adjustment factor for the likelihood ratio test statistic.

@@ -9,7 +9,7 @@ from moments.Godambe import _check_nested_hessian
 
 class CheckNestedHessian(unittest.TestCase):
     """
-    The warning in LRT_adjust for an indefinite or nearly singular Hessian of the
+    The warning in LRT_adjust for an indefinite Hessian of the
     complex model at the best fit of the nested model.
     """
 
@@ -33,14 +33,14 @@ class CheckNestedHessian(unittest.TestCase):
 
     def test_nearly_singular(self):
         # Parameters b and c are almost perfectly correlated, so the correlation-
-        # scaled Hessian has a tiny eigenvalue along b and c, whatever the scales.
+        # scaled Hessian has a tiny (but positive) eigenvalue. That is common with
+        # confounded parameters, and does not by itself make the adjustment
+        # unreliable, so it does not warn.
         C = np.array([[1, 0.1, 0.1], [0.1, 1, 0.999], [0.1, 0.999, 1]])
         s = np.array([1.0, 1e-3, 1e4])
         warned, msgs = self.check(C * np.outer(s, s))
-        self.assertTrue(warned)
-        self.assertEqual(len(msgs), 1)
-        self.assertIn("nearly singular", msgs[0])
-        self.assertIn("mostly in b, c", msgs[0])
+        self.assertFalse(warned)
+        self.assertEqual(msgs, [])
 
     def test_indefinite(self):
         # A negative eigenvalue along a and b is reported as indefinite.
