@@ -10,23 +10,56 @@ from . import Inference
 from .Spectrum_mod import Spectrum
 
 
-def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
+def _step_sizes(p0, eps, log=False):
+    """
+    Step sizes for finite-difference derivatives, and whether each derivative is
+    one-sided.
+
+    :param p0: Parameter values to take derivatives around.
+    :param eps: Fractional step size. If ``log`` is True, ``p0`` are log-parameters,
+        and the step is ``eps`` for each of them, which changes each parameter by
+        the same relative amount, with central differences.
+    :param log: If True, ``p0`` are log-parameters.
+    :return: The step sizes and a list of whether each derivative is one-sided.
+        Without ``log``, parameters equal to zero, or so small that ``eps`` times
+        the parameter is below 1e-12, use a step of ``eps`` and one-sided
+        (forward) differences, so that they are not stepped below zero.
+    """
+    steps = numpy.empty(len(p0))
+    one_sided = [False] * len(p0)
+    for i, pval in enumerate(p0):
+        if log:
+            steps[i] = eps
+        elif abs(pval) * eps < 1e-12:
+            steps[i] = eps
+            one_sided[i] = True
+        else:
+            steps[i] = eps * abs(pval)
+    return steps, one_sided
+
+
+def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
     """
     Calculate element [ii][jj] of the Hessian matrix, a matrix
     of partial second derivatives w.r.t. to parameters ii and jj
 
-    func: Model function
-    f0: Evaluation of func at p0
-    p0: Parameters for func
-    eps: List of absolute step sizes to use for each parameter when taking
-         finite differences.
-    args: Additional arguments to func
+    :param func: Model function
+    :param f0: Evaluation of func at p0
+    :param p0: Parameters for func
+    :param eps: List of absolute step sizes to use for each parameter when taking
+        finite differences.
+    :param args: Additional arguments to func
+    :param one_sided: Optionally, pass in a sequence of length p0 that determines
+        whether a one-sided derivative will be used for each parameter.
     """
     # Note that we need to specify dtype=float, to avoid this being an integer
     # array which will silently fail when adding fractional eps.
+    if one_sided is None:
+        one_sided = [p == 0 for p in p0]
+
     pwork = numpy.array(p0, copy=True, dtype=float)
     if ii == jj:
-        if pwork[ii] != 0:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -34,7 +67,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
             fm = func(pwork, *args)
 
             element = (fp - 2 * f0 + fm) / eps[ii] ** 2
-        if pwork[ii] == 0:
+        else:
             pwork[ii] = p0[ii] + 2 * eps[ii]
             fpp = func(pwork, *args)
 
@@ -43,7 +76,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
 
             element = (fpp - 2 * fp + f0) / eps[ii] ** 2
     else:
-        if pwork[ii] != 0 and pwork[jj] != 0:
+        if not one_sided[ii] and not one_sided[jj]:
             # f(xi + hi, xj + h)
             pwork[ii] = p0[ii] + eps[ii]
             pwork[jj] = p0[jj] + eps[jj]
@@ -85,7 +118,7 @@ def _hessian_elem(func, f0, p0, ii, jj, eps, args=()):
     return element
 
 
-def get_hess(func, p0, eps, args=()):
+def get_hess(func, p0, eps, args=(), log=False):
     """
     Calculate the Hessian matrix of partial second derivatives of ``func``, where
     entry ``(i, j)`` is the second derivative of ``func`` with respect to parameters
@@ -96,56 +129,47 @@ def get_hess(func, p0, eps, args=()):
     :param p0: Parameter values to take derivatives around.
     :type p0: list-like
     :param eps: Fractional stepsize to use when taking finite-difference
-        derivatives. Parameters equal to zero use a step size of ``eps``.
+        derivatives (see ``_step_sizes``). Parameters equal to zero use a step size
+        of ``eps``.
     :type eps: float
     :param args: Additional arguments to ``func``.
     :type args: tuple
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
+    :type log: bool
     :return: The Hessian matrix, with shape ``(len(p0), len(p0))``.
     :rtype: numpy.ndarray
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     f0 = func(p0, *args)
     hess = numpy.empty((len(p0), len(p0)))
     for ii in range(len(p0)):
         for jj in range(ii, len(p0)):
-            hess[ii][jj] = _hessian_elem(func, f0, p0, ii, jj, eps, args=args)
+            hess[ii][jj] = _hessian_elem(
+                func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided
+            )
             hess[jj][ii] = hess[ii][jj]
     return hess
 
 
-def _get_grad(func, p0, eps, args=()):
+def _get_grad(func, p0, eps, args=(), log=False):
     """
     Calculate gradient vector
 
-    func: Model function
-    p0: Parameters for func
-    eps: Fractional stepsize to use when taking finite-difference derivatives
-    args: Additional arguments to func
+    :param func: Model function
+    :param p0: Parameters for func
+    :param eps: Fractional stepsize to use when taking finite-difference derivatives
+        (see ``_step_sizes``).
+    :param args: Additional arguments to func
+    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
     """
-    # Calculate step sizes for finite-differences.
-    eps_in = eps
-    eps = numpy.empty([len(p0)])
-    for i, pval in enumerate(p0):
-        if pval != 0:
-            eps[i] = eps_in * pval
-        else:
-            # Account for parameters equal to zero
-            eps[i] = eps_in
+    eps, one_sided = _step_sizes(p0, eps, log=log)
 
     grad = numpy.empty([len(p0), 1])
     for ii in range(len(p0)):
         pwork = numpy.array(p0, copy=True, dtype=float)
 
-        if p0[ii] != 0:
+        if not one_sided[ii]:
             pwork[ii] = p0[ii] + eps[ii]
             fp = func(pwork, *args)
 
@@ -163,6 +187,11 @@ def _get_grad(func, p0, eps, args=()):
 
             grad[ii] = (fp - fm) / eps[ii]
     return grad
+
+
+def _expected_number_of_calls(params):
+    n = len(params)
+    return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 
 def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
@@ -199,7 +228,7 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
     if not log:
         hess = -get_hess(func, p0, eps, args=[data])
     else:
-        hess = -get_hess(log_func, numpy.log(p0), eps, args=[data])
+        hess = -get_hess(log_func, numpy.log(p0), eps, args=[data], log=True)
 
     if just_hess:
         return hess
@@ -213,7 +242,7 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
         if not log:
             grad_temp = _get_grad(func, p0, eps, args=[boot])
         else:
-            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[boot])
+            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[boot], log=True)
 
         J_temp = numpy.outer(grad_temp, grad_temp)
         J = J + J_temp
