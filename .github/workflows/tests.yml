@@ -22,8 +22,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-15, macos-26]
+        os: [ubuntu-latest]
         python-version: ["3.14", "3.15"]
+        # macOS only with the latest python, as macOS runners are often unavailable
+        # (wheels are still built and tested for all supported versions)
+        include:
+          - os: macos-15
+            python-version: "3.15"
+          - os: macos-26
+            python-version: "3.15"
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
