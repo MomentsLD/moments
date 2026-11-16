@@ -136,5 +136,96 @@ class SFSLogUncertainties(unittest.TestCase):
         self.assertTrue(np.allclose(fim_log[:4], fim[:4] / p0, rtol=0.02))
 
 
+class SidedDerivatives(unittest.TestCase):
+    """
+    Optional one-sided second-order finite differences (``side``) and step scales
+    for parameters equal to zero (``scale``) in get_hess and _get_grad.
+    """
+
+    def setUp(self):
+        rng = np.random.default_rng(1)
+        A = rng.normal(size=(4, 4))
+        self.A = A @ A.T + 4 * np.eye(4)
+        self.c = rng.normal(size=4)
+
+    def quadratic(self, p, x):
+        return -0.5 * p @ self.A @ p + x @ p
+
+    def smooth(self, p, x):
+        return np.sum(np.sin(self.c * p + x)) + np.exp(0.2 * p[0] * p[2]) + p[1] ** 3
+
+    def test_exact_for_quadratic(self):
+        # Second-order differences are exact for a quadratic function, upwards,
+        # downwards or central, including at zero and for a negative parameter.
+        p0 = np.array([1.0, 0.0, -0.5, 0.0])
+        x = np.ones(4)
+        for side in ([0, 1, 0, -1], [1, 1, -1, -1], [0, 0, 0, 0]):
+            H = moments.Godambe.get_hess(self.quadratic, p0, 1e-3, args=[x], side=side)
+            g = moments.Godambe._get_grad(self.quadratic, p0, 1e-3, args=[x], side=side)
+            self.assertTrue(np.allclose(H, -self.A, atol=1e-6), msg=f"{side}")
+            self.assertTrue(np.allclose(g.ravel(), x - self.A @ p0, atol=1e-6))
+
+    def test_godambe_matrices(self):
+        # side and scale reach the derivatives of the Godambe matrices: for a
+        # quadratic log-likelihood, H is exact and the scores of three bootstrap
+        # data sets give J and their mean (cU), also with one-sided differences.
+        p0 = np.array([1.0, 0.0, -0.5, 0.0])
+        boots = [np.ones(4), np.zeros(4), np.arange(4.0)]
+        scores = np.array([b - self.A @ p0 for b in boots])
+        _, H, J, cU = moments.Godambe._godambe_matrices(
+            self.quadratic,
+            p0,
+            [np.ones(4)],
+            boots,
+            lambda b: [b],
+            1e-3,
+            side=[0, 1, 0, -1],
+            scale=[1, 2, 1, 2],
+        )
+        self.assertTrue(np.allclose(H, self.A, atol=1e-6))
+        self.assertTrue(np.allclose(J, scores.T @ scores / 3, atol=1e-6))
+        self.assertTrue(np.allclose(cU.ravel(), scores.mean(axis=0), atol=1e-6))
+
+    def test_accurate_at_zero(self):
+        # For a non-quadratic function with parameters at zero (with a third
+        # derivative, from the cubic term in p[1]), the default one-sided
+        # differences upwards are second order, so close to the exact Hessian at
+        # eps = 0.01, and the same as with side 1 for those parameters.
+        p0 = np.array([0.8, 0.0, 1.5, 0.0])
+        x = 0.3
+        exact = -np.diag(self.c**2 * np.sin(self.c * p0 + x))
+        u = 0.2 * p0[0] * p0[2]
+        exact[0, 0] += 0.04 * p0[2] ** 2 * np.exp(u)
+        exact[2, 2] += 0.04 * p0[0] ** 2 * np.exp(u)
+        exact[0, 2] = exact[2, 0] = (0.2 + 0.04 * p0[0] * p0[2]) * np.exp(u)
+        default = moments.Godambe.get_hess(self.smooth, p0, 0.01, args=[x])
+        sided = moments.Godambe.get_hess(
+            self.smooth, p0, 0.01, args=[x], side=[0, 1, 0, 1]
+        )
+        self.assertLess(np.abs(default - exact).max(), 1e-3)
+        self.assertTrue(np.array_equal(default, sided))
+
+    def test_scale(self):
+        # The step for a parameter equal to zero is eps times its scale: here the
+        # function is only evaluated at multiples of 1e-3 * 0.5 for parameter 1.
+        steps = set()
+
+        def f(p, x):
+            steps.add(round(p[1] / 5e-4, 6))
+            return self.smooth(p, x)
+
+        p0 = np.array([0.8, 0.0, 1.5, 0.3])
+        moments.Godambe.get_hess(f, p0, 1e-3, args=[0.3], side=[0, 1, 0, 0])
+        moments.Godambe._get_grad(
+            f, p0, 1e-3, args=[0.3], side=[0, 1, 0, 0], scale=[1, 0.5, 1, 1]
+        )
+        self.assertTrue(steps >= {0, 1, 2})
+        steps.clear()
+        moments.Godambe.get_hess(
+            f, p0, 1e-3, args=[0.3], side=[0, 1, 0, 0], scale=[1, 0.5, 1, 1]
+        )
+        self.assertEqual(steps, {0, 1, 2, 3})
+
+
 if __name__ == "__main__":
     unittest.main()

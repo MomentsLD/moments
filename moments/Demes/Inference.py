@@ -787,6 +787,8 @@ def _get_godambe(
     all_boot_uL=None,
     log=False,
     just_hess=False,
+    side=None,
+    scale=None,
 ):
     # taken and adapted from moments.Godambe, to include bootstraps over uL
     ns = data.sample_sizes
@@ -803,45 +805,20 @@ def _get_godambe(
         fs = sfs_cache[key]
         return moments.Inference.ll(fs, data)
 
-    def log_func(logparams, data, uL=None):
-        return func(np.exp(logparams), data, uL=uL)
-
-    # First calculate the observed hessian
-    if not log:
-        hess = -moments.Godambe.get_hess(func, p0, eps, args=[data, uL])
-    else:
-        hess = -moments.Godambe.get_hess(
-            log_func, np.log(p0), eps, args=[data, uL], log=True
-        )
-
-    if just_hess:
-        return hess
-
-    # Now the expectation of J over the bootstrap data
-    J = np.zeros((len(p0), len(p0)))
-    # cU is a column vector
-    cU = np.zeros((len(p0), 1))
     if all_boot_uL is None:
         all_boot_uL = [uL for _ in all_boot]
-    for ii, (boot, uL) in enumerate(zip(all_boot, all_boot_uL)):
-        boot = moments.Spectrum(boot)
-        if not log:
-            grad_temp = moments.Godambe._get_grad(func, p0, eps, args=[boot, uL])
-        else:
-            grad_temp = moments.Godambe._get_grad(
-                log_func, np.log(p0), eps, args=[boot, uL], log=True
-            )
-
-        J_temp = np.outer(grad_temp, grad_temp)
-        J = J + J_temp
-        cU = cU + grad_temp
-    J = J / len(all_boot)
-    cU = cU / len(all_boot)
-
-    # G = H*J^-1*H
-    J_inv = np.linalg.inv(J)
-    godambe = np.dot(np.dot(hess, J_inv), hess)
-    return godambe, hess, J, cU
+    return moments.Godambe._godambe_matrices(
+        func,
+        p0,
+        [data, uL],
+        list(zip(all_boot, all_boot_uL)),
+        lambda boot: [moments.Spectrum(boot[0]), boot[1]],
+        eps,
+        log,
+        just_hess,
+        side=side,
+        scale=scale,
+    )
 
 
 def uncerts(
@@ -1406,6 +1383,8 @@ def _get_godambe_LD(
     eps,
     log=False,
     just_hess=False,
+    side=None,
+    scale=None,
 ):
     # Cache the LD statistics computed for the hessian and J, which reuse
     # parameter values. The cache is local to this call, since the statistics
@@ -1419,44 +1398,18 @@ def _get_godambe_LD(
         y = ld_cache[key]
         return moments.LD.Inference.ll_over_bins(means, y, varcovs)
 
-    def log_func(logparams, means, varcovs):
-        return func(np.exp(logparams), means, varcovs)
-
-    # First calculate the observed hessian
-    if not log:
-        hess = -moments.LD.Godambe._get_hess(func, p0, eps, args=[means, varcovs])
-    else:
-        hess = -moments.LD.Godambe._get_hess(
-            log_func, np.log(p0), eps, args=[means, varcovs], log=True
-        )
-
-    if just_hess:
-        return hess
-
-    # Now the expectation of J over the bootstrap data
-    J = np.zeros((len(p0), len(p0)))
-    # cU is a column vector
-    cU = np.zeros((len(p0), 1))
-    for bs_ms in all_boot:
-        # boot = LDstats(boot)
-        if not log:
-            grad_temp = moments.LD.Godambe._get_grad(
-                func, p0, eps, args=[bs_ms, varcovs]
-            )
-        else:
-            grad_temp = moments.LD.Godambe._get_grad(
-                log_func, np.log(p0), eps, args=[bs_ms, varcovs], log=True
-            )
-        J_temp = np.outer(grad_temp, grad_temp)
-        J = J + J_temp
-        cU = cU + grad_temp
-    J = J / len(all_boot)
-    cU = cU / len(all_boot)
-
-    # G = H*J^-1*H
-    J_inv = np.linalg.inv(J)
-    godambe = np.dot(np.dot(hess, J_inv), hess)
-    return godambe, hess, J, cU
+    return moments.Godambe._godambe_matrices(
+        func,
+        p0,
+        [means, varcovs],
+        all_boot,
+        lambda bs_ms: [bs_ms, varcovs],
+        eps,
+        log,
+        just_hess,
+        side=side,
+        scale=scale,
+    )
 
 
 def uncerts_LD(
