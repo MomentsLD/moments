@@ -165,6 +165,27 @@ class SidedDerivatives(unittest.TestCase):
             self.assertTrue(np.allclose(H, -self.A, atol=1e-6), msg=f"{side}")
             self.assertTrue(np.allclose(g.ravel(), x - self.A @ p0, atol=1e-6))
 
+    def test_godambe_matrices(self):
+        # side and scale reach the derivatives of the Godambe matrices: for a
+        # quadratic log-likelihood, H is exact and the scores of three bootstrap
+        # data sets give J and their mean (cU), also with one-sided differences.
+        p0 = np.array([1.0, 0.0, -0.5, 0.0])
+        boots = [np.ones(4), np.zeros(4), np.arange(4.0)]
+        scores = np.array([b - self.A @ p0 for b in boots])
+        _, H, J, cU = moments.Godambe._godambe_matrices(
+            self.quadratic,
+            p0,
+            [np.ones(4)],
+            boots,
+            lambda b: [b],
+            1e-3,
+            side=[0, 1, 0, -1],
+            scale=[1, 2, 1, 2],
+        )
+        self.assertTrue(np.allclose(H, self.A, atol=1e-6))
+        self.assertTrue(np.allclose(J, scores.T @ scores / 3, atol=1e-6))
+        self.assertTrue(np.allclose(cU.ravel(), scores.mean(axis=0), atol=1e-6))
+
     def test_more_accurate_at_zero(self):
         # For a non-quadratic function with parameters at zero, one-sided
         # differences upwards (side 1) are much closer to the exact Hessian than the

@@ -18,17 +18,18 @@ from .. import Godambe as _sfs_godambe
 import sys, os
 
 
-def _get_hess(func, p0, eps, args=(), log=False):
-    # finite-difference derivatives are shared with moments.Godambe
-    return _sfs_godambe.get_hess(func, p0, eps, args=args, log=log)
-
-
-def _get_grad(func, p0, eps, args=(), log=False):
-    return _sfs_godambe._get_grad(func, p0, eps, args=args, log=log)
-
-
 def _get_godambe(
-    func_ex, all_boot, p0, ms, vcs, eps, statistics, log=False, just_hess=False
+    func_ex,
+    all_boot,
+    p0,
+    ms,
+    vcs,
+    eps,
+    statistics,
+    log=False,
+    just_hess=False,
+    side=None,
+    scale=None,
 ):
     """
     Godambe information and Hessian matrices
@@ -45,6 +46,7 @@ def _get_godambe(
     :param statistics:
     :param log: If True, calculate derivatives in terms of log-parameters
     :param just_hess: If True, only evaluate and return the Hessian matrix
+    :param side, scale: Optional, as in ``moments.Godambe.get_hess``.
     """
 
     # Cache evaluations of the LDstats inside our hessian/J evaluation function,
@@ -59,40 +61,18 @@ def _get_godambe(
         y = ld_cache[key]
         return Inference.ll_over_bins(m, y, v)
 
-    def log_func(logparams, m, v):
-        return func(numpy.exp(logparams), m, v)
-
-    # First calculate the observed hessian.
-    if not log:
-        hess = -_get_hess(func, p0, eps, args=[ms, vcs])
-    else:
-        hess = -_get_hess(log_func, numpy.log(p0), eps, args=[ms, vcs], log=True)
-
-    if just_hess:
-        return hess
-
-    # Now the expectation of J over the bootstrap data
-    J = numpy.zeros((len(p0), len(p0)))
-    # cU is a column vector
-    cU = numpy.zeros((len(p0), 1))
-    for bs_ms in all_boot:
-        # boot = LDstats(boot)
-        if not log:
-            grad_temp = _get_grad(func, p0, eps, args=[bs_ms, vcs])
-        else:
-            grad_temp = _get_grad(
-                log_func, numpy.log(p0), eps, args=[bs_ms, vcs], log=True
-            )
-        J_temp = numpy.outer(grad_temp, grad_temp)
-        J = J + J_temp
-        cU = cU + grad_temp
-    J = J / len(all_boot)
-    cU = cU / len(all_boot)
-
-    # G = H*J^-1*H
-    J_inv = numpy.linalg.inv(J)
-    godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
-    return godambe, hess, J, cU
+    return _sfs_godambe._godambe_matrices(
+        func,
+        p0,
+        [ms, vcs],
+        all_boot,
+        lambda bs_ms: [bs_ms, vcs],
+        eps,
+        log,
+        just_hess,
+        side=side,
+        scale=scale,
+    )
 
 
 _func_calls = 0

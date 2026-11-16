@@ -173,7 +173,63 @@ def _expected_number_of_calls(params):
     return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 
-def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
+def _godambe_matrices(
+    func,
+    p0,
+    data_args,
+    all_boot,
+    boot_args,
+    eps,
+    log=False,
+    just_hess=False,
+    side=None,
+    scale=None,
+):
+    """
+    Godambe information, Hessian, J and mean score (cU) matrices, for the
+    log-likelihood ``func(params, *args)``: the Hessian with ``data_args``, and the
+    scores with ``boot_args(boot)`` for each bootstrap in ``all_boot``. Used by the
+    ``_get_godambe`` functions here and in moments.LD.Godambe and moments.Demes.
+
+    :param log: If True, calculate derivatives in terms of log-parameters.
+    :param just_hess: If True, only evaluate and return the Hessian matrix.
+    :param side, scale: Optional, as in ``get_hess``.
+    """
+    if log:
+
+        def f(logparams, *args):
+            return func(numpy.exp(logparams), *args)
+
+        p = numpy.log(p0)
+    else:
+        f, p = func, p0
+    kwargs = dict(log=log, side=side, scale=scale)
+
+    # First calculate the observed hessian
+    hess = -get_hess(f, p, eps, args=data_args, **kwargs)
+    if just_hess:
+        return hess
+
+    # Now the expectation of J over the bootstrap data
+    J = numpy.zeros((len(p0), len(p0)))
+    # cU is a column vector
+    cU = numpy.zeros((len(p0), 1))
+    for boot in all_boot:
+        grad_temp = _get_grad(f, p, eps, args=boot_args(boot), **kwargs)
+        J = J + numpy.outer(grad_temp, grad_temp)
+        cU = cU + grad_temp
+    J = J / len(all_boot)
+    cU = cU / len(all_boot)
+
+    # G = H*J^-1*H
+    J_inv = numpy.linalg.inv(J)
+    godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
+    return godambe, hess, J, cU
+
+
+def _get_godambe(
+    func_ex, all_boot, p0, data, eps, log=False, just_hess=False, side=None, scale=None
+):
     """
     Godambe information and Hessian matrices
 
@@ -186,6 +242,7 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
     eps: Fractional stepsize to use when taking finite-difference derivatives
     log: If True, calculate derivatives in terms of log-parameters
     just_hess: If True, only evaluate and return the Hessian matrix
+    side, scale: Optional, as in ``get_hess``
     """
     ns = data.sample_sizes
 
@@ -200,39 +257,18 @@ def _get_godambe(func_ex, all_boot, p0, data, eps, log=False, just_hess=False):
         fs = cache[key]
         return Inference.ll(fs, data)
 
-    def log_func(logparams, data):
-        return func(numpy.exp(logparams), data)
-
-    # First calculate the observed hessian
-    if not log:
-        hess = -get_hess(func, p0, eps, args=[data])
-    else:
-        hess = -get_hess(log_func, numpy.log(p0), eps, args=[data], log=True)
-
-    if just_hess:
-        return hess
-
-    # Now the expectation of J over the bootstrap data
-    J = numpy.zeros((len(p0), len(p0)))
-    # cU is a column vector
-    cU = numpy.zeros((len(p0), 1))
-    for ii, boot in enumerate(all_boot):
-        boot = Spectrum(boot)
-        if not log:
-            grad_temp = _get_grad(func, p0, eps, args=[boot])
-        else:
-            grad_temp = _get_grad(log_func, numpy.log(p0), eps, args=[boot], log=True)
-
-        J_temp = numpy.outer(grad_temp, grad_temp)
-        J = J + J_temp
-        cU = cU + grad_temp
-    J = J / len(all_boot)
-    cU = cU / len(all_boot)
-
-    # G = H*J^-1*H
-    J_inv = numpy.linalg.inv(J)
-    godambe = numpy.dot(numpy.dot(hess, J_inv), hess)
-    return godambe, hess, J, cU
+    return _godambe_matrices(
+        func,
+        p0,
+        [data],
+        all_boot,
+        lambda boot: [Spectrum(boot)],
+        eps,
+        log,
+        just_hess,
+        side=side,
+        scale=scale,
+    )
 
 
 def _check_nested_hessian(H, labels, caller):
