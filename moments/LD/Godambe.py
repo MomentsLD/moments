@@ -18,174 +18,13 @@ from .. import Godambe as _sfs_godambe
 import sys, os
 
 
-def _step_sizes(p0, eps, log=False):
-    """
-    Step sizes for finite-difference derivatives, and whether each derivative is
-    one-sided.
-
-    :param p0: Parameter values to take derivatives around.
-    :param eps: Fractional step size. If ``log`` is True, ``p0`` are log-parameters,
-        and the step is ``eps`` for each of them, which changes each parameter by
-        the same relative amount, with central differences.
-    :param log: If True, ``p0`` are log-parameters.
-    :return: The step sizes and a list of whether each derivative is one-sided.
-        Without ``log``, parameters equal to zero, or so small that ``eps`` times
-        the parameter is below 1e-12, use a step of ``eps`` and one-sided
-        (forward) differences, so that they are not stepped below zero.
-    """
-    steps = numpy.empty(len(p0))
-    one_sided = [False] * len(p0)
-    for i, pval in enumerate(p0):
-        if log:
-            steps[i] = eps
-        elif abs(pval) * eps < 1e-12:
-            steps[i] = eps
-            one_sided[i] = True
-        else:
-            steps[i] = eps * abs(pval)
-    return steps, one_sided
-
-
-def _hessian_elem(func, f0, p0, ii, jj, eps, args=(), one_sided=None):
-    """
-    Calculate element [ii][jj] of the Hessian matrix, a matrix
-    of partial second derivatives w.r.t. to parameters ii and jj
-
-    :param func: Model function
-    :param f0: Evaluation of func at p0
-    :param p0: Parameters for func
-    :param eps: List of absolute step sizes to use for each parameter when taking
-        finite differences.
-    :param args: Additional arguments to func
-    :param one_sided: Optionally, pass in a sequence of length p0 that determines
-        whether a one-sided derivative will be used for each parameter.
-    """
-    # Note that we need to specify dtype=float, to avoid this being an integer
-    # array which will silently fail when adding fractional eps.
-    if one_sided is None:
-        one_sided = [p == 0 for p in p0]
-
-    pwork = numpy.array(p0, copy=True, dtype=float)
-    if ii == jj:
-        if not one_sided[ii]:
-            pwork[ii] = p0[ii] + eps[ii]
-            fp = func(pwork, *args)
-
-            pwork[ii] = p0[ii] - eps[ii]
-            fm = func(pwork, *args)
-
-            element = (fp - 2 * f0 + fm) / eps[ii] ** 2
-        else:
-            pwork[ii] = p0[ii] + 2 * eps[ii]
-            fpp = func(pwork, *args)
-
-            pwork[ii] = p0[ii] + eps[ii]
-            fp = func(pwork, *args)
-
-            element = (fpp - 2 * fp + f0) / eps[ii] ** 2
-    else:
-        if not one_sided[ii] and not one_sided[jj]:
-            # f(xi + hi, xj + h)
-            pwork[ii] = p0[ii] + eps[ii]
-            pwork[jj] = p0[jj] + eps[jj]
-            fpp = func(pwork, *args)
-
-            # f(xi + hi, xj - hj)
-            pwork[ii] = p0[ii] + eps[ii]
-            pwork[jj] = p0[jj] - eps[jj]
-            fpm = func(pwork, *args)
-
-            # f(xi - hi, xj + hj)
-            pwork[ii] = p0[ii] - eps[ii]
-            pwork[jj] = p0[jj] + eps[jj]
-            fmp = func(pwork, *args)
-
-            # f(xi - hi, xj - hj)
-            pwork[ii] = p0[ii] - eps[ii]
-            pwork[jj] = p0[jj] - eps[jj]
-            fmm = func(pwork, *args)
-
-            element = (fpp - fpm - fmp + fmm) / (4 * eps[ii] * eps[jj])
-        else:
-            # f(xi + hi, xj + h)
-            pwork[ii] = p0[ii] + eps[ii]
-            pwork[jj] = p0[jj] + eps[jj]
-            fpp = func(pwork, *args)
-
-            # f(xi + hi, xj)
-            pwork[ii] = p0[ii] + eps[ii]
-            pwork[jj] = p0[jj]
-            fpm = func(pwork, *args)
-
-            # f(xi, xj + hj)
-            pwork[ii] = p0[ii]
-            pwork[jj] = p0[jj] + eps[jj]
-            fmp = func(pwork, *args)
-
-            element = (fpp - fpm - fmp + f0) / (eps[ii] * eps[jj])
-    return element
-
-
 def _get_hess(func, p0, eps, args=(), log=False):
-    """
-    Calculate Hessian matrix of partial second derivatives.
-    Hij = dfunc/(dp_i dp_j)
-
-    :param func: Model function
-    :param p0: Parameter values to take derivative around
-    :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        (see ``_step_sizes``).
-    :param args: Additional arguments to func
-    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
-    """
-    eps, one_sided = _step_sizes(p0, eps, log=log)
-
-    f0 = func(p0, *args)
-    hess = numpy.empty((len(p0), len(p0)))
-    for ii in range(len(p0)):
-        for jj in range(ii, len(p0)):
-            hess[ii][jj] = _hessian_elem(
-                func, f0, p0, ii, jj, eps, args=args, one_sided=one_sided
-            )
-            hess[jj][ii] = hess[ii][jj]
-    return hess
+    # finite-difference derivatives are shared with moments.Godambe
+    return _sfs_godambe.get_hess(func, p0, eps, args=args, log=log)
 
 
 def _get_grad(func, p0, eps, args=(), log=False):
-    """
-    Calculate gradient vector
-
-    :param func: Model function
-    :param p0: Parameters for func
-    :param eps: Fractional stepsize to use when taking finite-difference derivatives
-        (see ``_step_sizes``).
-    :param args: Additional arguments to func
-    :param log: If True, ``p0`` are log-parameters, and the step size is ``eps``.
-    """
-    eps, one_sided = _step_sizes(p0, eps, log=log)
-
-    grad = numpy.empty([len(p0), 1])
-    for ii in range(len(p0)):
-        pwork = numpy.array(p0, copy=True, dtype=float)
-
-        if not one_sided[ii]:
-            pwork[ii] = p0[ii] + eps[ii]
-            fp = func(pwork, *args)
-
-            pwork[ii] = p0[ii] - eps[ii]
-            fm = func(pwork, *args)
-
-            grad[ii] = (fp - fm) / (2 * eps[ii])
-        else:
-            # Do one-sided finite-difference
-            pwork[ii] = p0[ii] + eps[ii]
-            fp = func(pwork, *args)
-
-            pwork[ii] = p0[ii]
-            fm = func(pwork, *args)
-
-            grad[ii] = (fp - fm) / eps[ii]
-    return grad
+    return _sfs_godambe._get_grad(func, p0, eps, args=args, log=log)
 
 
 def _get_godambe(
@@ -258,11 +97,6 @@ def _get_godambe(
 
 _func_calls = 0
 _output_stream = sys.stdout
-
-
-def _expected_number_of_calls(params):
-    n = len(params)
-    return 4 * n * (n - 1) // 2 + 2 * n + 1
 
 
 def _remove_normalizing_statistics(
@@ -360,7 +194,7 @@ def GIM_uncert(
     if verbose > 0:
         _output_stream.write(
             "Expected number of function calls: "
-            + str(_expected_number_of_calls(p0))
+            + str(_sfs_godambe._expected_number_of_calls(p0))
             + os.linesep
         )
         Misc.delayed_flush(delay=0.5)
@@ -465,7 +299,7 @@ def FIM_uncert(
     if verbose > 0:
         _output_stream.write(
             "Expected number of function calls: "
-            + str(_expected_number_of_calls(p0))
+            + str(_sfs_godambe._expected_number_of_calls(p0))
             + os.linesep
         )
         Misc.delayed_flush(delay=0.5)

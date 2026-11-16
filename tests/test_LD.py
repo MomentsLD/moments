@@ -1110,9 +1110,9 @@ class GodambeStepSizes(unittest.TestCase):
         # values. With log (log-parameters), every step is eps, with central
         # derivatives, including for log-parameters that are zero or negative.
         p0 = [2.0, -0.5, 0, 1e-14]
-        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01)
+        steps, one_sided = moments.Godambe._step_sizes(p0, 0.01)
         self.assertTrue(np.allclose(steps, [0.02, 0.005, 0.01, 0.01]))
         self.assertEqual(one_sided, [False, False, True, True])
-        steps, one_sided = moments.LD.Godambe._step_sizes(p0, 0.01, log=True)
+        steps, one_sided = moments.Godambe._step_sizes(p0, 0.01, log=True)
         self.assertTrue(np.allclose(steps, 0.01))
         self.assertEqual(one_sided, [False] * 4)

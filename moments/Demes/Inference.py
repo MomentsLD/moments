@@ -810,7 +810,9 @@ def _get_godambe(
     if not log:
         hess = -moments.Godambe.get_hess(func, p0, eps, args=[data, uL])
     else:
-        hess = -moments.Godambe.get_hess(log_func, np.log(p0), eps, args=[data, uL])
+        hess = -moments.Godambe.get_hess(
+            log_func, np.log(p0), eps, args=[data, uL], log=True
+        )
 
     if just_hess:
         return hess
@@ -827,7 +829,7 @@ def _get_godambe(
             grad_temp = moments.Godambe._get_grad(func, p0, eps, args=[boot, uL])
         else:
             grad_temp = moments.Godambe._get_grad(
-                log_func, np.log(p0), eps, args=[boot, uL]
+                log_func, np.log(p0), eps, args=[boot, uL], log=True
             )
 
         J_temp = np.outer(grad_temp, grad_temp)
@@ -936,7 +938,7 @@ def uncerts(
     )
 
     if verbose > 0:
-        exp_num_calls = moments.LD.Godambe._expected_number_of_calls(p0)
+        exp_num_calls = moments.Godambe._expected_number_of_calls(p0)
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )
@@ -1552,7 +1554,7 @@ def uncerts_LD(
     )
 
     if verbose > 0:
-        exp_num_calls = moments.LD.Godambe._expected_number_of_calls(p0)
+        exp_num_calls = moments.Godambe._expected_number_of_calls(p0)
         output_stream.write(
             "Expected number of function calls: " + str(exp_num_calls) + os.linesep
         )

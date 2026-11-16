@@ -114,5 +114,27 @@ class SFSLRTAdjustHessianCheck(unittest.TestCase):
             self.assertEqual(labels, ["p0[3]"])
 
 
+class SFSLogUncertainties(unittest.TestCase):
+    def test_log_uncertainties(self):
+        # With log=True, uncertainties are those of the log-parameters, which are the
+        # relative uncertainties of the parameters (the delta method), also for
+        # parameters equal to 1 (log-parameter 0), which used one-sided steps.
+        def model(params, ns):
+            return moments.Demographics2D.split_mig(params, ns)
+
+        p0 = np.array([1.0, 2.0, 0.3, 1.0])
+        data = model(p0, [10, 10]) * 20000
+        rng = np.random.default_rng(1)
+        boots = [moments.Spectrum(rng.poisson(data.data)) for _ in range(30)]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            gim = moments.Godambe.GIM_uncert(model, boots, p0, data)
+            gim_log = moments.Godambe.GIM_uncert(model, boots, p0, data, log=True)
+            fim = moments.Godambe.FIM_uncert(model, p0, data)
+            fim_log = moments.Godambe.FIM_uncert(model, p0, data, log=True)
+        self.assertTrue(np.allclose(gim_log[:4], gim[:4] / p0, rtol=0.02))
+        self.assertTrue(np.allclose(fim_log[:4], fim[:4] / p0, rtol=0.02))
+
+
 if __name__ == "__main__":
     unittest.main()
