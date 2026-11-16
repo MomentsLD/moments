@@ -293,6 +293,58 @@ class TestOptionsValidation(TempFilesTestCase):
             self.assertTrue(p[1] > p[0])
 
 
+class TestMissingEndSize(TempFilesTestCase):
+    """
+    An epoch's end_size left out of the graph equals its start_size (as demes.dump
+    writes constant sizes), so options files can refer to it.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # deme A has a constant size of 2000, with no end_size in GRAPH
+        self.builder = demes.loads_asdict(GRAPH)
+        self.tied = (
+            "parameters:\n- name: NA\n  values:\n"
+            "  - demes: {A: {epochs: {0: start_size}}}\n"
+            "  - demes: {A: {epochs: {0: end_size}}}\n"
+            "  lower_bound: 100\n  upper_bound: 100000\n"
+        )
+
+    def test_get_value(self):
+        # A's end_size reads as its start_size, alone or tied to the start_size;
+        # setting it adds it to the graph, which then has a size change.
+        end = [{"demes": {"A": {"epochs": {0: "end_size"}}}}]
+        self.assertEqual(Inference._get_value(self.builder, end), 2000)
+        self.assertEqual(Inference._get_value(self.builder, SIZE_A + end), 2000)
+        builder = Inference._set_value(self.builder, end, 4000)
+        self.assertEqual(Inference._get_value(builder, end), 4000)
+        self.assertEqual(demes.Graph.fromdict(builder)["A"].epochs[0].end_size, 4000)
+        # other missing attributes still raise
+        with self.assertRaises(ValueError):
+            Inference._get_value(
+                self.builder, [{"demes": {"A": {"epochs": {0: "selfing_rate"}}}}]
+            )
+
+    def test_fit_then_uncerts(self):
+        # Fit one size for A's start and end (NA) from a graph without end_size; the
+        # output graph (written by demes.dump, which leaves out the equal end_size)
+        # can be used for uncerts and as the start of another fit.
+        start = self.write(
+            "start.yaml", GRAPH.replace("start_size: 2000", "start_size: 1500")
+        )
+        options = self.write("options.yaml", self.tied)
+        output = os.path.join(self.tmpdir.name, "fit.yaml")
+        fs = moments.Demes.SFS(demes.loads(GRAPH), samples={"A": 6, "B": 6}, theta=1000)
+        names, popt, LL = Inference.optimize(start, options, fs, output=output)
+        self.assertTrue(np.isclose(popt[0], 2000, rtol=1e-2))
+        self.assertNotIn(
+            "end_size", Inference._get_demes_dict(output)["demes"][1]["epochs"][0]
+        )
+        sd = Inference.uncerts(output, options, fs)
+        self.assertTrue(np.all(np.isfinite(sd)) and np.all(sd > 0))
+        Inference.optimize(output, options, fs, maxiter=5)
+
+
 class TestSetValues(unittest.TestCase):
     """Updating graph values from parameters."""
 

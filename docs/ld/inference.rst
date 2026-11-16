@@ -422,20 +422,21 @@ independent, :math:`D` would follow a :math:`\chi^2` distribution under the
 simple model, with degrees of freedom equal to the number of nested parameters.
 
 The LD likelihood is a composite likelihood, which treats the recombination
-bins as independent, so this :math:`\chi^2` test is badly overconfident.
-Following [Coffman2016]_, ``moments.LD.Godambe.LRT_adjust`` uses the bootstrap
-replicates to compute an adjustment factor ``adj``, and the adjusted statistic
-:math:`D_{adj} = adj \times D` is then compared to the :math:`\chi^2`
-distribution. For LD statistics, ``adj`` is usually much smaller than one,
-because the statistics in different recombination bins are computed from the
-same pairs of SNPs and so are strongly correlated.
+bins as independent, so this :math:`\chi^2` test is overconfident, and
+sometimes very overconfident.  Following [Coffman2016]_,
+``moments.LD.Godambe.LRT_adjust`` uses the bootstrap replicates to compute an
+adjustment factor ``adj``, and the adjusted statistic :math:`D_{adj} = adj
+\times D` is then compared to the :math:`\chi^2` distribution. For LD
+statistics, ``adj`` is usually much smaller than one, because the statistics in
+different recombination bins are computed from the same pairs of SNPs and so
+are strongly correlated.
 
 ``LRT_adjust`` takes the complex model function and the parameters of the best
-fit of the simple model, given as parameters of the complex model with the nested
-parameters set to their fixed values (and Ne as the last entry), along with the
-indices of the nested parameters:
-``LRT_adjust(model_func, bootstrap_sets, p_nested, nested_indices, means,
-varcovs, r_edges=rs)``. The p-value is given by ``moments.Godambe.sum_chi2_ppf``.
+fit of the simple model, given as parameters of the complex model with the
+nested parameters set to their fixed values, and setting Ne as the last entry,
+along with the indices of the nested parameters: ``LRT_adjust(model_func,
+bootstrap_sets, p_nested, nested_indices, means, varcovs, r_edges=rs)``. The
+p-value is given by ``moments.Godambe.sum_chi2_ppf``. 
 
 Example
 -------
@@ -492,19 +493,15 @@ but with a much less extreme p-value.
 When the adjustment is too conservative
 ---------------------------------------
 
-``LRT_adjust`` (for both the SFS and LD) can be very conservative. Its
-adjustment factor shrinks roughly as :math:`1/D`, so the adjusted statistic
-stays small even when :math:`D` is very large. In simulations testing for weak
-migration, the adjusted SFS test rarely rejected the model without migration at
-a 1% level, and the adjusted LD test did so in fewer than half of the
-replicates.
-
-A large :math:`D` (hundreds or more) with an adjusted statistic of only a few
-units suggests the adjustment is too conservative, and a non-significant result
-should then be treated as inconclusive. ``LRT_adjust`` also warns when the
-Hessian of the complex model at the simple model's best fit is indefinite, in
-which case the adjustment factor is unreliable. In either
-case, the alternatives are, from cheapest to most expensive:
+``LRT_adjust`` (for both the SFS and LD) can be very conservative, such that
+the adjusted LRT using either the SFS or LD may fail to reject a simpler model
+when the full model is closer to the truth. A large :math:`D` (hundreds or
+more) with an adjusted statistic of only a few units suggests the adjustment is
+too conservative, and a non-significant result should then be treated as
+inconclusive. ``LRT_adjust`` also warns when the Hessian of the complex model
+at the simple model's best fit is indefinite, in which case the adjustment
+factor is unreliable. In either case, alternatives are, from least to most
+computationally expensive:
 
 1. **A Wald test from the GIM uncertainties of the complex model.** This needs no
    further fits: compute :math:`SE_{GIM}` at the complex model's best fit with
