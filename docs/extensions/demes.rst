@@ -555,6 +555,9 @@ genetics models). For any parameter, we can set the lower bound and upper bound
 as shown here. If they are not given, the lower bound defaults to 0 and the
 upper bound defaults to infinity.
 
+If an epoch's ``end_size`` is not specified, it equals its ``start_size``,
+following the Demes specification.
+
 Finally, we can also specify constraints on parameters. For example, if some
 event necessarily occurs before another, we should add that relationship to the
 list of constraints.

@@ -111,6 +111,19 @@ def _get_deme_map(builder):
     return deme_map
 
 
+def _get_epoch_value(epoch, attribute):
+    """
+    An attribute of an epoch in the graph dict. An end_size that the graph leaves out
+    equals the epoch's start_size, as in the Demes specification. demes.dump leaves
+    out end sizes equal to start sizes, so this lets an options file refer to the end
+    size of a constant-size epoch (for example, with one parameter for its start and
+    end sizes) in graphs written by optimize().
+    """
+    if attribute == "end_size" and "end_size" not in epoch and "start_size" in epoch:
+        return epoch["start_size"]
+    return epoch[attribute]
+
+
 def _get_value(builder, values):
     """
     If there are more than one, check that they are equal.
@@ -131,9 +144,10 @@ def _get_value(builder, values):
                             for k2, attribute in value["demes"][deme][k1].items():
                                 try:
                                     inputs.append(
-                                        builder["demes"][deme_map[deme]][k1][k2][
-                                            attribute
-                                        ]
+                                        _get_epoch_value(
+                                            builder["demes"][deme_map[deme]][k1][k2],
+                                            attribute,
+                                        )
                                     )
                                 except:
                                     raise ValueError(
