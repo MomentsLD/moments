@@ -966,6 +966,54 @@ data:
         print(f"{n}\t{p:-11g}\t{e:-14g}")
 
 
+
+**********************
+Likelihood ratio tests
+**********************
+
+To test whether a simpler model is supported, such as a model without
+migration, fit both models and compare them with a likelihood ratio test. The
+simpler (nested) model is specified by its own options file:
+
+- leave a parameter out of the nested model's options file to fix it at its
+  value in the nested model's graph (for example, a migration with rate 0: keep
+  the migration in the graph, so both graphs have the same structure), or
+- give one parameter several values of the complex model (for example, one size
+  for the start and end of an epoch, for a constant size).
+
+With linked data (bootstrap replicates over regions), the likelihood ratio
+statistic ``D = 2 * (ll_complex - ll_nested)`` is adjusted by a factor computed
+from the two best-fit graphs and their options files, with
+``moments.Demes.LRT.LRT_adjust`` (or ``LRT_adjust_LD`` for LD statistics, with
+the arguments of ``uncerts_LD``):
+
+.. code-block:: python
+
+    # each fit returns the negative log-likelihood
+    _, _, neg_ll_complex = moments.Demes.Inference.optimize(
+        "start.yaml", "complex_options.yaml", data, uL=uL, output="complex_fit.yaml"
+    )
+    _, _, neg_ll_nested = moments.Demes.Inference.optimize(
+        "start_no_mig.yaml", "nested_options.yaml", data, uL=uL, output="nested_fit.yaml"
+    )
+    D = 2 * (neg_ll_nested - neg_ll_complex)
+    adj = moments.Demes.LRT.LRT_adjust(
+        "complex_fit.yaml",
+        "complex_options.yaml",
+        "nested_fit.yaml",
+        "nested_options.yaml",
+        data,
+        bootstraps,
+        uL=uL,
+    )
+    # migration fixed at its lower bound, 0: a 50:50 mixture of chi^2_0 and chi^2_1
+    p_value = moments.Godambe.sum_chi2_ppf(adj * D, weights=(0.5, 0.5))
+
+The weights are those of the null distribution of the test: ``(0, 1)`` for one
+parameter in the interior of its range, and ``(0.5, 0.5)`` for one parameter
+fixed at a bound, as a migration rate at zero. Derivatives of parameters at a
+bound are taken away from the bound.
+
 **********
 References
 **********
