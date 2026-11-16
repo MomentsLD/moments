@@ -63,6 +63,11 @@ If you use ``moments.TwoLocus`` in your research, please cite:
 Change log
 **********
 
+1.7.2
+=====
+- Godambe derivatives use second-order one-sided differences for parameters at
+  zero, which slightly changes uncertainties and LRT adjustments at boundaries
+
 1.7.1
 =====
 - Bug fix: ``moments.LD.Godambe.LRT_adjust`` returned an adjustment factor

@@ -186,11 +186,11 @@ class SidedDerivatives(unittest.TestCase):
         self.assertTrue(np.allclose(J, scores.T @ scores / 3, atol=1e-6))
         self.assertTrue(np.allclose(cU.ravel(), scores.mean(axis=0), atol=1e-6))
 
-    def test_more_accurate_at_zero(self):
-        # For a non-quadratic function with parameters at zero, one-sided
-        # differences upwards (side 1) are much closer to the exact Hessian than the
-        # default first-order forward differences at eps = 0.01 (whose error is
-        # proportional to the third derivative, from the cubic term in p[1]).
+    def test_accurate_at_zero(self):
+        # For a non-quadratic function with parameters at zero (with a third
+        # derivative, from the cubic term in p[1]), the default one-sided
+        # differences upwards are second order, so close to the exact Hessian at
+        # eps = 0.01, and the same as with side 1 for those parameters.
         p0 = np.array([0.8, 0.0, 1.5, 0.0])
         x = 0.3
         exact = -np.diag(self.c**2 * np.sin(self.c * p0 + x))
@@ -202,8 +202,8 @@ class SidedDerivatives(unittest.TestCase):
         sided = moments.Godambe.get_hess(
             self.smooth, p0, 0.01, args=[x], side=[0, 1, 0, 1]
         )
-        self.assertLess(np.abs(sided - exact).max(), 1e-3)
-        self.assertGreater(np.abs(default - exact).max(), 1e-3)
+        self.assertLess(np.abs(default - exact).max(), 1e-3)
+        self.assertTrue(np.array_equal(default, sided))
 
     def test_scale(self):
         # The step for a parameter equal to zero is eps times its scale: here the

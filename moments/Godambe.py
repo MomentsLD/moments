@@ -40,18 +40,15 @@ def _step_sizes(p0, eps, log=False):
 
 # Finite-difference stencils: offsets (in steps h) and weights, so that a first
 # derivative is sum(w * f(p + o * h)) / h, and a second derivative
-# sum(w * f(p + o * h)) / h ** 2. "forward" is first order (the default for
-# one-sided derivatives), and "forward2" second order; with a negative h, they are
-# downward differences.
+# sum(w * f(p + o * h)) / h ** 2. "forward" differences are one-sided and second
+# order (error proportional to h ** 2); with a negative h, they are downward.
 _FIRST = {
     "central": ((1, -1), (0.5, -0.5)),
-    "forward": ((1, 0), (1, -1)),
-    "forward2": ((0, 1, 2), (-1.5, 2, -0.5)),
+    "forward": ((0, 1, 2), (-1.5, 2, -0.5)),
 }
 _SECOND = {
     "central": ((1, 0, -1), (1, -2, 1)),
-    "forward": ((2, 1, 0), (1, -2, 1)),
-    "forward2": ((0, 1, 2, 3), (2, -5, 4, -1)),
+    "forward": ((0, 1, 2, 3), (2, -5, 4, -1)),
 }
 
 
@@ -63,9 +60,9 @@ def _stencils(p0, eps, log=False, side=None, scale=None):
     if scale is not None:
         steps = numpy.where(one_sided, eps * numpy.abs(scale), steps)
     if side is None:
-        return steps, ["forward" if o else "central" for o in one_sided]
+        side = [1 if o else 0 for o in one_sided]
     steps = numpy.where(numpy.asarray(side) < 0, -steps, steps)
-    return steps, ["central" if s == 0 else "forward2" for s in side]
+    return steps, ["central" if s == 0 else "forward" for s in side]
 
 
 def _evaluate(func, p0, shifts, args=(), f0=None):
@@ -97,11 +94,7 @@ def _hessian_elem(func, f0, p0, ii, jj, steps, kinds, args=()):
         return (
             _along(func, p0, ii, steps, _SECOND[kinds[ii]], args, f0) / steps[ii] ** 2
         )
-    ki, kj = kinds[ii], kinds[jj]
-    if "forward" in (ki, kj):
-        # first-order one-sided derivatives step both parameters forward
-        ki = kj = "forward"
-    (oi, wi), (oj, wj) = _FIRST[ki], _FIRST[kj]
+    (oi, wi), (oj, wj) = _FIRST[kinds[ii]], _FIRST[kinds[jj]]
     total = sum(
         a * b * _evaluate(func, p0, {ii: x * steps[ii], jj: y * steps[jj]}, args, f0)
         for x, a in zip(oi, wi)
@@ -131,7 +124,8 @@ def get_hess(func, p0, eps, args=(), log=False, side=None, scale=None):
     :param side: Optional, one entry per parameter: 0 for central differences, 1
         for second-order one-sided differences upwards (for a parameter on a lower
         bound), -1 downwards (on an upper bound). By default, parameters equal to
-        zero use first-order forward differences, and others central differences.
+        zero (see ``_step_sizes``) use one-sided differences upwards, and others
+        central differences.
     :type side: list-like
     :param scale: Optional, one entry per parameter: the step size of parameters
         equal to zero is ``eps`` times their ``scale`` (by default, ``eps``).
