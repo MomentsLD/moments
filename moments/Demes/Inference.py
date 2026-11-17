@@ -1080,6 +1080,25 @@ def compute_bin_stats(g, sampled_demes, sample_times=None, rs=None):
     return model
 
 
+def _expected_ld(g, pop_ids, rs, normalization, statistics=None):
+    """
+    The expected LD statistics for a graph, as the data are processed: averaged over
+    recombination bins (edges ``rs``), normalized by the population
+    ``normalization``, and with the normalizing statistics removed, keeping only
+    ``statistics`` if given. ``pop_ids`` may include ancient samples (see
+    ``_get_sampled_demes_and_times``).
+    """
+    sampled_demes, sample_times = _get_sampled_demes_and_times(pop_ids, g)
+    model = compute_bin_stats(g, sampled_demes, sample_times=sample_times, rs=rs)
+    norm_idx = pop_ids.index(normalization)
+    model = moments.LD.Inference.sigmaD2(model, normalization=norm_idx)
+    if statistics is None:
+        return moments.LD.Inference.remove_normalized_lds(model, normalization=norm_idx)
+    return moments.LD.Inference.remove_nonpresent_statistics(
+        model, statistics=statistics
+    )
+
+
 def _object_func_LD(
     params,
     means,
@@ -1117,26 +1136,7 @@ def _object_func_LD(
         _warn_invalid_graph(run_state if run_state is not None else {}, err)
         return -_out_of_bounds_val
 
-    # compute LD stats
-    sampled_demes = pop_ids
-
-    # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
-    input_sampled_demes, sample_times = _get_sampled_demes_and_times(sampled_demes, g)
-
-    model = compute_bin_stats(g, input_sampled_demes, sample_times=sample_times, rs=rs)
-
-    # normalize statistics based on normalization population
-    norm_idx = pop_ids.index(normalization)
-    model = moments.LD.Inference.sigmaD2(model, normalization=norm_idx)
-    if statistics is None:
-        model = moments.LD.Inference.remove_normalized_lds(
-            model, normalization=norm_idx
-        )
-    else:
-        model = moments.LD.Inference.remove_nonpresent_statistics(
-            model, statistics=statistics
-        )
-
+    model = _expected_ld(g, pop_ids, rs, normalization, statistics)
     LL = moments.LD.Inference.ll_over_bins(means, model, varcovs)
 
     # treat a failed likelihood evaluation like an out-of-bounds parameter, so the
@@ -1526,23 +1526,7 @@ def uncerts_LD(
 
         # update the builder dict, then compute LD
         builder, g = _build_graph_for_uncerts(builder, options, params)
-
-        sampled_demes = pop_ids
-        # handle ancient samples, which have pop ids "{deme}_sampled_{gen}_{frac_gen}"
-        input_sampled_demes, sample_times = _get_sampled_demes_and_times(
-            sampled_demes, g
-        )
-
-        model = compute_bin_stats(
-            g, input_sampled_demes, sample_times=sample_times, rs=rs
-        )
-
-        # normalize statistics based on normalization population
-        norm_idx = pop_ids.index(normalization)
-        model = moments.LD.Inference.sigmaD2(model, normalization=norm_idx)
-        model = moments.LD.Inference.remove_nonpresent_statistics(
-            model, statistics=statistics
-        )
+        model = _expected_ld(g, pop_ids, rs, normalization, statistics)
 
         if (verbose > 0) and (func_calls % verbose == 0):
             if func_calls == 1:
