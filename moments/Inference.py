@@ -429,8 +429,8 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
 
     missing = logical_and(model < 0, not_data_mask)
     if numpy.any(missing) and data[missing].sum() / data.sum() > missing_model_cutoff:
-        logger.warn("Model is < 0 where data is not masked.")
-        logger.warn(
+        logger.warning("Model is < 0 where data is not masked.")
+        logger.warning(
             "Number of affected entries is %i. Sum of data in those "
             "entries is %g:" % (missing.sum(), data[missing].sum())
         )
@@ -439,25 +439,24 @@ def ll_per_bin(model, data, missing_model_cutoff=1e-6):
     # contribution is 0, which is fine.
     missing = logical_and(model == 0, logical_and(data > 0, not_data_mask))
     if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
-        logger.warn("Model is 0 where data is neither masked nor 0.")
-        logger.warn(
+        logger.warning("Model is 0 where data is neither masked nor 0.")
+        logger.warning(
             "Number of affected entries is %i. Sum of data in those "
             "entries is %g:" % (missing.sum(), data[missing].sum())
         )
 
     missing = numpy.logical_and(model.mask, not_data_mask)
     if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
-        print(data[missing].sum(), data_sum)
-        logger.warn("Model is masked in some entries where data is not.")
-        logger.warn(
+        logger.warning("Model is masked in some entries where data is not.")
+        logger.warning(
             "Number of affected entries is %i. Sum of data in those "
             "entries is %g:" % (missing.sum(), data[missing].sum())
         )
 
     missing = numpy.logical_and(numpy.isnan(model), not_data_mask)
     if numpy.any(missing) and data[missing].sum() / data_sum > missing_model_cutoff:
-        logger.warn("Model is nan in some entries where data is not masked.")
-        logger.warn(
+        logger.warning("Model is nan in some entries where data is not masked.")
+        logger.warning(
             "Number of affected entries is %i. Sum of data in those "
             "entries is %g:" % (missing.sum(), data[missing].sum())
         )

@@ -167,13 +167,13 @@ class Spectrum(np.ma.masked_array):
             # Which entries are nonsense in the folded fs.
             where_folded_out = total_per_entry > int(total_samples / 2)
             if check_folding and not np.all(subarr.data[where_folded_out] == 0):
-                logger.warn(
+                logger.warning(
                     "Creating Spectrum with data_folded = True, but "
                     "data has non-zero values in entries which are "
                     "nonsensical for a folded Spectrum."
                 )
             if check_folding and not np.all(subarr.mask[where_folded_out]):
-                logger.warn(
+                logger.warning(
                     "Creating Spectrum with data_folded = True, but "
                     "mask is not True for all entries which are "
                     "nonsensical for a folded Spectrum."
@@ -183,7 +183,7 @@ class Spectrum(np.ma.masked_array):
             if pop_ids is None or pop_ids == data.pop_ids:
                 subarr.pop_ids = data.pop_ids
             elif pop_ids != data.pop_ids:
-                logger.warn(
+                logger.warning(
                     "Changing population labels in construction of new " "Spectrum."
                 )
                 if len(pop_ids) != subarr.ndim:
@@ -403,7 +403,7 @@ class Spectrum(np.ma.masked_array):
         orig_mask = output.mask.copy()
         orig_mask.flat[0] = orig_mask.flat[-1] = False
         if np.any(orig_mask):
-            logger.warn(
+            logger.warning(
                 "Marginalizing a Spectrum with internal masked values. "
                 "This may not be a well-defined operation."
             )
@@ -2384,7 +2384,7 @@ def %(method)s(self, other):
         elif self.pop_ids is None:
             newpop_ids = other.pop_ids
         elif other.pop_ids != self.pop_ids:
-            logger.warn('Arithmetic between Spectra with different pop_ids. '
+            logger.warning('Arithmetic between Spectra with different pop_ids. '
                         'Resulting pop_id may not be correct.')
     outfs = self.__class__.__new__(self.__class__, newdata, newmask, 
                                    mask_corners=False, data_folded=self.folded,
@@ -2415,7 +2415,7 @@ def %(method)s(self, other):
     _warn_if_new_nonfinite(self.data, self.mask, [data_before, other_data], "%(method)s")
     if hasattr(other, 'pop_ids') and other.pop_ids is not None\
              and other.pop_ids != self.pop_ids:
-        logger.warn('Arithmetic between Spectra with different pop_ids. '
+        logger.warning('Arithmetic between Spectra with different pop_ids. '
                     'Resulting pop_id may not be correct.')
     return self
 """ % {"method": method})
