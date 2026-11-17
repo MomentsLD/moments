@@ -67,6 +67,8 @@ Change log
 =====
 - Godambe derivatives use second-order one-sided differences for parameters at
   zero, which slightly changes uncertainties and LRT adjustments at boundaries
+- New ``moments.Demes.LRT`` module: likelihood ratio test adjustments for nested
+  Demes models, read from their options files (``LRT_adjust`` and ``LRT_adjust_LD``)
 
 1.7.1
 =====
