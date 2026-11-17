@@ -251,7 +251,7 @@ def check_function_regularity(function, t):
     )
 
     if (relative_increase > 0).any() and (relative_increase < 0).any():
-        logger.warn("Warning: non monotonic function!")
+        logger.warning("Warning: non monotonic function!")
 
     if (abs(relative_increase) > 5).any():
-        logger.warn("Warning: rapid changes in your function!")
+        logger.warning("Warning: rapid changes in your function!")
